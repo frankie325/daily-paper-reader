@@ -1,0 +1,665 @@
+Title: Understand Before Detect: Vision–Language Learning for Omni-Domain Infrared Small Target Detection
+
+URL Source: https://arxiv.org/pdf/2608.07015v1
+
+Published Time: Mon, 10 Aug 2026 00:42:25 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Understand Before Detect: Vision–Language Learning for Omni-Domain Infrared Small Target Detection 
+
+## Haoyang Yuan 1, Boyang Li 1, Yingqian Wang 1, Yimian Dai 2, Nuo Chen 3,Xinfei Huang 1, Shuqi Yi 1, Zaiping Lin 1, Weidong Sheng 1, Wei An 1
+
+Abstract 
+
+Omni-domain infrared small target (IRST) detection is cru-cial for infrared surveillance, yet remains challenging due to heterogeneous imaging domains and inconsistent target char-acteristics. Previous deep learning-based methods have been developed for visual-only paradigms and achieved promis-ing performance on domain-specific tasks. However, ex-isting methods follow the task-specific supervised learning paradigm. This paradigm simplifies the full-scene infrared observations to sparse target supervision, discarding the se-mantics that remain invariant across heterogeneous domains. Consequently, detection performance suffers substantially un-der domain shifts. To handle this issue, we introduce “un-derstand before detect” , a paradigm that formulates omni-domain IRST detection as an understanding-driven process, where holistic infrared target understanding precedes precise detection. Building on this paradigm, we propose JinSight ,which first develops holistic IRST understanding through lan-guage supervision and then transfers the learned cross-domain representations to precise small-target detection. By ground-ing infrared representations in language semantics, JinSight enables a single model to generalize across heterogeneous infrared domains. We then introduce Latent Semantic Inter-action (LSI), which exchanges language-aligned global se-mantics with fine-grained spatial features in a compact low-rank space. To address the lack of multimodal omni-domain IRST benchmarks, we build OmniIRST-VL , the first large-scale, highly diverse vision–language dataset for omni-domain IRST detection. It comprises over 39k annotations across six complementary instruction tasks covering both scene-level understanding and target-centric reasoning. Extensive experi-ments demonstrate that JinSight consistently outperforms ex-isting state-of-the-art approaches and achieves over 14% IoU improvement on the WideIRSTD benchmark, validating its effectiveness for omni-domain IRST detection. 
+
+## 1 Introduction 
+
+Infrared small target (IRST) detection has been widely used in applications such as traffic monitoring (Aibibu et al. 2024), autonomous driving (Liu et al. 2024b), and anti-UAV systems (Huang et al. 2023), owing to the passive, illumination-independent, and all-weather nature of infrared sensing. With growing demand for large-scale real-world deployment, IRST detection systems are deployed across highly heterogeneous settings: sensors mounted on space-  
+
+> 1National University of Defense Technology, Changsha, China; 2College of Computer Science, Nankai University, Tianjin, China; 3Peking University, Beijing, China. {yuanhaoyang25, liboyang20, wangyingqian16, huangxinfei25, yishuqi21, linzaiping, shengweidong, anwei}@nudt.edu.cn yimian.dai@gmail.com; chennuo@pku.edu.cn Single Model to Single Domain Single Model to Multiple Domains
+> Target Segmentation Target Segmentation
+> Domain n
+
+# ...   
+
+> 1. Understand
+> Q: Can you describe this image?
+> A: The infrared image
+> displays rugged mountainous
+> terrain, prominent mountain ridges, valley patterns, and scattered dark clouds.
+> Image Captioning
+> Q: Can you describe this image?
+> A: The infrared image
+> displays rugged mountainous
+> terrain, prominent mountain ridges, valley patterns, and scattered dark clouds.
+> Image Captioning
+> Visual Grounding
+
++ + +    
+
+> Space Urban Urban
+> NIR SWIR LWIR
+> Land
+> NIR NIR SWIR SWIR LWIR LWIR
+> IRST Backbone 2. Downstream Adaption Single-Domain Data
+> Omni-Domain Data
+> Visual Counting Visual Counting
+
+... 
+
+IRST Instructions       
+
+> Q: Descirbe the image. A: Several boats ……
+> Q: Descirbe the image. A: Several boats ……
+> Q: Where is the target?
+> A: The target locates …
+> Q: Where is the target?
+> A: The target locates …
+> Detect
+> Language
+> Head
+> Language
+> Head Vision Head
+> Vision Head
+> Language
+> Head Vision Head
+> IRST Backbone Domain 1 Model 1 Model 1 Model 2 Model 2 Model n Model n Domain 2
+> NIR
+> SWIR
+> LWIR
+
++            
+
+> Unify Backbone Target Detection Target Detection
+> Segmentation
+> NIR NIR SWIR SWIR LWIR LWIR NIR SWIR LWIR
+> Space Ocean Air Air Land Space Ocean Air Land
+> NIR SWIR LWIR
+> Space Ocean Air Land
+> Vision & Language Tasks Vision Tasks Only
+
+Domain-Specific Domain-Specific 
+
+> Interpret
+
+Domain-General Domain-General Separate Backbone Separate Backbone 
+
+(a) Data Construction (b) Learning Paradigm (c) Task Scope 
+
+> Detection
+> Generative
+> VLM
+
+Figure 1: Comparison between conventional domain-specific IRST learning (top) and JinSight (bottom) in terms of (a) data construction, (b) learning paradigm, and (c) task scope. Following the “understand before detect” paradigm, Jin-Sight first learns a unified IRST-aware backbone from omni-domain instructions through a generative VLM (Chen et al. 2024b) and then adapts it to detection and understanding tasks. borne, airborne, and ground-based platforms cover differ-ent spectral bands (e.g., NIR, SWIR, LWIR) and observe scenes ranging from open skies to sea surfaces. This moti-vates omni-domain IRST (Omni-IRST) detection (Shi et al. 2025), which seeks to detect targets across heterogeneous infrared domains with a unified detector (Figure 1). How-ever, variations across these domains induce dramatic shifts in scene context, background characteristics, and target ap-pearance. Such shifts, compounded by the weak responses and sparse spatial footprints of infrared small targets, pose substantial challenges to learning shared representations that preserve target–background discriminability. Existing IRST methods have mainly improved visual per-ception within specific domains. CNN-based models (Li et al. 2022) exploit local inductive biases, multi-scale feature fu-sion, and dense cross-layer connections to preserve small target responses, while transformer-based or hybrid models (Yuan et al. 2024) introduce long-range contextual modeling to suppress background clutter. However, these methods still arXiv:2608.07015v1 [cs.CV] 7 Aug 2026 follow the conventional target detection paradigm, casting IRST detection as pixel-wise binary target–background pre-diction. While this binary abstraction facilitates the use of mature detection frameworks, it obscures the inherent infor-mation richness of omni-domain infrared data—namely, tar-get–context relationships and scene-level semantic cues. This formulation encounters three critical limitations in Omni-IRST detection: (1) Domain heterogeneity collapse: diverse background structures, clutter patterns, and imaging condi-tions across domains are indiscriminately collapsed into a single background category, leaving their variations unex-plored. (2) Scene information loss: rich full-scene obser-vations are compressed into coarse binary labels, discarding scene content and target–context relations. (3) Target su-pervision scarcity: binary masks provide only pixel-wise supervision, and few-pixel targets therefore yield extremely sparse positive learning signals. Language supervision provides a natural means to recover the semantics omitted by binary masks. Accordingly, several methods have explored vision–language models for IRST detection by leveraging CLIP-based representations (Zhang et al. 2025; Huang et al. 2025). However, CLIP’s bag-of-words (Yuksekgonul et al. 2023) behavior favors isolated concepts over compositional relations, limiting fine-grained understanding of how few-pixel targets relate to their sur-rounding scenes. To address these challenges, we propose a new vision– language paradigm for Omni-IRST detection, termed “un-derstand before detect”. Specifically, it first instruction-tunes a generative vision–language model (VLM) on IRST under-standing tasks and then transfers the learned visual represen-tations to downstream dense prediction tasks. Different from task-specific supervised learning, this new paradigm employs an autoregressive objective to provide compositional super-vision. As a result, it not only preserves rich scene-level information beyond binary classification, but also captures inherent domain-invariant semantics across heterogeneous infrared domains, providing reliable cues for detection. Despite this potential, the following challenges hinder this adoption for IRST detection: First, the few-pixel size and lim-ited appearance cues of infrared small targets demand con-textual reasoning, making existing object-centric instruction datasets and tasks unsuitable for direct adaptation. Second, the patchified and spatially coarse ViT features of VLMs are poorly suited to few-pixel localization, which requires fine-grained, multi-scale representations; adapting them through generic adapter-style modules is computationally costly and introduces redundant semantics. To address these challenges, we propose JinSight ( Joint Vision–Language Learning for In frared Sight ), which es-tablishes a holistic understanding of infrared scenes and tar-gets, then transfers the acquired semantics to robust small target detection. In the first stage, visual instruction tuning employs language responses to learn IRST-aware representa-tions across heterogeneous domains, producing instruction-tuned semantics for dense prediction. In the second stage, we introduce low-rank Latent Semantic Interaction (LSI), which efficiently exchanges instruction-tuned global seman-tics with multi-scale spatial features for precise small target detection. To address the lack of multimodal benchmarks for Omni-IRST detection, we construct OmniIRST-VL, the first large-scale Omni-IRST vision–language dataset, containing over 39k image–instruction–response annotations collected across diverse imaging platforms, spectral bands, and scene contexts. Its instructions are organized into two complemen-tary groups: scene-oriented tasks characterize imaging con-ditions and scene backgrounds, whereas target-centric tasks reason about target presence, count, and location. Our main contributions are summarized as follows: 
+
+• We propose a novel paradigm that reformulates Omni-IRST detection from pixel-wise binary prediction into holistic infrared understanding followed by detection, thereby preserving full-scene context, enriching super-vision for infrared small targets, and learning transferable semantics across heterogeneous infrared domains. 
+
+• We propose JinSight, a two-stage vision–language frame-work: visual instruction tuning first learns IRST-aware representations across heterogeneous domains, and LSI then exchanges the instruction-tuned global semantics with fine-grained multi-scale features in a compact low-rank space, improving both accuracy and efficiency. 
+
+• We construct OmniIRST-VL, the first large-scale Omni-IRST vision–language dataset, comprising over 39k image–instruction–response annotations and six comple-mentary instruction tasks. Comprehensive experiments demonstrate the effectiveness of JinSight, achieving an IoU improvement of over 14% compared with state-of-the-art methods and providing a new benchmark for future research in Omni-IRST detection. 
+
+## 2 Related Work 
+
+2.1 Single-frame IRST detection 
+
+CNN-based detection method: Recently, deep learning-based methods have been extensively explored for IRST de-tection, significantly advancing detection technologies (Zhao et al. 2022; Li et al. 2023, 2025). Convolutional Neural Net-works have emerged as the main approach, playing a pivotal role in this field (Zhang et al. 2022; Liu et al. 2024c; Dai et al. 2021a). To embed local contrast priors into a deep CNN framework, ALCNet (Dai et al. 2021b) proposed an at-tentional local contrast network. Additionally, densely nested interactive feature fusion (Li et al. 2022) is used to repeti-tively fuse and enhance features of different levels. Further-more, UIU-Net (Wu, Hong, and Chanussot 2022) constructed a backbone by embedding a tiny U-Net within a larger U-Net framework, thus facilitating multi-level and multi-scale representation learning. 
+
+Transformer-based detection method: However, CNN-based IRST detection methods are constrained by their lim-ited receptive fields. To handle this, researchers adapt the transformer blocks to the CNN backbone. To extract and in-tegrate local details and global information, MTU-Net (Wu et al. 2023) applied a hybrid multilevel transformer-CNN encoder. SCTransNet (Yuan et al. 2024) leverages spatial-channel transformer blocks on skip connections to effectively Datasets Venue Language Tasks Vision Tasks IT Pairs Imaging System Waveband No. of Images Targets                                                                                                                                            
+
+> ≤10 px P.VQA Count. Ground. Caption Seg. Det. Land Aerial Space NIR SWIR LWIR
+> NUST-SIRST ICCV’19 ××××✓×–✓××××✓10100 1973 SIRST-v2 TGRS’23 ××××✓✓–×✓×××✓1024 84 NUDT-SIRST TIP’22 ××××✓×–✓✓×××✓1327 473 IRSTD-1K CVPR’22 ××××✓×–✓××××✓1001 190 NUDT-SIRST-Sea TGRS’23 ××××✓×–××✓✓××5808 4844 MIRSTD CVPR’25 ×××✓✓×2.7K ✓✓×××✓2731 721 FZDT ICCV’25 ×××✓✓×2.7K ✓✓×××✓2755 742
+> OmniIRST-VL Ours ✓✓✓✓✓✓39.7k ✓✓✓✓✓✓11000 7421
+
+Table 1: Comparison of different datasets across supported tasks, imaging systems, and wavebands. “Targets ≤ 10 px” counts 8-connected foreground components with an area of at most 10 pixels; – denotes unavailable statistics. The NUST-SIRST count is based on 10,090 readable masks and excludes 10 corrupted masks. (IT: Image-Text; P.VQA: Physical VQA; Count.: Visual Counting; Ground.: Grounding; Seg.: Segmentation; Det.: Detection.) model long-range information. To address the high compu-tational complexity associated with transformers, Mamba-based state space models (Chen et al. 2024a) (Xu et al. 2025) have been integrated. 
+
+2.2 Vision-Language models of IRST detection 
+
+The application of vision–language paradigms (Sagar Soni 2025) is severely constrained in the infrared domain, where both infrared imagery and aligned linguistic descriptions are scarce and homogeneous. This paucity of diverse, large-scale multimodal data fundamentally hinders the effective transfer of powerful foundation models (Zhang et al. 2024). Despite these challenges, several pioneering efforts have emerged to explore this integration. For instance, Text-IRSTD (Huang et al. 2025) and similar approaches (Singh and Singh 2025; Chen et al. 2025) introduce textual descriptions as a supervi-sory signal to enhance the discriminative power of infrared features. Similarly, SAIST (Zhang et al. 2025) leverages Con-trastive Language-Image Pretraining (CLIP) (Radford et al. 2021) to guide the SAM, aiming to bridge the modality gap through cross-modal knowledge distillation and prompt-based learning. Existing vision–language methods primarily utilize pre-trained VLMs (e.g., CLIP) to modulate visual features for improved small target extraction. However, without autore-gressive generation, language serves primarily as a global semantic cue rather than a structured prediction target, leav-ing the complex relations between few-pixel targets and sur-rounding infrared scenes without explicit supervision. More-over, they overlook the VLM’s potential as a standalone perception backbone. In response, we introduce JinSight, a foundational framework that trains an IRST-specific VLM on the OmniIRST-VL dataset, a larger and diverse infrared vision–language dataset. 
+
+## 3 OmniIRST-VL Dataset 
+
+3.1 Data Collection and Annotation 
+
+Data Collection. To achieve broad coverage of infrared imaging domains, we adopt WideIRSTD (Li et al. 2024) as the visual source. It contains 11 ,000 infrared images with 27 ,022 annotated targets collected under heterogeneous imaging conditions: image resolutions range from 135 × 96 
+
+to 2700 × 2900 , and target areas range from 1 to 1,094 pix-els. The images include diverse environments such as urban areas, mountains, deserts, maritime regions, and cloud clut-ter. As shown in Table 1, OmniIRST-VL is the only dataset spanning all three observation platforms and spectral bands and contains the largest number of targets no larger than 10 pixels ( 7,421 ). These variations yield substantially differ-ent background statistics and target–clutter configurations, making WideIRSTD a suitable foundation for omni-domain instruction construction. 
+
+Data Annotation. As illustrated in Figure 2, we first ex-tract scenario and spectral-band attributes together with tar-get masks and bounding boxes from each image. We then per-form metadata-conditioned language augmentation to con-struct instruction–response pairs for Detailed Captioning, Physical VQA, and image- and region-level Counting and Grounding. The generated pairs undergo automatic quality filtering, independent review by infrared experts, and dis-agreement adjudication; each pair is accepted, corrected, or rejected to ensure semantic and spatial reliability. 
+
+3.2 Dataset Features and Statistics 
+
+Dataset Splitting. Following the official WideIRSTD split, we construct OmniIRST-Train from the training images and OmniIRST-Benchmark from the test images. The former is used for IRST-oriented instruction tuning, while the latter serves as the evaluation benchmark, ensuring image-level separation between training and evaluation. 
+
+Omni-Domain Distribution. Table 1 compares existing IRST datasets in terms of supported tasks, imaging sys-tems, and wavebands. Unlike prior image-only or image-text datasets, OmniIRST-VL jointly supports four language tasks and two vision tasks, while covering land-, aerial-, and space-based imaging systems across NIR, SWIR, and LWIR bands. With 39.7K image-text pairs from 11K images, it provides broader task and domain coverage for Omni-IRST understanding. 
+
+Rich Diversity and Spatial Granularity. Figure 2 illus-trates the diverse task types and spatial granularities of OmniIRST-VL. The dataset covers six instruction tasks with different semantic objectives and output formats. Its instruc-tions are organized into two complementary groups: scene-oriented tasks characterize imaging conditions and scene Q：What is the location of the right most 
+
+target in this picture? 
+
+A：You can find the rightmost target at <point>[836,610,1]</point> .
+
+## Grounding - Image Level 
+
+Q：Can you find the target in the area 
+
+<box>[295,612,475,780]</box> ?
+
+A：The target is on the location of 
+
+<point>[384,704,3]</point> .
+
+## Grounding - Region Level 
+
+Q：How many bright spots representing 
+
+targets are visible? 
+
+A：The observation of this scene reveals precisely seven targets .
+
+## Counting - Image Level 
+
+Q：Count the visible targets within the 
+
+bounding box region of 
+
+<box>[705,290,833,416] </box> .
+
+A：5 targets can be found in the region <box>[705,290,833,416]</box>. 
+
+## Counting - Region Level 
+
+2D Coordinates ：[875,610] Target Radius ：1 Pixels 2D Coordinates ：[384,704] Target Radius ：3 Pixels 
+
+[295,612] [475,780] 
+
+> [705,290] [833,416]
+
+#1 #2 #3 #4 #5 
+
+#1 #2 #3 #4 
+
+#5 
+
+#6 #7 
+
+Dataset Sample Meta Data Extraction 
+
+Ground-truth Metadata         
+
+> Band NIR Scenario Space Annotation Mask
+> Extracted Metadata Scenario Space
+> Band NIR BBox ×1 Mask Controlled Generation Language Augmentation + Metadata
+> Generated Instructions
+> QWhere is the target?
+> A[761, 953]
+
+Q：What imaging system and wave-length band does this infrared image represent? 
+
+A: The photo illustrates a near infrared scene captured by a space sensor .
+
+## Physical VQA 
+
+Q：Can you describe this image? 
+
+A：The infrared image displays the terrain displays 
+
+mountain ridges, valley patterns , and scattered dark clouds with a small settlement in the upper center. 
+
+## Detailed Captioning 
+
+mountain ridges, valley patterns scattered dark clouds small 
+
+settlement 
+
+Expert Verification OmniIRST-VL 
+
+Infrared Image Automatic Quality Filtering Independent   
+
+> IR Expert Review
+> Disagreement
+> Adjudication
+> Accept Correct Reject
+> Verified by IR experts
+> Physical VQA
+
+22.7% 
+
+> Detailed Caption
+
+23.2% 
+
+> Global Grounding
+> 15.6%
+> Region Grounding
+> 3.9%
+> Region Counting
+> 9.4%
+> Global Counting
+
+25.2% Total Pairs 
+
+39,701 Figure 2: Overview of the construction, statistics, and task design of OmniIRST-VL. The top row illustrates the annotation pipeline, including metadata extraction, controlled instruction generation, automatic filtering, and expert verification, followed by the distribution of 39,701 image–instruction–response pairs across six tasks. The bottom rows present representative scene-oriented and target-centric examples spanning detailed captioning, physical VQA, counting, and grounding at image and region levels, demonstrating supervision from global scene understanding to fine-grained target reasoning. backgrounds, whereas target-centric tasks reason about tar-get presence, count, and location. The target-centric tasks operate at both image and region levels, enabling models to understand targets over the entire image or within a specified local area. Together, the two groups provide complemen-tary supervision from holistic background understanding to fine-grained target reasoning. 
+
+3.3 Evaluation Metrics 
+
+We evaluate the performance across linguistic and visual dimensions. Linguistic capabilities are assessed via Accuracy for discriminative tasks and BLEU-1/4 (Papineni et al. 2002), CIDEr (Vedantam, Lawrence Zitnick, and Parikh 2015), and ROUGE-L (Lin 2004) for generative tasks, while perception performance is quantified through standard metrics: IoU, Pd,
+
+Fa, AP 50 , Recall, and F1. Detailed metric formulations are provided in the supplementary material. Tokenizer ViT 
+
+## Large Language Model 
+
+# (a) Input (b) Understand before detect (c) Outputs 
+
+Instruction ：
+
+> Could you desicribe
+> picture here?
+
+Instruction ：
+
+> Could you desicribe
+> picture here?
+
+Instruction ：
+
+> Where Is the leftmost target in this picture ？
+
+Instruction ：
+
+> Where Is the leftmost target in this picture ？
+
+## Stage 
+
+## I
+
+## Stage II 
+
+## Projector 
+
+## Language Tasks 
+
+## Vision Tasks 
+
+Image –Instruction Pairs Infrared Images Latent Semantic Tokens Latent Semantic Tokens Fine-Grained Spatial Features Fine-Grained Spatial Features Latent Semantic Tokens Fine-Grained Spatial Features Freezed Weights Freezed Weights Trainable Weights Trainable Weights Freezed Weights Trainable Weights Element-wise Addition Element-wise Addition Block 1 
+
+## Spatial Prior Module 
+
+> Low-Rank FFN
+> Cross
+> Attention Latent Semantic Interaction
+
+Block 4   
+
+> LSI LSI LSI LSI LSI LSI
+
+Share Weights Global Semantics Global Semantics Share Weights Global Semantics 
+
+Detection Segmentation 
+
+Detection Segmentation Answer ：
+
+> This infrared picture
+> shows one ship.
+> Answer ：
+> One target here is located on <point>[863,610,1]<\point>.
+> Answer ：
+> One target here is located on <point>[863,610,1]<\point>.
+
+Instruction Responses Answer ：
+
+> This infrared picture
+> shows one ship.
+> Answer ：
+> One target here is located on <point>[863,610,1]<\point>.
+
+Instruction Responses Figure 3: JinSight architecture. (a) Inputs for Stage I instruction tuning and Stage II dense prediction. (b) The “understand before detect” framework: Stage I learns an IRST-aware ViT via instruction supervision; Stage II uses LSI to fuse global semantics with fine-grained spatial features in a compact latent space. (c) Language and vision outputs. 
+
+## 4 Method 
+
+JinSight is a two-stage framework centered on a shared ViT backbone. In Stage I, we fine-tune a generative VLM on OmniIRST-VL with IRST-specific instructions, obtaining an IRST-aware visual encoder that captures both scene context and target-centric cues. The resulting model, JinSight-1B, supports language-driven infrared understanding. In Stage II, we transfer its adapted ViT to dense prediction, remove the language projector and decoder, and introduce LSI modules to exchange global semantic representations with multi-scale spatial features. The resulting feature hierarchy is fed into task-specific heads for detection and segmentation. Thus, lan-guage acts as training-time representation supervision, while dense prediction requires only infrared images at inference. 
+
+4.1 IRST-Oriented Visual Instruction Tuning 
+
+To instantiate the understanding stage, we instruction-tune the pretrained VLM using image–instruction–response triples from OmniIRST-VL. Starting from the generic ViT parameters θv , the autoregressive objective produces IRST-adapted parameters θ⋆v by requiring the visual representations to support instruction-conditioned response generation. Given an infrared image I, an instruction q, and its re-sponse y, the model is optimized by 
+
+Linst = −
+
+> |y|
+
+X
+
+> t=1
+
+log p(yt | I, q, y <t ). (1) Background-oriented tasks, including captioning and physi-cal VQA, supervise background and imaging characteristics, whereas counting and grounding tasks require the encoder to retain target-centric spatial evidence. Since response to-kens are conditioned on visual tokens, these complementary signals jointly optimize the ViT to suppress clutter while preserving weak target responses. This objective benefits the visual encoder in two com-plementary ways: (1) Language-Guided Semantic Align-ment: Language describes heterogeneous imaging condi-tions, scene backgrounds, and target cues through a shared vocabulary, encouraging visually diverse infrared observa-tions to form domain-invariant semantic representations. (2) Autoregressive Supervision: Generating instruction-conditioned responses token by token requires the encoder to retain the spatial and semantic evidence needed to reason about target presence within the surrounding scene, thereby supervising information absent from binary masks. 
+
+4.2 Latent Semantic Interaction 
+
+Although the instruction-tuned ViT provides discriminative global semantics, its single-scale tokens lack the spatial de-tails required for localizing extremely small targets. Direct high-dimensional fusion is inefficient because background responses dominate infrared features. We therefore introduce LSI, which exchanges information between ViT tokens V i
+
+and multi-scale spatial features Si in a compact latent space of dimension r ≪ D.Specifically, each LSI block performs bidirectional inter-action: the spatial-to-semantic path transfers local details from Si to the ViT tokens, while the semantic-to-spatial path Methods Params (M) WideIRSTD Cross-Dataset Generalization ∗                                                                                                                                                                                                                           
+
+> Segmentation Detection Synthetic Multi-Scene Real Variable-Resolution Real Complex-Background
+> Pd↑IoU ↑Fa↓AP 50 ↑Recall ↑F1↑Pd↑IoU ↑Fa↓Pd↑IoU ↑Fa↓Pd↑IoU ↑Fa↓
+> ACM 0.40 51.92 32.55 1.27 30.07 38.34 45.36 68.47 36.45 4.03 85.87 60.62 1.98 76.28 38.39 7.10 ResUnet 0.91 47.88 31.39 1.58 29.57 38.91 47.52 75.13 48.17 7.49 90.33 67.49 1.81 79.49 45.07 2.66 ALCNet 0.52 56.95 32.26 2.79 31.98 40.26 42.51 79.37 45.06 3.74 91.08 67.03 2.48 82.33 43.06 6.31 AMFU 0.47 54.06 34.29 1.78 34.51 43.71 49.39 76.08 45.83 7.01 93.42 66.12 2.90 81.09 38.79 8.66 U-Net 34.53 58.21 33.89 2.51 35.17 44.88 47.33 81.27 43.42 19.51 90.71 65.17 2.87 81.41 39.70 5.71 UIUNet 50.54 68.14 37.46 2.34 33.58 49.70 45.73 74.71 45.01 4.66 90.71 68.10 2.62 71.79 38.48 2.85 DNANet 4.70 57.16 34.45 2.33 34.63 46.11 47.94 81.27 46.49 13.69 92.19 66.96 2.93 65.38 31.19 1.89
+> SCTransNet 13.32 58.41 36.24 2.57 34.93 47.52 50.00 82.33 52.34 5.74 92.94 70.23 1.52 80.45 38.47 3.29 NS-FPN 4.17 63.38 29.48 5.71 24.65 50.78 35.72 71.53 42.48 3.36 92.34 67.01 4.42 77.54 38.69 3.51 PConv-SD 4.07 65.18 31.79 4.36 26.20 52.11 46.72 70.05 41.77 5.30 88.51 64.75 3.32 82.87 44.04 3.33 Text-IRSTD 181.15 65.59 36.62 2.71 27.40 50.37 46.94 81.73 38.41 24.31 93.02 66.80 4.90 81.41 41.68 3.96
+> JinSight 314.04 73.75 42.94 1.51 59.92 53.68 56.63 86.24 54.31 5.30 94.79 72.41 2.87 83.72 50.04 3.46
+> ∗Each test set is excluded from both Stage I instruction tuning and Stage II dense-prediction training of JinSight.
+
+Table 2: Quantitative comparison with state-of-the-art methods on the benchmark dataset and cross datasets. Fa is reported in units of 10 −5. The best and second-best results are highlighted in bold and underlined, respectively. propagates global IRST semantics in the reverse direction: 
+
+eV i = V i + P ov Attn( P qv V i, P ks Si, P vs Si), (2) 
+
+eSi = Si + P os Attn( P qs Si, P kv eV i, P vv eV i). (3) All projections operate in the r-dimensional latent space. A low-rank FFN subsequently refines the latent semantic to-kens. Following ViT-Adapter (Chen et al. 2022), the resulting features are organized into a multi-scale pyramid and passed to a task-specific head (Xiao et al. 2018). 
+
+## 5 Experiments 
+
+5.1 Experimental settings 
+
+In our experiments, we use the publicly available WideIRSTD dataset (Li et al. 2024) and our proposed OmniIRST-VL benchmark to evaluate models’ capabilities in infrared small target understanding and detection. More detailed descriptions of the datasets and implementation de-tails can be found in the supplementary material .
+
+5.2 Comparison to State-of-the-Art Methods 
+
+Result on OmniIRST-VL benchmark. We conduct com-prehensive comparisons with representative Large Vision– Language Models spanning different model scales, includ-ing InternVL2.5-1B (Chen et al. 2024b), Qwen3-VL-2B (Bai et al. 2025), and LLaVA-NeXT-7B (Liu et al. 2024a). Fol-lowing the evaluation protocol of SkySenseGPT (Guo et al. 2024), we evaluate these generic LVLMs in the zero-shot set-ting using standard metrics and compare them with JinSight-1B after Stage I instruction tuning. 
+
+Results on WideIRSTD. We compare JinSight with 11 learning-based IRST detectors: ACM (Dai et al. 2021a), AL-CNet (Dai et al. 2021b), ResUNet (Diakogiannis et al. 2020), AMFU (Chung, Lee, and Park 2023), U-Net (Ronneberger, Fischer, and Brox 2015), DNA-Net (Li et al. 2022), UIU-Net (Wu, Hong, and Chanussot 2022), SCTransNet (Yuan et al. 2024), NS-FPN (Yuan et al. 2026), PConv-SD (Yang et al. 2025), and Text-IRSTD (Huang et al. 2025). To ensure a                                            
+
+> Task Metric InternVL 2.5-1B Qwen3 VL-2B LLaVA NeXT-7B Ours
+> Physical Accuracy 32.35 19.20 21.10 49.80
+> Counting Accuracy 32.25 37.40 43.40 53.20
+> Global 35.56 35.08 36.16 63.37
+> Regional 22.72 44.08 64.27 23.88 Grounding Accuracy 30.66 32.40 27.28 50.96
+> Global 31.36 33.98 27.98 51.96
+> Regional 26.87 23.88 23.51 45.52
+> Caption BLEU-1 6.35 6.13 5.68 30.96
+> CIDEr 0.09 11.33 8.10 72.95
+> ROUGE-L 10.33 9.54 8.80 27.70
+
+Table 3: Quantitative comparison with large vision–language models on the OmniIRST-VL benchmark. fair comparison, we retrain all methods on the same training split under identical settings. 
+
+Results on Cross-Dataset Generalization. We conduct leave-one-dataset-out evaluation on NUDT-SIRST, NUAA-SIRST, and IRSTD-1K, representing three complementary domain shifts: synthetic multi-scene imagery, real variable-resolution observations, and real complex-background scenes, respectively. JinSight achieves the highest Pd and IoU under all three shifts, demonstrating consistent transfer across heterogeneous domains. 
+
+Quantitative Results: As shown in Table 2, JinSight achieves the best performance across the primary metrics. We attribute this superiority to two key factors: 1) The “un-derstand before detect” paradigm enables the visual back-bone to retain scene context and target–context relations through generative visual instruction tuning, while LSI effi-ciently transfers these global semantics to multi-scale spatial features. This enhances the network’s ability to distinguish few-pixel targets from heterogeneous background clutter. 2) OmniIRST-VL provides complementary scene-oriented and target-centric instructions across diverse infrared domains, Input w/o Scene w/o Target GT OmniIRST-VL Figure 4: Qualitative results of different instruction con-figurations in OmniIRST-VL. “w/o scene” removes scene-oriented instructions, “w/o target” removes target-centric in-structions, and “OmniIRST-VL” uses all instructions.                    
+
+> IVIT LSI Pd↑IoU ↑Fa↓
+> 70.28 40.72 1.21
+> ✓72.34 42.43 1.52
+> ✓71.73 41.79 1.61
+> ✓✓73.75 42.94 1.51
+
+Table 4: Ablation study of the proposed components. IVIT and LSI denote IRST-oriented visual instruction tuning and Latent Semantic Interaction, respectively. enabling the backbone to learn domain-invariant scene and target semantics before detection. This produces more ro-bust relational representations and improves cross-domain generalization. 
+
+5.3 Ablation Study 
+
+Contribution of Components. As shown in Table 4, adding IRST-oriented visual instruction tuning to the baseline yields relative improvements of 4.20% in IoU and 2.93% in Pd,demonstrating that language-guided IRST understanding provides beneficial semantic supervision for downstream de-tection. Adding LSI alone produces relative gains of 2.63% in IoU and 2.06% in Pd, showing that interacting global seman-tics with fine-grained spatial features facilitates dense target localization. Notably, using both components achieves the largest relative improvements, increasing IoU by 5.45% and 
+
+Pd by 4.94% over the baseline while reducing Fa relative to either single-component setting. This indicates that in-struction tuning provides IRST-aware semantic knowledge, while LSI effectively transfers these semantics into multi-scale spatial features; removing either semantic learning or semantic-spatial interaction limits the performance gains. 
+
+The impact of the Latent Dimension of Latent Semantic                             
+
+> LatentDim. rIoU ↑Pd↑Latency (ms) ↓
+> Memory (GB) ↓
+> w/o LSI 40.72 70.28 45.17 16.92 64 41.23 71.33 22.45 9.43
+> 128 41.79 71.73 22.63 11.63 256 42.16 71.44 30.75 14.09 512 39.87 69.31 60.13 16.99
+
+Table 5: Effect of the LSI latent dimension r on efficiency and detection performance.                   
+
+> Instruction-Tuning Configuration IoU ↑Pd↑Fa↓
+> w/o OmniIRST-VL Instructions 40.72 70.28 1.21 w/o Scene-Oriented Instructions 41.63 71.00 1.23 w/o Target-Centric Instructions 41.86 70.81 1.50 Full OmniIRST-VL Instructions 42.43 72.34 1.52
+
+Table 6: Ablation study of different instruction configurations in visual instruction tuning. 
+
+Interaction. As shown in Table 5, we investigate how the la-tent dimension r affects semantic transfer and computational efficiency. Setting r = 256 yields the optimal performance while retaining lower latency and memory consumption than the baseline without LSI. This trade-off arises because an overly compact latent space excessively compresses global semantics, whereas an excessively large one retains redun-dant semantics and weakens the efficiency of interaction. 
+
+Impact of OmniIRST-VL Instruction Composition. As shown in Table 6 and Figure 4, we evaluate the impact of in-struction compositions in OmniIRST-VL. The full instruction set achieves the best IoU and Pd, demonstrating the comple-mentary benefits of scene-oriented and target-centric super-vision. Scene-oriented instructions enhance contextual rea-soning, while target-centric instructions provide fine-grained localization cues. Together, they enable holistic IRST under-standing prior to detection and improve representation trans-ferability across heterogeneous domains. 
+
+## 6 Conclusion 
+
+We introduced “understand before detect”, a new paradigm that reformulates omni-domain IRST detection from pixel-wise binary prediction into holistic infrared understand-ing followed by detection. Following this paradigm, we propose JinSight, which preserves full-scene context and target–context relations, enabling the visual backbone to learn transferable representations across heterogeneous in-frared domains. A low-rank Latent Semantic Interaction exchanges its instruction-tuned global semantics with fine-grained multi-scale spatial features for dense prediction. To support training and evaluation, we present OmniIRST-VL, an extended version of the WideIRSTD dataset enriched with image–instruction–response annotations. Experimental re-sults demonstrate that our method consistently outperforms state-of-the-art methods, achieving over 14% improvement in IoU compared to existing methods. Understand Before Detect: Vision–Language Learning for Omni-Domain Infrared Small Target Detection 
+
+## Supplementary Materials 
+
+Resource Availability. To support reproducibility and future research, the OmniIRST-VL dataset, source code, training and evaluation configurations, and pretrained model weights will be made publicly available upon publication. 
+
+## 7 OmniIRST-VL Dataset 
+
+7.1 Challenges of Omni-Domain IRST Detection 
+
+Omni-domain IRST (Omni-IRST) detection aims to localize infrared small targets across heterogeneous imaging domains with a single unified detector. Unlike conventional settings that are often evaluated within a specific sensor, scene type, or acquisition platform, Omni-IRST detection must remain robust to simultaneous shifts in scene context, background characteristics, imaging conditions, and target appearance. WideIRSTD (Li et al. 2024), which serves as the visual source of OmniIRST-VL, exposes these challenges at scale: its images range from 135 × 96 to 2700 × 2900 pixels, while target areas range from only 1 to 1,094 pixels. As illustrated in Figure 5, three factors make unified de-tection across these domains particularly difficult: 
+
+• Challenge I: Extensive Spatial Coverage. Wide-domain IRST detection spans ground-based, airborne, and space-borne observations with substantial variations in scene coverage and spatial resolution. In large-scale imagery, the target-to-background ratio becomes extremely small, and weak target responses can disappear during feature downsampling. This scale variation further compounds the domain shifts caused by heterogeneous imaging plat-forms. 
+
+• Challenge II: Complex and Variable Scenarios. Omni-IRST scenes cover structured urban regions, coastlines, cloud layers, and sea surfaces, producing large varia-tions in background appearance and structural clutter. The same target may therefore appear under markedly differ-ent scene statistics, while structurally salient clutter can dominate the visual response. These scenario-dependent variations make it difficult for a unified detector to gener-alize to unseen imaging conditions. 
+
+• Challenge III: Heterogeneous False Alarm Sources. 
+
+Cloud fragments, storage tanks, reefs, and high-intensity surface structures can exhibit local responses similar to true targets. At the same time, infrared small targets often occupy only a few pixels and thus provide very limited visual evidence. Consequently, distinguishing true targets from these heterogeneous hard negatives using local ap-pearance alone is unreliable and can lead to both missed detections and false alarms. Taken together, these task-level challenges expose the lim-itations of conventional binary supervision discussed in the main paper. Variations in spatial coverage, imaging plat-forms, scene content, clutter patterns, and target-like distrac-tors create pronounced domain heterogeneity. Binary masks collapse this diversity into a single background category, discarding scene information and target–context relations, while few-pixel targets yield extremely sparse positive sig-nals. These limitations motivate the “ understand before detect ” paradigm adopted by JinSight. OmniIRST-VL sup-plements sparse target masks with scene-oriented and target-centric language supervision, enabling the visual backbone to learn domain-invariant scene semantics and target–context relations before adapting them to precise dense prediction. 
+
+7.2 Task Definitions 
+
+We organize the annotations into four task families and six evaluation tracks. Detailed captioning and physical VQA each define one track, whereas visual grounding and visual counting are further divided into image-level and region-level tracks. Together, these tasks provide complementary supervi-sion from holistic scene understanding to fine-grained target reasoning. 
+
+• Detailed Image Captioning. Given an infrared image, the model generates a holistic description of the scene lay-out, background structures, prominent infrared responses, and target–context relations. In contrast to descriptions derived only from local target masks, these annotations preserve scene-level information that is useful for dis-tinguishing true targets from structured clutter. This task contains 12 ,947 image–instruction–response pairs. 
+
+• Physical VQA. This task queries imaging attributes rather than general scene semantics. The questions cover the spectral band, spatial resolution, and observation plat-form, using both direct and interrogative templates to keep their intent distinct from detailed captioning. We con-struct 9,000 Physical VQA pairs from the WideIRSTD training split. 
+
+• Image-Level and Region-Level Grounding. Image-level grounding requires the model to search the entire im-age using a position-aware referring expression, whereas region-level grounding asks it to locate a target inside a specified query box. To accommodate extreme target-scale variation, targets with an area of at most 100 pixels use a point-based representation [cx, c y , s ], where (cx, c y )
+
+is the target center and s is a scale value derived from its spatial annotation. Larger targets use the bounding-box representation [x1, y 1, x 2, y 2]. All coordinates are nor-Scenario II: Heavy Cloud Occlusion 
+
+> Scenario II: Heavy Cloud Occlusion
+> Scenario I: Urban Riverine Environments
+> Scenario I: Urban Riverine Environments
+
+Complex and Variable Scenerios 
+
+> Scenario III: Densely Clustered Targets
+> Scenario III: Densely Clustered Targets
+> Scenario II: Heavy Cloud Occlusion
+> Scenario I: Urban Riverine Environments
+
+Complex and Variable Scenerios 
+
+> Scenario III: Densely Clustered Targets
+
+Extensive Spatial Coverage X1  
+
+> X25 X100
+
+Extensive Spatial Coverage X1  
+
+> X25 X100
+
+Heterogeneous False Alarm Sources 
+
+> FA I: Fragmented Clouds at Cloud Edges FA II: Shore-side Oil Storage Tanks FA IV: High-Intensity
+> Spots on Terrestrial
+> Surfaces
+> FA III: Submerged Reefs
+> and Coral Reefs
+> Scenario IV: Targets in Port Vicinity
+
+Figure 5: Representative challenges in WideIRSTD, the visual source of OmniIRST-VL. The enlarged regions illustrate how few-pixel targets can become nearly indistinguishable from surrounding clutter. malized to [0 , 1000] . The grounding set contains 6,041 
+
+pairs, including 4,754 image-level and 1,287 region-level queries. Its outputs comprise 4,245 point-based annota-tions (70.3%), 1,079 box-based annotations (17.9%), and 717 target-free negative samples (11.9%). The negative samples explicitly evaluate whether a model hallucinates targets in empty scenes. 
+
+• Image-Level and Region-Level Counting. Image-level counting asks for the number of targets in the full image, while region-level counting restricts the query to a spec-ified box. This design tests both numerical consistency and the ability to reject target-like background clutter. The counting set contains 11 ,713 pairs, of which 72.7% are image-level queries and 27.3% are region-level queries. The four task families contain 39 ,701 image–instruction– response pairs in total. During instruction tuning, the model learns from their native generative responses, including tex-tual descriptions, attribute answers, counts, and spatial coor-dinates. 
+
+7.3 OmniIRST-VL Benchmark Construction 
+
+The held-out OmniIRST-Benchmark split is released in a standardized four-option single-choice format for objec-tive and reproducible evaluation. Following recent remote-sensing VLM benchmarks that construct single-choice ques-tions from structured annotations and verify them manually (Muhtar et al. 2024; An et al. 2025; Danish et al. 2025), we derive every question and its unique answer from the image metadata and target masks. Specifically, the metadata provide the spectral band, spatial resolution, and observation platform for Physical VQA, while the instance masks provide target presence, count, area, center, and bounding-box coor-dinates for counting and grounding. Task-specific templates render these records as questions, and the native answer is retained as the sole correct option. For each question, we then generate three task-consistent distractors in the same output space as the correct answer. Physical-VQA distractors are sampled from the valid at-tribute vocabulary and differ from the ground truth in one or more queried attributes. Counting distractors are nearby nonnegative counts, which prevent the question from being solved by coarse target-density estimation. Grounding dis-tractors use valid point or box syntax but correspond to alter-native locations that do not satisfy the referring expression or region constraint. For target-free grounding questions, a designated “no target” response is the correct option and the three coordinate candidates serve as hard negatives. We remove duplicated, out-of-range, or ambiguous choices and require exactly one option to agree with the metadata and spatial annotations. Finally, the four choices are randomly permuted and the correct labels are balanced across ‘A’, ‘B’, ‘C’, and ‘D’. Automatic consistency checks are followed by manual review to verify question–image relevance, answer uniqueness, and distractor plausibility. Detailed captioning remains an open-ended generation task rather than being converted to multiple choice. 
+
+## 8 Evaluation Metrics 
+
+8.1 OmniIRST-VL Evaluation Protocol 
+
+The OmniIRST-VL benchmark evaluates the six tracks de-fined above: detailed captioning, physical VQA, image-level grounding, region-level grounding, image-level count-ing, and region-level counting. During instruction tuning, all annotations retain their native generative response for-mats. For standardized zero-shot evaluation, the discrimi-native tracks use the four-option single-choice construction described above. A model is instructed to return exactly one choice label from ‘A’, ‘B’, ‘C’, and ‘D’, and accuracy is com-puted against the stored answer label. Detailed captioning remains an open-ended generation task. Figure 6: Qualitative comparison on representative challenging scenes. Red, orange, and green dashed circles indicate correct detections, missed targets, and false alarms, respectively. Enlarged regions highlight the responses of extremely small targets. 
+
+8.2 Metrics for Vision–Language Understanding 
+
+Accuracy. Physical VQA, grounding, and counting are eval-uated by the average exact-match accuracy of the predicted option labels: 
+
+Acc = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+I(ˆ yi = yi) , (4) where N is the number of questions, yi and ˆyi are the ground-truth and predicted option labels, respectively, and I(·) is the indicator function. We report the overall accuracy for each task family and the separate image-level and region-level accuracies for grounding and counting. 
+
+BLEU. BLEU (Papineni et al. 2002) measures the modi-fied n-gram precision between a generated caption and its reference while penalizing overly short outputs: 
+
+BLEU -N = BP exp 
+
+> N
+
+X
+
+> n=1
+
+wn log pn
+
+!
+
+, (5) where pn is the modified n-gram precision, wn is its weight, and BP is the brevity penalty. 
+
+ROUGE-L. ROUGE-L (Lin 2004) evaluates sequence-level agreement using the longest common subsequence (LCS): 
+
+FLCS = (1 + β2)RLCS PLCS 
+
+RLCS + β2PLCS 
+
+, (6) where RLCS and PLCS denote LCS-based recall and preci-sion, and β controls their relative weighting. 
+
+CIDEr. CIDEr (Vedantam, Lawrence Zitnick, and Parikh 2015) measures consensus with the reference descriptions using TF–IDF-weighted n-gram similarity: 
+
+CIDEr n(c, S ) = 1
+
+M
+
+> M
+
+X
+
+> j=1
+
+gn(c) · gn(sj )
+
+∥gn(c)∥∥ gn(sj )∥ , (7) where c is the generated caption, S = {sj }Mj=1 is the refer-ence set, and gn(·) is the TF–IDF vector of n-grams. 
+
+8.3 Metrics for Visual Perception 
+
+Intersection over Union (IoU). IoU evaluates pixel-level agreement between a predicted mask P and the ground-truth mask G:
+
+IoU( P, G ) = |P ∩ G||P ∪ G| . (8) Probability of Detection ( Pd). Pd measures target-level lo-calization accuracy: 
+
+Pd = Nc
+
+Nt
+
+, (9) where Nt is the number of ground-truth targets and Nc is the number of one-to-one matched detections. A prediction is considered correctly detected when its centroid is less than three pixels from the centroid of the matched ground-truth target. 
+
+False Alarm Rate ( Fa). Fa is the ratio of unmatched positive pixels to all image pixels: 
+
+Fa = Pf
+
+Pt
+
+, (10) where Pf is the number of pixels belonging to unmatched predicted components and Pt is the total number of evaluated pixels. Following IRST convention, we report Fa in units of 
+
+10 −5.
+
+Average Precision at 0.5 IoU ( AP 50 ). For cross-dataset de-tection evaluation, a prediction is a true positive when its IoU with a one-to-one matched ground-truth instance is at least 0.5. AP 50 is the area under the resulting precision–recall curve: 
+
+AP 50 =
+
+Z 10
+
+p50 (r) d r, (11) where p50 (r) denotes precision as a function of recall at the 0.5 IoU threshold. 
+
+Recall and F1 Score. Let T P , F P , and F N denote the numbers of true-positive, false-positive, and false-negative instances. Precision, recall, and their harmonic mean are defined as 
+
+Precision = T P T P + F P , Recall = T P T P + F N , (12) 
+
+F1 = 2 Precision Recall Precision + Recall . (13) 
+
+## 9 Experiments 
+
+This section provides the implementation details omitted from the main paper, followed by supplementary experimen-tal comparisons and an additional ablation study. 
+
+9.1 Implementation Details 
+
+Stage I: Visual Instruction Tuning. 
+
+We initialize JinSight-1B from InternVL2.5-1B (Chen et al. 2024b) and train it on OmniIRST-Train, with all OmniIRST-Benchmark images excluded. The six task tracks are serialized using the native image–instruction–response chat template, combined into a single instruction mixture, and shuffled during training. We jointly optimize the visual backbone, language model, and multimodal projector for three epochs. Training uses AdamW with an initial learning rate of 4 × 10 −5, a global batch size of 128, weight decay of 0.01, a warm-up ratio of 0.03, and cosine learning-rate decay. Training uses BF16 and gradient checkpointing. Images are processed at 448 × 448 
+
+resolution using dynamic image tiling with at most six image patches and one thumbnail per sample, and the maximum sequence length is 8,192 tokens. The language-modeling loss is computed only on the assistant response tokens, while user-input and padding tokens are masked. After Stage I, we retain the instruction-tuned ViT weights to initialize Stage II and discard the language model and multimodal projector. For each leave-one-dataset-out exper-iment, the held-out dataset is excluded from both Stage-I and Stage-II training. 
+
+Stage II: Dense Prediction Training. 
+
+The dense-prediction stage is implemented with PyTorch 1.13.1 and MMSegmentation 0.27.0 under CUDA 11.6 and is trained on four NVIDIA RTX 4090 GPUs. We initialize the ViT with the Stage-I instruction-tuned weights, set the LSI latent dimension to r = 128 , and use UperNet (Xiao et al. 2018) as the default decoder. The model is optimized for 500 epochs with the SoftIoU loss and AdamW (Loshchilov and Hutter 2017). The learning rate is linearly warmed up for 5,000 iterations to a peak value of 2 × 10 −4 and then decayed with a cosine schedule. The total batch size is 32. All comparison methods are retrained on the same data split under a consistent evaluation protocol. 
+
+9.2 Experimental Comparisons 
+
+In addition to the quantitative comparisons reported in the main paper, Figure 6 presents qualitative results of repre-sentative methods on scenes with complex backgrounds and extremely small targets. In the examples shown in Figure 6, particularly in the fourth row, JinSight detects the bound-ary target that is missed by several competing methods and produces fewer visible false alarms. 
+
+9.3 Additional Ablation Study 
+
+Effect of Different Decoders. JinSight supports different dense-prediction decoders as task-specific heads. To isolate Stage-II architectural choices, both the latent-dimension ab-lation reported in the main paper and the decoder ablation below use the pretrained ViT initialization without Stage-I visual instruction tuning; all other settings are fixed. In the decoder ablation, the LSI latent dimension is fixed at 
+
+r = 128 . Table 8 compares four representative decoders on WideIRSTD. FPN yields the highest IoU and the lowest Fa,while SegFormer achieves the highest Pd. UperNet ranks second across all three metrics and is selected as the default decoder for its balanced performance. 
+
+## 10 Additional VQA Examples 
+
+Table 7 presents selected prompts sampled directly from the instruction data used to construct OmniIRST-VL, covering the four task families and the image-level and region-level variants of grounding and counting. Task Scope or Variant Prompts Sampled from the Instruction Data Counting VQA Image-level • Can you count how many targets are in this infrared scene?                           
+
+> •How many small targets appear in this image?
+> •What is the total number of visible targets?
+> . . .
+> Region-level •Count the targets within the bounding box <box>[x1,y1,x2,y2]</box> .
+> •How many infrared targets can you detect in the area
+> <box>[x1,y1,x2,y2]</box> ?
+> . . . Detailed Captioning Image-level •What does this image show?
+> •Can you describe what’s shown here?
+> •What objects or structures are visible?
+> . . . Grounding VQA Image-level •Identify the position of the target.
+> •Can you locate the target in this infrared image?
+> •Where is the target?
+> . . .
+> Region-level •Locate the target within the region <box>[x1,y1,x2,y2]</box> .
+> •Within the region <box>[x1,y1,x2,y2]</box> , what is the position of the target?
+> . . . Physical VQA Image-level •Specify the physical properties, including wavelength band and imaging platform.
+> •What platform and wavelength band were used to acquire this infrared image?
+> •Classify this infrared image by its spectral band and acquisition platform.
+> . . .
+
+Table 7: Selected prompts sampled from the instruction data used to construct OmniIRST-VL.                   
+
+> Decoder IoU ↑Pd↑Fa↓
+> UperNet (Xiao et al. 2018) 41.79 71.73 1.61 DNANet (Li et al. 2022) 41.33 71.43 2.04 SegFormer (Xie et al. 2021) 41.51 73.49 2.08 FPN (Lin et al. 2017) 42.74 71.17 1.43
+
+Table 8: Performance comparison of four representative de-coders on WideIRSTD. The best and second-best results are highlighted in bold and underlined, respectively. 
+
+## References 
+
+Aibibu, T.; Lan, J.; Zeng, Y.; Lu, W.; and Gu, N. 2024. Feature-enhanced attention and dual-gelan net (feadg-net) for uav infrared small object detection in traffic surveillance. 
+
+Drones , 8(7): 304. An, X.; Sun, J.; Gui, Z.; and He, W. 2025. Choice: bench-marking the remote sensing capabilities of large vision-language models. In NeurIPS , volume 38. Bai, S.; Cai, Y.; Chen, R.; Chen, K.; Chen, X.; Cheng, Z.; Deng, L.; Ding, W.; Gao, C.; Ge, C.; et al. 2025. Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 .Chen, S.; Ji, L.; Peng, S.; Zhu, S.; Ye, M.; and Sang, Y. 2025. Language-driven motion prior knowledge learning for moving infrared small target detection. IEEE Transactions on Geoscience and Remote Sensing .Chen, T.; Ye, Z.; Tan, Z.; Gong, T.; Wu, Y.; Chu, Q.; Liu, B.; Yu, N.; and Ye, J. 2024a. MiM-ISTD: Mamba-in-Mamba for Efficient Infrared Small-Target Detection. IEEE Transactions on Geoscience and Remote Sensing , 62: 1–13. Chen, Z.; Duan, Y.; Wang, W.; He, J.; Lu, T.; Dai, J.; and Qiao, Y. 2022. Vision transformer adapter for dense predic-tions. arXiv preprint arXiv:2205.08534 .Chen, Z.; Wu, J.; Wang, W.; Su, W.; Chen, G.; Xing, S.; Zhong, M.; Zhang, Q.; Zhu, X.; Lu, L.; et al. 2024b. In-ternVL: Scaling up Vision Foundation Models and Aligning for Generic Visual-Linguistic Tasks. In CVPR .Chung, W. Y.; Lee, I. H.; and Park, C. G. 2023. Lightweight infrared small target detection network using full-scale skip connection U-Net. IEEE Geoscience and Remote Sensing Letters , 20: 1–5. Dai, Y.; Wu, Y.; Zhou, F.; and Barnard, K. 2021a. Asymmet-ric contextual modulation for infrared small target detection. In Proceedings of the IEEE/CVF winter conference on ap-plications of computer vision , 950–959. Dai, Y.; Wu, Y.; Zhou, F.; and Barnard, K. 2021b. Atten-tional local contrast networks for infrared small target detec-tion. IEEE Transactions on Geoscience and Remote Sensing ,59(11): 9813–9824. Danish, M.; Munir, M. A.; Shah, S. R. A.; Kuckreja, K.; Khan, F. S.; Fraccaro, P.; Lacoste, A.; and Khan, S. 2025. Geobench-vlm: Benchmarking vision-language models for geospatial tasks. In ICCV , 7132–7142. Diakogiannis, F. I.; Waldner, F.; Caccetta, P.; and Wu, C. 2020. ResUNet-a: A deep learning framework for semantic segmentation of remotely sensed data. ISPRS Journal of Photogrammetry and Remote Sensing , 162: 94–114. Guo, X.; Lao, J.; Dang, B.; Zhang, Y.; Yu, L.; Ru, L.; Zhong, L.; Huang, Z.; Wu, K.; Hu, D.; et al. 2024. Skysense: A multi-modal remote sensing foundation model towards uni-versal interpretation for earth observation imagery. In CVPR ,27672–27683. Huang, B.; Li, J.; Chen, J.; Wang, G.; Zhao, J.; and Xu, T. 2023. Anti-UAV410: A thermal infrared benchmark and customized scheme for tracking drones in the wild. IEEE TPAMI , 46(5): 2852–2865. Huang, F.; Zheng, S.; Qiu, Z.; Liu, H.; Bai, H.; and Chen, L. 2025. Text-IRSTD: Leveraging Semantic Text to Pro-mote Infrared Small Target Detection in Complex Scenes. In 
+
+ICCV , 10635–10644. Li, B.; Xiao, C.; Wang, L.; Wang, Y.; Lin, Z.; Li, M.; An, W.; and Guo, Y. 2022. Dense nested attention network for infrared small target detection. IEEE TIP , 32: 1745–1758. Li, B.; Ying, X.; Li, R.; Liu, Y.; Shi, Y.; and Li, M. 2024. The first competition on resource-limited infrared small target detection challenge: Methods and results. arXiv preprint arXiv:2408.09615 .Li, R.; An, W.; Wang, Y.; Ying, X.; Dai, Y.; Wang, L.; Li, M.; Guo, Y.; and Liu, L. 2025. Probing deep into temporal profile makes the infrared small target detector much better. 
+
+arXiv preprint arXiv:2506.12766 .Li, R.; An, W.; Xiao, C.; Li, B.; Wang, Y.; Li, M.; and Guo, Y. 2023. Direction-coded temporal U-shape module for mul-tiframe infrared small target detection. IEEE Transactions on Neural Networks and Learning Systems .Lin, C.-Y. 2004. Rouge: A package for automatic evaluation of summaries. In Text summarization branches out , 74–81. Lin, T.-Y.; Dollár, P.; Girshick, R.; He, K.; Hariharan, B.; and Belongie, S. 2017. Feature pyramid networks for object detection. In CVPR , 2117–2125. Liu, H.; Li, C.; Li, Y.; and Lee, Y. J. 2024a. Improved Baselines with Visual Instruction Tuning. In CVPR , 26286– 26296. Liu, P.; Zhang, Y.; Guo, G.; and Ding, J. 2024b. Enhanced detection and recognition of road objects in infrared imaging using multi-scale self-attention. Sensors , 24(16): 5404. Liu, Q.; Liu, R.; Zheng, B.; Wang, H.; and Fu, Y. 2024c. Infrared small target detection with scale and location sensi-tivity. In CVPR , 17490–17499. Loshchilov, I.; and Hutter, F. 2017. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 .Muhtar, D.; Li, Z.; Gu, F.; Zhang, X.; and Xiao, P. 2024. Lhrs-bot: Empowering remote sensing with vgi-enhanced large multimodal language model. In ECCV , 440–457. Papineni, K.; Roukos, S.; Ward, T.; and Zhu, W.-J. 2002. Bleu: a method for automatic evaluation of machine transla-tion. In ACL , 311–318. Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; et al. 2021. Learning Transferable Visual Models From Natural Language Supervision. In ICML , 8748–8763. Ronneberger, O.; Fischer, P.; and Brox, T. 2015. U-net: Convolutional networks for biomedical image segmentation. In International Conference on Medical image computing and computer-assisted intervention , 234–241. Sagar Soni, H. D. M. F. M. A. M. M. S. D. P. F. C. W. L. J. K. S. K. F. K., Akshay Dudhane. 2025. EarthDial: Turning Multi-sensory Earth Observations to Interactive Dialogues. 
+
+ArXiv .Shi, Y.; He, R.; Hui, L.; Li, X.; Yang, J.; Cheng, M.-M.; and Dai, Y. 2025. AuxDet: Auxiliary Metadata Matters for Omni-Domain Infrared Small Target Detection. arXiv e-prints , arXiv–2505. Singh, P.; and Singh, P. 2025. Leveraging Language Prior for Infrared Small Target Detection. arXiv preprint arXiv:2507.13113 .Vedantam, R.; Lawrence Zitnick, C.; and Parikh, D. 2015. Cider: Consensus-based image description evaluation. In 
+
+CVPR , 4566–4575. Wu, T.; Li, B.; Luo, Y.; Wang, Y.; Xiao, C.; Liu, T.; Yang, J.; An, W.; and Guo, Y. 2023. MTU-Net: Multilevel Tran-sUNet for Space-Based Infrared Tiny Ship Detection. IEEE Transactions on Geoscience and Remote Sensing , 61: 1–15. Wu, X.; Hong, D.; and Chanussot, J. 2022. UIU-Net: U-Net in U-Net for infrared small object detection. IEEE TIP , 32: 364–376. Xiao, T.; Liu, Y.; Zhou, B.; Jiang, Y.; and Sun, J. 2018. Uni-fied perceptual parsing for scene understanding. In ECCV ,418–434. Xie, E.; Wang, W.; Yu, Z.; Anandkumar, A.; Alvarez, J. M.; and Luo, P. 2021. SegFormer: Simple and efficient design for semantic segmentation with transformers. NeurIPS , 34: 12077–12090. Xu, W.; Zheng, S.; Wang, C.; Zhang, Z.; Ren, C.; Xu, R.; and Xu, S. 2025. SAMamba: Adaptive state space modeling with hierarchical vision for infrared small target detection. 
+
+Information Fusion , 124: 103338. Yang, J.; Liu, S.; Wu, J.; Su, X.; Hai, N.; and Huang, X. 2025. Pinwheel-shaped convolution and scale-based dy-namic loss for infrared small target detection. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, 9202–9210. Yuan, M.; Meng, D.; Xi, Z.; Zhao, T.; Zhao, S.; Dai, Y.; and Wei, X. 2026. Seeing Through the Noise: Improving In-frared Small Target Detection and Segmentation from Noise Suppression Perspective. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,27783–27792. Yuan, S.; Qin, H.; Yan, X.; Akhtar, N.; and Mian, A. 2024. Sctransnet: Spatial-channel cross transformer network for infrared small target detection. IEEE Transactions on Geo-science and Remote Sensing , 62: 1–15. Yuksekgonul, M.; Bianchi, F.; Kalluri, P.; Jurafsky, D.; and Zou, J. 2023. When and why Vision-Language Models be-have like Bags-of-Words, and what to do about it? In Inter-national Conference on Learning Representations .Zhang, M.; Li, X.; Gao, F.; Guo, J.; Gao, X.; and Zhang, J. 2025. SAIST: Segment any infrared small target model guided by contrastive language-image pretraining. In CVPR ,9549–9558. Zhang, M.; Zhang, R.; Yang, Y.; Bai, H.; Zhang, J.; and Guo, J. 2022. ISNet: Shape matters for infrared small target detection. In CVPR , 877–886. Zhang, W.; Cai, M.; Zhang, T.; Zhuang, Y.; and Mao, X. 2024. EarthGPT: A Universal Multi-modal Large Language Model for Multi-sensor Image Comprehension in Remote Sensing Domain. IEEE Transactions on Geoscience and Remote Sensing , 62: 1–27. Zhao, M.; Li, W.; Li, L.; Hu, J.; Ma, P.; and Tao, R. 2022. Single-Frame Infrared Small-Target Detection: A survey. 
+
+IEEE Geoscience and Remote Sensing Magazine , 10(2): 87– 119.

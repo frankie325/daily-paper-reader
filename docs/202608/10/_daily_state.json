@@ -1,0 +1,281 @@
+{
+  "date": "20260810",
+  "date_label": "",
+  "generated_at": "2026-08-10 20:16:07 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.01348v2",
+      "route": "202608/10/2608.01348v2-prompt-driven-simulation-with-feature-perturbation-for-cross-domain-few-shot-object-detection",
+      "title": "Prompt-Driven Simulation with Feature Perturbation for Cross-Domain Few-Shot Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "提出跨域小样本目标检测的数据增强方法",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.02495v1",
+      "route": "202608/10/2608.02495v1-dyfrdet-towards-accurate-small-object-detection-via-dynamic-frequency-suppression-with-label-disambiguation",
+      "title": "DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "提出新型小目标检测器DyFrDet",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.04833v1",
+      "route": "202608/10/2608.04833v1-registerbridgemm-a-register-centric-framework-for-rgb-infrared-object-detection",
+      "title": "RegisterBridgeMM: A Register-Centric Framework for RGB-Infrared Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "RGB-红外目标检测框架，采用寄存器中心化融合",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.06674v1",
+      "route": "202608/10/2608.06674v1-corrupting-attention-evasion-based-adversarial-attacks-on-encoder-attention-in-detection-transformers",
+      "title": "Corrupting Attention: Evasion-Based Adversarial Attacks on Encoder Attention in Detection Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "针对检测Transformer编码器注意力的对抗攻击",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.01302v1",
+      "route": "202608/10/2608.01302v1-beyond-symmetric-fusion-exploiting-task-dependent-modality-strengths-for-rgb-event-small-object-detection",
+      "title": "Beyond Symmetric Fusion: Exploiting Task-Dependent Modality Strengths for RGB-Event Small Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "RGB-事件相机小目标检测",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.01495v1",
+      "route": "202608/10/2608.01495v1-probing-the-3d-object-level-understanding-of-pre-trained-detection-transformers",
+      "title": "Probing the 3D Object-Level Understanding of Pre-Trained Detection Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "探测预训练检测Transformer的3D目标理解能力",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.02092v1",
+      "route": "202608/10/2608.02092v1-deep-multimodal-fusion-detection-through-spatial-mask-and-channel-fusion",
+      "title": "Deep Multimodal Fusion Detection through Spatial Mask and Channel Fusion",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "注意力驱动的互补重采样用于跨模态目标检测",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.03136v1",
+      "route": "202608/10/2608.03136v1-frozen-high-resolution-inference-for-cross-city-object-detection-an-ai-city-challenge-2026-study",
+      "title": "Frozen High-Resolution Inference for Cross-City Object Detection: An AI City Challenge 2026 Study",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "跨城市目标检测的冻结高分辨率推理",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.03370v1",
+      "route": "202608/10/2608.03370v1-drpfnet-dual-domain-residual-progressive-fusion-network-for-rgb-thermal-object-detection",
+      "title": "DRPFNet: Dual-domain Residual Progressive Fusion Network for RGB-Thermal Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "RGB-热红外目标检测，使用Transformer",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.03490v1",
+      "route": "202608/10/2608.03490v1-lightweight-3d-object-detection-via-mamba-based-knowledge-distillation",
+      "title": "Lightweight 3D Object Detection via Mamba-Based Knowledge Distillation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "轻量级三维目标检测与知识蒸馏",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.04394v1",
+      "route": "202608/10/2608.04394v1-free-lunch-augmentation-by-revisiting-diffusion-based-data-generation-for-cross-domain-few-shot-object-detection",
+      "title": "Free-Lunch Augmentation by Revisiting Diffusion-Based Data Generation for Cross-Domain Few-Shot Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于扩散的数据增强用于跨域少样本目标检测",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.04720v2",
+      "route": "202608/10/2608.04720v2-yolov14-adaptive-real-time-object-detection-for-diverse-imaging-conditions",
+      "title": "YOLOv14: Adaptive Real-Time Object Detection for Diverse Imaging Conditions",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "实时目标检测与自适应机制",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.06205v1",
+      "route": "202608/10/2608.06205v1-cfgpnet-cross-attention-based-fused-gradient-programmed-network-framework-for-multispectral-object-detection",
+      "title": "CFGPNet: Cross-Attention-Based Fused Gradient Programmed Network Framework for Multispectral Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "使用交叉注意力的多光谱目标检测",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.06841v1",
+      "route": "202608/10/2608.06841v1-ecad-expanding-class-agnostic-detection-beyond-thing-centric-objectness",
+      "title": "ECAD: Expanding Class-Agnostic Detection Beyond Thing-Centric Objectness",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "扩展的类无关目标检测",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.06850v1",
+      "route": "202608/10/2608.06850v1-regiondet-a-benchmark-for-region-detection-beyond-object-instances",
+      "title": "RegionDet: A Benchmark for Region Detection Beyond Object Instances",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "将目标检测扩展到区域检测基准",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.07015v1",
+      "route": "202608/10/2608.07015v1-understand-before-detect-vision--language-learning-for-omni-domain-infrared-small-target-detection",
+      "title": "Understand Before Detect: Vision--Language Learning for Omni-Domain Infrared Small Target Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "全领域红外小目标检测结合视觉语言学习",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    },
+    {
+      "paper_id": "2608.04130v1",
+      "route": "202608/10/2608.04130v1-radar4d-vlm-proposal-grounded-temporal-4d-radar-reasoning-across-frozen-language-models",
+      "title": "Radar4D-VLM: Proposal-Grounded Temporal 4D Radar Reasoning Across Frozen Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于雷达的目标检测，使用Transformer视觉语言模型",
+      "first_seen_at": "2026-08-10 20:16:07 UTC",
+      "updated_at": "2026-08-10 20:16:07 UTC"
+    }
+  ]
+}

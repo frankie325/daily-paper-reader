@@ -1,0 +1,444 @@
+Title: Corrupting Attention: Evasion-Based Adversarial Attacks on Encoder Attention in Detection Transformers
+
+URL Source: https://arxiv.org/pdf/2608.06674v1
+
+Published Time: Mon, 10 Aug 2026 00:22:41 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+> 1
+
+# Corrupting Attention: Evasion-Based Adversarial Attacks on Encoder Attention in Detection Transformers 
+
+Ridma Jayasundara 1, Shaheer Mohamed 1, Tharindu Fernando 1, Harshala Gammulle 1, Basura Fernando 2, Sanka Rasnayake 3, A V Subramanyam 4, Sridha Sridharan 1, Clinton Fookes 1
+
+Abstract —Adversarial vulnerabilities remain a major concern for the safe deployment of neural networks, particularly in object detection, a core task embedded in many safety-critical systems. Detection transformers have emerged as leading object detectors, yet their adversarial robustness remains comparatively underexplored. Most existing attacks target the detection output rather than the attention mechanism that makes these models distinctive. In this paper, we introduce the first attack that directly optimizes an encoder-attention objective under an im-perceptible, bounded ℓ∞ perturbation. Rather than introducing an attacker-owned sink token through a visible patch, it drives the model’s own attention toward a corrupted target. We argue that encoder attention concentrates the model’s spatial reasoning, so corrupting it propagates through the detection pipeline more disruptively than perturbing the detection output alone. Our attack reduces DETR-R50 mAP on COCO from 42.1 to 0.97, a ∼ 4× reduction in resulting mAP over the strongest existing attack under an identical perturbation budget and iteration count. We further show that this vulnerability is not specific to a particular corruption objective: across four qualitatively distinct targets, dispersion, re-ranking, permutation, and peak-suppression, detection consistently drops below 3 mAP, suggesting that the weakness arises from disrupting the attention structure itself rather than from any single target. Finally, we demon-strate that the attack generalizes across attention formulations, reducing DINO-Swin-L from 56.8 to 1.44 mAP against 7.3 for the strongest prior attack, establishing state-of-the-art on both dense and deformable attention. 
+
+Index Terms —Adversarial Attacks, Object Detection, Detection Transformers 
+
+I. I NTRODUCTION 
+
+# OBJECT detection is one of the most fundamental and consequential tasks in computer vision, as it jointly an-swers two complementary questions: what objects are present in an image and where they are located [1]. It is also a main component of many real-world and safety-critical systems, which makes its adversarial robustness a practical concern. Modern deep learning detectors are commonly organised into three broad families: two-stage detectors, single-stage detectors, and, more recently, transformer-based detectors [1], [2]. The first two are built on convolutional neural network (CNN) backbones and dominated the field for the better 
+
+> 1
+
+Signal Processing, Artificial Intelligence and Vision Technologies Group (SAIVT), Queensland University of Technology 
+
+> 2
+
+Institute of High-Performance Computing, Agency for Science, Technol-ogy and Research, Singapore 
+
+> 3
+
+School of Computing, National University of Singapore 
+
+> 4
+
+Indraprastha Institute of Information Technology, Delhi, India 
+
+Fig. 1. Detections and final layer encoder attention visualization for DETR-R50 (top two rows) and DINO-Swin-L (bottom two rows) on a benign image, under AFOG [7], and our attack. The direct corruption of attention in our attack collapses the detection more effectively. 
+
+part of a decade. The third was pioneered by the Detection Transformer (DETR) [3], which recast detection as a direct set prediction problem and replaced components such as anchor generation and non-maximum suppression with an encoder-decoder architecture. With transformers becoming increasingly dominant, subsequent variants of this architecture [4], [5] now define the state of the art on major detection benchmarks. Yet their adversarial robustness remains underexplored, as most attack research has focused on CNN-based detectors [6], [7], and these attacks transfer poorly across the architectural gap. Across the DETR family, the encoder occupies a common and pivotal position. Regardless of the backbone or decoder query design, current state-of-the-art DETR variants pass backbone features through a stack of attention-based encoder layers before producing any detections [8]. The encoder refines the backbone features into context-aware representations, mod-elling the relationships between spatial locations that the de-coder subsequently queries to localise and classify objects [8]. The mechanism used to compute these relationships is arXiv:2608.06674v1 [cs.CV] 7 Aug 2026 2
+
+precisely what distinguishes the variants. The original DETR employs global self-attention in which every spatial location attends to every other [3]. In contrast, Deformable DETR and its descendants, including DINO [5], replace this with deformable attention [4], restricting each query to a small, learnable set of sampling points and thereby reducing the quadratic attention cost to linear. Whichever mechanism is used, the encoder refines the backbone features into the memory that every decoder query reads. If this memory is corrupted, the decoder inherits degraded representations no matter how capable the backbone or decoder, and detection collapses. Existing adversarial attacks do not target this vulnerability. Most were designed for convolutional detectors and transfer poorly to transformer-based ones. Those built for transformers optimize against the detection output, leaving the attention mechanism unexploited [6], [7]. A separate line of work does target attention directly, but does so through a visible adversarial patch that introduces an external, attacker-owned sink token [9], [10], rather than an imperceptible perturbation of the image. These attacks are also confined to global dot-product attention and do not carry over to the deformable attention of modern variants. In this paper, we introduce the first attack on object detectors that optimizes an encoder-attention objective directly under an imperceptible, bounded ℓ∞ perturbation. Rather than introduc-ing an attacker-owned sink token, we drive the model’s own attention toward a structured corruption target. We define four such targets: dispersion, re-ranking, permutation, and peak-suppression, each destroying a different structural property of the attention row, and show empirically that detection collapses under all of them, losing over 93% of clean mAP on DETR-R50. This indicates the vulnerability lies in the at-tention itself rather than in any particular choice of corruption target. Because we target the attention map itself and not the mechanism that produces it, the attack extends to different attention formulations. We show this on DINO’s deformable attention, where it reduces DINO-Swin-L from 56 .8 to 1.44 
+
+mAP. Figure 1 illustrates this. Under an identical perturbation budget, the strongest prior attack leaves the encoder’s attention partly intact and several objects still detected, whereas driv-ing the attention at object tokens toward a corrupted target collapses both the attention and the detections, for global and deformable attention alike. The perturbations further transfer between the two architectures (DETR-R50 ↔ DINO-R50), again outperforming prior work. The main contributions of this work are as follows.  
+
+> •
+
+We propose a direct attention corruption attack on transformer-based detectors, optimizing an input-space perturbation against the encoder’s attention rather than the detection loss. Under an identical budget and iteration count, it reduces DETR-R50 from 42 .1 to 0.97 mAP and DINO-Swin-L from 56 .8 to 1.44 , establishing a new state of the art on both.  
+
+> •
+
+We show the vulnerability is robust to the choice of corruption, across four qualitatively distinct objectives, namely dispersion, re-ranking, permutation, and peak-suppression. All four collapse detection and achieve SOTA on DETR-R50, and three of them do so on DINO as well, showing that the weakness lies in the attention structure itself.  
+
+> •
+
+We demonstrate that the attack generalizes across differ-ent attention formulations, extending from DETR’s dense self-attention to DINO’s deformable attention, indicating the attack surface is not tied to a specific attention implementation. II. R ELATED WORK 
+
+A. Adversarial Attacks on Object Detectors 
+
+Adversarial attacks on object detection were first developed for convolutional detectors, where perturbations target region proposals, anchors, or objectness scores. DAG [11], UEA [12], RAP [13], and TOG [14] all follow this recipe, degrading Faster R-CNN, SSD, and YOLO. Transformer-based detectors expose no such surface. Predictions arise from one-to-one set matching over a sparse set of queries, with no dense objectness map and no Non-Maximum Suppression. Attacks built on CNN architecture are therefore substantially less effective in the transformer setting [7]. Pixel-level gradient attacks such as FGSM [15], PGD [16] and C&W [17] have been adapted to DETR [3]. More recently, and Nazeri et al. [6] propose a DETR-specific C&W variant that exploits intermediate decoder losses. Their analysis further finds that DETR variants are broadly vulnerable across attack types, with adversarial examples transferring readily among DETR variants but far less effectively to convolutional de-tectors such as Faster R-CNN, highlighting the architecture-specific nature of these perturbations. AFOG [7] introduces an imperceptible, bounded perturbation attack tailored to de-tection transformers, using a learnable input space weighting map to concentrate the perturbation on vulnerable image regions. Notably, it reports that the encoder’s self-attention collapses under attack, yet this collapse is only a byproduct of optimizing a detection loss. The attention mechanism is never targeted directly. These works confirm that detection transformers are vulnerable to bounded perturbations, but they treat the detector as a generic loss surface and leave the attention mechanism untouched, which is the component that distinguishes these architectures from ours. 
+
+B. Attacking the Attention Mechanism 
+
+A second line of work targets attention directly, using adversarial patches. Attention-Fool [9] tries to optimize a patch in a way that nearly all queries attend to the single token covered by the patch, diverting attention away from the real objects. It was originally developed for Vision Transformer (ViT) [18] and Data-efficient Image Transformer (DeiT) [19] for image classification and was later adapted to DETR. Patch-Fool [10] similarly optimizes a patch to maximize the attention it receives from all other tokens, but is evaluated only on image classification rather than object detection. LQA [20] carries the same idea into detection transformers, hijacking both encoder self-attention and decoder cross-attention through an on-object patch. The common thread is that all of these methods redirect 3
+
+attention toward an external sink token introduced by a visible, localized patch. Such attacks are specific to global dot product attention. Deformable attention, introduced to reduce the quadratic cost of global attention in detectors such as Deformable-DETR and DINO, breaks their central assumption. In deformable attention, each query attends to only a few dynamically sampled keys and no single key is shared across queries, so one hijacked token can no longer capture all queries. To alleviate this issue, Alam et al. [21] extend the patch-based recipe specifically for deformable attention by fabricating a sink, using a source patch that redirects the sampling offsets of nearby tokens toward a second target patch carrying the adversarial noise. Across this literature, each prior attack on attention exhibits at least one of three limitations: it relies on a visible, localised patch that introduces an attacker owned sink token; it applies only to global dot product attention and does not carry over to the deformable attention of modern detectors; or, as with the detection loss perturbations above, it corrupts attention only as an incidental effect rather than optimising it directly. In contrast, we introduce the first attack that directly optimises an encoder attention objective under an imperceptible, bounded 
+
+ℓ∞ perturbation, with no adversarial patch and no sink token. It drives the model’s own attention toward a corrupted target of its clean distribution, and because the objective acts only on the attention weights, it is well defined for both global and deformable attention. III. M ETHODOLOGY 
+
+Multi-head self-attention is the main component of the detection transformer encoder, and its sensitivity to input is theoretically established in [22], which proves that standard dot-product self-attention is not globally Lipschitz, indicating that it can be highly sensitive to its input representations. While this result concerns attention’s sensitivity to its input features and bounds a worst-case rate rather than any specific perturbation, it motivates our main idea. Instead of attacking the detector’s output, as most existing attacks do, we target the encoder self-attention directly, and show empirically that an imperceptible image-space perturbation corrupts it and degrades detection. We construct an input-space perturbation that drives the encoder’s native attention distribution toward a structured corruption target, and find that several structurally distinct targets substantially degrade detection, indicating that the vulnerability lies in disrupting attention. The overall attack framework is illustrated in Figure 2. In the remainder of this section, we explain our method in detail. 
+
+A. Problem Formulation 
+
+Let fθ denote the victim detector with frozen parameters θ.It maps an input image to a set of detections through three stages, where fθ = Dec θ ◦ Enc θ ◦ gθ as shown in Eq. 1, 
+
+x gθ
+
+−−−→ X ∈ RS×d Enc θ
+
+−−−−−→ ˜X Dec θ
+
+−−−−−→ ˆy (1)   
+
+> Fig. 2. Attack framework. The corruption objective turns the clean final-layer encoder attention into a fixed target, and PGD optimises an ℓ∞bounded perturbation against it. The model is frozen throughout.
+
+Here, x ∈ R3×H×W is the input image. The backbone gθ
+
+maps it to a feature grid of size h × w, which is flattened into a sequence of S = hw feature tokens, each of dimension 
+
+d. After adding positional embeddings, the resulting token sequence X ∈ RS×d is passed to the encoder. The encoder 
+
+Enc θ refines these tokens through L layers of transformer blocks with multi-head self-attention, producing ˜X ∈ RS×d;and the decoder Dec θ produces the final detections ˆy from a set of learned queries. Our perturbation acts on x, at the input to gθ , while our objective is defined on the attention inside 
+
+Enc θ .Within an encoder layer, multi-head self-attention [23] is computed for each head m ∈ { 1, . . . , n h} as shown in Eq. 2, 
+
+Z(m) = Q(m) K(m)⊤
+
+√dh
+
+, A(m) = softmax  Z(m), (2) with Q(m) = XW (m) 
+
+> Q
+
+, K(m) = XW (m) 
+
+> K
+
+, V (m) = XW (m) 
+
+> V
+
+,head dimension dh = d/n h, and the softmax applied row-wise. We refer to Z(m) as the attention logits and A(m) as the attention map. Each row A(m) 
+
+> t:
+
+is a probability distri-bution over the S tokens, and the output of each head is 
+
+O(m) = A(m)V (m), so that the output at token t is o(m) 
+
+> t
+
+=
+
+P 
+
+> s
+
+A(m) 
+
+> ts
+
+v(m) 
+
+> s
+
+. This distribution determines the spatial context that position aggregates. We define our attack on the logits 
+
+Z(m) rather than the map A(m), since gradients reaching the input through post-softmax weights are strongly attenuated, making A(m) a weak optimization target [9], which we also confirm empirically. Rather than corrupting every row, we target only the query positions corresponding to detected content. We run a clean forward pass, keep the detections scoring above a threshold τ ,and take as our target set O = { t : ct ∈ S 
+
+> i
+
+Bi } the tokens t
+
+whose spatial location ct falls inside a predicted box Bi.Let Z(m) 
+
+> t:
+
+(x) denote the logit row at object token t and head m at a chosen encoder layer. A corruption operator T
+
+maps a clean row to a corrupted target, Z⋆(m) 
+
+> t:
+
+= T  Z(m) 
+
+> t:
+
+(x),4z11 · · · z1S      
+
+> zt11· · · zt1S
+> ......
+> zt21· · · zt2S
+> ......
+> zS1· · · zSS
+
+ 
+
+> query token  t
+> key token s
+
+Z(m) ∈ RS×S         
+
+> OTz11 · · · z1S
+> z⋆t11· · · z⋆t1S
+> ......
+> z⋆t21· · · z⋆t2S
+> ......
+> zS1· · · zSS
+
+
+
+Z⋆(m) ∈ RS×S        
+
+> (a) Corruption of the object rows. clean zTdispersion re-ranking permutation peak-suppr.
+> (b) The four corruption targets. Fig. 3. The attention corruption attack. (a) The operator Treplaces the attention logit rows of the object tokens O, leaving every other row and all value vectors unchanged. (b) A clean row and the four targets, each destroying a different structural property of the distribution: concentration, ordering, key assignment, and the dominant mode.
+
+computed once from the clean image and held fixed during the attack. We seek an additive perturbation δ, bounded in ℓ∞ by 
+
+ϵ, that drives the attention at the object tokens toward these targets, as shown in Eq. 3, 
+
+δ⋆ = arg min 
+
+> ∥δ∥∞≤ϵ
+
+1
+
+nh|O| 
+
+> nh
+
+X
+
+> m=1
+
+X
+
+> t∈O
+
+L
+
+
+
+Z(m) 
+
+> t:
+
+(x + δ), Z ⋆(m)
+
+> t:
+
+| {z } 
+
+> Ltotal (x+δ;Z⋆)
+
+. (3) Notably, the objective contains no detection loss and the attack is blind to the detector’s output during optimization. We define the family of operators T next. 
+
+B. Corruption Targets 
+
+A corruption operator T takes a clean logit row and returns a target row that no longer routes the query toward the keys it should attend to. To test whether this vulnerability depends on how the attention is disrupted, we design four qualitatively distinct operators as shown in Figure 3, each corrupting the row in a different way. As we show, all four collapse detection, showing that the weakness lies in attention itself. Throughout, we write z = Z(m) 
+
+> t:
+
+for a clean logit row and z⋆ for its corrupted target. 
+
+1) Dispersion: The most direct corruption is to remove all concentration from the row, spreading attention uniformly across every key. Dispersion sets every logit equal, 
+
+z⋆s = 0 ∀s ∈ { 1, . . . , S }, (4) so that A⋆s = 1 /S and o(m) 
+
+> t
+
+= ¯ v(m) for every targeted token 
+
+t ∈ O . The attention branch then supplies the same pooled context to all object tokens in place of their position-specific context. 
+
+2) Re-ranking: Re-ranking reverses the order of the logits, turning the most-attended key into the least-attended and vice versa, 
+
+z⋆s = max  
+
+> s′∈{ 1,...,S }
+
+zs′ − zs, (5) so the keys a query previously attended become the ones it attends to least. 
+
+3) Permutation: Permutation shuffles the logits by a ran-dom permutation π of the key positions, 
+
+z⋆s = zπ(s), (6) so the distribution keeps its shape but each weight now lands on an unrelated key. Although self-attention is permutation-equivariant, permuting only the logits while holding the value vectors fixed sends each query’s weights to mismatched con-tent. 
+
+4) Peak-suppression: Peak-suppression moves the row’s dominant peak onto the least-attended key and flattens every-thing else to the row minimum, 
+
+z⋆s =
+
+(max s′∈{ 1,...,S } zs′ s = arg min s′∈{ 1,...,S } zs′ ,
+
+min s′∈{ 1,...,S } zs′ otherwise . (7) so the query attends most strongly to the key it should attend to least. 
+
+C. Perturbation Optimization 
+
+We solve the objective in Eq. 3 with projected gradient descent under an ℓ∞ constraint [16]. We instantiate the Loss 
+
+L as the mean squared error (MSE) between the perturbed and target logit rows as in Eq. 8, 
+
+L Z(m) 
+
+> t:
+
+(x + δ), Z ⋆(m)
+
+> t:
+
+ = 1
+
+S
+
+X
+
+> s
+
+
+
+Z(m) 
+
+> ts
+
+(x + δ) − Z⋆(m)
+
+> ts
+
+2
+
+,
+
+(8) Here we evaluate the loss per head and per object token, so that every head’s attention is corrupted rather than only an averaged map. The targets Z⋆(m) 
+
+> t:
+
+are constructed once from a clean forward pass and held fixed throughout the iterations. The perturbation is initialized uniformly within the budget, 
+
+δ0 ∼ U (−ϵ, ϵ ), and updated at each iteration k by a signed gradient step followed by projection onto the ϵ-ball, 
+
+δk+1 ← Πϵ
+
+
+
+δk − α Γ
+
+ ∂Ltotal (x + δk; Z⋆)
+
+∂δ k
+
+ 
+
+, (9) where α is the perturbation step size, Γ is the sign function, and Πϵ clips each coordinate of δ to [−ϵ, ϵ ]. The perturbed image is clipped to the valid pixel range after each step. Model parameters θ remain frozen; gradients are taken only with respect to the input and propagate from the encoder attention logits back through the backbone. 5
+
+D. Extension to Deformable Attention 
+
+Deformable attention [4], used by DINO [5], replaces the dense query-key interaction with a sparse one. For a query token q with reference point pq , a linear projection of the query feature predicts K sampling offsets ∆pqk together with their weights, which are normalized by a softmax over the K
+
+points. The output is 
+
+DeformAttn( zq , p q , x ) = 
+
+> K
+
+X
+
+> k=1
+
+Aqk x pq + ∆ pqk 
+
+, (10) Here, PKk=1 Aqk = 1 . The weights are therefore produced by a projection of the query rather than by an affinity computation between tokens, but their role is the same as in Eq. 2. Aq: is a normalized distribution determining how a query aggregates content from the positions it reads. The difference is that it reads from K ≪ S learned locations rather than from every token. Since our operators act on this distribution, they apply directly with S replaced by K, and the objective and optimization procedure carry over unmodified. Because the attack targets the weight distribution rather than the computation that produces it, it transfers to the deformable setting unchanged. IV. E XPERIMENTS 
+
+A. Experimental Setup 
+
+All experiments are conducted on the validation split of MS COCO 2017 [24], which has 5,000 images annotated over 80 
+
+object categories. Detection quality is measured with mean average precision (mAP) averaged over IoU thresholds from 
+
+0.50 to 0.95 in steps of 0.05 , the primary COCO metric. As ours is an evasion attack, a lower adversarial mAP indicates a stronger attack. All models and attacks are implemented in PyTorch [25] and all experiments run on a NVIDIA RTX A6000 GPU. We follow the same experimental setup as [7]. The perturbation is optimized under a budget of ϵ = 8 /255 
+
+with a step size of 2/255 for 10 iterations, and object regions are selected using a confidence threshold of τ = 0 .5.
+
+B. Comparison with State-of-the-Art Attacks 
+
+We compare our attack with different state-of-the-art attacks on DETR-R50 and DINO-Swin-L and the results are shown in Table I. The baseline results are grouped by how gradients are obtained. Surrogate attacks build the perturbation on a substitute model and transfer it to the victim, whereas victim attacks, including ours, explicitly build the attack on the victim model itself. We list each attack’s perturbation budget and iteration count along with its adversarial mAP, for a fair comparison. Surrogate methods leave DETR-R50 largely intact. The strongest of them, GARSDC [26], reaches 6.0 mAP, but does so with more than 3,000 iterations. The remainder [11]–[13], [27]–[29] sit between 12 .7 and 28 .6 mAP despite budgets twice ours and, in most cases, five times as many iterations. This is consistent with the observation that adversarial ex-amples transfer poorly from convolutional detectors to the DETR family [6]. Victim model attacks are stronger, yet        
+
+> TABLE I COMPARISON AGAINST STATE -OF -THE -ART DETECTION ATTACKS ON
+> DETR-R50 AND DINO-S WIN -L. S UR ./V IC .DENOTE SURROGATE AND VICTIM ATTACKS . O URS USES DISPERSION ON DETR AND RE -RANKING ON DINO. B ASELINE NUMBERS AS REPORTED IN [7].
+
+Attack Type Pert. Budget Iters. Adversarial mAP DETR DINO GARSDC Sur. 0.05 3000+ 6.0 –GALD Sur. 0.063 10 20.6 –RAD Sur. 0.063 10 27.2 47.2 GHFD Sur. 0.063 50 12.7 42.3 UEA Sur. 0.063 50 28.5 50.7 DAG Sur. 0.063 50 28.6 50.7 RAP Sur. 0.063 50 24.7 49.5 EBAD Vic. 0.039 10 34.9 –AttentionFool Vic. – 10–150 21.0 –OATB Vic. 0.078 20 26.6 –AFOG Vic. 0.031 10 4.1 7.3 
+
+Ours Vic. 0.031 10 0.97 1.44     
+
+> TABLE II EFFECTIVENESS OF AFOG AND OUR ATTACK ACROSS EIGHT DETECTION TRANSFORMERS ,MEASURED BY M AP ON PERTURBED IMAGES .DISPERSION IS USED AS THE CORRUPTION TARGET THROUGHOUT .
+
+Model Params (M) Benign AFOG Ours 
+
+DETR-R50* 39.8 42.1 4.1 0.97 
+
+DETR-R101* 76.0 43.5 5.2 0.93 
+
+R50 47.6 49.2 5.3 4.18 
+
+ConvNeXt 219.0 55.4 3.9 3.98 Swin-L 217.2 56.8 7.3 4.73 
+
+InternImage 241.0 56.9 7.3 5.75 
+
+FocalNet 228.9 58.5 7.3 4.12 
+
+EVA 1037.2 62.1 12.2 11.56 
+
+most remain far from collapsing the detector. EBAD [30], AttentionFool [9], and OATB [31] recover 34 .9, 21 .0, and 26 .6
+
+mAP respectively, OATB with a budget of 0.078 , roughly 2.5×
+
+our own. AFOG [7] is the only prior method that brings DETR-R50 near collapse, reaching 4.1 mAP at ϵ = 0 .031 and 10 
+
+iterations. Under exactly that budget and schedule, our attack reaches 0.97 mAP on DETR-R50 with dispersion set as the corruption target, a ∼ 4× reduction in mAP relative to AFOG and a 97 .7% drop from the clean 42 .1. On DINO-Swin-L the corresponding figures are 1.44 with re-ranking set as the corruption target, against AFOG’s 7.3. We further conduct a qualitative analysis to visualize both the detection collapse and the attention collapse, as shown in Figure 4. AFOG optimizes a detection-loss objective, and attention collapse is only a by-product of that optimization. Their own failure-case analysis [7], as well as our Figure 4, shows that when the AFOG attack fails, the encoder’s attention structure is not fully collapsed. In contrast, our attack sets the objective directly on the attention corruption by driving the attention map to collapse hence the detection collapses with it. This highlights that targeting attention is more effective. 6                 
+
+> Fig. 4. Detections (left) and the corresponding final-layer encoder attention (right). For DETR-R50 we show the self-attention averaged over heads and for DINO-Swin-L, the deformable sampling locations coloured by their attention weight. TABLE III EFFECT OF THE ATTENTION CORRUPTION TARGET ON DETR-R50 AND
+> DINO-S WIN -L. Corruption Target DETR DINO Clean 42.1 56.8 Random 39.9 56.2 Dispersion 0.97 4.73 Re-ranking 1.28 1.44 Peak-suppression 2.48 1.59 Permutation 2.58 9.22
+
+C. Effectiveness Across Detection Transformers 
+
+To show that our attack generalizes across different encoder attention mechanisms and different backbones, we run asecond set of experiments over a broader family of detection transformers. Table II reports the results for eight models, covering both attention formulations used across the DETR family and a range of backbone architectures. The two DETR models [3] use global self-attention and they are marked with (*). The other methods are based on DINO with deformable at-tention in the encoder and with the listed backbones: R50 [32], ConvNeXt [33], Swin-L [34], InternImage [35], FocalNet [36], and EVA [37]. In this experiment we fix dispersion as the corruption target across all models. Our attack achieves State-of-the-art over seven models with significant margins. The be-nign accuracy grows with model capacity but still the encoder attention becomes attack vulnerable where the accuracy drops by 81% for EVA, the model with highest mAP which has over one billion parameters. 
+
+D. Robustness to the Choice of Corruption 
+
+We test whether the vulnerability depends on how the attention is disrupted and the results are shown in Table III. On DETR-R50, all four operators reduce detection from a clean                                     
+
+> TABLE IV LAYER -WISE EFFECTIVENESS OF THE DISPERSION ATTACK ON
+> DETR-R50. E ACH ENCODER LAYER IS TARGETED INDIVIDUALLY ,THEN ALL SIX JOINTLY .Layer L1 L2 L3 L4 L5 L6 All mAP 3.60 4.61 7.36 3.36 2.57 0.97 1.03 TABLE V CROSS -MODEL TRANSFERABILITY ACROSS DETR-R50 AND DINO-R50.
+> source →target GIVES THE DIRECTION .Direction Attack Source Transfer DETR →DINO AFOG 4.1 17.81
+> Ours 0.97 12.19
+> DINO →DETR AFOG 5.3 13.20
+> Ours 4.18 12.35
+
+42.1 to below 3 mAP, each surpassing the prior state-of-the-art, with dispersion being strongest at 0.97. A random perturbation of the same budget leaves detection almost unchanged at 39.9. On DINO-Swin-L the same pattern holds, with three of the four operators surpassing the prior state of the art. Dispersion, re-ranking, and peak-suppression reduce detection from 56.8 to 4.73, 1.44, and 1.59 respectively. Permutation is the weakest at 9.22, the only operator not to beat AFOG, yet it still degrades detection by over 80% from the clean baseline and far below the random control at 56.2. Across both the dense and deformable settings, every structured target collapses detection while random noise does not, implying that the vulnerability lies in disrupting the attention distribution itself rather than in any single corruption objective. 7        
+
+> TABLE VI EFFECT OF OPTIMIZING THE CORRUPTION OBJECTIVE IN PRE -SOFTMAX LOGIT SPACE VERSUS POST -SOFTMAX ATTENTION SPACE ON DETR-R50. Corruption Target Pre-softmax Post-softmax Dispersion 0.97 7.96 Re-ranking 1.28 7.45
+> Fig. 5. Adversarial mAP on DETR-R50 versus perturbation budget and iteration count , each swept with the other at its default. Ours (solid) dominates AFOG (dashed) along both axes.
+
+E. Ablation Study 
+
+We now isolate the factors behind the attack’s effectiveness. We study its transferability across models, the encoder layer targeted, the choice of optimizing in pre and post softmax space, and the effect of the perturbation budget and iteration count. Unless otherwise stated we set dispersion as the cor-ruption target on the final encoder layer. 
+
+1) Attack Transferability Across Detection Transformers: 
+
+We test black-box transferability by crafting the perturbation on one model and evaluating it on the other, in both directions between DETR-R50 and DINO-R50 (Table V). As expected, transfer is weaker than the white-box setting for both attacks, but our perturbations transfer more effectively than AFOG in both directions, with the larger margin when transferring from DETR’s dense attention to DINO’s deformable attention. 
+
+2) Encoder Layer-wise Effectiveness: Table IV targets each encoder layer individually and all six jointly. The final layer is by far the strongest single target at 0.97 mAP, as it feeds the decoder directly. Attacking all six layers jointly is competitive but no stronger, so targeting the final layer alone is the more efficient choice. 
+
+3) Optimization Space: As described in Methodology, we optimize on the pre-softmax logits rather than the post-softmax attention map, and we test this empirically. Table VI shows the pre-softmax objective is stronger and optimizing the same targets in probability space is six to eight times weaker. 
+
+4) Perturbation Budget and Iteration Count: Figure 5sweeps the two axes of attack cost, the perturbation budget ϵ
+
+and the iteration count. Our attack dominates AFOG across both sweeps. Even at a quarter of the budget or half the iterations, our attack surpasses AFOG, the previous state of the     
+
+> Fig. 6. Last-layer encoder attention on DETR-R50 over optimization iterations
+> kwith perturbation budget fixed at ϵ=8/255 . The attention degrades progressively and collapses to a structureless map within a few iterations.
+
+art, run at its full budget and full iteration count, demonstrating the effectiveness of our attack. 
+
+5) Attention Collapse Over Attack Iterations: The iteration sweep in Figure 5 shows that adversarial mAP falls sharply within the first few optimization steps, surpassing the previous state of the art at half the iterations. Figure 6 visualizes what happens to the encoder attention over these iterations. As the attack progresses the attention degrades steadily, and within a few iterations it is flattened across the image. This shows that targeting the attention corrupts it efficiently, collapsing detection within only a few iterations. V. C ONCLUSION 
+
+We introduced an evasion attack that corrupts a detection transformer’s encoder attention directly, using an impercepti-ble perturbation that drives the attention toward a structured target with no patch and no reliance on the detection loss. Under an identical budget and iteration count, the attack reduces DETR-R50 to 0.97 mAP, roughly four times lower than the strongest prior attack. Our attack also degrades detection across eight detectors with different backbones, spanning both dense and deformable attention where it reduces DINO-Swin-L from 56.8 mAP to 1.44. The four qualitatively distinct corruption targets are all effective, indicating that the vulnerability lies in disrupting the attention rather than in any single objective. To our knowledge, this is the first work to expose the encoder attention of detection transformers as a direct and imperceptible attack surface, and to show empirically how readily it can be corrupted. In future work, it would be interesting to investigate the fundamental reasons behind this vulnerability, to characterize how corrupted atten-tion propagates to the detector’s predictions, and to design defenses that make encoder attention robust. 8
+
+REFERENCES [1] S. S. A. Zaidi, M. S. Ansari, A. Aslam, N. Kanwal, M. Asghar, and B. Lee, “A survey of modern deep learning based object detection models,” Digital Signal Processing , vol. 126, p. 103514, 2022. [2] E. Arkin, N. Yadikar, X. Xu, A. Aysa, and K. Ubul, “A survey: object detection methods from cnn to transformer,” Multimedia Tools and Applications , vol. 82, no. 14, pp. 21 353–21 383, 2023. [3] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and S. Zagoruyko, “End-to-end object detection with transformers,” in 
+
+European conference on computer vision . Springer, 2020, pp. 213– 229. [4] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai, “Deformable detr: Deformable transformers for end-to-end object detection,” arXiv preprint arXiv:2010.04159 , 2020. [5] H. Zhang, F. Li, S. Liu, L. Zhang, H. Su, J. Zhu, L. M. Ni, and H.-Y. Shum, “Dino: Detr with improved denoising anchor boxes for end-to-end object detection,” arXiv preprint arXiv:2203.03605 , 2022. [6] A. Nazeri, C. Zhao, and P. Pisu, “Evaluating the adversarial robustness of detection transformers,” Applied Intelligence , vol. 56, no. 6, p. 223, 2026. [7] Z. Yahn, S. F. Tekin, F. Ilhan, S. Hu, T. Huang, Y. Xu, M. Loper, and L. Liu, “Adversarial attention perturbations for large object detection transformers,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2025, pp. 3184–3193. [8] F. Li, A. Zeng, S. Liu, H. Zhang, H. Li, L. Zhang, and L. M. Ni, “Lite detr: An interleaved multi-scale encoder for efficient detr,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2023, pp. 18 558–18 567. [9] G. Lovisotto, N. Finnie, M. Munoz, C. K. Mummadi, and J. H. Metzen, “Give me your attention: Dot-product attention considered harmful for adversarial patch robustness,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, pp. 15 234–15 243. [10] Y. Fu, S. Zhang, S. Wu, C. Wan, and Y. C. Lin, “Patch-fool: Are vision transformers always robust against adversarial perturbations?” 
+
+arXiv preprint arXiv:2203.08392 , 2022. [11] C. Xie, J. Wang, Z. Zhang, Y. Zhou, L. Xie, and A. Yuille, “Adversarial examples for semantic segmentation and object detection,” in Proceed-ings of the IEEE international conference on computer vision , 2017, pp. 1369–1378. [12] X. Wei, S. Liang, N. Chen, and X. Cao, “Transferable adversarial attacks for image and video object detection,” arXiv preprint arXiv:1811.12641 ,2018. [13] Y. Li, D. Tian, M.-C. Chang, X. Bian, and S. Lyu, “Robust ad-versarial perturbation on deep proposal-based models,” arXiv preprint arXiv:1809.05962 , 2018. [14] K.-H. Chow, L. Liu, M. Loper, J. Bae, M. E. Gursoy, S. Truex, W. Wei, and Y. Wu, “Adversarial objectness gradient attacks in real-time object detection systems,” in 2020 Second IEEE International Conference on Trust, Privacy and Security in Intelligent Systems and Applications (TPS-ISA) . IEEE, 2020, pp. 263–272. [15] I. J. Goodfellow, J. Shlens, and C. Szegedy, “Explaining and harnessing adversarial examples,” arXiv preprint arXiv:1412.6572 , 2014. [16] A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu, “Towards deep learning models resistant to adversarial attacks,” in International Conference on Learning Representations , 2018. [Online]. Available: https://openreview.net/forum?id=rJzIBfZAb [17] N. Carlini and D. Wagner, “Towards evaluating the robustness of neural networks,” in 2017 ieee symposium on security and privacy (sp) . Ieee, 2017, pp. 39–57. [18] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly et al. ,“An image is worth 16x16 words: Transformers for image recognition at scale,” arXiv preprint arXiv:2010.11929 , 2020. [19] H. Touvron, M. Cord, M. Douze, F. Massa, A. Sablayrolles, and H. J´ egou, “Training data-efficient image transformers & distillation through attention,” in International conference on machine learning .PMLR, 2021, pp. 10 347–10 357. [20] Y. Wang, A. Li, Z. Yang, and X. Liu, “Localized query attack toward transformer-based visible object detectors,” Sensors , vol. 26, no. 6, p. 1987, 2026. [21] Q. M. Alam, B. Tarchoun, I. Alouani, and N. Abu-Ghazaleh, “Ad-versarial attention deficit: Fooling deformable vision transformers with collaborative adversarial patches,” in 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) . IEEE, 2025, pp. 7123– 7132. [22] H. Kim, G. Papamakarios, and A. Mnih, “The lipschitz constant of self-attention,” in International Conference on Machine Learning . PMLR, 2021, pp. 5562–5571. [23] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” Advances in neural information processing systems , vol. 30, 2017. [24] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Doll´ ar, and C. L. Zitnick, “Microsoft coco: Common objects in context,” in European conference on computer vision . Springer, 2014, pp. 740–755. [25] A. Paszke, S. Gross, F. Massa, A. Lerer, J. Bradbury, G. Chanan, T. Killeen, Z. Lin, N. Gimelshein, L. Antiga et al. , “Pytorch: An imperative style, high-performance deep learning library,” Advances in neural information processing systems , vol. 32, 2019. [26] S. Liang, L. Li, Y. Fan, X. Jia, J. Li, B. Wu, and X. Cao, “A large-scale multiple-objective method for black-box attack against object detection,” in European Conference on Computer Vision . Springer, 2022, pp. 619– 636. [27] T. Li and Y. Han, “Improving transferable adversarial attack for vision transformers via global attention and local drop,” Multimedia Systems ,vol. 29, no. 6, pp. 3467–3480, 2023. [28] S. Chen, F. He, X. Huang, and K. Zhang, “Relevance attack on detectors,” arXiv preprint arXiv:2008.06822 , 2020. [29] Y. Wang, Y. Zheng, L. Chen, Z. Yang, J. Wu, and T. Cao, “Gradient-guided hierarchical feature attack for object detector,” Journal of King Saud University-Computer and Information Sciences , vol. 36, no. 1, p. 101901, 2024. [30] Z. Cai, Y. Tan, and M. S. Asif, “Ensemble-based blackbox attacks on dense prediction,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2023, pp. 4045–4055. [31] Z. Leng, Z. Cheng, P. Wei, and J. Chen, “Object-aware transfer-based black-box adversarial attack on object detector,” in Chinese Conference on Pattern Recognition and Computer Vision (PRCV) . Springer, 2023, pp. 278–289. [32] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2016, pp. 770–778. [33] Z. Liu, H. Mao, C.-Y. Wu, C. Feichtenhofer, T. Darrell, and S. Xie, “A convnet for the 2020s,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 11 976–11 986. [34] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo, “Swin transformer: Hierarchical vision transformer using shifted windows,” in Proceedings of the IEEE/CVF international conference on computer vision , 2021, pp. 10 012–10 022. [35] W. Wang, J. Dai, Z. Chen, Z. Huang, Z. Li, X. Zhu, X. Hu, T. Lu, L. Lu, H. Li et al. , “Internimage: Exploring large-scale vision foundation models with deformable convolutions,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2023, pp. 14 408–14 419. [36] J. Yang, C. Li, X. Dai, and J. Gao, “Focal modulation networks,” 
+
+Advances in Neural Information Processing Systems , vol. 35, pp. 4203– 4217, 2022. [37] Y. Fang, W. Wang, B. Xie, Q. Sun, L. Wu, X. Wang, T. Huang, X. Wang, and Y. Cao, “Eva: Exploring the limits of masked visual representation learning at scale,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2023, pp. 19 358–19 369.

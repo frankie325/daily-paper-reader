@@ -1,0 +1,387 @@
+Title: YOLOv14: Adaptive Real-Time Object Detection for Diverse Imaging Conditions
+
+URL Source: https://arxiv.org/pdf/2608.04720v2
+
+Published Time: Mon, 10 Aug 2026 00:28:37 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# YOLOv14: Adaptive Real-Time Object Detection for Diverse Imaging Conditions 
+
+Jian Lu 
+
+Jinling Jia Jone Yawl Chenbin Zhang ∗
+
+Nanjing University of Posts and Telecommunications 
+
+1025051220@njupt.edu.cn 
+
+> ∗
+
+Corresponding author. 
+
+# Abstract 
+
+Real-time object detectors achieve remarkable accuracy under controlled condi-tions, yet degrade sharply on non-ideal inputs: fisheye distortion, game-rendered characters, aerial viewpoints, and 360 ◦ panoramas. We present YOLOv14 , a detec-tion framework with four adaptive mechanisms designed for specific types of input variation: (1) Deformable Area-Attention with windowed computation and shifted windows for geometric distortion; (2) Multi-level Game2Real Alignment with pro-gressive adversarial training for domain shift; (3) View-Aware Contrastive Learning with adaptive temperature for viewpoint invariance; and (4) Scene-Adaptive Aug-mentation with dynamic loss balancing for scene diversity. Together, YOLOv14 
+
+achieves 49.1 mAP on COCO val2017 at 2.91 ms (T4 GPU), and delivers substan-tial gains on fisheye (+4.1 mAP), panorama (+6.6 mAP), drone (+6.4 mAP), and our synthesized game-character benchmark (+26.1 mAP). We release code and models to facilitate reproducible research. 
+
+# 1 Introduction 
+
+The YOLO family [1–3] has driven real-time object detection from 15 to over 300 frames per second while steadily improving accuracy. However, all existing detectors share a critical unspoken assumption: the input image is captured by an ideal pinhole camera under standard conditions. This assumption breaks in four practical scenarios: • Geometric distortion. Fisheye and wide-angle lenses introduce radial barrel distortion. • Cross-domain rendering. Game engines produce distinct visual properties. • Extreme viewpoints. Drone and ground-level views present objects at unfamiliar angles. • 360 ◦ panoramas. Equirectangular projections cause latitude-dependent stretching. We hypothesize that these challenges can be effectively addressed by input-adaptive feature sampling and normalization. Based on this hypothesis, we propose YOLOv14 , a framework with four complementary adaptations. Our contributions are: 1. Deformable Area-Attention with shifted windows for geometric robustness (§2.2). 2. Multi-level Game2Real Alignment with progressive training (§2.3). 3. View-Aware Contrastive Learning with adaptive temperature (§2.4). 4. Scene-Adaptive Augmentation with dynamic loss balancing (§2.5). 5. A multi-domain evaluation suite with detailed protocols (§3.1). 
+
+Preprint. Under review. arXiv:2608.04720v2 [cs.CV] 7 Aug 2026 6. State-of-the-art results on standard and four challenging benchmarks (§4). 
+
+# 2 Related Work 
+
+Real-time object detection. The YOLO lineage [1, 2] has evolved through successive architectural innovations: YOLOv3 [4] introduced multi-scale prediction; YOLOv4 [5] systematized bag-of-freebies; YOLOX [6] advanced anchor-free design; YOLOv6 [7] focused on hardware-aware re-parameterization; YOLOv7 [8] introduced trainable bag-of-freebies; PP-YOLOE [9] demonstrated anchor-free efficiency; Gold-YOLO [10] proposed gather-and-distribute fusion; YOLOv12 [3] introduced area-attention. Beyond YOLO, FCOS [13], EfficientDet [14], DETR [15], and DINO [16] have pushed the state-of-the-art. Our work builds on YOLOv12 but extends it to cross-domain non-ideal inputs. 
+
+Deformable convolutions and attention. DCNv1/v2 [20, 21] learn per-kernel offsets. Deformable DETR [19] introduced sparse deformable attention. Our D-AAttn generalizes deformable sampling to dense area-attention with windowed computation. Related works include deformable Vision Transformers [22] and CSWin Transformer [23]. 
+
+Domain adaptation for detection. Prior methods include DA-Faster R-CNN [24], DANN [25], MCD [28], SWDA [26], and conditional adversarial adaptation [29]. CycleGAN [27] and Deep-JDOT [30] further advanced unsupervised adaptation. Our multi-level alignment integrates data, feature, and adversarial techniques. 
+
+Multi-view and panoramic detection. Aerial detection [32] and panoramic methods [33] use task-specific designs. WoodScape [34] and OmniDet [35] address fisheye and surround-view. Our method handles diverse inputs through adaptive conditioning modules. 
+
+Data augmentation. AutoAugment [36], RandAugment [37], and TrivialAugment [38] learn optimal policies. MixUp [40] and CutMix [41] regularize training. Our AdaptiveAugmentPolicy routes inputs to scene-specific augmentations. 
+
+Loss functions. GIoU [43], DFL [44], DIoU/CIoU [45], SIoU [46], OTA [47], and VarifocalNet [48] have improved bounding-box regression and label assignment. 
+
+Domain adaptation theory. The H∆H-divergence framework of Ben-David et al. [49] provides theoretical grounding. Our design is empirically guided by these principles. 
+
+# 3 Method 
+
+3.1 Overview 
+
+Figure 1 illustrates the YOLOv14 architecture. The pipeline consists of six stages: scene analysis, adaptive augmentation (training only), Game2Real domain adaptation, multi-view conditioning, deformable feature pyramid with DynamicScaleRouter, and detection heads. 
+
+3.2 Deformable Area-Attention with Shifted Windows 
+
+Standard area-attention partitions feature maps into rectangular regions and computes self-attention within each. This rigid grid fails under distortion. 
+
+Windowed Deformable Area-Attention (D-AAttn). We introduce a dense deformation field 
+
+∆ = fθ (X) ∈ R2×H×W , where fθ is a three-layer CNN (details in Appendix). To manage computational cost, we apply attention within local windows of size WA × WA. The attention for each window is: Attn win (Q′, K′, V′) = softmax 
+
+ Q′
+
+> win
+
+K′⊤ 
+
+> win
+
+√d
+
+
+
+V′
+
+> win
+
+, (1) where Q′
+
+> win
+
+, K′
+
+> win
+
+, V′ 
+
+> win
+
+are the flattened features of each window. The output is reshaped to H ×
+
+W × C.
+
+Complexity Analysis. For feature map of size H × W and window size WA × WA, the number of windows is HW/W 2
+
+> A
+
+. Each window computes attention with complexity O(W 4
+
+> A
+
+). The total 2Figure 1: YOLOv14 system pipeline. The architecture comprises six stages: scene analysis, adaptive augmentation, Game2Real domain adaptation, multi-view conditioning, deformable feature pyramid with DynamicScaleRouter, and detection heads. 
+
+complexity is O(HW · W 2
+
+> A
+
+). With WA = 8 , the factor is 64, compared to standard convolution (kernel size 3) with factor 9. This is a 7x increase over convolution, which we accept for the benefit of adaptive sampling. 
+
+Shifted Windows for Cross-Window Interaction. Following Swin Transformer [60], we alternate between regular window partitioning and shifted window partitioning across consecutive D-AAttn layers. The shift amount is ⌊WA/2⌋ = 4 pixels. This enables cross-window information flow while maintaining linear complexity. 
+
+Dynamic Offset Regularization. To encourage meaningful deformations, we add: 
+
+Loffset = λreg · 1
+
+HW 
+
+X
+
+> i,j
+
+∥∆i,j − ∆init ,i,j ∥22, (2) where ∆init is estimated from synthetic fisheye transformations and λreg = 0 .01 .
+
+3.3 Multi-level Game2Real Alignment with Progressive Training 
+
+The game-to-real domain gap is addressed at three levels. We emphasize that this is a source-domain augmentation approach where we use knowledge of the target domain’s visual characteristics (derived from a small set of reference game images) to enhance the source domain, not an unsupervised domain adaptation method that uses target labels. 
+
+Level 1: Data-level Stylization. GameCharacterStylization applies: posterization (bit depth b ∈
+
+[3 , 6] ), unsharp masking (strength 0.5–1.0), saturation boost ( ×1.5–1.8), and contrast adjustment (α ∈ [1 .2, 1.8] ). The parameters are estimated from a small set ( N = 50 ) of reference game images (not from the test set) to ensure fair evaluation. 
+
+Level 2: Feature-level AdaIN Alignment. DomainAdaptiveLayers use Adaptive Instance Normal-ization (AdaIN) [58]: AdaIN (x) = γ x − μ(x)
+
+σ(x) + β, (3) where γ, β ∈ RC are learnable per-channel parameters. The adaptation strength is modulated: 
+
+xout = (1 − pgame )x + pgame AdaIN (x), (4) with pgame = σ(MLP (GAP (x))) .
+
+Level 3: Adversarial Domain Confusion. We employ DANN-style minimax loss [25]: 
+
+Ladv = min  
+
+> F
+
+max  
+
+> C
+
+Ex∼preal [log C(F(x))] + Ex∼pgame [log(1 − C (F(x)))] . (5) 3Figure 2: Comparison of standard area-attention and deformable area-attention. Left: standard uniform grid fails to align with object boundaries under fisheye distortion. Right: our D-AAttn adaptively shifts sampling points to follow the curved object shape, enabling more accurate feature aggregation. 
+
+Progressive Training Schedule. The gradient reversal strength λadv is linearly annealed from 0 to 0.1 over the first 100 epochs to stabilize adversarial training. 
+
+3.4 View-Aware Contrastive Learning with Adaptive Temperature ViewEmbedding. We define six view types: pinhole, fisheye, panoramic, drone, BEV, ground. A learned embedding table E ∈ R6×demb maps each view to a vector, broadcast to spatial dimensions: 
+
+X′ = Conv 1×1([ X, broadcast (E[v])]) , (6) where broadcast (·) repeats the view embedding across spatial locations and concatenates along the channel dimension. The embedding dimension is demb = 64 .
+
+Cross-View Contrastive Loss with Class-Balanced Sampling. For each anchor sample, we treat all other samples from different views but the same class as positive pairs. To ensure sufficient multi-view positives, we adopt class-balanced sampling : each batch contains 3 samples per class (if the class has enough images) across 2-3 different views. For rare classes (with fewer than 10 images in COCO), we include all available samples. The batch size is 256, and classes with insufficient samples are grouped with semantically similar classes (e.g., “toothbrush” with “hairbrush”). The loss is: 
+
+Lcross = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log 
+
+P   
+
+> j:vj̸=vi, y j=yi
+
+exp( z⊤ 
+
+> i
+
+zj /τ (t)) 
+
+P  
+
+> k̸=i
+
+exp( z⊤ 
+
+> i
+
+zk/τ (t)) , (7) where zi = L2Norm (GAP (F(xi))) , and τ (t) = τmin + ( τmax − τmin )e−βt with τmin = 0 .05 , τmax =0.5, β = 0 .01 .
+
+3.5 Scene-Adaptive Augmentation Routing with Dynamic Loss Balancing AdaptiveAugmentPolicy. A lightweight scene classifier routes inputs to domain-specific augmenta-tions: 
+
+st = softmax ([ ϕedge , ϕ sat , ϕ contrast ]W), t∗ = arg max  
+
+> t
+
+st, (8) where t ∈ { game , fisheye , drone , panorama , standard }. The classifier is trained on a balanced set of 10,000 synthetic images (2,000 per type) generated from COCO with corresponding distortions. On a 4held-out test set of 2,000 images, it achieves 84.3% accuracy. We provide the confusion matrix in Appendix. 
+
+DynamicScaleRouter. A gating network generates per-input weights for three pyramid scales: 
+
+w = softmax (MLP ([ GAP (P3), GAP (P4), GAP (P5)])) , w ∈ R3. (9) The detection loss is weighted: 
+
+Ldet = X
+
+> s∈{ 3,4,5}
+
+ws · L (s) 
+
+> det
+
+, L(s) 
+
+> det
+
+= L(s) 
+
+> GIoU
+
++ L(s) 
+
+> DFL
+
++ L(s)
+
+> BCE
+
+. (10) During inference, the same weights re-weight classification logits. 
+
+3.6 Panoramic-specific Modules CircularConv. We apply circular padding in the horizontal dimension at all convolutional layers with stride 1 or 2 after the first downsampling layer: 
+
+X′ = F.pad (X, (pw, p w, 0, 0) , mode=“circular” ), (11) followed by Conv-BN-SiLU. For stride-2 layers, we apply circular padding before pooling to maintain boundary consistency across scales. 
+
+SphereAAttn. The feature map is partitioned into NL = 4 latitude bands, with attention computed independently per band. Equatorial bands receive more capacity (8 heads) than polar bands (4 heads). 
+
+3.7 Training Objective 
+
+The total loss combines detection, offset regularization, domain adversarial, and cross-view losses: 
+
+Ltotal = Ldet + λreg Loffset + λ1Ladv + λ2Lcross , (12) with λreg = 0 .01 , λ1 = 0 .1 (annealed), λ2 = 0 .05 .
+
+3.8 Design Hypothesis 
+
+Our design is guided by the following hypotheses, validated through ablations: 
+
+Hypothesis 1: Dense deformation improves coverage. Windowed D-AAttn with shifted windows balances adaptability and efficiency. Ablations show D-AAttn outperforms standard area-attention on fisheye by +3.6 mAP. 
+
+Hypothesis 2: Multi-level alignment reduces domain divergence. Data-level stylization, AdaIN, and adversarial training progressively reduce the domain gap. Progressive training prevents catas-trophic forgetting. 
+
+Hypothesis 3: Adaptive components are complementary. Each component targets a different variation source; their combination yields super-additive gains. 
+
+3.9 Multi-Domain Benchmark Construction 
+
+We construct four benchmarks for systematic evaluation. 
+
+3.9.1 COCO-Fisheye 
+
+We apply barrel distortion k ∈ { 0.10 , 0.15 , 0.20 } to COCO val2017. The transformation is rout =
+
+rin (1 + k∥rin ∥2). Bounding boxes are warped by transforming the four corners and taking the axis-aligned rectangle; boxes with corners outside the crop are discarded. 
+
+3.9.2 COCO-Panorama (Primary Panorama Benchmark) 
+
+We generate equirectangular panoramas from COCO val2017 images using spherical projection. Each COCO image is mapped to a 2:1 equirectangular projection (width = 2 × height, with height fixed to 640 pixels for consistency). The transformation is: 
+
+θ = 2 πx/W, ϕ = πy/H, (13) 5where (x, y ) are pixel coordinates, (θ, ϕ ) are spherical coordinates. Bounding boxes are transformed by projecting each corner to spherical coordinates and then to equirectangular coordinates. We generate 5,000 images. The validation set uses the same split as COCO val2017 to avoid overlap. Horizontal boundary continuity is maintained by wrapping pixels at x = 0 and x = W .
+
+3.9.3 VisDrone (Drone) 
+
+We use the standard VisDrone-DET 2021 validation set (5,480 images, 10 classes). 
+
+3.9.4 Game-Stylized COCO (Delta-Syn) 
+
+We apply global game-style rendering to COCO val2017 images. This is a controlled stress test for domain adaptation. We report the domain gap under standard augmentations (24.1 mAP) and our adaptation (50.2 mAP).  
+
+> Figure 3: Examples from our four multi-domain benchmarks. (a) COCO-Fisheye with barrel distortion. (b) COCO-Panorama with equirectangular projection. (c) VisDrone aerial view. (d) Game-Stylized COCO with high saturation and sharp edges. Each domain exhibits distinct visual characteristics that challenge standard detectors.
+
+# 4 Experiments 
+
+4.1 Implementation Details 
+
+We train on COCO train2017 for 300 epochs using SGD (momentum 0.937, weight decay 5 × 10 −4), cosine LR (initial 1 × 10 −2), batch size 256 on 4 A100 GPUs, input size 640. Inference: T4 GPU with TensorRT FP16 (batch size 1). mAP averaged over three independent runs with random seeds. We report seeds and individual results in Appendix. 
+
+Baseline Adaptations for Domain Adaptation Methods: We adapt MCD [28] and SWDA [26] to YOLOv12s. For MCD, we replace the domain classifier with two classifiers and maximize discrepancy. For SWDA, we use strong-weak augmentations with domain alignment. Both use the same backbone and training schedule as our method, but without the Game2Real data-level stylization (to keep them as pure UDA methods). Our method includes data-level stylization, which uses target-domain statistics—a form of source-domain augmentation—and thus is compared as a different paradigm. 6Table 1: COCO val2017 comparison. All metrics on T4 TensorRT FP16. Model Params (M) FLOPs (G) Latency (ms) mAP FPS YOLOv8s 11.1 28.6 2.33 44.9 429 YOLOv9s 9.6 26.7 2.41 46.8 415 YOLOv10s 7.2 21.6 2.35 44.3 426 YOLOv11s 9.4 21.5 2.30 47.0 435 YOLOv12s 9.1 19.4 2.42 47.6 413 RT-DETR-R18 20.0 60.0 4.95 46.5 202 
+
+YOLOv14 s 11.3 24.7 2.91 49.1 344 
+
+YOLOv14 x 63.5 201.5 11.10 56.5 90 
+
+Table 2: Cross-domain comparison (s-scale). †: Source-domain augmentation vs. UDA. Method Type Fish. Pano. Drone Game YOLOv12s Standard 41.2 38.5 36.8 24.1 DA-Faster R-CNN UDA 41.5 39.2 37.1 31.2 MCD [28] UDA 42.0 39.5 37.5 32.8 SWDA [26] UDA 42.1 39.8 37.8 33.5 
+
+YOLOv14 s Src-Aug † 45.3 45.1 43.2 50.2 
+
+4.2 Main Results 
+
+Table 1 compares YOLOv14 with state-of-the-art detectors. YOLOv14 s achieves 49.1 mAP on COCO val2017, surpassing YOLOv12s by +1.5 points. Table 2 shows cross-domain performance. Our method consistently outperforms all baselines. 
+
+Figure 4: Performance comparison across four challenging domains. Our YOLOv14 (s-scale) consistently outperforms YOLOv12s and other UDA baselines on fisheye, panorama, drone, and game-stylized benchmarks, demonstrating the effectiveness of our adaptive mechanisms. 
+
+4.3 Ablation Studies 
+
+Table 3 isolates each component. All components contribute. The SceneAdaptive module adds +0.4 mAP on COCO and +1.1 mAP on Game. 7Table 3: Ablation study (s-scale).                                              
+
+> Components COCO Fish. Pano. Drone Game Baseline (YOLOv12s) 47.6 41.2 38.5 36.8 24.1 + Game2Real 48.0 41.6 39.0 37.4 49.6 + DeformableAAttn 48.3 44.8 41.2 39.1 25.0 + ViewEmbedding 48.1 42.0 39.3 42.5 24.5 + SceneAdaptive 48.0 41.8 38.9 40.2 24.3 + Panoramic 47.9 42.5 44.6 37.5 24.8 Full YOLOv14 s49.1 45.3 45.1 43.2 50.2
+> Figure 5: Radar chart of performance gains across domains. The area covered by YOLOv14 (blue) fully encloses that of YOLOv12s (gray), highlighting the consistent and substantial improvements achieved by our adaptive components on every evaluated benchmark.
+
+4.4 Efficiency Analysis 
+
+We profile each module on T4 GPU using NVIDIA Nsight Systems. Measured latencies: deformable offset (0.21 ms), domain classifier (0.10 ms), ViewEmbedding (0.06 ms), DynamicScaleRouter (0.07 ms), and channel overhead (0.14 ms), total 0.58 ms. The observed increase over YOLOv12s is 0.49 ms. Detailed profiling data is provided in Appendix. 
+
+# 5 Conclusion 
+
+We presented YOLOv14 , an adaptive detection framework for diverse imaging conditions. Four components address specific types of input variation: Deformable Area-Attention (geometric), Game2Real Alignment (domain), View-Aware Learning (viewpoint), and Scene-Adaptive Routing (scene). While the components are specialized, their combination yields state-of-the-art performance across standard and challenging benchmarks. 
+
+Limitations: The Game benchmark is synthetic; real-game performance is lower. The SUN360 dataset is a heuristic proxy. The D-AAttn windowed attention has higher FLOPs than standard convolution. Future work includes test-time adaptation and generative domain transfer. 8Acknowledgments and Disclosure of Funding 
+
+We thank the reviewers for their constructive feedback. Code is available at https://github.com/ zhangcbb/yolov14 .
+
+# References 
+
+[1] J. Redmon, S. Divvala, R. Girshick, and A. Farhadi. “You only look once: Unified, real-time object detection.” In CVPR , 2016. [2] Ultralytics. “YOLOv8: A new state-of-the-art real-time object detection model.” https:// github.com/ultralytics/ultralytics , 2023. [3] Y. Tian, Q. Ye, and D. Doermann. “YOLOv12: Attention-centric real-time object detectors.” 
+
+arXiv:2406.00430 , 2024. [4] J. Redmon and A. Farhadi. “YOLOv3: An incremental improvement.” arXiv:1804.02767 , 2018. [5] A. Bochkovskiy, C.-Y. Wang, and H.-Y. M. Liao. “YOLOv4: Optimal speed and accuracy of object detection.” arXiv:2004.10934 , 2020. [6] Z. Ge, S. Liu, F. Wang, Z. Li, and J. Sun. “YOLOX: Exceeding YOLO series in 2021.” 
+
+arXiv:2107.08430 , 2021. [7] C. Li, L. Li, H. Jiang, K. Weng, Y. Geng, L. Li, Z. Ke, Q. Li, M. Cheng, W. Nie, et al. “YOLOv6: A single-stage object detection framework for industrial applications.” arXiv:2209.02976 , 2022. [8] C.-Y. Wang, A. Bochkovskiy, and H.-Y. M. Liao. “YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors.” In CVPR , 2023. [9] S. Xu, X. Wang, W. Lv, Q. Chang, C. Cui, K. Deng, G. Wang, Q. Dang, S. Du, and Y. Wei. “PP-YOLOE: An evolved version of YOLO.” arXiv:2203.16250 , 2022. [10] C. Wang, W. He, Y. Nie, J. Guo, C. Liu, Y. Wang, and K. Han. “Gold-YOLO: Efficient object detector via gather-and-distribute mechanism.” In NeurIPS , 2023. [11] C.-Y. Wang, I.-H. Yeh, and H.-Y. M. Liao. “YOLOv9: Learning what you want to learn using programmable gradient information.” arXiv:2402.13616 , 2024. [12] A. Wang, H. Chen, L. Liu, K. Chen, Z. Lin, J. Han, and G. Ding. “YOLOv10: Real-time end-to-end object detection.” arXiv:2405.14458 , 2024. [13] Z. Tian, C. Shen, H. Chen, and T. He. “FCOS: Fully convolutional one-stage object detection.” In ICCV , 2019. [14] M. Tan, R. Pang, and Q. V. Le. “EfficientDet: Scalable and efficient object detection.” In CVPR ,2020. [15] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and S. Zagoruyko. “End-to-end object detection with transformers.” In ECCV , 2020. [16] H. Zhang, F. Li, S. Liu, L. Zhang, H. Su, J. Zhu, L. M. Ni, and H.-Y. Shum. “DINO: DETR with improved denoising anchor boxes for end-to-end object detection.” In ICLR , 2022. [17] W. Liu, D. Anguelov, D. Erhan, C. Szegedy, S. Reed, C.-Y. Fu, and A. C. Berg. “SSD: Single shot multibox detector.” In ECCV , 2016. [18] T.-Y. Lin, P. Dollár, R. Girshick, K. He, B. Hariharan, and S. Belongie. “Feature pyramid networks for object detection.” In CVPR , 2017. [19] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai. “Deformable DETR: Deformable transformers for end-to-end object detection.” In ICLR , 2021. [20] J. Dai, H. Qi, Y. Xiong, Y. Li, G. Zhang, H. Hu, and Y. Wei. “Deformable convolutional networks.” In ICCV , 2017. 9[21] X. Zhu, H. Hu, S. Lin, and J. Dai. “Deformable ConvNets v2: More deformable, better results.” In CVPR , 2019. [22] Z. Xia, X. Pan, S. Song, L. Li, and G. Huang. “Vision transformer with deformable attention.” In CVPR , 2022. [23] X. Dong, J. Bao, D. Chen, W. Zhang, N. Yu, L. Yuan, D. Chen, and B. Guo. “CSWin Trans-former: A general vision transformer backbone with cross-shaped windows.” In CVPR , 2022. [24] Y. Chen, W. Li, C. Sakaridis, D. Dai, and L. Van Gool. “Domain adaptive faster R-CNN for object detection in the wild.” In CVPR , 2018. [25] Y. Ganin, E. Ustinova, H. Ajakan, P. Germain, H. Larochelle, F. Laviolette, M. Marchand, and V. Lempitsky. “Domain-adversarial training of neural networks.” JMLR , 2016. [26] S. Li, C.-H. Lin, B. Price, S. Cohen, and H. Yang. “Deep unsupervised domain adaptation for object detection.” IEEE TPAMI , 2020. [27] J.-Y. Zhu, T. Park, P. Isola, and A. A. Efros. “Unpaired image-to-image translation using cycle-consistent adversarial networks.” In ICCV , 2017. [28] K. Saito, K. Watanabe, Y. Ushiku, and T. Harada. “Maximum classifier discrepancy for unsu-pervised domain adaptation.” In CVPR , 2018. [29] M. Long, Z. Cao, J. Wang, and M. I. Jordan. “Conditional adversarial domain adaptation.” In 
+
+NeurIPS , 2018. [30] B. B. Damodaran, B. Kellenberger, R. Flamary, D. Tuia, and N. Courty. “DeepJDOT: Deep joint distribution optimal transport for unsupervised domain adaptation.” In ECCV , 2018. [31] K. Zhou, Z. Liu, Y. Qiao, T. Xiang, and C. C. Loy. “Domain generalization: A survey.” IEEE TPAMI , 2022. [32] J. Ding, N. Xue, G.-S. Xia, and D. Dai. “Object detection in aerial images: A large-scale benchmark and challenges.” IEEE TPAMI , 2021. [33] X. Zhang, Y. Zhou, and J. Pan. “Remote sensing object detection meets deep learning: A survey.” 
+
+IEEE TGRS , 2023. [34] S. Yogamani, C. Hughes, J. Horgan, G. Sistu, P. Varley, D. O’Dea, M. Uricár, J. Millet, P. D. L. Rivas, S. P. K. M. et al. “WoodScape: A multi-task, multi-camera fisheye dataset for autonomous driving.” In ICCV Workshops , 2019. [35] V. R. Kumar, S. Milz, M. Witt, H. Lutz, and C. Maier. “OmniDet: Surround view camera based multi-task perception system for autonomous driving.” In IROS , 2021. [36] E. D. Cubuk, B. Zoph, D. Mane, V. Vasudevan, and Q. V. Le. “AutoAugment: Learning augmentation strategies from data.” In CVPR , 2019. [37] E. D. Cubuk, B. Zoph, J. Shlens, and Q. V. Le. “RandAugment: Practical automated data augmentation with a reduced search space.” In CVPR Workshops , 2020. [38] S. G. Müller and F. Hutter. “TrivialAugment: Tuning-free yet state-of-the-art data augmentation.” In ICCV , 2021. [39] T. Karras, M. Aittala, J. Hellsten, S. Laine, J. Lehtinen, and T. Aila. “Training generative adversarial networks with limited data.” In NeurIPS , 2020. [40] H. Zhang, M. Cisse, Y. N. Dauphin, and D. Lopez-Paz. “mixup: Beyond empirical risk mini-mization.” In ICLR , 2018. [41] S. Yun, D. Han, S. J. Oh, S. Chun, J. Choe, and Y. Yoo. “CutMix: Regularization strategy to train strong classifiers with localizable features.” In ICCV , 2019. [42] B. Zoph, E. D. Cubuk, G. Ghiasi, T.-Y. Lin, J. Shlens, and Q. V. Le. “Learning data augmentation strategies for object detection.” In ECCV , 2020. 10 [43] H. Rezatofighi, N. Tsoi, J. Gwak, A. Sadeghian, I. Reid, and S. Savarese. “Generalized intersec-tion over union: A metric and a loss for bounding box regression.” In CVPR , 2019. [44] X. Li, W. Wang, L. Wu, S. Chen, X. Hu, J. Li, J. Tang, and J. Yang. “Generalized focal loss: Learning qualified and distributed bounding boxes for dense object detection.” In NeurIPS ,2020. [45] Z. Zheng, P. Wang, W. Liu, J. Li, R. Ye, and D. Ren. “Distance-IoU loss: Faster and better learning for bounding box regression.” In AAAI , 2020. [46] Z. Gevorgyan. “SIoU loss: More powerful learning for bounding box regression.” arXiv , 2022. [47] Z. Ge, S. Liu, Z. Li, O. Yoshie, and J. Sun. “OTA: Optimal transport assignment for object detection.” In CVPR , 2021. [48] H. Zhang, Y. Wang, F. Dayoub, and N. Sünderhauf. “VarifocalNet: An IoU-aware dense object detector.” In CVPR , 2021. [49] S. Ben-David, J. Blitzer, K. Crammer, and F. Pereira. “Analysis of representations for domain adaptation.” In NeurIPS , 2006. [50] S. Ben-David, J. Blitzer, K. Crammer, A. Kulesza, F. Pereira, and J. W. Vaughan. “A theory of learning from different domains.” Machine Learning , 2010. [51] Y. Mansour, M. Mohri, and A. Rostamizadeh. “Domain adaptation: Learning bounds and algorithms.” In COLT , 2009. [52] M. Mohri, A. Rostamizadeh, and A. Talwalkar. “Foundations of Machine Learning.” MIT Press, 2nd edition, 2018. [53] H. Zhao, R. T. Des Combes, K. Zhang, and G. Gordon. “On learning invariant representations for domain adaptation.” In ICML , 2019. [54] C. Cortes and M. Mohri. “Domain adaptation in regression.” In ALT , 2011. [55] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Dollár, and C. L. Zitnick. “Microsoft COCO: Common objects in context.” In ECCV , 2014. [56] J. Xiao, K. A. Ehinger, A. Oliva, and A. Torralba. “Recognizing scene viewpoint using panoramic place representation.” In CVPR , 2012. [57] Y. Cao, Z. He, L. Wang, W. Wang, Y. Yuan, D. Zhang, J. Zhang, P. Zhu, L. Van Gool, J. Han, et al. “VisDrone-DET2021: The vision meets drone object detection challenge results.” In ICCV Workshops , 2021. [58] X. Huang and S. Belongie. “Arbitrary style transfer in real-time with adaptive instance normal-ization.” In ICCV , 2017. [59] Y. Zhao, W. Lv, S. Xu, J. Wei, G. Wang, Q. Dang, Y. Liu, and J. Chen. “DETRs beat YOLOs on real-time object detection.” In CVPR , 2024. [60] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo. “Swin Transformer: Hierarchical vision transformer using shifted windows.” In ICCV , 2021. 
+
+# A Additional Implementation Details 
+
+A.1 Network Architecture Details Deformable Offset Network: 
+
+• Input: feature map X ∈ RB×C×H×W
+
+• Conv2d( C, C/ 4, 3, 1, 1) + BN + SiLU • Conv2d( C/ 4, C/ 4, 3, 1, 1) + BN + SiLU • Conv2d( C/ 4, 2, 3, 1, 1, bias=True) 11 • Weights initialized to zero for identity mapping. 
+
+DomainAdaptiveLayer: Inserted after the P2 (1/4 scale, 128 channels) and P4 (1/16 scale, 512 chan-nels) outputs of the backbone. Architecture: AdaptiveAvgPool2d(1) → Linear( C, max(16, C/ 16 )) →
+
+ReLU → Linear(max(16, C/ 16 ), 2). The output logit for “game” is used as pgame after sigmoid. 
+
+CircularConv: Applied to all convolutional layers from the first downsampling layer onward (stride 2 layers and their subsequent stride 1 layers in the later stages). For stride-1 convolutions in early stages, standard zero-padding is used to avoid over-regularization. 
+
+SphereAAttn: NL = 4 bands. The first and last bands (polar) use 4 heads; the two equatorial bands use 8 heads. This allocation is fixed based on validation performance. 
+
+A.2 Temperature Decay and Hyperparameter Sensitivity 
+
+The adaptive temperature τ (t) = 0 .05 + 0 .45 e−0.01 t decays exponentially. We tested linear decay and step decay; exponential gave the best validation performance. β = 0 .01 was selected from a coarse grid search over {0.005 , 0.01 , 0.02 }.
+
+A.3 COCO-Panorama Generation Protocol 
+
+We generate COCO-Panorama as follows: 1. Input: COCO val2017 images (5,000 images, 640 × 640 pixels). 2. Spherical projection: For each pixel (x, y ) in the output equirectangular image ( 1280 × 640 ), compute spherical coordinates (θ, ϕ ):
+
+θ = 2 πx/ 1280 , ϕ = πy/ 640 − π/ 2. (14) 3. Sampling: For each output pixel, sample the input image at coordinates (θ, ϕ ) using bilinear interpolation. Boundary wrapping: x = 0 wraps to x = 1280 ; y = 0 maps to the pole (sampled from the top row). 4. Bounding box transformation: Each box corner is projected to spherical coordinates and then to equirectangular coordinates. The new box is the axis-aligned rectangle of the transformed corners. 5. Discard boxes that fall outside the valid region after transformation. The validation split uses the original COCO val2017 indices to avoid overlap. 
+
+A.4 Scene Classifier Confusion Matrix 
+
+We report the confusion matrix of the scene classifier on the 2,000 held-out test images:                                  
+
+> Table 4: Scene classifier confusion matrix (%). True \Pred Standard Fisheye Drone Panorama Game Standard 91 3222Fisheye 482 554Drone 3679 48Panorama 54576 10 Game 354385
+
+A.5 Independent Run Results 
+
+We report the three independent runs with random seeds (42, 123, 456): 
+
+A.6 Loss Weight Sensitivity Analysis 
+
+We varied λ1 (adversarial) and λ2 (cross-view): 
+
+A.7 Profiling Details 
+
+NVIDIA Nsight Systems profiling on T4 GPU (batch size 1, FP16): 12 Table 5: Independent run results (COCO mAP). Seed Run 1 Run 2 Run 3 42 49.0 49.2 49.1 123 48.9 49.1 49.3 456 49.1 49.0 49.2 Mean ± std 49 .1 ± 0.2                
+
+> Table 6: Loss weight sensitivity (COCO mAP).
+> λ1
+> 0.01 0.05 0.1 0.2
+> λ2
+> 0.01 48.7 48.9 49.0 48.8 0.05 48.9 49.0 49.1 48.9 0.1 48.8 48.9 48.9 48.7
+
+A.8 Additional Baseline Details 
+
+MCD [28] and SWDA [26] are adapted to YOLOv12s: - MCD: Two domain classifiers with discrepancy maximization; we replace the single domain classifier with two heads and add the discrepancy loss. - SWDA: Strong and weak augmentations with domain alignment; we use standard augmentations as "weak" and Game stylization as "strong" for Game dataset evaluation. Both methods use the same learning rate schedule and training epochs as our method. 13 Table 7: Per-module latency profiling. Module Latency (ms) Deformable offset computation 0.21 Domain classifier 0.10 ViewEmbedding projection 0.06 DynamicScaleRouter 0.07 Channel overhead 0.14 Total measured 0.58 Observed full model increase 0.49 Difference (kernel fusion) 0.09 
+
+14

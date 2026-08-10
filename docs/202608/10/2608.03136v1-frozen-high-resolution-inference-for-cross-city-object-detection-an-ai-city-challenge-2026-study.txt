@@ -1,0 +1,228 @@
+Title: Frozen High-Resolution Inference for Cross-City Object Detection: An AI City Challenge 2026 Study
+
+URL Source: https://arxiv.org/pdf/2608.03136v1
+
+Published Time: Wed, 05 Aug 2026 00:31:44 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Frozen High-Resolution Inference for Cross-City Object Detection: An AI City Challenge 2026 Study 
+
+Jaeuk Kim 
+
+NextITS, Seoul, Republic of Korea 
+
+freak91uk@hnextits.com 
+
+Abstract. Cross-city object detection requires a detector trained in one city to generalize to an unlabeled target city. In AI City Challenge 2026 Track 6 we analyze archived configurations of a single RF-DETR-Large detector inside an air-gapped Training-as-a-Service platform whose server returns only an aggregate COCO-style AP over a hidden mixture of source- and target-city images. Frozen 1120 ×1120 inference of a check-point trained at 704 × 704 achieved the highest aggregate AP among the evaluated configurations ( 0.3272 → 0.3654 , +0 .0382 ) without any pa-rameter update, with the largest relative gain on small objects and the largest absolute gain on medium objects, at 2.53 × the input pixels. A warm-start 1120px fine-tuning recipe reached 0.3470 while its in-domain validation AP rose ( 0.767 → 0.789 )—a caution that in-domain valida-tion is an unreliable model-selection signal under aggregate-only cross-city feedback. Because that run’s evaluation used a higher confidence threshold than the inference-only runs ( 0.05 vs. 0.01 ), we treat its score as a descriptive archived outcome rather than a controlled verdict on fine-tuning. Gray-world normalization did not meaningfully change the frozen-1120 result, and a rectangular run was found by audit to have used an unintended portrait orientation. We release verbatim platform commands, configuration snapshots and an explicit evidence boundary for every claim. Each configuration was submitted once and the best was selected on the hidden server, so these are exploratory, audited findings about the aggregate mixture; they do not establish target-city-specific improvement. 
+
+Keywords: Cross-city object detection · Domain generalization · Frozen high-resolution inference · RF-DETR · AI City Challenge 
+
+## 1 Introduction 
+
+AI City Challenge 2026 Track 6 (Cross-City Object Detection, on the Milestone Project Hafnia platform) [1, 19, 25] evaluates detectors under a single-source domain-generalization protocol: models are trained on one source city and eval-uated on a hidden benchmark that mixes source-city images with images from a distinct target city, over ten fine-grained traffic classes (nine vehicle subtypes arXiv:2608.03136v1 [cs.CV] 4 Aug 2026 2 J. Kim 
+
+plus Person ). The target city’s images are unlabeled and unavailable at training time, and the challenge server returns a single aggregate COCO-style AP over the mixed benchmark; it does not separate the source- and target-city halves. This aggregate-only feedback, together with a limited number of server submis-sions, shapes how our findings must be read: because no per-domain metric is available, no result reported here can establish that an intervention improved target-city detection specifically. Every reported score characterizes the mixed benchmark. We keep the challenge’s cross-city framing because that is the task the benchmark is built for, but we make no target-domain claim anywhere in this paper. We participated with a single RF-DETR-Large detector (DINOv2 ViT-S backbone) and asked a narrow, practical question: under a restricted single-source cross-city challenge with no target validation signal and a lim-ited submission budget, how did practical inference- and training-time interventions affect the aggregate hidden-benchmark performance of a fixed RF-DETR model family? We evaluated three intended interven-tions against a 704 baseline, and report one further rectangular configuration that the run-record audit later showed to have run in an unintended orientation; each configuration could be assessed only through a limited number of server submissions. Our main empirical observation is that, among the configurations we evalu-ated, the highest aggregate score was obtained without any additional parameter update: frozen 1120 ×1120 inference of a 704-trained checkpoint raised the aggregate AP from 0.3272 to 0.3654 (+0 .0382 ), driven by gains on medium and small objects. An alternative strategy that additionally adapts the model param-eters to the higher training resolution—1120px warm-start fine-tuning—reached a lower aggregate score ( 0.3470 ) even though its in-domain validation stayed high—an outcome we report descriptively, since a run-record audit showed its evaluation settings were not uniform with the others (Section 3.4). Two inference-only interventions (rectangular resizing and gray-world normalization) did not improve over frozen 1120 inference. We make three contributions: 1. An audited, reproducible challenge study under the restricted TaaS setting: verbatim platform commands for every reported run, a post-challenge run-record audit that surfaced non-uniform evaluation settings (Section 3.4), and an explicit evidence boundary for each claim (Table 5). 2. Two empirical observations, each bounded. (a) Among the configu-rations we could submit, frozen 1120 × 1120 inference achieved the highest aggregate hidden-benchmark AP with zero parameter updates—largest rel-ative gain on small objects, largest absolute gain on medium objects. (b) The one warm-start fine-tuning run we evaluated raised in-domain valida-tion AP while its aggregate benchmark AP did not rise—a caution that 
+
+in-domain validation is an unreliable model-selection signal under aggregate-only cross-city feedback .Frozen High-Resolution Inference for Cross-City Detection 3
+
+3. Honest negatives and scope. The rectangular run used an unintended orientation rather than a designed ablation, gray-world normalization was negligible, and—because the metric is aggregate-only—no result can be at-tributed to the target domain. The contribution is not a new resizing operator. It is a checkpoint-shared, run-audited study comparing a parameter-preserving resolution change with an ad-ditional optimization recipe under restricted target access, aggregate-only feed-back, and a limited submission budget—a statement about the evaluated config-urations, the specific fine-tuning recipe, and this aggregate hidden benchmark, not about inference and fine-tuning in general. 
+
+## 2 Related Work 
+
+Domain generalization and single-source DG for detection. Domain gen-eralization (DG) seeks models that transfer to unseen target distributions with-out target data, in contrast to domain adaptation, which assumes access to tar-get samples [35]. For detection, most progress has followed the adaptation route, beginning with Domain Adaptive Faster R-CNN and its Cityscapes →Foggy-Cityscapes benchmark [9]. The harder, more realistic setting is single-domain generalized detection (Single-DGOD), formalized on urban cross-weather/cross-city data via cyclic-disentangled self-distillation [30]. Recent Single-DGOD meth-ods lean on trained interventions: vision-language semantic augmentation [28], source diversification with detection alignment [10], and explicit debiasing of source-domain overfitting [17]. Rather than evaluating a dedicated Single-DGOD method, we compare a simple warm-start high-resolution fine-tuning recipe with frozen resolution scaling on the same RF-DETR model family. 
+
+DETR and RF-DETR. DETR reframed detection as set prediction with a transformer encoder-decoder and bipartite matching, removing anchors and NMS [7]. Deformable DETR added multi-scale deformable attention for faster convergence and scale handling [36], and DINO’s contrastive denoising and look-forward-twice recipe made DETRs both competitive and convergent [32]. RT-DETR then delivered a real-time, NMS-free end-to-end detector whose speed is tunable without retraining [33]. RF-DETR, our detector, pairs this lineage with a neural-architecture-searched design and a windowed DINOv2 backbone [22]; the self-supervised DINOv2 features are known for strong cross-domain robust-ness [21]. 
+
+High-resolution inference and train-test resolution. Scale is handled in-ternally by feature pyramids [16], yet detectors remain far from scale-invariant: train/test object-size mismatch measurably degrades accuracy [23], and input resolution trades directly against accuracy, especially for small objects [14]. Training-free high-resolution inference has also been studied through image slic-ing, as in SAHI [2], while QueryDet selectively activates high-resolution features to reduce the cost of small-object detection [31]. Prior work in image classifi-cation studied train–test resolution mismatch and resolution-dependent adap-tation [27]; our setting differs in that we evaluate a frozen object detector on 4 J. Kim 
+
+a hidden cross-city benchmark without target data or parameter updates. The RF-DETR implementation interpolates positional embeddings to accommodate the larger input grid, enabling evaluation of the frozen checkpoint at 1120 ×1120 ;related ViT research has also studied flexibility across patch and input configu-rations [4]. Our intervention differs from slicing and query-based methods in that it applies only a global input-resolution change to a frozen checkpoint—without slicing, regional refinement, architecture modification, or target adaptation. Un-like test-time adaptation, which updates weights on target data [29], it touches no parameters. 
+
+Self-training and UDA for detection. Cross-domain detection is often ad-dressed with EMA teacher-student self-training [26], confidence-thresholded pseudo-labeling [18], mean-teacher variants [11], adversarial adaptive teachers [15], and probabilistic pseudo-box modeling [8]. All require target-domain images at train-ing time, and confirmation bias—overfitting to one’s own wrong pseudo-labels [3]— is a known failure; in the Track 6 protocol the target/benchmark images are not part of the public training workflow. Our main intervention instead changes only the inference resolution and requires neither target images nor parameter updates. 
+
+Box fusion and ensembling. Aggregating multi-scale or multi-model out-puts relies on post-processing: greedy NMS [20], its score-decay [5], distance-aware [34], and learned [13] variants, and box-merging via Weighted Box Fu-sion [24], the recipe behind challenge-winning ensembles [12]. We cite WBF as relevant background but do not include it in our final evaluated configuration set; we evaluate gray-world normalization [6] and report it as a negative result in our setting. 
+
+## 3 Challenge Protocol and Experimental Setup 
+
+3.1 Dataset and challenge protocol 
+
+Track 6 provides fine-grained traffic imagery for a single source city and evalu-ates on a hidden benchmark that mixes source-city images with images from a distinct target city [1,19]. Ten classes are scored: Car, Van, Pickup Truck, Single-unit Truck, Combo/Articulated Truck, Heavy-duty Truck, Trailer, Motorcycle, Bicycle, and Person . The training and validation data contain approximately 13,000 frames and 150,000 annotated object instances; the hidden benchmark is reported to contain a comparable number of frames and instances, although exact per-split and domain-specific statistics are not disclosed. Training, infer-ence, and benchmarking run inside the air-gapped Hafnia Training-as-a-Service (TaaS) platform; the full training and benchmarking datasets are not download-able (only a small sample is provided for local development), external training data is prohibited, and only one experiment runs at a time. The public Track 6 workflow provides training data only inside a managed training job and evalu-ates a submitted inference package against the hidden benchmark; benchmark images are never exposed to participants. Frozen High-Resolution Inference for Cross-City Detection 5                     
+
+> Table 1: Base training configuration. Item Setting Model RF-DETR-Large (rfdetr 1.8.1) Backbone DINOv2 ViT-S, windowed Train resolution 704 ×704
+> Epochs 80 Effective batch 16 (batch 1 ×grad-accum 16) Optimizer AdamW Learning rate 7e-5 (decoder); 1e-4 (encoder) Scheduler cosine, 1-epoch warmup Precision mixed (AMP) num_select 300 Augmentation dg_crosscity_v2 Weight decay 1e-4 EMA decay 0.993 Checkpoint selection best validation AP (EMA/regular) Hardware Hafnia T4-class GPU External task-specific data None
+
+3.2 Backbone and platform 
+
+RF-DETR-Large (rfdetr 1.8.1; DINOv2 ViT-S windowed backbone). The base model was trained for 80 epochs at 704 × 704 with a cosine LR schedule and a domain-oriented photometric/geometry augmentation preset ( dg_crosscity_v2 ). The allowed pretrained RF-DETR (DINOv2) weights were bundled into the trainer package; no external task-specific data was used at any stage. The best checkpoint was selected by validation AP (the higher of EMA and regular weights); for the base model this was the EMA checkpoint, which we denote the “704 EMA checkpoint” and use for all inference-only configurations (L0–L2 and L4) and as the warm-start for L3. Table 1 lists the training configuration; the random seed and per-operation augmentation probabilities are documented in the supplementary material. 
+
+3.3 Evaluation and model-selection protocol 
+
+The challenge server reports a single COCO-style AP (IoU 0.50:0 .05:0 .95 , maxDets 
+
+= 100 per image) over a hidden mixture of source-city and target-city images. It does not provide domain-separated metrics, per-image evaluation results, bench-mark images, or target annotations. During the live competition the server dis-played a 50% subset; the numbers here are the full-test scores. Each configuration was submitted once and evaluated only by the server; there is no local target ground truth. We compared a small, limited set of configurations and kept the best-scoring one—so the challenge server also played a limited model-selection 
+
+role, which we account for in the limitations. 6 J. Kim 
+
+3.4 Run-record audit and comparison caveats 
+
+An audit of the archived platform run records, carried out after the challenge closed, identified two settings that were not uniform across all reported config-urations: the evaluation confidence threshold and the compiled-execution mode. The four inference-only configurations (L0, L1, L2, L4) were scored at the CLI’s default confidence threshold of 0.01 , whereas the L3 fine-tuning run’s built-in evaluation pass was launched with an explicit threshold of 0.05 . Because COCO AP is rank-based under a per-image detection cap, a higher threshold discards low-confidence detections that could still have contributed to the precision–recall tail, so this difference is expected to work against L3 rather than for it. We can-not quantify the size of the effect: the evaluation server is closed, so L3 cannot be re-scored at 0.01 . We therefore report the L1–L3 comparison as confounded by this setting in addition to the optimization differences already noted, and we do not treat the L1–L3 gap as an isolated measurement of fine-tuning. The remaining inference settings (top-k num_select = 300 and coordinate restora-tion) were the shared defaults across all five runs; L0 additionally ran with the compiled-inference path enabled, which the resolution overrides in L1, L2 and L4 necessarily disable. Accordingly, the L0–L1 comparison—our headline result—is weight-matched but not execution-path-matched. The compiled and eager paths are intended to implement the same detector, but their numerical equivalence was not separately verified on the closed benchmark. The verbatim platform commands for all five runs are listed in the supplementary material. 
+
+## 4 Evaluated Configurations 
+
+We analyze five archived configurations, holding the backbone fixed unless stated: three intended interventions, the 704 baseline, and one rectangular run that the audit showed to have used an unintended orientation. L0, L1, L2, and L4 are inference-only on one shared checkpoint; L3 updates parameters. Figure 1 sum-marizes the comparison. 
+
+L1 — Frozen 1120 inference. This training-free intervention raises the in-put resolution from 704 × 704 to a square 1120 × 1120 via direct resize, with positional embeddings interpolated by the RF-DETR implementation, while keeping the model parameters frozen. In this implementation the res-olution override also forces eager execution instead of the compiled native-resolution path L0 uses (Section 3.4); no parameter update was performed. No gradient update, test-time optimization, or pseudo-labeling. Confidence threshold, top-k (num_select 300), and coordinate restoration follow the base inference config; the exact confidence threshold, resize/interpolation, coordinate-restoration, and box-clipping settings are given in the supple-mentary configuration. 
+
+L2 — Rectangular inference. Square 1120 ×1120 vs. a rectangular 1280( H)×
+
+736( W ) resize on the same frozen checkpoint. The benchmark CLI parses rectangular resolutions in H × W order, so the recorded string 1280x736 Frozen High-Resolution Inference for Cross-City Detection 7704-trained checkpoint parameters frozen parameters updated        
+
+> L0
+> 704 2
+> τ=.01 , compiled
+> L1
+> 1120 2
+> τ=.01 , eager
+> L2
+> 1280 ×736
+> τ=.01 , eager
+> L4
+> 1120 2+GW
+> τ=.01 , eager
+> L3
+> 1120 2FT
+> τ=.05 , eager
+> inference-time processing only warm-start fine-tuning
+
+Fig. 1: Overview of the archived comparison. L0, L1, L2 and L4 share the same 704-trained checkpoint and apply no parameter update; L3 warm-starts from it and updates the parameters. Each run’s confidence threshold τ and execution mode are shown beneath it—the two settings the run-record audit found non-uniform (Section 3.4). Every configuration was evaluated once on aggregate hidden-server metrics, without domain-separated feedback. 
+
+denotes a tall input, not a width-major one. The two inputs differ in orien-tation, aspect ratio, image shape, and total pixel count (1.25M vs. 0.94M), so this comparison isolates none of these factors and should not be read as aspect-ratio-preserving or native-aspect inference. 
+
+L3 — 1120px fine-tuning (warm-start). Warm-start from the shared 704px checkpoint (the same checkpoint used for all inference-only configurations, L0–L2 and L4) and fine-tune at 1120 × 1120 for 6 additional epochs with AdamW, a cosine schedule, and mixed precision, at effective batch 16 (batch 1 × grad-accum 16); the optimizer and scheduler are re-initialized, with en-coder and decoder learning rates of 1 × 10 −4 and 1.5 × 10 −5 respectively. We evaluate the fine-tuned checkpoint—selected as the higher-scoring of the EMA and regular weights by source-validation AP—at 1120 × 1120 . Its eval-uation pass ran at confidence threshold 0.05 rather than the 0.01 used by the other runs (Section 3.4). The exact warmup for this run was not sepa-rately retained; the remaining settings are documented in the supplementary material. 
+
+L4 — Gray-world white balancing. Per-image gray-world channel-mean nor-malization at inference on the frozen checkpoint. 
+
+## 5 Main Results 
+
+All numbers are aggregate AP / AR on the full hidden benchmark. The base model is a single RF-DETR-Large trained at 704px; each configuration imple-ments the indicated intervention, with two run-level settings not uniform across the five runs (Section 3.4). AP is averaged over IoU 0.50:0 .05:0 .95 ; best value per column in bold. ∆AP is the change in aggregate AP relative to the 704 base (L0). 8 J. Kim 
+
+Table 2: Detection precision on the full aggregate hidden benchmark. All con-figurations were submitted once; AP is COCO AP averaged over IoU thresholds 
+
+0.50:0 .05:0 .95 .Configuration AP ∆AP AP 50 AP 75 AP S AP M AP L                                                   
+
+> L0 ·Base, 704 inference 0.3272 —0.4391 0.3335 0.0519 0.1528 0.4687
+> L1 ·frozen 1120 (training-free) 0.3654 +0.0382 0.4879 0.3857 0.0660 0.1924 0.5034
+> L4 ·frozen 1120 +gray-world 0.3647 +0.0375 0.4870 0.3847 0.0658 0.1917 0.5031 L3 ·1120px fine-tuning 0.3470 +0.0198 0.4626 0.3650 0.0678 0.1832 0.4811 L2 ·rectangular 1280( H)×736( W)0.3057 −0.0215 0.4419 0.3173 0.0501 0.1447 0.4337
+
+Table 3: Detection recall values retained in the archived server reports for L0, L1, and L3. Configuration AR@1 AR@10 AR@100 L0 · base 704 0.3568 0.5782 0.6174 L1 · frozen 1120 0.3827 0.6063 0.6520 L3 · 1120px fine-tuning 0.3220 0.5131 0.5320 
+
+AR was retained only for L0, L1, and L3 in our archived evaluation records; because the evaluation server is now closed, the missing L2/L4 AR values cannot be recovered or recomputed. 
+
+Reading the tables. Among the evaluated configurations, frozen L1 (0.3654) 
+
+achieved the highest aggregate AP, +0.0382 over the 704 base (L0, 0.3272) with zero parameter updates. The relative gain is largest for small objects (AP S +27 .2% ) while the largest absolute gain is for medium objects (AP M
+
++0 .0396 ; small +0 .0141 , large +0 .0347 )—consistent with the hypothesis that higher-resolution inference primarily helps objects occupying fewer input pixels. The evaluated 1120px fine-tuning (L3, 0.3470) scored below L1, and rectangular inference (L2, 0.3057) below even the 704 base. The L1 gain is also not confined to permissive IoU matching: AP 75 rises by +0 .0522 over L0, slightly more than the AP 50 increase of +0 .0488 . We report this pattern descriptively; the aggregate server output cannot establish that it reflects improved localization specifically. 
+
+How much of this is signal? No configuration was repeated and no seed was fixed, so we have no direct estimate of run-to-run variance; the following reading is qualitative, and the three gaps in Table 2 rest on three different kinds of argument that we keep separate. 
+
+– L1 vs. L4 ( 0.0007 AP). Two different interventions land within a hair of each other. We do not treat this near-tie as a variance estimate—it compares gray-world against its absence, not a run against a replicate of itself—but it gives us no basis to order L1 above L4, so we report their ordering as undetermined. Frozen High-Resolution Inference for Cross-City Detection 9  
+
+> absolute ∆AP 00.01 0.02 0.03 0.04
+> +0 .0141
+> small
+> +0 .0396
+> medium
+> +0 .0347
+> large relative gain (%) 010 20 30 +27 .2%
+> small
+> +25 .9%
+> medium
+> +7 .4%
+> large
+
+Fig. 2: Effect of frozen 1120 inference (L1) over the 704 base (L0), by COCO object-size class. The two orderings differ , so both are plotted on their own axes rather than one being encoded as a label: medium objects show the largest absolute gain (left, +0 .0396 ) while small objects show the largest relative gain (right, +27 .2% ). This descriptive scale pattern is compatible with, but does not establish, a small-object resolution mechanism. Single submission per configuration; no error bars are available. 
+
+– L1 vs. L3 ( 0.0184 AP). This is not a question of noise at all: L1 and L3 differ in the four recipe components and one unplanned evaluation mismatch of Table 4, so the gap does not isolate any of them regardless of its magnitude. 
+
+– L0 vs. L1 ( 0.0382 AP). The largest gap, and the only comparison free of any optimization difference—its one nuisance variable, compiled-versus-eager execution, is discussed in Section 3.4. We treat it as our most robust observation while stressing that, absent repeated runs, we attach no confi-dence interval to it. Separately, the best score was selected after comparing several hidden-server submissions, which introduces evaluation-set selection bias in the usual winner’s-curse sense. A small set of same-configuration replicates on a local source-validation split would convert this qualitative ordering into a quantitative one, but the platform’s data-access rules and the closed server prevented it; we flag it as the cleanest available strengthening of the L0–L1 claim. 
+
+## 6 Analysis 
+
+6.1 Interpreting the archived fine-tuning outcome 
+
+Table 4 lists the joint differences between the complete L1 and L3 recipes. The evaluation-threshold mismatch was not part of the intended comparison. 1120px warm-start fine-tuning (L3) raised in-domain validation AP (base 0.767 → fine-tuned 0.789) while reaching a lower aggregate hidden-benchmark AP than frozen 1120 inference ( 0.3654 → 0.3470 ). Two details cut against read-ing this as a clean fine-tuning failure. First, the recall drop (AR@100 0.6520 →10 J. Kim 
+
+Table 4: Joint differences between frozen 1120 inference (L1) and the evaluated 1120px fine-tuning recipe (L3). The optimization, training-resolution and checkpoint-selection differences are components of the L3 recipe ; the confidence-threshold difference is an unplanned evaluation mismatch. The comparison therefore evaluates the complete archived recipes rather than isolating parameter updates. Scores: L1 AP 0.3654 , L3 AP 0.3470 (full breakdown in Table 2). Factor L1 (frozen) L3 (fine-tuned) Interpretation Parameter update none 6 epochs part of the evaluated L3 recipe Training resolution 704 (inference 1120) 1120 part of the evaluated L3 recipe Optimizer / scheduler — re-initialized part of the evaluated L3 recipe Checkpoint selection shared 704 ckpt best of EMA/regular @1120 part of the evaluated L3 recipe Evaluation threshold 0.01 0.05 unplanned evaluation mismatch 
+
+0.5320 ) is the metric most exposed to the confidence threshold: raising the thresh-old from 0.01 to 0.05 mechanically reduces the set of retained low-confidence detections and can reduce attainable recall. The AR gap is therefore likely af-fected by L3’s higher evaluation threshold and cannot be read as evidence that fine-tuning harmed recall; without re-scoring L3 at 0.01 , the relative contribu-tions of thresholding and training-side changes remain unknown. Second, L3 attains the highest small-object AP among the archived configurations (AP S
+
+0.0678 vs. L1’s 0.0660 ) despite using a higher threshold that may suppress low-confidence detections—an observation that does not support a claim of uniform degradation from the evaluated recipe. What remains is a modest aggregate-AP difference compatible with several explanations—specialization to the labeled source distribution, confidence calibration, threshold truncation, checkpoint se-lection, optimizer/scheduler effects—which the aggregate server output cannot separate. We list them as parallel candidates and endorse none. We emphasize that L1 and L3 differ in more than resolution (optimizer updates, epochs, sched-ule, checkpoint selection, and the evaluation confidence threshold of Section 3.4), so we conclude only that, under the specific warm-start fine-tuning recipe and evaluation settings used, frozen 1120px inference achieved a higher aggregate score. 
+
+6.2 Negative results, precisely – Rectangular input (L2; unintended portrait orientation). This run was intended as a landscape, roughly native-aspect input, matching the pre-dominantly 1920 ×1080 landscape imagery of the benchmark. The CLI parses rectangular resolutions in H × W order, so the string 1280x736 instead pro-duced a portrait 1280 -high × 736 -wide input. We therefore report it as a run-audit finding rather than as evidence about the intended landscape or native-aspect configuration. Rectangular 1280( H)×736( W ) inference scored 0.3057—below the 704 base (0.3272). Its AP 50 (0.4419) is comparable to the base (0.4391) while AP 75 is lower (0.3173 vs. 0.3335), suggesting, but not es-tablishing, that the degradation may be more closely related to localization Frozen High-Resolution Inference for Cross-City Detection 11 
+
+precision than to coarse object discovery. Because orientation, aspect ratio, image shape, and pixel count all change together, this comparison does not isolate any single factor; we attribute the L1 gain to square high-resolution inference rather than to input geometry alone. 
+
+– Gray-world (L4). Inference-time gray-world normalization produced a neg-ligible difference of −0.0007 AP ( 0.3654 → 0.3647 ); with no repeated runs we report the measured difference but do not interpret it as evidence that gray-world normalization is detrimental. 
+
+## 7 Limitations and validity 
+
+We collect here the constraints that bound every claim in the paper; earlier sections refer back to this section rather than restating them. Table 5 pairs each claim with the evidence it rests on and the scope outside which we do not assert it; the aggregate-only metric, the unmatched L1–L3 control and the single-model scope are recorded there as claim boundaries rather than repeated here. Three constraints are not specific to any single claim. 
+
+– Single run ( n=1 ). Each configuration was submitted once and no fixed random seed was set; we report no error bars, significance tests, or prediction-level paired statistics. The inference-only comparisons are checkpoint-shared ,not statistically paired, and not execution-path-matched (Section 3.4). 
+
+– Model selection on the hidden server. We compared a limited set of con-figurations and kept the best. We did not run repeated leaderboard-driven hyperparameter tuning, but selecting among several submitted configura-tions still introduces evaluation-set selection bias; the best reported result is an exploratory challenge result, not an unbiased estimate on an untouched test set. For scale, our best entry scored 0.3654 while the leading Track 6 entries scored ≈ 0.475 —about 0.11 AP above ours, roughly three times the largest effect reported in this paper. 
+
+– Inference cost and unrun analyses. Frozen 1120 inference processes 
+
+2.53 × the pixels of 704; we make no efficiency claim, and we did not mea-sure latency or VRAM because after the challenge the compute budget was exhausted and the evaluation server was closed. The same closure, together with the fact that benchmark images, ground-truth annotations and per-image outcomes were never exposed to participants, prevented a resolution sweep, a matched same-epoch/same-threshold 704 fine-tuning control, class-wise AP, a confidence-calibration study, and any qualitative analysis on the hidden benchmark; these are future work. In particular we make no claim that 1120 is an optimal or sufficient resolution: it is the one square high-resolution setting we were able to evaluate, the point of diminishing returns was never located, and intermediate settings (e.g. 896) were never submitted. 12 J. Kim  
+
+> Table 5: Claim, supporting evidence, and the boundary of each claim.
+
+Claim Supporting evidence Boundary Frozen 1120 inference achieved the best tested aggregate AP L1 AP 0.3654 vs. L0 0.3272 Evaluated configurations only; one model on one benchmark; not a state-of-the-art challenge entry Gains were strongest on small and medium objects AP S +27 .2% relative; AP M +0 .0396 absolute Aggregate hidden mixture; no per-domain split The archived L3 run produced a lower aggregate score than L1 L3 AP 0.3470; AR@100 0.5320 One recipe; four recipe components plus an unplanned threshold mismatch ( 0.05 vs. 0.01 )differ (Table 4); the threshold effect is unmeasured and unrecoverable In-domain validation is an unreliable selection signal under domain shift L3 val 0.767 → 0.789 
+
+while its aggregate AP did not rise One model and recipe; benchmark-level; suggestive, not proven Rectangular and gray-world variants did not improve on L1 L2 AP 0.3057 (unintended orientation); L4 AP 0.3647 One server evaluation each; n=1 
+
+Target-city improvement is not established No domain-separated server metric exists Benchmark-level interpretation only 
+
+## 8 Discussion 
+
+Two takeaways survive the constraints of Section 7, and we state them at the level the data support. First, as a practical default under restricted feedback , frozen resolution scaling is worth evaluating before additional optimization: it leaves the trained weights untouched, permits a checkpoint-shared comparison, and here produced the largest gap we observed (L0–L1)—at a higher inference cost ( 2.53 × the pixels). Second, and more transferable, our one fine-tuning run is a caution about model selection : its in-domain validation AP rose ( 0.767 → 0.789 ) while its aggregate benchmark AP did not, so under aggregate-only cross-city feedback in-domain validation ranked a change that the hidden benchmark did not reward. These findings should not be read as evidence that higher-resolution infer-ence generally beats fine-tuning or domain adaptation. For one RF-DETR-Large model and the specific, confounded configurations evaluated here, frozen infer-ence simply scored highest, and the fine-tuning comparison does not isolate any single factor (Table 4). Frozen High-Resolution Inference for Cross-City Detection 13 
+
+From the second takeaway we suggest , but do not demonstrate, a decision rule for similarly restricted settings: when no target-validation signal is available, prefer a domain-shift proxy validation split—held-out cameras, locations, or acquisition conditions drawn from the source data—over in-domain validation when deciding whether to apply training-side changes, and treat any single-submission leaderboard result as an upward-biased estimate. Building such a proxy split and testing whether it correlates with the hidden benchmark bet-ter than in-domain validation is the natural next step; the platform’s data-access rules prevented us from doing so here. Future work should also priori-tize a matched same-epoch, same-threshold 704px fine-tuning control, a denser resolution–compute sweep, and direct latency/VRAM profiling. 
+
+## 9 Conclusion 
+
+We presented an audited, reproducible study of a few inference- and training-time configurations of a single frozen RF-DETR-Large detector in AI City Chal-lenge 2026 Track 6, under an aggregate-only cross-city metric and a limited submission budget. Among the configurations we could submit, frozen square-1120px inference achieved the highest aggregate hidden-benchmark AP with no parameter update—the largest relative gain on small objects and the largest absolute gain on medium objects. The one warm-start fine-tuning run raised in-domain validation but not aggregate AP, cautioning that in-domain vali-dation is an unreliable selection signal under domain shift. The rectangular run used an unintended orientation rather than a designed ablation, and gray-world normalization was negligible. We therefore frame this paper not as a competitive system but as a carefully qualified challenge study: a run-record audit, an archived and confounded warm-start fine-tuning outcome under non-uniform evaluation settings, and honest negative interventions under aggregate-only cross-city evaluation—not a general law. Code, configuration files, and inference-packaging scripts are included in the supplementary material and are publicly available at https://github.com/freak-jaeuk/aicity2026-track6 ,commit 763021c . Model weights and the challenge datasets are not redistributable and are therefore not included. 
+
+## References    
+
+> 1. AI City Challenge: The 10th AI city challenge — track 6: Cross-city object de-tection (milestone project hafnia). https://www.aicitychallenge.org/2026-track6/ (2026), workshop at ECCV 2026. Accessed: 2026-07-14 2. Akyon, F.C., Altinuc, S.O., Temizel, A.: Slicing aided hyper inference and fine-tuning for small object detection. In: IEEE International Conference on Image Processing (ICIP). pp. 966–970 (2022). https://doi.org/10.1109/ICIP46576. 2022.9897990
+> 3. Arazo, E., Ortego, D., Albert, P., O’Connor, N.E., McGuinness, K.: Pseudo-labeling and confirmation bias in deep semi-supervised learning. In: International
+
+14 J. Kim Joint Conference on Neural Networks (IJCNN) (2020). https://doi.org/10. 1109/IJCNN48605.2020.9207304 
+
+4. Beyer, L., Izmailov, P., Kolesnikov, A., Caron, M., Kornblith, S., Zhai, X., Min-derer, M., Tschannen, M., Alabdulmohsin, I., Pavetic, F.: FlexiViT: One model for all patch sizes. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2023) 5. Bodla, N., Singh, B., Chellappa, R., Davis, L.S.: Soft-NMS – improving object de-tection with one line of code. In: Proceedings of the IEEE International Conference on Computer Vision (ICCV). pp. 5561–5569 (2017). https://doi.org/10.1109/ ICCV.2017.593 
+
+6. Buchsbaum, G.: A spatial processor model for object colour perception. Journal of the Franklin Institute 310 (1), 1–26 (1980). https://doi.org/10.1016/0016-0032(80)90058-7 
+
+7. Carion, N., Massa, F., Synnaeve, G., Usunier, N., Kirillov, A., Zagoruyko, S.: End-to-end object detection with transformers. In: European Conference on Com-puter Vision (ECCV). pp. 213–229 (2020). https://doi.org/10.1007/978-3-030-58452-8_13 
+
+8. Chen, M., Chen, W., Yang, S., Song, J., Wang, X., Zhang, L., Yan, Y., Qi, D., Zhuang, Y., Xie, D., Pu, S.: Learning domain adaptive object detection with prob-abilistic teacher. In: Proceedings of the 39th International Conference on Machine Learning (ICML). PMLR, vol. 162, pp. 3040–3055 (2022) 9. Chen, Y., Li, W., Sakaridis, C., Dai, D., Van Gool, L.: Domain adaptive faster R-CNN for object detection in the wild. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 3339–3348 (2018) 10. Danish, M.S., Khan, M.H., Munir, M.A., Sarfraz, M.S., Ali, M.: Improving sin-gle domain-generalized object detection: A focus on diversification and alignment. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2024) 11. Deng, J., Li, W., Chen, Y., Duan, L.: Unbiased mean teacher for cross-domain ob-ject detection. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 4091–4101 (2021) 12. Gu, Y., Wang, Y., Li, Y.: 2nd place solution to ECCV 2020 VIPriors object de-tection challenge. In: ECCV 2020 VIPriors Workshop (2020) 13. Hosang, J., Benenson, R., Schiele, B.: Learning non-maximum suppression. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 4507–4515 (2017) 14. Huang, J., Rathod, V., Sun, C., Zhu, M., Korattikara, A., Fathi, A., Fischer, I., Wojna, Z., Song, Y., Guadarrama, S., Murphy, K.: Speed/accuracy trade-offs for modern convolutional object detectors. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 7310–7319 (2017) 15. Li, Y.J., Dai, X., Ma, C.Y., Liu, Y.C., Chen, K., Wu, B., He, Z., Kitani, K., Vajda, P.: Cross-domain adaptive teacher for object detection. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 7581–7590 (2022) 16. Lin, T.Y., Dollár, P., Girshick, R., He, K., Hariharan, B., Belongie, S.: Feature pyramid networks for object detection. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 2117–2125 (2017). https: //doi.org/10.1109/CVPR.2017.106 
+
+17. Liu, Y., Zhou, S., Liu, X., Hao, C., Fan, B., Tian, J.: Unbiased faster R-CNN for single-source domain generalized object detection. In: Proceedings of the Frozen High-Resolution Inference for Cross-City Detection 15 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2024) 18. Liu, Y.C., Ma, C.Y., He, Z., Kuo, C.W., Chen, K., Zhang, P., Wu, B., Kira, Z., Vajda, P.: Unbiased teacher for semi-supervised object detection. In: International Conference on Learning Representations (ICLR) (2021) 19. Milestone Systems: Hafnia dataset: ECCV cross city object detection dataset. Milestone Project Hafnia (dec 2024), https://mdi.milestonesys.com/datasets/ 070b3bd5- 0266- 4446- a318- 052c993558ef , version 0.0.1. Part of the Hafnia project, Copenhagen, Denmark 20. Neubeck, A., Van Gool, L.: Efficient non-maximum suppression. In: 18th In-ternational Conference on Pattern Recognition (ICPR’06). pp. 850–855 (2006). 
+
+https://doi.org/10.1109/ICPR.2006.479 
+
+21. Oquab, M., Darcet, T., Moutakanni, T., Vo, H., Szafraniec, M., Khalidov, V., Fernandez, P., Haziza, D., Massa, F., El-Nouby, A., et al.: DINOv2: Learning robust visual features without supervision. Transactions on Machine Learning Research (TMLR) (2024) 22. Robinson, I., Robicheaux, P., Popov, M., Ramanan, D., Peri, N.: RF-DETR: Neural architecture search for real-time detection transformers. In: International Confer-ence on Learning Representations (ICLR) (2026), https://arxiv.org/abs/2511. 09554 , arXiv:2511.09554 23. Singh, B., Davis, L.S.: An analysis of scale invariance in object detection – SNIP. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 3578–3587 (2018) 24. Solovyev, R., Wang, W., Gabruseva, T.: Weighted boxes fusion: Ensembling boxes from different object detection models. Image and Vision Computing 107 , 104117 (2021). https://doi.org/10.1016/j.imavis.2021.104117 
+
+25. Tang, Z., Wang, S., Anastasiu, D.C., Chang, M.C., Sharma, A., Kong, Q., Ko-bori, N., Gochoo, M., Batnasan, G., Otgonbold, M.E., Alnajjar, F., Hsieh, J.W., Chakraborty, P., Chellappa, R.: The 9th AI city challenge. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) Workshops (2025) 26. Tarvainen, A., Valpola, H.: Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results. In: Advances in Neural Information Processing Systems (NeurIPS) (2017) 27. Touvron, H., Vedaldi, A., Douze, M., Jégou, H.: Fixing the train-test resolution discrepancy. In: Advances in Neural Information Processing Systems (NeurIPS) (2019) 28. Vidit, V., Engilberge, M., Salzmann, M.: CLIP the gap: A single domain generaliza-tion approach for object detection. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2023) 29. Wang, D., Shelhamer, E., Liu, S., Olshausen, B., Darrell, T.: Tent: Fully test-time adaptation by entropy minimization. In: International Conference on Learning Representations (ICLR) (2021) 30. Wu, A., Deng, C.: Single-domain generalized object detection in urban scene via cyclic-disentangled self-distillation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 847–856 (2022). https: //doi.org/10.1109/CVPR52688.2022.00092 
+
+31. Yang, C., Huang, Z., Wang, N.: QueryDet: Cascaded sparse query for accelerating high-resolution small object detection. In: Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR). pp. 13668–13677 (2022) 16 J. Kim 32. Zhang, H., Li, F., Liu, S., Zhang, L., Su, H., Zhu, J., Ni, L.M., Shum, H.Y.: DINO: DETR with improved denoising anchor boxes for end-to-end object detection. In: International Conference on Learning Representations (ICLR) (2023) 33. Zhao, Y., Lv, W., Xu, S., Wei, J., Wang, G., Dang, Q., Liu, Y., Chen, J.: DETRs beat YOLOs on real-time object detection. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2024) 34. Zheng, Z., Wang, P., Liu, W., Li, J., Ye, R., Ren, D.: Distance-IoU loss: Faster and better learning for bounding box regression. In: Proceedings of the AAAI Conference on Artificial Intelligence (AAAI). vol. 34, pp. 12993–13000 (2020). 
+
+https://doi.org/10.1609/aaai.v34i07.6999 
+
+35. Zhou, K., Liu, Z., Qiao, Y., Xiang, T., Loy, C.C.: Domain generalization: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI) 45 (4), 4396–4415 (2023). https://doi.org/10.1109/TPAMI.2022.3195549 
+
+36. Zhu, X., Su, W., Lu, L., Li, B., Wang, X., Dai, J.: Deformable DETR: De-formable transformers for end-to-end object detection. In: International Conference on Learning Representations (ICLR) (2021)

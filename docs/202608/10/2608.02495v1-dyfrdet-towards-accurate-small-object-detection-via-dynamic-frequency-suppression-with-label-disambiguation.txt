@@ -1,0 +1,501 @@
+Title: DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation
+
+URL Source: https://arxiv.org/pdf/2608.02495v1
+
+Published Time: Tue, 04 Aug 2026 02:44:17 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation 
+
+## Zihan Yang ∗
+
+zihanyang@buaa.edu.cn Hangzhou International Innovation Institute of Beihang University Hangzhou, China 
+
+## Yang Guo ∗
+
+guoyang4409@gmail.com Beijing University of Posts and Telecommunications Beijing, China 
+
+## Hongxing Zhang 
+
+hongxingzhang@bupt.edu.cn Beijing University of Posts and Telecommunications Beijing, China 
+
+## Dan Lu †
+
+danlu@buaa.edu.cn Hangzhou International Innovation Institute of Beihang University Hangzhou, China 
+
+## Siyuan Yao †
+
+yaosiyuan04@gmail.com Shenzhen Campus of Sun Yat-sen University Shenzhen, China 
+
+## Abstract 
+
+Despite the remarkable progress over the past decades, accurately identifying small objects remains challenging because of their in-sufficient visual cues. Previous works typically attempt to construct discriminative representation of the small objects. However, the wide range frequency domain noises and label ambiguities have been greatly overlooked, which significantly hinders the accurate localization. To address these issues, we propose a novel small ob-ject detection (SOD) detector termed DyFrDet, which is able to pre-cisely localize the small object by dynamically suppressing the back-ground distractions in frequency domain. Specifically, we propose a Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) to adaptively suppress low-frequency redundancy and excessive high-frequency noises. The DyFrFPN transforms the hierarchical features into frequency domain representation, and introduces a Dynamic Band Predictor (DBP) to preserve the discriminative com-ponents for small object identification. Afterwards, we present a novel Label Disambiguation Module (LDM), which leverages prob-abilistic distributions to explicitly model and alleviate the inherent ambiguity of target labels, yielding efficient improvement in local-ization precision of the small objects with low-resolution. Extensive experiments demonstrate that DyFrDet achieves state-of-the-art performance across multiple benchmarks, indicating its effective-ness and robustness in various challenging scenarios. Our code is available at https://github.com/ManOfStory/DyFrDet. 
+
+## CCS Concepts 
+
+• Computing methodologies → Object detection .
+
+> ∗Both authors contributed equally to this research.
+> †Corresponding authors: Dan Lu and Siyuan Yao.
+> This work is licensed under a Creative Commons Attribution 4.0 International License.
+> MM ’26, Rio de Janeiro, Brazil
+> © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2213-4/2026/11 https://doi.org/10.1145/3767308.3835215
+
+## Keywords 
+
+Small Object Detection, Frequency-aware Suppression, Label Dis-ambiguation 
+
+ACM Reference Format: 
+
+Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, and Siyuan Yao. 2026. DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation. In Proceedings of the 34th ACM International Conference on Multimedia (MM ’26), November 10–14, 2026, Rio de Janeiro, Brazil. ACM, New York, NY, USA, 10 pages. https://doi.org/10. 1145/3767308.3835215 
+
+## 1 Introduction 
+
+Small Object Detection (SOD), as a critical subtask of generic ob-ject detection, aims to accurately localize and recognize objects with limited size. SOD plays an essential role in a wide range of real-world applications, including unmanned aerial vehicle (UAV) surveillance, remote sensing localization, scene monitoring, obsta-cle avoidance, and autonomous driving. However, due to the lack of visual cues and complex scenarios, directly applying generic object detectors [4, 14, 22, 26, 34, 64] to small object detection often leads to significant performance degradation. From a technical viewpoint, contemporary small object detec-tion frameworks [24, 37, 39, 49, 58] predominantly make efforts on constructing semantically discriminative features to alleviate the deficiency of feature representation inherent to small objects. Al-though these approaches yield significant improvements in general small object detection, they still struggle to maintain robustness in highly cluttered complex scenarios. Primarily, due to the diminutive spatial footprint, small objects are highly susceptible to interference from complex background textures and fine-grained noise, which often leads to false positives or missed detections. Some advanced approaches like HS-FPN [36] introduce a Discrete Cosine Trans-form (DCT) based filtering strategy to remove the low-frequency components, aiming to encourage the model to focus on the at-tentive small objects rather than large-scale distractors. However, the high-frequency distractors may still hamper the localization capability. Besides, the low resolution of small objects often leads to blurred boundaries, which inevitably introduces label ambiguity arXiv:2608.02495v1 [cs.CV] 3 Aug 2026 MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, & Siyuan Yao. Remove Low & High GT  Encoder Feature  Remove Low  
+
+> (b) Label Ambiguities
+> (a)Heatmap by Suppressing Different Component
+> 1
+> 4
+> 2
+> 1
+> 3
+> rider people
+> people people
+> 3
+> 4
+> 2
+
+Figure 1: (a) Visualization of the heatmap using different frequency suppression settings. “GT” denotes ground-truth annotations. “Encoder Feature” is extracted from CFINet [58]. “Remove Low” applies the low-frequency suppression strat-egy from HS-FPN [36]. “Remove Low & High” further sup-presses both low and high frequency components. (b) Label ambiguities in small targets. The green boxes indicate the ground truth annotations, whereas the red boxes are closer to the actual object location. Please zoom in for details. 
+
+to supervise the model training, making it challenging to achieve accurate object localization. To address these issues, in this paper, we propose a novel dy-namic frequency suppressive detector termed DyFrDet, which is able to precisely localize the small object by dynamically suppress-ing the background distractions in frequency domain. As shown in Fig. 1(a), the encoder features are typically noisy in complex local regions. If the low-frequency redundancies and high-frequency noises can be efficiently suppressed, the detection performance can be greatly boosted. To achieve this, DyFrDet introduces a Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) to trans-form the hierarchical pyramid features into different frequency components. A Dynamic Band Predictor (DBP) is designed to con-trol the frequency representation, allowing the detector to suppress both low-frequency redundancies and high-frequency noises simul-taneously. Meanwhile, as the low-resolution small objects often introduce label ambiguity, we propose a Label Disambiguation Module (LDM) to alleviate the performance degradation due to the unreliable model training under ambiguous annotations. The small object’s coordinate regression is tackled as a position-aware distributional prediction task. By paying more attention to the high confidence samples and restraining the ambiguous samples, DyFrFPN can predict the small object’s localization more precisely. Experimental results on several popular benchmarks validate the effectiveness of our proposed method. In conclusion, the main contributions of this paper are summa-rized as follows: 
+
+• We propose DyFrDet, which introduces Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) to decompose the hierarchical pyramid features into different frequency components, and suppresses both low-frequency redundan-cies and high-frequency noises simultaneously for small object detection. 
+
+• We introduce a Label Disambiguation Module (LDM), which pays more attention to the high confidence samples and restrains the ambiguous samples, leading to more accurate bounding box estimation. 
+
+• Extensive experiments on several popular datasets verify the effectiveness and robustness of DyFrDet in handling extremely small objects under both densely and sparsely distributed scenarios. 
+
+## 2 Related Work 2.1 Small Object Detection 
+
+Recent advances in small object detection can be broadly catego-rized into three directions: data-oriented, architecture-oriented, and feature-oriented methods. For data-oriented approaches, [5, 18] im-prove performance through data augmentation, while [45–47, 58] optimize the label assignment process during training, alleviating the scarcity of positive samples for small objects. These methods en-hance supervision from the training perspective, thereby improving detection performance. For architecture-oriented methods, FPN [21] introduces a feature pyramid that leverages top-down aggregated multi-scale features for detection. QueryDet [49] proposes a cascade architecture and designs a Cascade Sparse Query (CSQ) mechanism to further boost performance. Other works [13, 20, 32, 39, 52, 53] also explore advanced architectural designs, achieving improved performance through better multi-scale representation and feature utilization. For feature-oriented methods, [17, 43] adopt similarity learning to enhance representations by leveraging similar small objects. HS-FPN [36] introduces a high-pass filter to suppress low-frequency components, encouraging the network to focus more on small objects. In addition, Sun et al. [37] observe that high-frequency noise can degrade small object features and propose Spectral En-hancement (SET), which employs a heterogeneous architecture for foreground and background feature refinement. Different from previous works, our method dynamically atten-uates both low-frequency redundancy and high-frequency noise in a channel-wise manner, enabling more flexible and adaptive frequency modulation. 
+
+## 2.2 Frequency Representation 
+
+As an important tool in image processing, frequency domain analy-sis is widely employed in deep learning research. For feature model-ing, Chi et al. [9] propose Fast Fourier Convolution (FFC), which ex-tends conventional convolution by incorporating frequency-domain modeling, enabling non-local receptive fields and cross-scale feature interactions. Chen et al. [6] introduce FDAM, which integrates dy-namic high-pass and low-pass filters into the network architecture to address a key limitation of Vision Transformers (ViTs), namely their inherent low-pass filtering effect that leads to frequency at-tenuation and loss of fine-grained details. Qin et al. [33] show that global average pooling (GAP) is a special case of the discrete cosine DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil 
+
+transform (DCT), and further generalize channel attention mecha-nisms in the frequency domain via the proposed FcaNet, achieving strong performance on benchmarks such as ImageNet [11] and COCO [23]. SpectFormer [31] introduces a hybrid architecture that combines spectral layers with multi-head self-attention, enabling the model to jointly capture global frequency representations and spatial dependencies. FSEL [38] incorporates frequency-domain transformations to alleviate the sensitivity and locality limitations of spatial features in camouflaged object detection. In this paper, we jointly leverage frequency-domain and spatial features to better distinguish small objects from the background, dynamically suppressing irrelevant distractions and noise in feature representations. 
+
+## 2.3 Label Disambiguation 
+
+Label ambiguity is often caused by human annotation bias or low-quality images. This issue becomes especially severe in small object detection, where the distinction between object and background is often unclear. Most existing works [16, 51, 55, 59] treat bound-ing box regression as a deterministic prediction problem. How-ever, such approaches exhibit significant limitations when faced with imprecise or ambiguous object boundaries. Recently, modeling bounding boxes as probability distributions rather than fixed coor-dinates has attracted increasing attention across various domains, including visual tracking under uncertain or adverse conditions. For instance, UAST [60] discretizes localization outputs into prob-ability distributions, while UMDATrack [54] and UncTrack [50] introduce uncertainty-aware tracking frameworks to improve local-ization reliability under challenging conditions. This probabilistic formulation has demonstrated strong capabilities in resolving label ambiguity and enhancing localization robustness under complex or uncertain conditions. However, to the best of our knowledge, the distributional bounding box regression for small object detection has not been carefully explored. In this work, we demonstrate the potential of our approach to mitigate label ambiguity and better handle complex scenarios in small object detection(SOD). 
+
+## 3 Methodology 
+
+In this section, we present the overall architecture of the proposed DyFrDet. As illustrated in Fig. 2, DyFrDet consists of a Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) and a Label Disambiguation Module(LDM). The DyFrFPN transforms pyramid features into frequency domain and employs a Dynamic Band Pre-dictor (DBP) to adaptively suppress irrelevant frequency compo-nents. The LDM enforces the detector to focus on the high con-fidence samples and restrain the ambiguous samples to facilitate small object localization. 
+
+## 3.1 Introduction to DyFrFPN 
+
+Given an input image I𝑡 , we first pass it to a ResNet-50 backbone to extract multi-scale feature maps {c2, c3, c4, c5 }, whose spatial resolutions are reduced by the factor of {4, 8, 16 , 32 } and are passed through the proposed DyFrFPN. Specifically, the backbone feature maps are processed by a standard FPN to obtain the top-down aggre-gated multi-scale features {p2, p3, p4, p5 }. These features are then transformed into the frequency domain using the Fast Fourier Trans-form (FFT), resulting in frequency representations {P2, P3, P4, P5 }.The FFT is computed as follows: 
+
+𝑃 𝑖 (𝑢, 𝑣 ) =∑︁ 
+
+> 𝑥,𝑦
+
+𝑝 𝑖 (𝑥, 𝑦 ) · 𝑒 − 𝑗 2𝜋 ( 𝑥 𝐻 𝑢 + 𝑦 𝑊 𝑣 ), 𝑗 2 = −1. (1) where 𝑖 ∈ { 2, 3, 4, 5} and 𝑝 𝑖 (𝑥, 𝑦 ) denotes the spatial domain feature at location (𝑥, 𝑦 ) in level 𝑖 , 𝑃 𝑖 (𝑢, 𝑣 ) is its corresponding frequency representation at coordinate (𝑢, 𝑣 ).This transformation enables the decomposition of features into different frequency components: the low-frequency signals in the top-left region of the spectrum and the high-frequency ones in the bottom-right. Since the multi-scale features differ only in spatial resolution while sharing the same processing operations, we omit the scale index 𝑖 in the following discussion for brevity. 
+
+Dynamic Band Predictor. Instead of applying uniform suppres-sion across all channels, we predict the dynamic band range for each channel to conduct channel-wise precise denoising. To achieve this, we send frequency-domain representation P ∈ R𝐶 ×𝐻 ×𝑊 and the corresponding spatial-domain feature p ∈ R𝐶 ×𝐻 ×𝑊 into DBP to estimate the suppression thresholds [𝛼 1, 𝛼 2] ∈ R𝐶 . Particularly, the complex-valued frequency feature P is first decomposed into the amplitude spectrum A and phase spectrum Φ, which can be computed as follows: 
+
+A ( 𝑢, 𝑣 ) =√︁ Re (𝑃 (𝑢, 𝑣 )) 2 + Im (𝑃 (𝑢, 𝑣 )) 2,
+
+Φ(𝑢, 𝑣 ) = arctan 
+
+ Im (𝑃 (𝑢, 𝑣 )) 
+
+Re (𝑃 (𝑢, 𝑣 )) 
+
+
+
+, (2) where Re (·) and Im (·) denote the real and imaginary parts of the complex-valued feature, respectively. After obtaining the ampli-tude spectrum A and phase spectrum Φ, we pass them through a convolutional block to aggregate the frequency representations. The aggregated components are then transformed back into the spatial domain via the Inverse Fast Fourier Transform (IFFT). The complete process is formulated as: 
+
+A′ (𝑢, 𝑣 ) = ConvBlock (A ( 𝑢, 𝑣 )) ,
+
+Φ′ (𝑢, 𝑣 ) = ConvBlock (Φ(𝑢, 𝑣 )) ,
+
+f = F −1 [A ′ (𝑢, 𝑣 ) · exp ( 𝑗 Φ′ (𝑢, 𝑣 ))] ,
+
+(3) where A′ ∈ R𝐶 ×𝐻 ×𝑊 and Φ′ ∈ R𝐶 ×𝐻 ×𝑊 denote the amplitude and phase components, respectively. Afterwards, we compress the spatial information of the feature maps using global pooling oper-ations. We apply Global Max Pooling (GMP) and Global Average Pooling (GAP) to obtain compact feature representations, which can be given by: 
+
+f′ = Concat (GMP (f), GAP (f)) ,
+
+p′ = Concat (GMP (p), GAP (p)) , (4) where f′ ∈ R2𝐶 ×𝐻 ′𝑊 ′
+
+and p′ ∈ R2𝐶 ×𝐻 ′𝑊 ′
+
+, we further project them into query, key, and value embeddings for attention computation as follows: 
+
+𝑄, 𝐾, 𝑉 = [𝑊 𝑞 ,𝑊 𝑘 ,𝑊 𝑣 ]𝑇 · [ p′, f′, f′], (5) where 𝑊 𝑞 , 𝑊 𝑘 , 𝑊 𝑣 ∈ R2𝐶 ×𝑑 are learnable linear projection matri-ces. 𝑄, 𝐾, 𝑉 ∈ R𝑑 ×𝐻 ′𝑊 ′
+
+is the query, key and value embeddings. MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, & Siyuan Yao. FFT      
+
+> Masked Frequency Feature Frequency Feature
+> DBP
+> α1
+> α2
+> Frequency Feature P
+> Amplitude Spectrum
+> Phase Spectrum
+> conv
+> conv
+> IFFT
+> Spatial Feature p
+> C
+> C
+> Key
+> Value
+> Flatten
+> Query 𝑩 × 𝑪′
+> FFN
+> 𝑩 × 𝑪
+> RoI Feature
+> f′
+> p′
+> …
+> …
+> …
+> Spatial Feature
+> α1
+> α2
+> Dynamic Frequency-aware Feature Pyramid Network
+> MLP
+> FFN FFN
+> C
+> obj1 obj2 obj3
+> obj1 obj2 obj3
+
+C Channel wise Concatenate 
+
+> Scaled dot-product Attention
+> Channel wise Addition
+> Bounding Box Decoding
+> Anchor
+> Label Disambiguation Module
+> …
+> …
+> …
+> …
+> …
+> Suppression Mask
+> Dynamic Band Predictor
+> RoI Align
+> IFFT
+> f
+> 𝐏 𝟐 ′
+> 𝐏 𝟑 ′
+> 𝐏 𝟒 ′
+> 𝐏 𝟓
+> ′
+> 𝐏 𝟓
+> 𝐏 𝟒
+> 𝐏 𝟑
+> 𝐏 𝟐
+
+Figure 2: The overall architecture of DyFrDet consists of two main components: Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) and Label Disambiguation Module (LDM). DyFrFPN integrates a Dynamic Band Predictor (DBP), which adaptively predicts two channel-wise frequency thresholds to suppress irrelevant components. The masked features are then passed to the LDM to enhance the final localization performance. 
+
+To adaptively suppress the irrelevant noises, we predict the sup-pression thresholds 𝛼 1, 𝛼 2 ∈ 𝑅 𝐶 through an attention mechanism followed by a feed-forward network (FFN). To ensure positivity and enable flexible scaling, we adopt an exponential parameterization as follows: 
+
+𝑑𝛼 = FFN 
+
+
+
+p′ + softmax 
+
+ 𝑄𝐾 ⊤
+
+√𝑑 
+
+
+
+𝑉 
+
+
+
+,𝛼 1 = 𝛼 𝑙 · 𝑒 𝑑𝛼 1 , 𝛼 2 = 𝛼 ℎ · 𝑒 𝑑𝛼 2 ,
+
+(6) where 𝛼 1, 𝛼 2 ∈ R𝐶 denote the predicted lower and upper suppres-sion thresholds, respectively. 𝛼 𝑙 , 𝛼 ℎ ∈ R denote the predefined sup-pression thresholds. Based on the predicted 𝛼 1 and 𝛼 2, we define a spatial mask as follows: 
+
+M ( 𝑥, 𝑦, 𝑗 ) =
+
+
+
+0, if 𝑥 < 𝛼 𝑗  
+
+> 1
+
+· 𝑊 and 𝑦 < 𝛼 𝑗  
+
+> 1
+
+· 𝐻 
+
+0, if 𝑥 > 𝛼 𝑗  
+
+> 2
+
+· 𝑊 and 𝑦 > 𝛼 𝑗  
+
+> 2
+
+· 𝐻 
+
+1, otherwise ,
+
+(7) where 𝛼 𝑗  
+
+> 1
+
+and 𝛼 𝑗  
+
+> 2
+
+represent the lower and upper suppression thresh-olds of the 𝑗 -th channel. The pixels within the top-left region (i.e., low-frequency redundant areas) and the bottom-right region (i.e., high-frequency noise areas) are masked out (set to 0), while the remaining spatial locations are retained (set to 1). By applying the predicted M to the frequency feature map P, we obtain the noise suppressed feature P′. Which can be given by: 
+
+P′ = P − 𝛽 · ( P ⊙ ( 1 − M)) , (8) where ⊙ denotes element-wise multiplication, and 𝛽 is a hyper-parameter that controls the suppression rate. Finally, we convert the suppressed frequency-domain features back to the spatial do-main using the Inverse Fast Fourier Transform (IFFT), yielding the enhanced multi-scale features {p∗
+
+> 2
+
+, p∗
+
+> 3
+
+, p∗
+
+> 4
+
+, p∗ 
+
+> 5
+
+}.
+
+## 3.2 Label Disambiguation Module 
+
+To precisely localize targets and mitigate the negative impact of la-bel ambiguities, we introduce a Label Disambiguation Module (LDM). Let 𝑃 = (𝑃 𝑥 , 𝑃 𝑦 , 𝑃 𝑤 , 𝑃 ℎ ) denote the proposal box, where (𝑃 𝑥 , 𝑃 𝑦 )
+
+represents the center coordinates and (𝑃 𝑤 , 𝑃 ℎ ) denotes the size of the proposal, respectively. Similarly, 𝐺 = (𝐺 𝑥 , 𝐺 𝑦 , 𝐺 𝑤 , 𝐺 ℎ ) repre-sent the ground-truth bounding box. The bounding box regression process can be formulated as: 
+
+𝑡 𝑥 = (𝐺 𝑥 − 𝑃 𝑥 )/ 𝑃 𝑤 , ˆ𝐺 𝑥 = 𝑃 𝑤 𝑑 𝑥 + 𝑃 𝑥 ,𝑡 𝑦 = (𝐺 𝑦 − 𝑃 𝑦 )/ 𝑃 ℎ, ˆ𝐺 𝑦 = 𝑃 ℎ𝑑 𝑦 + 𝑃 𝑦 ,𝑡 𝑤 = log (𝐺 𝑤 /𝑃 𝑤 ), ˆ𝐺 𝑤 = 𝑃 𝑤 exp (𝑑 𝑤 ),𝑡 ℎ = log (𝐺 ℎ /𝑃 ℎ ), ˆ𝐺 ℎ = 𝑃 ℎ exp (𝑑 ℎ ),
+
+(9) where D = {𝑑 𝑥 , 𝑑 𝑦 , 𝑑 𝑤 , 𝑑 ℎ } denotes the predicted offsets used to transform the proposal 𝑃 to the estimated bounding box ˆ 𝐺 . T =
+
+{𝑡 𝑥 , 𝑡 𝑦 , 𝑡 𝑤 , 𝑡 ℎ } represents the targets offsets corresponding to the ground truth box 𝐺 and anchor 𝑃 . In the following discussion, we denote D and T by x and xgt for simplicity. Different from the traditional deterministic coordinate regression methods [2, 34, 54] DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil IoU:0.77 𝜎 𝑚 :0.95   
+
+> IoU:0.85 𝜎 𝑚 :0.77
+> IoU:0.93 𝜎 𝑚 :0.20
+
+w-cone    
+
+> IoU:0.77 𝜎 𝑚 :0.70
+> IoU:0.96 𝜎 𝑚 :0.20
+> IoU:0.65 𝜎 𝑚 :0.95
+
+t-camera t-light       
+
+> IoU:0.51 𝜎 𝑚 :0.99
+> IoU:0.95 𝜎 𝑚 :0.17
+> IoU:0.80 𝜎 𝑚 :0.58
+> IoU:0.81 𝜎 𝑚 :0.96
+> IoU:0.96 𝜎 𝑚 :0.38
+> IoU:0.71 𝜎 𝑚 :0.63
+
+bicycle 
+
+Figure 3: Visualization of different small objects under vary-ing 𝜎 𝑚 values. The green boxes indicate ground-truth annota-tions, and blue boxes denote predicted bounding boxes. From top to bottom, the value of 𝜎 𝑚 gradually increases. The full names of class abbreviations are as follows: t-light (traffic-light), t-camera (traffic-camera), w-cone (warning cone). 
+
+that minimize L1 loss between the predicted offsets x and the ground truth offset xgt , the proposed DyFrDet models them as a pair of Gaussian distribution and Dirac delta distribution, represented as: 
+
+P𝜽 (x) = N ( 𝝁 𝜽 , 𝝈 ), Qgt (x) = 𝛿 (x − xgt ), (10) where P𝜽 (x) denotes the predicted localization distribution, and 
+
+Qgt (x) represents the ground-truth distribution. Here 𝝁 is the mean of the Gaussian distribution, and 𝝈 is the predicted covariance that determines the quality of the localization. Then the label quality can be reflected by the maximum value of 𝝈 , which is denoted as 
+
+𝜎 𝑚 . As shown in Fig. 3, the object boundaries become increasingly blurred as 𝜎 𝑚 increases from top to bottom. During training, we minimize the Kullback–Leibler (KL) diver-gence between the predicted distribution P𝜽 (x) and the ground-truth distribution Qgt (x). The loss function is defined as: 
+
+LLDM = KL (Qgt (x) ∥ P𝜽 (x)) ∝ − Ex∼Qgt [log P𝜽 (x)] ∝ (xgt − 𝝁 )( xgt − 𝝁 )⊤
+
+(𝝈 ⊤𝝈 ) + log (𝝈 ⊤𝝈 ),
+
+(11) To mitigate the negative impact of these samples with large label ambiguities, we design a weighted function as follows: 
+
+𝜔 (𝜎 𝑚 ) =
+
+
+
+1 if 𝜎 𝑚 ≤ 𝜌 𝜀 + ( 1 − 𝜀 )
+
+"
+
+1 −
+
+ 𝜎 𝑚 − 𝜌 
+
+1 − 𝜌 
+
+2 #
+
+if 𝜌 < 𝜎 𝑚 < 1, (12) where 𝜀 and 𝜌 are hyperparameters to control the penalty range. When 𝜎 𝑚 ≤ 𝜌 , 𝜔 (𝜎 𝑚 ) remains 1, while when 𝜎 𝑚 → 1, 𝜔 (𝜎 𝑚 )
+
+becomes closer to 𝜀 . By reweighting the loss term, we are able to reduce the detrimental effects of label ambiguity in training. Finally, the overall loss function is defined as: 
+
+L = 𝛾 LIoU + L CLS + 𝜔 (𝜎 𝑚 ) ∗ L LDM , (13) where LIoU denotes the IoU loss. LCLS is the cross-entropy classifi-cation loss for candidate proposals. The coefficient 𝛾 is a hyperpa-rameter that balances the loss contribution. 
+
+## 4 Experiment 
+
+In this section, we first provide the implementation details of our method and comparisons with other state-of-the-art detectors on two popular benchmarks: AI-TOD [42] and SODA [8]. SODA in-cludes two subsets, SODA-D and SODA-A . Next, we conduct abla-tion studies to evaluate the effectiveness of our approach. Finally, we present qualitative visualizations to analyze the impact on fea-ture representations. 
+
+Implementation Details All experiments are conducted on a single NVIDIA RTX 3090 GPU. For AI-TOD, the patch size is fixed to 800 ×800, while for SODA-D and SODA-A, the patches are resized to 1200 × 1200. The hyperparameters 𝛼 𝑙 and 𝛼 ℎ are set to 0.05 and 0.95. The suppression rate 𝛽 is set to 0.5. The weight function parameters 
+
+𝜀 and 𝜌 are set to 0.5, 0.8, respectively. The loss weights 𝛾 are set to 0.9. The model is trained for 36 epochs on AI-TOD and for 12 epochs on SODA-D and SODA-A. To ensure that the suppressed frequency components correspond to meaningful distractors, the Dynamic Frequency Suppression Strategy is activated from the 24th epoch on AI-TOD and the 8th epoch on both SODA-D and SODA-A. 
+
+## 4.1 Comparison with state-of-the-art 
+
+AI-TOD. The AI-TOD dataset contains 700,621 instances in 8 cate-gories in 28,036 aerial images. Compared to existing object detection datasets in aerial images, the mean size of objects in AI-TOD is about 12.8 pixels, which is much smaller than others. We report the results of our proposed DyFrDet on AI-TOD test set. As shown in Table 1, DyFrDet achieves the best performance across all metrics. Compared with HS-FPN [36], it improves (AP, AP 50 , AP 75 , AP vt , AP t, AP s, AP m) by (3.6%, 1.5%, 4.6%, 3.1%, 3.8%, 3.4%, 2.7%), respectively. 
+
+SODA-A. The SODA-A dataset consists of 2,513 aerial images with 872,069 oriented bounding box annotations, focusing on small ob-ject detection. SODA-A has an average resolution of 4761 × 2777 pixels and contains approximately 347 instances per image, pre-senting a highly dense object distribution that challenges existing detection models in clustered scenes. Table 4 summarizes the performance on SODA-A benchmark. DyFrDet achieves state-of-the-art results with (37.8%, 73.4%, 34.3%, 31.9%, 49.5%, 41.0%) on (AP, AP 50 , AP 75 , AP rs , AP gs , AP N), surpass-ing state-of-the-art GauCho [29] by (4.6%, 3.3%, 9.3%, 3.0%, 4.1%, 4.6%, 4.6%) across all metrics. 
+
+SODA-D. The SODA-D dataset contains 24,828 high-resolution images with 278,433 annotated instances spanning 9 categories: 
+
+people , rider , bicycle , motor , vehicle , traffic sign , traffic light , traf-fic camera , and warning cone . It exhibits rich diversity in terms of locations, weather conditions, period, camera viewpoints, and traffic scenarios. With an average image resolution of 3407 × 2470, MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, & Siyuan Yao. 
+
+Table 1: Comparison with state-of-the-art detection methods on AI-TOD test set. All metrics follow the COCO-style evaluation protocol, including overall AP and performance across different scene types. ∗ indicates methods using ResNet-50 as the backbone. Bold numbers indicate the best results. 
+
+Method Source Backbone AP AP 50 AP 75 AP vt AP t AP s AP m
+
+Query-based Detectors 
+
+DAB-DETR[25] ICLR2022 R50 4.9 16.0 1.7 1.7 3.6 7.0 18.0 DAB-Deformable-DETR[25] ICLR2022 R50 16.5 42.6 9.9 7.9 15.2 23.8 31.9 DINO-Defomable-DETR[61] ICLR2023 R50 23.2 56.6 15.4 9.9 23.1 29.3 37.6 DINO-5scale w/SET [37] CVPR2025 R50 26.6 57.1 20.8 13.2 27.1 31.5 –
+
+Multi-Stage Detectors 
+
+Faster R-CNN [34] TPAMI2017 R50+FPN 11.1 26.3 7.6 0.0 7.2 23.3 33.6 Cascade R-CNN [2] CVPR2018 R50+FPN 13.8 30.8 10.5 0.0 10.5 25.5 36.6 DetectorRS[32] CVPR2021 R50+FPN 14.8 32.8 11.4 0.0 10.8 28.3 38.0 QueryDet[49] CVPR2022 R50+FPN 12.2 29.3 7.9 2.4 10.5 18.5 26.3 CFINet[58] ICCV2023 R50+FPN 24.7 53.9 18.6 11.7 26.4 28.1 32.2 KLDet[63] TGRS2024 R50+FPN 19.6 46.4 13.7 8.4 20.6 22.7 26.4 RFLA[46] ECCV2022 R50 w/SAC+FPN 24.8 55.2 18.5 9.3 24.8 30.3 38.2 DNTR[24] TGRS2024 R50 w/SAC+FPN 26.2 56.7 20.2 12.8 26.4 31.0 37.0 SimD[35] IROS2024 R50 w/SAC+FPN 26.6 55.9 21.2 13.4 27.5 30.9 37.8 DetectorRS w/FIDP [1] CVPR2025 R50 w/SAC+FPN 24.3 54.4 18.3 8.5 24.9 29.8 –HS-FPN[36] AAAI2025 R50 w/SAC+FPN 25.1 55.7 19.1 12.1 25.3 29.9 36.9 
+
+DyFrDet ∗ – R50+DyFrFPN 26.0 55.3 19.6 13.6 27.3 29.0 34.5 
+
+DyFrDet – R50 w/SAC+DyFrFPN 28.7 57.2 23.7 15.2 29.1 33.3 39.6 Table 2: Ablation study on AI-TOD test set. When DyFrFPN is disabled, it is replaced with a standard FPN. When LDM is removed, an FFN with L1 loss is used instead. 
+
+DyFrFPN LDM AP AP vt AP t AP s AP m
+
+× × 23.6 11.9 24.8 27.0 30.7 
+
+✓ × 24.9 12.3 26.2 28.7 33.3 
+
+× ✓ 24.4 12.0 25.6 27.3 32.5 
+
+✓ ✓ 26.0 13.6 27.3 29.0 34.5 
+
+the dataset is particularly well-suited for detecting small and tiny objects in complex environments. We report the performance of DyFrDet on SODA-D test set, as summarized in Table 7. Our DyFrDet achieves state-of-the-art per-formance across all metrics, with an average AP of 31.3%. Compared with HS-FPN[36], DyFrDet yields consistent improvements of (1.7%, 5.3%, 0.1%, 1.5%, 1.4%, 2.0%, 0.9%) in terms of (AP, AP 50 , AP 75 , AP es ,AP rs , AP gs , AP N). 
+
+## 4.2 Ablation Study 
+
+Ablation of Different Variations. To evaluate the effectiveness of each component, we selectively ablate DyFrFPN and LDM from DyFrDet. When DyFrFPN is removed, it is replaced with a standard FPN. Similarly, when LDM is removed, it is replaced with an FFN head trained using the L1 loss. 
+
+Table 3: Comparison of the static and dynamic frequency sup-pression strategies. “Static” denotes suppressing frequency components outside the fixed thresholds [ 𝛼 1, 𝛼 2] during the FPN stage. “Dynamic” refers to the proposed DyFrFPN, which dynamically predicts 𝛼 1 and 𝛼 2 to suppress noise. All experi-ments are conducted on AI-TOD test set. 
+
+Strategy 𝛼 1 𝛼 2 AP AP vt AP t AP s AP m
+
+None – – 24.4 12.0 25.6 27.3 32.5 Static 0.05 1.00 24.9 12.1 26.4 28.3 32.1 Static 0.05 0.95 25.3 13.1 26.7 28.8 32.8 Static 0.10 0.90 24.8 12.3 26.1 27.7 33.3 Static 0.15 0.85 24.7 11.8 26.0 28.0 32.5 Static 0.20 0.80 25.1 11.9 26.6 28.5 32.4 Static 0.25 0.75 24.7 12.8 25.8 28.8 32.6 Static 0.30 0.70 25.0 11.5 26.2 28.3 32.3 Dynamic – – 26.0 13.6 27.3 29.0 34.5 
+
+As shown in Table 2, the baseline detector without DyFrFPN and LDM achieves (23.6%, 11.9%, 24.8%, 27.0%, 30.7%) in terms of (AP, AP vt , AP t, AP s, AP m), respectively. When DyFrFPN is introduced, the performance improves to (24.9%, 12.3%, 26.2%, 28.7%, 33.3%), demonstrating its ability to effectively suppress low-frequency re-dundancies and high-frequency noises. Additionally, incorporating LDM into the baseline also leads to performance gains, achieving DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil 
+
+Table 4: Comparison with oriented object detection methods on SODA-A test set. Metrics follow COCO-style evaluation. ∗
+
+indicates methods using ResNet-50 as the backbone. Bold numbers indicate the best results. 
+
+Method Source Backbone AP AP 50 AP 75 AP es AP rs AP gs AP 𝑁 
+
+One-stage Detectors 
+
+Rotated RetinaNet[22] ICCV2017 R50 + FPN 26.8 63.4 16.2 9.1 22.0 35.4 28.2 Oriented RepPoints[19] CVPR2022 R50 + FPN 26.3 58.8 19.0 9.4 22.6 32.4 28.5 DHRec[30] TPAMI2022 R50 + FPN 30.1 68.8 19.8 10.6 24.6 40.3 34.6 CFPT[12] TGRS2025 R50+CFPT 25.9 63.3 14.3 9.0 21.2 34.6 27.9 LEGNet[27] ICCVW2025 LWGNet + FPN 29.6 58.7 26.4 10.4 26.0 39.6 32.0 
+
+Two-stage Detectors 
+
+Rotated Faster R-CNN[34] TPAMI2017 R50 + FPN 32.5 70.1 24.3 11.9 27.3 42.2 34.4 Gliding Vertex[48] TPAMI2020 R50 + FPN 31.7 70.8 22.6 11.7 27.0 41.1 33.8 Oriented R-CNN[44] ICCV2021 R50 + FPN 34.4 70.7 28.6 12.5 28.6 44.5 36.7 DODet[7] TGRS2022 R50 + FPN 31.6 68.1 23.4 11.3 26.3 41.0 33.5 CFINet[58] ICCV2023 R50 + FPN 34.4 73.1 26.1 13.5 29.3 44.0 35.9 DecoupleNet[28] TGRS2024 DecoupleNet + FPN 36.6 71.3 33.3 12.2 31.0 47.7 40.2 STD[56] AAAI2024 R50+FPN 30.3 67.4 21.2 12.4 26.6 36.7 30.7 SR-TOD[3] ECCV2024 R50+FPN 32.7 70.5 24.1 12.2 27.5 42.6 34.5 GauCho[29] CVPR2025 R50 + FPN 33.2 70.1 25.0 9.9 27.8 44.9 36.4 Unc-SOD[57] TIP2026 R50+FPN 34.8 73.6 26.4 13.8 29.7 44.7 36.5 
+
+DyFrDet ∗ – R50 + DyFrFPN 36.0 73.3 30.1 13.8 30.6 46.0 38.0 
+
+DyFrDet – DecoupleNet + DyFrFPN 37.8 73.4 34.3 12.9 31.9 49.5 41.0 Table 5: Ablation study of different compositional inputs of DBP. “FF” denotes the method only using the frequency feature, “SF” only uses the spatial feature, and “FF+SF” uses both. Results are reported in terms of Average Precision (AP) on various object sizes. 
+
+Strategy AP AP vt AP t AP s AP m
+
+FF 24.8 11.9 26.2 28.2 32.7 SF 24.6 12.2 26.0 28.2 32.7 
+
+FF+SF 26.0 13.6 27.3 29.0 34.5 Table 6: Ablation study on different suppression rates 𝛽 in Eq. 8. 𝛽 = 0.0 indicates no suppression, while 𝛽 = 1.0 denotes direct filtering. 
+
+𝛽 AP AP vt AP t AP s AP m
+
+0.00 24.4 12.0 25.6 27.3 32.5 0.25 25.0 12.5 26.1 29.0 32.9 0.50 26.0 13.6 27.3 29.0 34.5 
+
+0.75 24.6 11.9 25.9 27.5 32.3 1.00 25.3 12.7 26.5 28.6 33.2 (24.4%, 12.0%, 25.6%, 27.3%, 32.5%) for (AP, AP vt , AP t, AP s, AP m), re-spectively. Furthermore, combining both DyFrFPN and LDM yields the best performance, with improvements of (2.4%, 1.7%, 2.5%, 2.0%, 3.8%) over the baseline. These results validate the effectiveness of the proposed DyFrFPN and LDM modules. 
+
+Ablation of Different Suppression Strategies. To verify the ef-fectiveness of the proposed Dynamic Frequency Suppression Strat-egy, we analyze the performance gains under different frequency suppression strategies. In our experiments, “None” denotes that no frequency components are suppressed. “Static” with various settings of 𝛼 1 and 𝛼 2 refers to the strategy that statically suppresses frequency components outside the range [𝛼 1, 𝛼 2].As shown in Table 3, when following the setting of HS-FPN [36], where only low-frequency components are suppressed by setting 
+
+𝛼 1 = 0.05 and 𝛼 2 = 1.00, the performance improves (0.5%, 0.1%, 0.8%, 1.0%) in terms of (AP, AP vt , AP t, AP s), respectively. When high-frequency suppression is also introduced (e.g., setting 𝛼 1 = 0.05 and 
+
+𝛼 2 = 0.95), the performance further improves (0.4%, 1.0%, 0.3%, 0.5%, 0.7%) over the previous setting in terms of (AP, AP vt , AP t, AP s, AP m). These experiments validate the importance of suppressing high-frequency noise. Moreover, the dynamic strategy yields the best overall performance, reaching (26.0%, 13.6%, 27.3%, 29.0%, 34.5%) on (AP, AP vt , AP t, AP s, AP m), which demonstrates the effectiveness of our proposed suppression strategy. 
+
+Band Predictor Settings. We perform an ablation study to analyze the impact of different input feature compositions for the Dynamic Band Predictor (DBP), as reported in Table 5. Specifically, we in-vestigate three variants that utilize frequency features (FF) alone, spatial features (SF) alone, and the combination of both (FF+SF). MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, & Siyuan Yao. 
+
+Table 7: Comparison with state-of-the-art detection approaches on SODA-D test set. All metrics follow COCO-style evaluation, including overall AP and performance across different scene types. Bold numbers indicate the best results. 
+
+Method Source Backbone AP AP 50 AP 75 AP es AP rs AP gs AP 𝑁 
+
+One-stage Detectors 
+
+RetinaNet[22] ICCV2017 R50+FPN 28.2 57.6 23.7 11.9 25.2 34.1 44.2 FCOS[40] ICCV2019 R50+FPN 23.9 49.5 19.9 6.9 19.4 30.9 40.9 ATSS[62] CVPR2020 R50+FPN 26.8 55.6 22.1 11.7 23.9 32.2 41.3 DyHead[10] CVPR2021 R50+FPN 27.5 56.1 23.2 12.4 24.4 33.0 41.9 KLDet[63] TGRS2024 R50+FPN 25.9 53.8 21.4 10.7 22.2 31.9 41.6 CFPT[12] TGRS2025 R50+CFPT 27.5 54.5 23.8 7.1 22.4 36.2 45.9 
+
+Two-stage Detectors 
+
+Faster R-CNN[34] TPAMI2017 R50+FPN 28.9 59.7 24.2 13.9 25.6 34.3 43.2 Cascade RPN[41] NIPS2019 R50+FPN 29.1 56.5 25.9 12.5 25.5 35.4 44.7 KL[15] CVPR2019 R50+FPN 29.4 59.2 24.7 14.0 26.3 36.0 44.2 RFLA[46] ECCV2022 R50+FPN 29.7 60.2 25.2 13.2 26.9 35.4 44.6 CFINet[58] ICCV2023 R50+FPN 30.7 60.8 26.7 14.7 27.8 36.4 44.6 DNTR[24] TGRS2024 R50 w/SAC+RFP 29.6 57.8 26.5 13.1 26.7 35.5 43.4 SR-TOD[3] ECCV2024 R50+FPN 29.3 60.0 24.5 13.8 26.0 35.6 43.4 HS-FPN[36] AAAI2025 R50 + FPN 29.6 56.8 26.7 13.6 26.4 35.3 45.3 
+
+DyFrDet ∗ – R50+DyFrFPN 31.3 62.1 26.8 15.1 27.8 37.3 46.2 
+
+Figure 4: Visualization of features map at the P2 level on SODA-D test set. The first row shows results from the baseline, while the second row presents results from DyFrDet. The green, blue, and red boxes denote true positives (TP), false positives (FP), and false negatives (FN), respectively. Please zoom in for details. 
+
+When using either individual branch, FF and SF achieve compa-rable performance, obtaining overall AP scores of 24.8 and 24.6, respectively, which indicates that both frequency-domain repre-sentations and spatial cues provide valuable information for band prediction. By jointly incorporating FF and SF, DBP achieves consis-tent improvements across all object scales and obtains the highest overall AP of 26.0, validating the necessity of each branch and the complementary roles of frequency and spatial information. 
+
+Suppression Rate. We conduct an ablation study on different sup-pression rates, as shown in Table 6. When 𝛽 = 0.00, no suppression is applied. When 𝛽 = 1.00, it corresponds to full filtering. The best performance is achieved when 𝛽 = 0.50, indicating that moderate suppression yields an optimal trade-off between information re-tention and noise reduction. No suppression allows distractors to interfere with the target, while full suppression may mistakenly remove useful target features. 
+
+## 4.3 Qualitative Visualization 
+
+To qualitatively assess the effectiveness of our method, we visu-alize the feature heatmaps at the P2 level on SODA-D dataset, as shown in Fig. 4. The heatmaps produced by CFINet exhibit cluttered and dispersed activations, which often lead to false positives and missed detections. In contrast, DyFrDet generates more concen-trated activations on foreground regions, with suppressed responses in the background, resulting in more reliable detection performance, demonstrating its stronger ability to distinguish small objects from background clutter. 
+
+## 5 Conclusion 
+
+In this paper, we propose DyFrDet , a two-stage detector com-posed of a Dynamic Frequency-aware Feature Pyramid Network (DyFrFPN) and a Label Disambiguation Module (LDM). The for-mer leverages Dynamic Band Predictor (DBP) to adaptively control the frequency representation, allowing the detector to suppress both low-frequency redundancies and high-frequency noises. The latter achieves accurate bounding box estimation by paying more attention to the high confidence samples and restraining the am-biguous samples. Experimental results demonstrate that our method achieves state-of-the-art performance on several widely used small object detection benchmarks. DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil 
+
+## 6 Acknowledgement 
+
+This work was supported by Project No. 25KYHX131B: Construc-tion of Physical Neural Networks for Cognitive Countermeasures. 
+
+## References 
+
+[1] Jinghao Bian, Mingtao Feng, Weisheng Dong, Fangfang Wu, Jianqiao Luo, Yaonan Wang, and Guangming Shi. 2025. Feature Information Driven Position Gauss-ian Distribution Estimation for Tiny Object Detection. In IEEE Conference on Computer Vision and Pattern Recognition . 30376–30386. [2] Zhaowei Cai and Nuno Vasconcelos. 2018. Cascade r-cnn: Delving into high quality object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 6154–6162. [3] Bing Cao, Haiyu Yao, Pengfei Zhu, and Qinghua Hu. 2024. Visible and clear: Finding tiny objects in difference map. In European Conference on Computer Vision . 1–18. [4] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexan-der Kirillov, and Sergey Zagoruyko. 2020. End-to-end object detection with transformers. In European Conference on Computer Vision . 213–229. [5] Changrui Chen, Yu Zhang, Qingxuan Lv, Shuo Wei, Xiaorui Wang, Xin Sun, and Junyu Dong. 2019. Rrnet: A hybrid detector for object detection in drone-captured images. In Proceedings of the IEEE/CVF international conference on computer vision workshops . 0–0. [6] Linwei Chen, Lin Gu, and Ying Fu. 2025. Frequency-dynamic attention modula-tion for dense prediction. In IEEE International Conference on Computer Vision .22620–22632. [7] Gong Cheng, Yanqing Yao, Shengyang Li, Ke Li, Xingxing Xie, Jiabao Wang, Xi-wen Yao, and Junwei Han. 2022. Dual-aligned oriented detector. IEEE Transactions on Geoscience and Remote Sensing 60 (2022), 1–11. [8] Gong Cheng, Xiang Yuan, Xiwen Yao, Kebing Yan, Qinghua Zeng, Xingxing Xie, and Junwei Han. 2023. Towards large-scale small object detection: Survey and benchmarks. IEEE Transactions on Pattern Analysis and Machine Intelligence 45, 11 (2023), 13467–13488. [9] Lu Chi, Borui Jiang, and Yadong Mu. 2020. Fast fourier convolution. Advances in Neural Information Processing Systems 33 (2020), 4479–4488. [10] Xiyang Dai, Yinpeng Chen, Bin Xiao, Dongdong Chen, Mengchen Liu, Lu Yuan, and Lei Zhang. 2021. Dynamic head: Unifying object detection heads with attentions. In IEEE Conference on Computer Vision and Pattern Recognition . 7373– 7382. [11] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2009. Imagenet: A large-scale hierarchical image database. In IEEE Conference on Computer Vision and Pattern Recognition . 248–255. [12] Zewen Du, Zhenjiang Hu, Guiyu Zhao, Ying Jin, and Hongbin Ma. 2025. Cross-Layer Feature Pyramid Transformer for Small Object Detection in Aerial Images. 
+
+IEEE Transactions on Geoscience and Remote Sensing 63 (2025), 1–14. [13] Golnaz Ghiasi, Tsung-Yi Lin, and Quoc V Le. 2019. Nas-fpn: Learning scalable feature pyramid architecture for object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 7036–7045. [14] Ross Girshick, Jeff Donahue, Trevor Darrell, and Jitendra Malik. 2014. Rich feature hierarchies for accurate object detection and semantic segmentation. In 
+
+IEEE Conference on Computer Vision and Pattern Recognition . 580–587. [15] Yihui He, Chenchen Zhu, Jianren Wang, Marios Savvides, and Xiangyu Zhang. 2019. Bounding box regression with uncertainty for accurate object detection. In 
+
+IEEE Conference on Computer Vision and Pattern Recognition . 2888–2897. [16] Shihua Huang, Zhichao Lu, Xiaodong Cun, Yongjun Yu, Xiao Zhou, and Xi Shen. 2025. DEIM: DETR with Improved Matching for Fast Convergence. 15162-15171 pages. [17] Jung Uk Kim, Sungjune Park, and Yong Man Ro. 2021. Robust small-scale pedes-trian detection with cued recall via memory learning. In IEEE Conference on Computer Vision and Pattern Recognition . 3050–3059. [18] Mate Kisantal, Zbigniew Wojna, Jakub Murawski, Jacek Naruniec, and Kyunghyun Cho. 2019. Augmentation for small object detection. arXiv preprint arXiv:1902.07296 (2019). [19] Wentong Li, Yijie Chen, Kaixuan Hu, and Jianke Zhu. 2022. Oriented reppoints for aerial object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 1829–1838. [20] Yanghao Li, Yuntao Chen, Naiyan Wang, and Zhaoxiang Zhang. 2019. Scale-aware trident networks for object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 6054–6063. [21] Tsung-Yi Lin, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan, and Serge Belongie. 2017. Feature pyramid networks for object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 2117–2125. [22] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. 2017. Focal loss for dense object detection. In IEEE International Conference on Computer Vision . 2980–2988. [23] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and C Lawrence Zitnick. 2014. Microsoft coco: Common objects in context. In European Conference on Computer Vision . 740–755. [24] Hou-I Liu, Yu-Wen Tseng, Kai-Cheng Chang, Pin-Jyun Wang, Hong-Han Shuai, and Wen-Huang Cheng. 2024. A DeNoising FPN With Transformer R-CNN for Tiny Object Detection. IEEE Transactions on Geoscience and Remote Sensing 62 (2024), 1–15. [25] Shilong Liu, Feng Li, Hao Zhang, Xiao Yang, Xianbiao Qi, Hang Su, Jun Zhu, and Lei Zhang. 2022. DAB-DETR: Dynamic Anchor Boxes are Better Queries for DETR. In International Conference on Learning Representations .[26] Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, and Alexander C Berg. 2016. Ssd: Single shot multibox detector. In European Conference on Computer Vision . 21–37. [27] Wei Lu, Si-Bao Chen, Hui-Dong Li, Qing-Ling Shu, Chris HQ Ding, Jin Tang, and Bin Luo. 2025. Legnet: Lightweight edge-Gaussian driven network for low-quality remote sensing image object detection. arXiv preprint arXiv:2503.14012 
+
+(2025). [28] Wei Lu, Si-Bao Chen, Qing-Ling Shu, Jin Tang, and Bin Luo. 2024. DecoupleNet: A Lightweight Backbone Network with Efficient Feature Decoupling for Remote Sensing Visual Tasks. IEEE Transactions on Geoscience and Remote Sensing 62 (2024), 1–13. [29] José Henrique Lima Marques, Jeffri Murrugarra-Llerena, and Claudio R. Jung. 2025. GauCho: Gaussian Distributions with Cholesky Decomposition for Oriented Object Detection. In IEEE Conference on Computer Vision and Pattern Recognition .3593–3602. [30] Guangtao Nie and Hua Huang. 2022. Multi-oriented object detection in aerial images with double horizontal rectangles. IEEE Transactions on Pattern Analysis and Machine Intelligence 45, 4 (2022), 4932–4944. [31] Badri N Patro, Vinay P Namboodiri, and Vijay S Agneeswaran. 2025. Spectformer: Frequency and attention is what you need in a vision transformer. In Proceedings of the IEEE/CVF winter conference on applications of computer vision . 9543–9554. [32] Siyuan Qiao, Liang-Chieh Chen, and Alan Yuille. 2021. Detectors: Detecting objects with recursive feature pyramid and switchable atrous convolution. In 
+
+IEEE Conference on Computer Vision and Pattern Recognition . 10213–10224. [33] Zequn Qin, Pengyi Zhang, Fei Wu, and Xi Li. 2021. Fcanet: Frequency channel attention networks. In IEEE International Conference on Computer Vision . 783–792. [34] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. 2016. Faster R-CNN: Towards real-time object detection with region proposal networks. IEEE Trans-actions on Pattern Analysis and Machine Intelligence 39, 6 (2016), 1137–1149. [35] Shuohao Shi, Qiang Fang, Xin Xu, and Tong Zhao. 2024. Similarity distance-based label assignment for tiny object detection. In IEEE/RSJ International Conference on Intelligent Robots and Systems . 13711–13718. [36] Zican Shi, Jing Hu, Jie Ren, Hengkang Ye, Xuyang Yuan, Yan Ouyang, Jia He, Bo Ji, and Junyu Guo. 2025. HS-FPN: High frequency and spatial perception FPN for tiny object detection. In AAAI Conference on Artificial Intelligence . 6896–6904. [37] Huixin Sun, Runqi Wang, Yanjing Li, Linlin Yang, Shaohui Lin, Xianbin Cao, and Baochang Zhang. 2025. SET: Spectral Enhancement for Tiny Object Detection. In IEEE Conference on Computer Vision and Pattern Recognition . 4713–4723. [38] Yanguang Sun, Chunyan Xu, Jian Yang, Hanyu Xuan, and Lei Luo. 2024. Frequency-spatial entanglement learning for camouflaged object detection. In 
+
+European Conference on Computer Vision . 343–360. [39] Mingxing Tan, Ruoming Pang, and Quoc V Le. 2020. Efficientdet: Scalable and efficient object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 10781–10790. [40] Zhi Tian, Chunhua Shen, Hao Chen, and Tong He. 2019. Fcos: Fully convolutional one-stage object detection. In IEEE International Conference on Computer Vision .9627–9636. [41] Thang Vu, Hyunjun Jang, Trung X Pham, and Chang Yoo. 2019. Cascade RPN: Delving into high-quality region proposal network with adaptive convolution. 
+
+Advances in Neural Information Processing Systems 32 (2019). [42] Jinwang Wang, Wen Yang, Haowen Guo, Ruixiang Zhang, and Gui-Song Xia. 2021. Tiny Object Detection in Aerial Images. In IEEE International Conference on Pattern Recognition . 3791–3798. [43] Jialian Wu, Chunluan Zhou, Qian Zhang, Ming Yang, and Junsong Yuan. 2020. Self-mimic learning for small-scale pedestrian detection. In Proceedings of the ACM International Conference on Multimedia . 2012–2020. [44] Xingxing Xie, Gong Cheng, Jiabao Wang, Xiwen Yao, and Junwei Han. 2021. Ori-ented R-CNN for object detection. In IEEE International Conference on Computer Vision . 3520–3529. [45] Chang Xu, Jinwang Wang, Wen Yang, Huai Yu, Lei Yu, and Gui-Song Xia. 2022. Detecting tiny objects in aerial images: A normalized Wasserstein distance and a new benchmark. ISPRS Journal of Photogrammetry and Remote Sensing 190 (2022), 79–93. [46] Chang Xu, Jinwang Wang, Wen Yang, Huai Yu, Lei Yu, and Gui-Song Xia. 2022. RFLA: Gaussian receptive field based label assignment for tiny object detection. In European Conference on Computer Vision . 526–543. [47] Chang Xu, Jinwang Wang, Wen Yang, and Lei Yu. 2021. Dot distance for tiny object detection in aerial images. In IEEE Conference on Computer Vision and MM ’26, November 10–14, 2026, Rio de Janeiro, Brazil Zihan Yang, Yang Guo, Hongxing Zhang, Dan Lu, & Siyuan Yao. 
+
+Pattern Recognition . 1192–1201. [48] Yongchao Xu, Mingtao Fu, Qimeng Wang, Yukang Wang, Kai Chen, Gui-Song Xia, and Xiang Bai. 2020. Gliding vertex on the horizontal bounding box for multi-oriented object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence 43, 4 (2020), 1452–1459. [49] Chenhongyi Yang, Zehao Huang, and Naiyan Wang. 2022. QueryDet: Cascaded sparse query for accelerating high-resolution small object detection. In IEEE Conference on Computer Vision and Pattern Recognition . 13668–13677. [50] Siyuan Yao, Yang Guo, Yanyang Yan, Wenqi Ren, and Xiaochun Cao. 2025. Unc-Track: Reliable Visual Object Tracking With Uncertainty-Aware Prototype Mem-ory Network. IEEE Transactions on Image Processing 34 (2025), 3533–3546. [51] Siyuan Yao, Xiaoguang Han, Hua Zhang, Xiao Wang, and Xiaochun Cao. 2021. Learning Deep Lucas-Kanade Siamese Network for Visual Tracking. IEEE Trans-actions on Image Processing 30 (2021), 4814–4827. [52] Siyuan Yao, Dongxiu Liu, Taotao Li, Shengjie Li, Wenqi Ren, and Xiaochun Cao. 2026. UAGLNet: Uncertainty-Aggregated Global–Local Fusion Network With Cooperative CNN–Transformer for Building Extraction. IEEE Transactions on Geoscience and Remote Sensing 64 (2026), 1–14. [53] Siyuan Yao, Hao Sun, Tian-Zhu Xiang, Xiao Wang, and Xiaochun Cao. 2024. Hierarchical graph interaction transformer with dynamic token clustering for camouflaged object detection. IEEE Transactions on Image Processing 33 (2024), 5936–5948. [54] Siyuan Yao, Rui Zhu, Ziqi Wang, Wenqi Ren, Yanyang Yan, and Xiaochun Cao. 2025. UMDATrack: Unified multi-domain adaptive tracking under adverse weather conditions. In IEEE International Conference on Computer Vision . 6466– 6475. [55] Botao Ye, Hong Chang, Bingpeng Ma, Shiguang Shan, and Xilin Chen. 2022. Joint feature learning and relation modeling for tracking: A one-stream framework. In 
+
+European Conference on Computer Vision . 341–357. [56] Hongtian Yu, Yunjie Tian, Qixiang Ye, and Yunfan Liu. 2024. Spatial transform decoupling for oriented object detection. In AAAI Conference on Artificial Intelli-gence , Vol. 38. 6782–6790. [57] Xiang Yuan, Gong Cheng, Jiacheng Cheng, Ruixiang Yao, and Junwei Han. 2026. Unc-SOD: An Uncertainty Learning Framework for Small Object Detection. IEEE Transactions on Image Processing 35 (2026), 1127–1142. [58] Xiang Yuan, Gong Cheng, Kebing Yan, Qinghua Zeng, and Junwei Han. 2023. Small Object Detection via Coarse-to-fine Proposal Generation and Imitation Learning. In IEEE International Conference on Computer Vision . 6317–6327. [59] Chang-Bin Zhang, Yujie Zhong, and Kai Han. 2025. Mr. DETR: Instructive Multi-Route Training for Detection Transformers. In IEEE Conference on Computer Vision and Pattern Recognition . 9933–9943. [60] Dawei Zhang, Yanwei Fu, and Zhonglong Zheng. 2022. UAST: Uncertainty-aware siamese tracking. In International Conference on Machine Learning . 26161–26175. [61] Hao Zhang, Feng Li, Shilong Liu, Lei Zhang, Hang Su, Jun Zhu, Lionel M. Ni, and Heung-Yeung Shum. 2023. DINO: DETR with Improved DeNoising Anchor Boxes for End-to-End Object Detection. In International Conference on Learning Representations .[62] Shifeng Zhang, Cheng Chi, Yongqiang Yao, Zhen Lei, and Stan Z Li. 2020. Bridging the gap between anchor-based and anchor-free detection via adaptive training sample selection. In IEEE Conference on Computer Vision and Pattern Recognition .9759–9768. [63] Zhuangzhuang Zhou and Yingying Zhu. 2024. KLDet: Detecting Tiny Objects in Remote Sensing Images via Kullback–Leibler Divergence. IEEE Transactions on Geoscience and Remote Sensing 62 (2024), 1–16. [64] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. 2021. Deformable {DETR}: Deformable Transformers for End-to-End Object Detection. In International Conference on Learning Representations .
