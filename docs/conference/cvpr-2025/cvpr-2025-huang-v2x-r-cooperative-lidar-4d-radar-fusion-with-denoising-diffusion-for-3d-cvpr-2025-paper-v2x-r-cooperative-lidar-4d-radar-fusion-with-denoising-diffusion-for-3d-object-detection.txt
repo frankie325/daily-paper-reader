@@ -1,0 +1,515 @@
+Title: V2X-R: Cooperative LiDAR-4D Radar Fusion with Denoising Diffusion for 3D Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_V2X-R_Cooperative_LiDAR-4D_Radar_Fusion_with_Denoising_Diffusion_for_3D_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 13:38:44 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# V2X-R: Cooperative LiDAR-4D Radar Fusion with Denoising Diffusion for 3D Object Detection 
+
+## Xun Huang 1,2,3 Jinlong Wang 1,2 Qiming Xia 1,2 Siheng Chen 4
+
+## Bisheng Yang 5 Xin Li 6 Cheng Wang 1,2 Chenglu Wen 1,2* 1Fujian Key Laboratory of Sensing and Computing for Smart Cities, Xiamen University 
+
+> 2
+
+## Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University 
+
+> 3
+
+## Zhongguancun Academy 4Shanghai Jiao Tong University 
+
+> 5
+
+## Wuhan University 6Texas A&M University 
+
+## Abstract 
+
+Current Vehicle-to-Everything (V2X) systems have signif-icantly enhanced 3D object detection using LiDAR and camera data. However, they face performance degrada-tion in adverse weather. Weather-robust 4D radar, with Doppler velocity and additional geometric information, of-fers a promising solution to this challenge. To this end, we present V2X-R, the first simulated V2X dataset incor-porating LiDAR, camera, and 4D radar modalities. V2X-R contains 12,079 scenarios with 37,727 frames of Li-DAR and 4D radar point clouds, 150,908 images, and 170,859 annotated 3D vehicle bounding boxes. Subse-quently, we propose a novel cooperative LiDAR-4D radar fusion pipeline for 3D object detection and implement it with multiple fusion strategies. To achieve weather-robust detection, we additionally propose a Multi-modal Denois-ing Diffusion (MDD) module in our fusion pipeline. MDD utilizes weather-robust 4D radar feature as a condition to guide the diffusion model in denoising noisy LiDAR fea-tures. Experiments show that our LiDAR-4D radar fusion pipeline demonstrates superior performance in the V2X-R dataset. Over and above this, our MDD module further improved the foggy/snowy performance of the basic fusion model by up to 5.73%/6.70% and barely disrupting normal performance. The dataset and code will be publicly avail-able at: https://github.com/ylwhxht/V2X-R. 
+
+## 1. Introduction 
+
+Autonomous driving and other unmanned systems have gar-nered widespread attention in recent years. This has led to rapid advancements in 3D object detection [4, 27, 65].  
+
+> *Corresponding author,
+
+clwen@xmu.edu.cn 4D radar in Agent1 4D radar in Agent2 4D radar in Agent3 
+
+> Dense 4D Radar Point Cloud
+> Fewer spatial errors
+> Doppler informations
+> Geometric shapes
+> Weather robustness
+> Co 3D
+> 4D Radar in Multi-Agent View Instance
+
+Figure 1. The advantages of the dense 4D radar point cloud in multi-agent view. Including weather robustness, fewer spatial er-rors, Doppler information, and geometric shapes. 
+
+Outdoor environments, however, present complex and dy-namic challenges, including various occlusions and weather conditions [14, 46]. Such factors significantly impact the performance of 3D object detection. Consequently, some effort has been made to explore multi-agent cooperative perception, such as vehicle-to-vehicle (V2V), vehicle-to-infrastructure (V2I), and vehicle-to-everything (V2X) [54, 55, 58, 64]. Benefiting from the information shared between agents, in complex outdoor scenarios, cooperative 3D ob-ject detection has natural advantages, such as long detection distance and multi-view object observation. Current research in cooperative 3D object detection mainly focuses on two strategies: LiDAR-based single modality [12, 33, 54, 56, 61] and LiDAR-camera multi-modal fusion [13, 49, 55, 66, 68]. The latter strategy provides more fine-grained information and, therefore, im-proves the performance of single LiDAR-based methods to some extent. However, both LiDAR point clouds and cam-era images are weather-sensitive. They are all prone to be-come noisy in adverse weather [8, 9, 15]. Aside from LiDAR and camera, 4D radar has also been widely noticed [1, 10, 16, 40, 42, 43] because it can perform all-weather sensing and provide speed measurements [67]. Fusing 4D radar and LiDAR is expected to improve the per-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 27390 ception performance under adverse weather conditions. As shown in Fig. 1, cooperative 4D radar and LiDAR fusion perception have the following advantages: • Weather robustness. The millimeter-wave signals of 4D radar easily penetrates particles in adverse weather [7, 32, 52]. Fusing 4D radar and LiDAR will grant the model weather robust sensing capabilities. • Fewer spatial relationship errors. The error-prone oper-ations (view-transformation or depth-estimation) [1, 44, 45] are not involved in the process of 4D radar and LiDAR point cloud fusing. Thus, there are fewer corresponding spatial relationship errors in fusing 4D radar and LiDAR. • Additional Doppler information. The Doppler informa-tion provided by 4D radar is favorable for object detection [1, 16], significantly aiding in the detection of moving ob-jects. • Richer geometric shape information. The multi-agent view can significantly address the limitation of low res-olution in 4D radar. This empowers 4D radar’s capacity to complement LiDAR with more geometric shape infor-mation of objects. However, there is a lack of 4D radar data in the current cooperative perception dataset. Therefore, we present V2X-R, the first simulated cooperative 3D Object Detection V2X dataset that not only includes LiDAR, cameras, but also 4D radar data. V2X-R contains 12,079 scenarios with 37,727 frames of LiDAR and 4D radar point clouds, 150,908 im-ages, and 170,859 annotated 3D vehicle bounding boxes. Built upon this dataset, we develop a general cooperative LiDAR-4D radar fusion pipeline for 3D object detection. The entire pipeline consists of four stages: 1) Encode by each agent. 2) Agent fusion. 3) Modal fusion. 4) Box pre-diction. To address the challenge of agent-fused LiDAR features becoming noisy in adverse weather, we propose a novel Multi-modal Diffusion Denoising (MDD) module in the modal fusion stage of the pipeline. MDD transforms the noise feature distribution into the easy-to-fit Gaussian dis-tribution by reparameterization, which solves the challenge of complex and variable weather noise features that are dif-ficult to fit. It further utilizes weather-robust 4D radar fea-ture as a condition to prompt the diffusion model to denoise noisy LiDAR features. Notably, our MDD module barely disrupts performance in normal weather, attaining high per-formance in both normal and adverse weather. Subsequently, we implement the cooperative LiDAR-4D radar fusion pipeline with various agent fusion and modal fusion strategies on our V2X-R dataset, establish-ing a comprehensive benchmark for cooperative 3D object detection. The comprehensive experiment results show that the LiDAR-4D radar fusion demonstrates superior perfor-mance based on various model architectures, as shown in Fig. 2(a). The effectiveness of our designed MDD module is also validated under noise-prone foggy and snowy weather. 70 75 80 85 90 95 
+
+> CoBEVT AdaFusion AttFuse V2XViT Where2comm CoAlign
+> 70 75 80 85 90 95
+> 4DR
+> 3D mAP (IoU=0.5)
+
+(a) 
+
+> 55 60 65 70 75 80 85
+> AttFuse AttFuse w/ MDD
+> Fog Snow Normal
+
+(b)    
+
+> 3D mAP (IoU=0.7)
+> 4DR LL+4DR
+> 3D mAP (IoU=0.5)
+> Figure 2. The performance of different methods in our V2X-R dataset. (a) Performance comparison of different modalities (L and 4DR represent LiDAR and 4D radar modality, respectively). (b) Performance comparison of Attfuse [55] model (with and without our MDD module) under different weather conditions.
+
+As shown in Fig. 2(b), by incorporating our MDD mod-ule, AttFuse [55] has significantly improved the weather-robustness ability. Our contributions can be summarized in three key points: • We present V2X-R, the first simulated V2X dataset that not only includes LiDAR, cameras, but also 4D radar data. This dataset lays the data foundation for research in V2X cooperative perception with 4D radar. • We designed a novel Multi-modal Diffusion Denoising (MDD) module to utilize reparameterization and weather-robust 4D radar feature to handle hard-to-fit noisy LiDAR feature. Our MDD shows effectiveness in both single and multi-agent, simulated and real scenarios. • We construct a cooperative LiDAR-4D radar fusion pipeline for 3D object detection. We have implemented this pipeline with various fusion strategies and provided a comprehensive benchmark on our V2X-R dataset, boost-ing the research in cooperative LiDAR-4D radar fusion for cooperative 3D object detection. 
+
+## 2. Related Work 
+
+2.1. 3D Object Detection 
+
+3D object detection has garnered significant attention, with mainstream approaches categorized as LiDAR-based [3, 19, 37, 38, 41, 47, 48, 60, 62, 65] or LiDAR-camera fusion-based [21, 27, 44, 45, 59]. The latter achieves superior performance by combining LiDAR’s depth and geome-try information with the fine-grained details from images [17, 25, 26]. However, LiDAR’s weather sensitivity leads to poor performance in adverse conditions, prompting re-search into weather-robust 3D object detection methods [8, 15, 24]. Some approaches utilize weather-robust 3D Radar [22, 23, 32, 39] or 4D radar [1, 16, 42, 43] fusion with LiDAR. 4D radar has received more attention due to higher resolution and elevation, but cooperative LiDAR-4D 27391 radar fusion remains unexplored. 
+
+2.2. Cooperative Perception Datasets 
+
+Large-scale multi-sensor cooperative perception datasets, such as V2V4Real [57], are crucial for training robust and generalizable perception models. However, real-world data collection is costly and time-consuming. Simulation plat-forms like CARLA [6], SUMO [28], and OpenCDA [53] offer a cost-effective alternative. Datasets such as OPV2V [55] and V2X-Sim [20] have been developed using these tools, supporting tasks like 3D object detection, tracking, and bird’s-eye view (BEV) segmentation. However, above datasets lack of 4D Radar data, which limits the research of model robustness under adverse weather conditions. 
+
+2.3. V2X Cooperative Perception 
+
+V2X cooperative perception enhances semantic understand-ing by sharing observations from surrounding vehicles and infrastructure. Research can be categorized into early fusion [2], mid fusion [12, 54–56, 61], and late fusion [34, 35, 64]. Mid fusion, involving feature sharing among connected and automated vehicles (CAVs), is favored for its performance-bandwidth balance [61]. Most methods are LiDAR-based, with advancements such as self-attention for feature fu-sion [55], unified Transformer structures for heterogeneous data [54], and bandwidth optimization [12]. For LiDAR-camera fusion, BM2CP [66] proposes a multi-modal coop-erative perception framework, while CodeFilling [13] facil-itates perception-communication trade-offs. However, the weather sensitivity of LiDAR and camera sensors still poses challenges for multi-agent 3D object detection. 
+
+## 3. V2X-R Dataset 
+
+3.1. Simulator Selection 
+
+We chose CARLA [6] as the primary simulator for data collection. Our data is derived from the eight towns pro-vided by CARLA. However, since CARLA lacks vehicle-to-everything (V2X) communication and cooperative driv-ing capabilities, we used OpenCDA [53] integrated with CARLA, a cooperative simulation platform that supports multiple cooperative agents and basic control over embed-ded vehicular network communication protocols, to gener-ate our V2X-R dataset. Additionally, we integrated the sim-ulated 4D radar sensor into the OpenCDA framework for 4D radar simulation and data collection. 
+
+3.2. Sensor configuration 
+
+As described in Table 1, each Connected Autonomous Vehi-cle (CAV) and Infrastructure is equipped with four cameras; a 64-channel LiDAR sensor featuring a detection range of 120 meters; a radar sensor with a vertical field of view of 30 ◦ and a maximum detection range of 150 meters. The       
+
+> Sensors Details
+> 4x Camera 4 units RGB,Positions: (2.5,0,1.0,0),(0.0,0.3,1.8,100), (0.0,-0.3,1.8,-100), (-2.0,0.0,1.5,180) 1x LiDAR 64 channels,120m range, -25 ◦to 2 ◦vertical FOV, 0.02 noise standard deviation, 20 Hz rotation frequency 1x 4D radar 150m range, 120 ◦horizontal FOV, 30 ◦vertical FOV GPS & IMU Vehicle GNSS:altitude noise 0.001m; Vehicle IMU: heading noise 0.1 ◦, speed noise 0.2m/s; RSU GNSS:altitude noise 0.05 m,
+
+Table 1. Sensor configuration details of our V2X-R dataset. 00.1 0.2 0.3 0.4 0.5         
+
+> 15 45 75 105 135
+> Multi-Agents Single-Agent
+> Radial distance (m)
+> Occupancy rate
+> 00.4 0.8 1.2 1.6
+> 15 45 75 105 135
+> Multi-Agents Single-Agent
+> Radial distance (m)
+> Points in box (lg scale)
+
+(a) (b) 
+
+> 00.1 0.2 0.3 0.4 0.5
+> 1
+> R
+> Occupancy rate
+
+Figure 3. 4D radar point cloud occupancy rate (a) and number of points (b) within the ground truth bounding boxes for radial distance from ego vehicles. 
+
+vehicle is equipped with a Global Navigation Satellite Sys-tem (GNSS) with an altitude noise of 0.001 meters, while the roadside unit (RSU) has an altitude noise of 0.05 me-ters. Finally, based on the above configuration, our V2X-R contains a total of 12,079 scenarios with 37,727 frames of LiDAR and 4D radar point clouds, 150,908 images, and 170,859 annotated 3D vehicle bounding boxes. 
+
+3.3. Cooperative 4D Radar Point Cloud Analysis 
+
+We analyzed the instance occupancy and points of the 4D radar point cloud before and after the multi-agent cooper-ative communication, as shown in Fig. 3. The 4D radar point cloud instance occupancy and points at different dis-tances increase significantly with multi-agent collaboration. Especially in the middle and long distance, 4D radar point clouds can still have relatively high instance occupancy and points. These data demonstrate the independent perception capability of the cooperative 4D radar point cloud. 
+
+3.4. Adverse Weather Simulation 
+
+To analyze the performance under adverse weather condi-tions on our V2X-R dataset, we applied fog [8] and snow [9] simulations to the LiDAR point clouds based on physi-cal reflection and geometric optics method. Recent research [5, 32] has confirmed the consistency of perception perfor-mance between simulated and real-world adverse weather 27392 𝐀 Point Cloud 
+
+ℱ Feature 
+
+𝐀 LiDAR 
+
+𝐀 4DRadar  
+
+> ℳModal-fused
+
+𝐀 Ego 
+
+𝐀 CAVs 
+
+𝐀 Infrastructure  
+
+> 𝐀 Agent-fused
+
+𝐀 Steps 
+
+𝐀 Boundingbox 
+
+(b). Multi-modal Denoising Diffusion 
+
+LiDAR Encoder 𝐀 𝐀 𝐀 
+
+𝐀 𝐀 𝐀 
+
+ℱ𝐀 𝐀 ℱ𝐀 𝐀 ℱ𝐀 𝐀 
+
+Multi−modal Fusion 
+
+ℱ𝐀 𝐀 
+
+Detector Head 
+
+ℱ𝐀 𝐀 
+
+ℱ𝐀𝐀𝐀𝐀 
+
+ℱ𝐀 
+
+𝐀( ℱ 𝐀 | ℱ 𝐀𝐀𝐀𝐀 )
+
+ℱ𝐀−1 
+
+𝐀 𝐀 ( ℱ 𝐀−1 | ℱ 𝐀 , ℱ 𝐀𝐀𝐀𝐀 )
+
+ℱ𝐀 𝐀 
+
+ℱ𝐀 𝐀 
+
+# . . . 𝐀 − 1 𝐀𨐀𝐀𥠀𝐀 
+
+𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 
+
+4DRadar Encoder 𝐀 𝐀 𝐀 
+
+𝐀 𝐀 𝐀 
+
+ℱ𝐀 𝐀 ℱ𝐀 𝐀 ℱ𝐀 𝐀 
+
+𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 
+
+> Denoising Process Diffusion Process
+
+ℱ𝐀 𝐀 ℱ𝐀 𝐀 
+
+𝐀 𝐀 = {𝐀, 𝐀, 𝐀, 𝐀, 𝐀, ℎ, 𝐀} 
+
+(a). Cooperative LiDAR-4DRadar Fusion Pipeline 
+
+𝐀 
+
+(b). Multi-modal Denoising Diffusion 
+
+4th Stage 
+
+Box prediction 
+
+3rd Stage 
+
+Modal fusion 
+
+2nd Stage 
+
+Agent fusion 
+
+1st Stage 
+
+Encode by agent 
+
+ℱ𝐀 ℳ
+
+Noisy! Clear Figure 4. The pipeline of constructed cooperative LiDAR-4D radar fusion for weather-robust 3D object detection. The fusion pipeline (a) is first fed with multi-modal point cloud (LiDAR and 4D radar) from multi-agent: Ego Vehicle (E), Connected Automated Vehicle (C), and Infrastructure (I). Subsequent fusion consists of four stages: 1) Encode by each agent. 2) Agent fusion. 3)Modal fusion. 4) Box prediction. Additionally, a Multi-modal Denoising Diffusion (b) module is integrated into the pipeline to achieve weather-robust ability. The input noisy LiDAR features are first subjected to a diffusion process, followed by T step denoising process with weather-robust 4D radar features as conditions to get the denoised clear LiDAR features. 
+
+data. Detailed implementations of fog and snow simula-tions will be introduced in the supplementary material. 
+
+## 4. Cooperative LiDAR-4D Radar Fusion 
+
+4.1. Overall Statement 
+
+Built upon the V2X-R dataset, we present the first explo-ration of cooperative LiDAR-4D radar fusion for 3D object detection. To the best of our knowledge, no prior work has investigated this problem. In sec. 4.2, we introduce the first cooperative LiDAR-4D radar fusion pipeline for weather-robust 3D object detection. Furthermore, in sec. 4.3, we enhance the weather-robustness of cooperative LiDAR-4D radar fusion by leveraging the advantage of 4D radar in ad-verse weather conditions. We analyze the strengths and challenges of cooperative LiDAR point clouds in adverse weather conditions and propose the Multi-modal Denoising Diffusion (MDD) module to tackle these challenges, signif-icantly improving the pipeline’s weather-robustness. 
+
+4.2. Fusion Pipeline 
+
+In the cooperative LiDAR-4D radar fusion pipeline, there are three types of agents: Ego Vehicle (E), Con-nected Automated Vehicle (C), and Infrastructure (I). Each agent collects LiDAR and 4D radar point cloud data, forming the multi-agent multi-modal input X =
+
+{XLC , X LE , X LI , X RC , X RE , X RI }. As illustrated in Fig. 4(a), subsequent fusion consists of four stages: 
+
+1) Encode by agent. We feed X into a agent-shared en-coder Gθ to obtain features for each agent and modality as: 
+
+Fij = Giθ (Xij ), (1) where i ∈ { L, R } denotes modality and j ∈ { C, E, I } de-notes agent. 
+
+2) Agent fusion. After encoding, the features with same modality in different agent {F iC , FiE , FiI |i ∈ { L, R } com-municate with each other, the agent-fusion ϕA is performed to get multi-agent feature Fi 
+
+> A
+
+for i modality as: 
+
+Fi 
+
+> A
+
+= ϕA(FiC , FiE , FiI ). (2) 
+
+3) Modal fusion. The weather-induced noisy LiDAR fea-ture FL 
+
+> A
+
+will first be denoised to clear LiDAR feature ˜FL
+
+> A
+
+by MDD module (will be described in the next section). Then, we perform modal-fusion ϕM to obtain the multi-agent multi-modal features FMA as: 
+
+FMA = ϕM( ˜FL
+
+> A
+
+, FR 
+
+> A
+
+). (3) 
+
+4) Box prediction. Finally, we use the detector head to predict the 3D bounding box B by using the multi-agent multi-modal features FMA .The two keys to implementing the above fusion pipeline lie in the agent-fusion and modal-fusion stages. Since there 27393 Multi-Agent Communication (a) Longer Vision 
+
+> LiDAR Point Cloud in Fog Weather (Single-Agent)
+> LiDAR Point Cloud in Fog Weather (Multi-Agent)
+> Denser Noise!
+
+Figure 5. Visualization of LiDAR point cloud under foggy (simu-lated) weather before and after multi-agent communication. After multi-agent communication, the LiDAR point cloud has a longer vision, but a serious challenge of denser noise (red points). 
+
+is no cooperative LiDAR-4D radar fusion method available yet. We explored two implementations that extend the ex-isting mature fusion to cooperative LiDAR-4D radar fusion: (a) Single-Agent Multi-Modal to M ulti-Agent Multi-Modal ( SA2MA ). LiDAR-4D radar fusion in single-agent has received considerable attention [1, 16, 42, 43]. There-fore, we extend existing single-agent LiDAR-4D radar fu-sion methods to the multi-agent version by integrating a self-attention-based agent-fusion module (2nd stage). (b) Multi-Agent Single-Modal to Multi-Agent Multi-
+
+Modal ( SM2MM ). Another approach is to extend the widely researched multi-agent LiDAR-based methods [12, 33, 54– 56] to the multi-modal version. Specifically, we first ex-tract multi-agent features from LiDAR and 4D radar point clouds individually and then concatenate BEV features in multi-modal fusion (3rd stage). 
+
+4.3. Multi-modal Denoising Diffusion (MDD) 
+
+We first analyzed the cooperative LiDAR point cloud in ad-verse weather. As shown in Fig. 5, single-agent LiDAR point clouds exhibit the effects of reduced detection range and weather noise in fog weather. With multi-agent com-munication, the effect of reduced detection range is largely solved, but at the same time, weather noises exacerbate as they propagate through communication. Therefore, addressing the dense noise challenge is cru-cial for weather-robust 3D object detection. Traditional point-level segmentation for denoising is time-consuming and incompatible with common multi-agent feature fusion strategies. On the other hand, simple feature-level denois-ing leads to poor fitting due to the complex distribution of weather feature noise. To overcome these limitations, we propose the Multi-modal Denoising Diffusion (MDD) for denoising noisy LiDAR features. As shown in Fig. 4(b), we resampled the complex weather noise distribution to a Gaussian distribution through the diffusion process, and then denoised it with the weather-robust 4D radar feature. Specifically, drawing inspiration from DDPM [11] and 
+
+Algorithm 1 Multi-modal Denoising Diffusion process 
+
+Input: Training ∈ { True, False }; Noisy LiDAR BEV feature FL
+
+> A
+
+; Noise-masked LiDAR BEV feature FLl ; 4D radar BEV feature FR 
+
+> A
+
+; Diffusion steps T ;
+
+Output: Training loss and denoised LiDAR feature ˜FL
+
+> A
+
+Finit ← F L
+
+> A
+
+ϵ ∈ N (0 , I) ▷ Sample noise 
+
+FT = √αtFinit + √1 − αT ϵ ▷ Diffusion process 
+
+for t ← T , T − 1, ..., 1 do 
+
+Ft−1 = Uθ (Concat [Ft, FR 
+
+> A
+
+], t ) ▷ Denoising process 
+
+end for 
+
+˜FL 
+
+> A
+
+← F 0
+
+if Training then 
+
+Loss ← L M DD ( ˜FL
+
+> A
+
+, FLl ) ▷ Compute loss as in eqs. 8 
+
+return Loss, ˜FL 
+
+> A
+
+▷ Get loss and denoised feature 
+
+else return ˜FL 
+
+> A
+
+▷ Get denoised clear LiDAR feature 
+
+end if 
+
+MTL [63], gaussian noise is gradually applied to the init feature Finit (Initialization is FL
+
+> A
+
+) in T times step-by-step. Suppose the decayed feature at denoising step t is Ft, the diffusion process q can be formulated as: 
+
+q(Ft|F init ) = N (Ft|√αtFinit , (1 − αt)I), (4) where {αt, t ∈ {1, 2, ..., T }} are hyper-parameters. We could directly compute the decayed feature FT through mathematical derivation: 
+
+FT = √αT Finit + √1 − αT ϵ, ϵ ∼ N (0 , I). (5) This process transforms the original noise distribution 
+
+δraw into a Gaussian distribution δgau through a Gaussian reparameterization sampling process as: 
+
+δgau = √αT δraw + √1 − αT ϵ,  (6) 
+
+δgau ∼ N (√αT δraw , √1 − αT ) subject to Gaussian dis-tribution, which facilitates the fitting of the denoising model. Subsequently, at each denoising step, we incorpo-rate weather-robust 4D radar features FR 
+
+> A
+
+as a condition to prompt U-Net [36] denoiser Uθ to predict the denoised fea-ture: 
+
+Ft−1 = Uθ ([ Ft, FR 
+
+> A
+
+], t ), t ∈ T , T − 1, ..., 1. (7) For the final output after T denoising steps, the Uθ gen-erates the denoised clear LiDAR feature ˜FL 
+
+> A
+
+= F0. We present the detailed training and inference pipelines MMD in Algorithm 1. And we compute the loss of MDD as : 
+
+LM DD = LM SE ( ˜FL
+
+> A
+
+, FLl ) ∗ γ(e, ψ ), (8) 27394 where FLl is the groundtruth feature extracted from the clear LiDAR point cloud after masking the weather noise, 
+
+e is the epoch, ψ is loss weight and γ(e) is the loss weight that we specifically designed for the MDD module as: 
+
+γ(e, ψ ) = (1 − tanh ( eτ − φ)) ∗ ψ,  (9) where τ is temperature, φ is offset. It decreases nonlin-early with epoch so that the model pays full attention to the feature denoising task in the early period and the object de-tection task in the late period. 
+
+4.4. Loss Function 
+
+We trained models with our MDD by the following losses: 
+
+Lall = βcls Lcls + βloc Lloc + LM DD , (10) where βcls , βloc are hyper-parameters, Lcls and Lloc are classification and localization loss, respectively. All hyper-parameters are detailed in the supplementary material. 
+
+## 5. Experiments 
+
+5.1. Experimental Details and Metrics 
+
+We used 8,084/829/3,166 frames for training/ validation/ testing in our V2X-R dataset, ensuring there is no over-lap in the intersection of the training/validation/testing sets. For each frame, we ensure that the minimum and maximum numbers of agents are 2 and 5 respectively. We use Adam optimizer with lr = 1e-3, β1 = 0.9, β2 = 0.999. Following [55], we select a vehicle as the ego vehicle for evaluation. Detection performance is evaluated near the ego vehicle in a range of x ∈ [0, 140]m, y ∈ [-40, 40]m. We set the broad-cast range among CAVs to be 70 meters. In addition, since the 4D radar sensor only provides front-view data, all of our evaluation results are in the camera FOV of the ego vehicle. 
+
+5.2. Benchmark Models 
+
+We implement various state-of-the-art 3D object detec-tors on the V2X-R dataset, including different numbers of agents and different modalities. The results of these detec-tors on three different modalities are also given. The chosen 3D detector models for different modalities are as follows. 
+
+Cooperative LiDAR-based 3D object detectors. We pick existing method including AttFuse [55], V2XViT [54], CoBEVT [56], CoAlign [29], Where2comm [12], Ada-Fusion [18], SCOPE [61], and SICP [33] for cooperative LiDAR-based benchmarking analysis. 
+
+Cooperative 4D radar-based 3D object detectors. Due to the lack of cooperative 4D radar-based methods. We first extend the single-agent 4D radar-based FPA-Net [50] and RTNH [30] to the cooperative 4D radar-based method through self-attention agent fusion in AttFuse [55], marked                           
+
+> Method Publication 3D mAP@Validation (IoU=0.3/0.5/0.7) 3D mAP@Testing (IoU=0.3/0.5/0.7)
+> V2XViT [54] ECCV2022 83.47/80.65/63.48 89.44/88.40/77.13 Attfuse [55] ICRA2022 86.69/82.58/66.56 91.21/89.51/80.01 Where2comm [12] NeurIPS2023 85.31/82.65/64.35 85.59/84.27/73.13 SCOPE [61] ICCV2023 79.43/77.35/65.08 80.67/79.88/72.00 CoBEVT [56] CoRL2023 86.65/84.59/70.30 91.41/90.44/81.06 CoAlign [29] ICRA2023 84.43/82.29/70.68 88.12/86.99/80.05 AdaFusion[18] WACV2023 88.19/86.96/75.55 92.72/91.64/84.81 SICP [33] IROS2024 81.08/77.56/58.10 84.65/82.18/66.73
+
+Table 2. Experimental 3D object detection results of various coop-erative LiDAR-based methods on the validation and testing of our V2X-R dataset in different IoU (0.3,0.5,0.7).                                          
+
+> Method Publication 3D mAP@Validation (IoU=0.3/0.5/0.7) 3D mAP@Testing (IoU=0.3/0.5/0.7)
+> PFA-Net †[51] ITSC2021 75.45/66.66/38.30 84.93/79.71/52.46 RTNH †[31] NeurIPS2022 72.00/62.54/34.65 73.61/67.63/41.86 V2XViT ‡[54] ECCV2022 68.58/61.88/29.47 80.61/73.52/42.60 AttFuse ‡[55] ICRA2022 71.83/63.33/34.15 81.34/74.98/47.96 Where2comm ‡[12] NeurIPS2023 68.99/56.55/25.59 79.21/72.88/36.15 SCOPE ‡[61] ICCV2023 71.97/67.03/53.23 72.20/69.12/53.41 CoBEVT ‡[56] CoRL2023 73.48/66.82/34.48 85.74/80.64/54.34 CoAlign ‡[29] ICRA2023 75.05/68.11/41.20 81.69/75.74/52.01 AdaFusion ‡[18] WACV2023 75.60/70.33/41.11 81.95/77.84/55.32 SICP ‡[33] IROS2024 70.83/62.79/34.82 71.94/65.17/36.44
+
+Table 3. Experimental 3D object detection results of various co-operative 4D Radar-based methods on the validation and testing of our V2X-R dataset in different IoU (0.3,0.5,0.7). The representa-tions of † and ‡ as described in 5.2. 
+
+as †. For a more comprehensive analysis, we also changed the LiDAR point cloud input for the above cooperative LiDAR-based method to 4D radar point cloud input to im-plement cooperative 4D radar-based methods, marked as ‡.
+
+Cooperative LiDAR-4D radar fusion 3D object de-tectors. We implement SA2MA fusion on the InterFusion [43] and L4DR [16] models and SM2MM fusion on the Att-Fuse [55], CoBEVT [55], V2XViT[55], Where2comm [12], CoAlign [29], AdaFusion [18], SICP [33] models. To intuitively compare the performance in normal weather differences between modalities, the cooperative LiDAR-4D radar fusion 3D object detectors we imple-mented in the benchmark section do not incorporate the MDD module. The MDD module will be discussed in sub-sequent experiments. 
+
+5.3. Benchmark Analysis 
+
+In the following, we will show and analyze the results of three different modalities on our V2X-R dataset. 
+
+Cooperative LiDAR-based 3D object detectors. Ta-ble 2 depicts the performance of the selected cooperative LiDAR-based 3D object detectors. A large number of com-bined results from these models validate the reliability of our V2X-R dataset. It is worth noting that the performance of the newest methods (SICP [33]) is not as good as that of earlier methods (e.g. COBEVT [56], CoAlign [29], Ada-Fusion [18]). This is because SICP [33] not only focus on 27395 3D mAP@Validation 3D mAP@Testing Method Publication Fusion Strategy IoU=0.3 IoU=0.5 IoU=0.7 IoU=0.3 IoU=0.5 IoU=0.7 
+
+InterFusion [43] IROS2022 SA2MA 78.33 74.70 51.44 87.91 86.51 69.63 L4DR [16] AAAI2025 SA2MA 80.91 79.00 67.17 90.01 88.85 82.26 V2XViT [54] ECCV2022 SM2MM 85.43 83.32 66.23 91.21 90.07 79.87 AttFuse [55] ICRA2022 SM2MM 83.45 81.47 69.11 91.50 90.04 82.44 SCOPE [61] ICCV2023 SM2MM 79.84 79.10 65.31 84.14 83.61 73.15 Where2comm [12] NeurIPS2023 SM2MM 88.05 85.98 69.94 92.20 91.16 81.40 CoBEVT [56] CoRL2023 SM2MM 86.45 85.49 75.65 94.23 93.50 86.92 
+
+CoAlign [29] ICRA2023 SM2MM 87.08 85.44 73.66 91.13 90.19 83.73 AdaFusion [18] WACV2023 SM2MM 88.87 86.94 74.44 92.94 91.97 85.31 SICP [33] IROS2024 SM2MM 83.32 80.61 63.08 84.83 82.59 67.61                                                                                                  
+
+> Table 4. Results of various cooperative LiDAR-4D radar fusion methods on the validation and testing of our V2X-R dataset in different IoUs (0.3,0.5,0.7). SA2MA and SM2MM represent Single-Agent to Multi-Agent and Single-Modal to Multi-Modal as described in sec. 4.2.
+> 3D mAP@Snow 3D mAP@Fog 3D mAP@Normal Method Modality IoU=0.3 IoU=0.5 IoU=0.7 IoU=0.3 IoU=0.5 IoU=0.7 IoU=0.3 IoU=0.5 IoU=0.7 L4DR [16] L+4DR 78.88 75.87 59.10 85.00 80.09 61.48 90.66 89.29 80.42
+> L4DR w/MDD L+4DR 82.89 80.52 65.80 86.00 81.60 63.66 90.44 89.15 80.36
+> Improvement +4.01 +4.65 +6.70 +1.00 +1.51 +2.18 -0.22 -0.14 -0.06
+> 1.AttFuse [55] L68.73 65.35 45.54 81.71 78.48 61.52 89.30 87.39 76.09 2.AttFuse [55] L+4DR 79.63 77.37 63.71 85.00 80.64 62.89 91.15 89.80 81.75 3.AttFuse w/MDD L+4DR 83.78 81.19 66.86 87.37 83.90 68.64 90.99 89.64 81.96
+> Improvement (2-1) +10.90 +12.02 +18.17 +3.29 +2.16 +1.37 +1.85 +2.41 +5.66 Improvement (3-2) +4.15 +3.82 +3.15 +2.37 +3.26 +5.73 -0.16 -0.16 +0.21
+> Table 5. The 3D mAP performance comparison under different weather conditions on the V2X-R dataset. ’L’ and ’4DR’ represent LiDAR and 4D radar, respectively. ’-’ indicates that multi-modal method L4DR [16] cannot achieve LiDAR-based performance.
+
+mainstream performance but also emphasize preserving the ability of individual perception. 
+
+Cooperative 4D radar-based 3D object detectors. We also pioneered the exploration of cooperative 4D radar-based methods on the V2X dataset. As shown in Table 3, the performance of 4D radar-based models is generally lower than that of LiDAR-based models in Table 2. This can be attributed to the significantly lower resolution of 4D radar than LiDAR, which is a limitation hindering the indepen-dent use of 4D radar in single-agent scenarios. However, we also observed that cooperative 4D radar-based meth-ods can achieve the excellent performance of 85.7% 3D mAP@testing (IoU=0.3) (CoBEVT ‡ [56]). This shows that 4D radar can achieve independent perception through coop-erative communication, proving the research significance of the cooperative 4D radar-based approach. 
+
+Cooperative LiDAR-4D radar fusion 3D object de-tectors. Finally, we implemented and evaluated a series of cooperative LiDAR-4D radar fusion methods following the methodology described in sec. 4.2. As shown in Table 4, by comparing with Tables 2 and 3, it can be observed that almost all cooperative LiDAR-4D radar fusion mod-els achieve the best performance compared to other single-modality approaches. Especially, CoAlign [29], CoBEVT [56], and Where2comm [12] exhibit 3.68%, 5.86%, and 8.23% 3D mAP@testing (IoU=0.7) improvements through LiDAR-4D radar fusion, respectively. These results con-vincingly validate that cooperative 4D radar can bring con-siderable performance enhancements to the LiDAR single-modality approach. On the other hand, the table also shows that there is a significant difference in the benefits of adding 4DRadar across different methods, which indicates that ex-ploring how to maximize the value of cooperative LiDAR-4D Radar fusion is still worth exploring. 
+
+5.4. Multi-modal Diffusion Denoising Analysis 
+
+To explore the weather-robust advantages of 4D radar, we investigated the performance of the LiDAR-4D radar fusion model and verified the effectiveness of our designed MDD module. We trained models by randomly sampling LiDAR point clouds in [normal, fog] for each frame to test on var-ious weather domains: normal weather domain, seen (fog) and unseen (snow) adverse weather domain. 
+
+Performance comparison under different simulated weather on V2X-R dataset. We selected three models, AttFuse [55] and L4DR [16], which include SA2MA and 27396 Class Method All Adverse Normal 
+
+AttFuse † [55] 69.04 70.72 66.75 Sedan AttFuse † w/ MDD 74.03 75.90 67.18 
+
+AttFuse † [55] 50.95 48.78 53.33 
+
+Bus AttFuse † w/ MDD 54.58 54.75 52.81                       
+
+> Table 6. The 3D mAP performance comparison on K-Radar [30] dataset. Adverse represents average results under various adverse weather, including overcast, fog, rain, sleet, light and heavy snow.
+> †represents AttFuse [55] is implemented as single agent method by removing the agent fusion module.
+> Component 3D mAP@Fog
+> Vanilla-Unet Diffusion 4D radar IoU=0.3 IoU=0.5 IoU=0.7 Denoise Denoise Condition 85.00 80.64 62.89
+> ✓85.44 81.23 62.07
+> ✓86.41 83.29 68.08
+> ✓✓87.37 83.90 68.64
+> Table 7. Effect of each component in MDD module, tested by AttFuse [55] on V2X-R testing with fog-simulation.
+
+SM2MM fusion strategies, to evaluate the performance un-der different weather conditions. As shown in Table 5, the LiDAR-4D radar fusion can achieve superior performance in various weather conditions. AttFuse achieved 18.17% 3D mAP@snow (IoU=0.7) and 5.66% 3D mAP@normal (IoU=0.7) improvement when compared to LiDAR-only (Improvement (2-1) ), respectively. Moreover, our designed MDD module improved the basic LiDAR-4D radar fu-sion model performance by up to 5.73% (AttFuse, 3D mAP@fog) and 6.70% (L4DR, 3D mAP@snow) under ad-verse weather conditions. Meanwhile, our MDD module hardly affects the normal weather performance, which vali-dates the effectiveness and reliability of our MDD module. 
+
+Performance comparison under different real-world weather on K-Radar dataset. We further conducted ex-periments on the K-Radar single-agent real-world dataset. As shown in Table 6, our MDD module demonstrates sig-nificant performance improvements in real-world adverse weather, with 3D mAP gains of 5.20% and 5.97% for the Sedan and Bus classes, respectively. MDD has rarely im-pacted the normal weather performance, resulting in over-all improvements of 4.99% and 3.63%. These results vali-date the effectiveness of the MDD module in the presence of dense noise under real-world adverse weather. 
+
+Effect of each component. We evaluated the effect of each component, as shown in Table 7. We initially attempted to denoise LiDAR features using Vanilla-Unet (row 2 st ) but found the results unsatisfactory. The com-plex distribution of LiDAR noise in multi-agent settings is difficult to directly fit. We significantly improve per-                                                      
+
+> Diffusion Loss Inference 3D mAP@Fog Layers Weight Speed IoU=0.3 IoU=0.5 IoU=0.7 --18 ms 85.00 80.64 62.89
+> T= 2 1
+> 39 ms 85.85 82.19 65.47
+> 386.68 82.77 65.92
+> 585.54 81.79 65.89
+> γ(e, ψ = 1) 86.98 83.31 66.91
+> γ(e, ψ = 3) 87.35 83.78 68.14
+> γ(e, ψ = 5) 86.91 83.46 66.99
+> T= 3 385.97 82.43 66.23
+> γ(e, ψ = 3) 50 ms 87.37 83.90 68.64
+> T= 4 386.98 83.15 65.13
+> γ(e, ψ = 3) 59 ms 87.01 83.89 67.58
+> Table 8. Effect of diffusion layers and loss weight in MDD mod-ule, tested by AttFuse [55] on V2X-R testing with fog-simulation.
+
+formance by transforming the noise distribution into Gaus-sian distribution through a multi-step diffusion process (row 3rd ). Finally, by incorporating weather-robust 4D Radar features as conditional information for multi-modal denois-ing (row 4 th ), the model achieves the best performance of 87.37/83.90/86.64 3DmAP@Fog. 
+
+Effect of diffusion layers and loss weight. Finally, we investigate the impact of hyper-parameters in our MDD module, including number of diffusion layers and the MDD loss weight T (both constant weights and the epoch-varying weight γ(e, ψ ) in eqs. 9). As shown in Table 8, the best per-formance of 87.37/83.90/86.64 3DmAP@Fog is achieved with MDD loss weight γ(e, ψ = 3) and number of diffu-sion layers T = 3 . Although MDD inevitably introduces an additional inference time of 32 ms, it significantly improves weather robustness and still maintains real-time (about 20 FPS). These results validate the effectiveness of our de-signed weight γ(e, ψ ) and real-time of our MDD module. 
+
+## 6. Conclusion and Discussion 
+
+We present V2X-R, the first simulated V2X collaborative perception dataset incorporating 4D radar. We establish a benchmark on V2X-R dataset by integrating a LiDAR-4D radar fusion pipeline into classic collaborative 3D object de-tection methods. Moreover, we propose the MDD module to tackle dense noise in collaborative conditions. In sum-mary, V2X-R and our exploration paves the way for advanc-ing collaborative LiDAR and 4D radar fusion perception. 
+
+Limitations and future work. While our work provides a foundation, deeper exploration of cooperative LiDAR and 4D radar fusion remains underdeveloped. A compelling research direction is the full utilization of multi-agent and multi-modal information for robust 3D object detection. 
+
+Acknowledgements. This work was supported in part by the National Natural Science Foundation of China (No.62171393), and the Fundamental Research Funds for the Central Universities (No.20720220064). 27397 References 
+
+[1] Yujeong Chae, Hyeonseong Kim, and Kuk-Jin Yoon. To-wards robust 3d object detection with lidar and 4d radar fu-sion in various weather conditions. In CVPR , pages 15162– 15172, 2024. 1, 2, 5 [2] Qi Chen, Sihai Tang, Qing Yang, and Song Fu. Cooper: Cooperative perception for connected autonomous vehicles based on 3d point clouds. Cornell University - arXiv,Cornell University - arXiv , 2019. 3 [3] Jiajun Deng, Shaoshuai Shi, Peiwei Li, Wengang Zhou, Yanyong Zhang, and Houqiang Li. Voxel R-CNN: Towards High Performance Voxel-based 3D Object Detection. AAAI ,35, 2021. 2 [4] Jinhao Deng, Wei Ye, Hai Wu, Xun Huang, Qiming Xia, Xin Li, Jin Fang, Wei Li, Chenglu Wen, and Cheng Wang. Cmd: A cross mechanism domain adaptation dataset for 3d object detection. In European Conference on Computer Vi-sion , pages 219–236. Springer, 2025. 1 [5] Yinpeng Dong, Caixin Kang, Jinlai Zhang, Zijian Zhu, Yikai Wang, Xiao Yang, Hang Su, Xingxing Wei, and Jun Zhu. Benchmarking robustness of 3d object detection to common corruptions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 1022– 1032, 2023. 3 [6] Alexey Dosovitskiy, German Ros, Felipe Codevilla, Anto-nio Lopez, and Vladlen Koltun. Carla: An open urban driv-ing simulator. In Conference on robot learning , pages 1–16. PMLR, 2017. 3 [7] Ahmed Ghita, Bjørk Antoniussen, Walter Zimmer, Ross Greer, Christian Creß, Andreas Møgelmose, Mohan M Trivedi, and Alois C Knoll. Activeanno3d–an active learn-ing framework for multi-modal 3d object detection. arXiv preprint arXiv:2402.03235 , 2024. 2 [8] Martin Hahner, Christos Sakaridis, Dengxin Dai, and Luc Van Gool. Fog Simulation on Real LiDAR Point Clouds for 3D Object Detection in Adverse Weather. In ICCV , 2021. 1, 2, 3 [9] Martin Hahner, Christos Sakaridis, Mario Bijelic, Felix Heide, Fisher Yu, Dengxin Dai, and Luc Van Gool. Li-DAR Snowfall Simulation for Robust 3D Object Detection. In CVPR , 2022. 1, 3 [10] Z Han, J Wang, Z Xu, S Yang, L He, S Xu, and J Wang. 4d millimeter-wave radar in autonomous driving: A survey. arxiv 2023. arXiv preprint arXiv:2306.04242 , 2023. 1 [11] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-fusion probabilistic models. Advances in neural information processing systems , 33:6840–6851, 2020. 5 [12] Yue Hu, Shaoheng Fang, Zixing Lei, Yiqi Zhong, and Si-heng Chen. Where2comm: Communication-efficient collab-orative perception via spatial confidence maps. Advances in neural information processing systems , 35:4874–4886, 2022. 1, 3, 5, 6, 7 [13] Yue Hu, Juntong Peng, Sifei Liu, Junhao Ge, Si Liu, and Si-heng Chen. Communication-efficient collaborative percep-tion via information filling with codebook. In CVPR , pages 15481–15490, 2024. 1, 3 [14] Kuan-Chih Huang, Weijie Lyu, Ming-Hsuan Yang, and Yi-Hsuan Tsai. Ptt: Point-trajectory transformer for efficient temporal 3d object detection. In CVPR , pages 14938–14947, 2024. 1 [15] Xun Huang, Hai Wu, Xin Li, Xiaoliang Fan, Chenglu Wen, and Cheng Wang. Sunshine to rainstorm: Cross-weather knowledge distillation for robust 3d object detection. In 
+
+AAAI , pages 2409–2416, 2024. 1, 2 [16] Xun Huang, Ziyu Xu, Hai Wu, Jinlong Wang, Qiming Xia, Yan Xia, Jonathan Li, Kyle Gao, Chenglu Wen, and Cheng Wang. L4dr: Lidar-4dradar fusion for weather-robust 3d ob-ject detection. arXiv preprint arXiv:2408.03677 , 2024. 1, 2, 5, 6, 7 [17] Xuepeng Jin, Junyan Lin, Feng Gao, Lin Qi, and Yang Zhou. Sparse focus network for multi-source remote sensing data classification. In IGARSS 2024-2024 IEEE International Geoscience and Remote Sensing Symposium , pages 7803– 7806. IEEE, 2024. 2 [18] Haowen Lai, Peng Yin, and Sebastian Scherer. Adafusion: Visual-lidar fusion with adaptive weights for place recogni-tion. IEEE Robotics and Automation Letters , 7(4):12038– 12045, 2022. 6, 7 [19] Alex H. Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 12689–12697, 2019. 2 [20] Yiming Li, Dekun Ma, Ziyan An, Zixun Wang, Yiqi Zhong, Siheng Chen, and Chen Feng. V2x-sim: Multi-agent col-laborative perception dataset and benchmark for autonomous driving. IEEE Robotics and Automation Letters , 7(4):10914– 10921, 2022. 3 [21] Yingwei Li, Adams Wei Yu, Tianjian Meng, Ben Caine, Ji-quan Ngiam, Daiyi Peng, Junyang Shen, Yifeng Lu, Denny Zhou, Quoc V. Le, Alan Yuille, and Mingxing Tan. Deep-fusion: Lidar-camera deep fusion for multi-modal 3d object detection. In CVPR , pages 17182–17191, 2022. 2 [22] Yu-Jhe Li, Jinhyung Park, Matthew O’Toole, and Kris Ki-tani. Modality-agnostic learning for radar-lidar fusion in ve-hicle detection. In CVPR , pages 918–927, 2022. 2 [23] Yu-Jhe Li, Matthew O’Toole, and Kris Kitani. St-mvdnet++: Improve vehicle detection with lidar-radar geometrical aug-mentation via self-training. In ICASSP 2023-2023 IEEE In-ternational Conference on Acoustics, Speech and Signal Pro-cessing (ICASSP) , pages 1–5. IEEE, 2023. 2 [24] Jia Lin, Huilin Yin, Jun Yan, Wancheng Ge, Hao Zhang, and Gerhard Rigoll. Improved 3D Object Detector Under Snow-fall Weather Condition Based on LiDAR Point Cloud. IEEE Sensors Journal , 22, 2022. 2 [25] Junyan Lin, Feng Gao, Xiaochen Shi, Junyu Dong, and Qian Du. Ss-mae: Spatial–spectral masked autoencoder for mul-tisource remote sensing image classification. IEEE Trans-actions on Geoscience and Remote Sensing , 61:1–14, 2023. 2[26] Junyan Lin, Xuepeng Jin, Feng Gao, Junyu Dong, and Hui Yu. Boosting spatial-spectral masked auto-encoder through mining redundant spectra for hsi-sar/lidar classification. In 27398 IGARSS 2024-2024 IEEE International Geoscience and Re-mote Sensing Symposium , pages 9744–9747. IEEE, 2024. 2 [27] Zhijian Liu, Haotian Tang, Alexander Amini, Xinyu Yang, Huizi Mao, Daniela L. Rus, and Song Han. Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view representation. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 2774–2781, 2023. 1, 2 [28] Pablo Alvarez Lopez, Michael Behrisch, Laura Bieker-Walz, Jakob Erdmann, Yun-Pang Fl¨ otter¨ od, Robert Hilbrich, Leon-hard L¨ ucken, Johannes Rummel, Peter Wagner, and Eva-marie Wiessner. Microscopic traffic simulation using sumo. In 2018 21st International Conference on Intelligent Trans-portation Systems (ITSC) , pages 2575–2582, 2018. 3 [29] Yifan Lu, Quanhao Li, Baoan Liu, Mehrdad Dianati, Chen Feng, Siheng Chen, and Yanfeng Wang. Robust collabora-tive 3d object detection in presence of pose errors. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 4812–4818, 2023. 6, 7 [30] Dong-Hee Paek, Seung-Hyun Kong, and Kevin Tirta Wijaya. K-radar: 4d radar object detection for autonomous driving in various weather conditions. Advances in Neural Information Processing Systems , 35:3819–3829, 2022. 6, 8 [31] Dong-Hee Paek, SEUNG-HYUN KONG, and Kevin Tirta Wijaya. K-radar: 4d radar object detection for autonomous driving in various weather conditions. In Advances in Neural Information Processing Systems , pages 3819–3829. Curran Associates, Inc., 2022. 6 [32] Kun Qian, Shilin Zhu, Xinyu Zhang, and Li Erran Li. Robust multimodal vehicle detection in foggy weather using com-plementary lidar and radar signals. In CVPR , pages 444–453, 2021. 2, 3 [33] Deyuan Qu, Qi Chen, Tianyu Bai, Hongsheng Lu, Heng Fan, Hao Zhang, Song Fu, and Qing Yang. Sicp: Simultaneous individual and cooperative perception for 3d object detection in connected and automated vehicles, 2024. 1, 5, 6, 7 [34] Andreas Rauch, Felix Klanner, Ralph Rasshofer, and Klaus Dietmayer. Car2x-based perception in a high-level fusion ar-chitecture for cooperative perception systems. In 2012 IEEE Intelligent Vehicles Symposium , 2012. 3 [35] Zaydoun Yahya Rawashdeh and Zheng Wang. Collabora-tive automated driving: A machine learning-based method to enhance the accuracy of shared information. In 2018 21st International Conference on Intelligent Transportation Sys-tems (ITSC) , 2018. 3 [36] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: Convolutional networks for biomedical image segmen-tation. In Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18 , pages 234–241. Springer, 2015. 5 [37] Shaoshuai Shi, Chaoxu Guo, Li Jiang, Zhe Wang, Jianping Shi, Xiaogang Wang, and Hongsheng Li. PV-RCNN: Point-Voxel Feature Set Abstraction for 3D Object Detection. In 
+
+CVPR , 2020. 2 [38] Shaoshuai Shi, Li Jiang, Jiajun Deng, Zhe Wang, Chaoxu Guo, Jianping Shi, Xiaogang Wang, and Hongsheng Li. PV-RCNN++: Point-Voxel Feature Set Abstraction With Local Vector Representation for 3D Object Detection. Int. J. Com-put. Vision , 131, 2022. 2 [39] Jingyu Song, Lingjun Zhao, and Katherine A Skinner. Lira-fusion: Deep adaptive lidar-radar fusion for 3d object detec-tion. arXiv preprint arXiv:2402.11735 , 2024. 2 [40] Shunqiao Sun and Yimin D Zhang. 4d automotive radar sens-ing for autonomous vehicles: A sparsity-oriented approach. 
+
+IEEE Journal of Selected Topics in Signal Processing , 15(4): 879–891, 2021. 1 [41] Haiyang Wang, Chen Shi, Shaoshuai Shi, Meng Lei, Sen Wang, Di He, Bernt Schiele, and Liwei Wang. DSVT: Dynamic Sparse Voxel Transformer With Rotated Sets. In 
+
+CVPR , 2023. 2 [42] Li Wang, Xinyu Zhang, Jun Li, Baowei Xv, Rong Fu, Haifeng Chen, Lei Yang, Dafeng Jin, and Lijun Zhao. Multi-modal and multi-scale fusion 3d object detection of 4d radar and lidar for autonomous driving. IEEE Transactions on Ve-hicular Technology , 2022. 1, 2, 5 [43] Li Wang, Xinyu Zhang, Baowei Xv, Jinzhao Zhang, Rong Fu, Xiaoyu Wang, Lei Zhu, Haibing Ren, Pingping Lu, Jun Li, and Huaping Liu. Interfusion: Interaction-based 4d radar and lidar fusion for 3d object detection. In 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 12247–12253, 2022. 1, 2, 5, 6, 7 [44] Hai Wu, Chenglu Wen, Wei Li, Xin Li, Ruigang Yang, and Cheng Wang. Transformation-equivariant 3d object detec-tion for autonomous driving. In AAAI , pages 2795–2802, 2023. 2 [45] Hai Wu, Chenglu Wen, Shaoshuai Shi, Xin Li, and Cheng Wang. Virtual Sparse Convolution for Multimodal 3D Object Detection. In CVPR , 2023. 2 [46] Hai Wu, Shijia Zhao, Xun Huang, Chenglu Wen, Xin Li, and Cheng Wang. Commonsense prototype for outdoor unsuper-vised 3d object detection. arXiv preprint arXiv:2404.16493 ,2024. 1 [47] Qiming Xia, Jinhao Deng, Chenglu Wen, Hai Wu, Shaoshuai Shi, Xin Li, and Cheng Wang. Coin: Contrastive instance feature mining for outdoor 3d object detection with very lim-ited annotations. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision (ICCV) , pages 6254– 6263, 2023. 2 [48] Qiming Xia, Wei Ye, Hai Wu, Shijia Zhao, Leyuan Xing, Xun Huang, Jinhao Deng, Xin Li, Chenglu Wen, and Cheng Wang. Hinted: Hard instance enhanced detector with mixed-density feature fusion for sparsely-supervised 3d object de-tection. In CVPR , pages 15321–15330, 2024. 2 [49] Hao Xiang, Runsheng Xu, and Jiaqi Ma. Hm-vit: Hetero-modal vehicle-to-vehicle cooperative perception with vision transformer. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 284–295, 2023. 1 [50] Baowei Xu, Xinyu Zhang, Li Wang, Xiaomei Hu, Zhiwei Li, Shuyue Pan, Jun Li, and Yongqiang Deng. Rpfa-net: a 4d radar pillar feature attention network for 3d object detec-tion. In 2021 IEEE International Intelligent Transportation Systems Conference (ITSC) , pages 3061–3066, 2021. 6 [51] Baowei Xu, Xinyu Zhang, Li Wang, Xiaomei Hu, Zhiwei Li, Shuyue Pan, Jun Li, and Yongqiang Deng. Rpfa-net: a 27399 4d radar pillar feature attention network for 3d object detec-tion. In 2021 IEEE International Intelligent Transportation Systems Conference (ITSC) , pages 3061–3066, 2021. 6 [52] Ge Xu, Amir Khan, Ata Jahangir Moshayedi, Xiaohong Zhang, and Yang Shuxin. The object detection, perspective and obstacles in robotic: A review. EAI Endorsed Transac-tions on AI and Robotics , 1:7–15, 2022. 2 [53] Runsheng Xu, Yi Guo, Xu Han, Xin Xia, Hao Xiang, and Jiaqi Ma. Opencda: an open cooperative driving automa-tion framework integrated with co-simulation. In 2021 IEEE International Intelligent Transportation Systems Conference (ITSC) , pages 1155–1162. IEEE, 2021. 3 [54] Runsheng Xu, Hao Xiang, Zhengzhong Tu, Xin Xia, Ming-Hsuan Yang, and Jiaqi Ma. V2x-vit: Vehicle-to-everything cooperative perception with vision transformer. In European conference on computer vision , pages 107–124. Springer, 2022. 1, 3, 5, 6, 7 [55] Runsheng Xu, Hao Xiang, Xin Xia, Xu Han, Jinlong Li, and Jiaqi Ma. Opv2v: An open benchmark dataset and fusion pipeline for perception with vehicle-to-vehicle communica-tion. In 2022 International Conference on Robotics and Au-tomation (ICRA) , pages 2583–2589. IEEE, 2022. 1, 2, 3, 6, 7, 8 [56] Runsheng Xu, Zhengzhong Tu, Hao Xiang, Wei Shao, Bolei Zhou, and Jiaqi Ma. Cobevt: Cooperative bird’s eye view semantic segmentation with sparse transformers. In Confer-ence on Robot Learning , pages 989–1000. PMLR, 2023. 1, 3, 5, 6, 7 [57] Runsheng Xu, Xin Xia, Jinlong Li, Hanzhao Li, Shuo Zhang, Zhengzhong Tu, Zonglin Meng, Hao Xiang, Xiaoyu Dong, Rui Song, Hongkai Yu, Bolei Zhou, and Jiaqi Ma. V2v4real: A real-world large-scale dataset for vehicle-to-vehicle coop-erative perception. In CVPR , pages 13712–13722, 2023. 3 [58] Runsheng Xu, Xin Xia, Jinlong Li, Hanzhao Li, Shuo Zhang, Zhengzhong Tu, Zonglin Meng, Hao Xiang, Xiaoyu Dong, Rui Song, et al. V2v4real: A real-world large-scale dataset for vehicle-to-vehicle cooperative perception. In CVPR ,pages 13712–13722, 2023. 1 [59] Junjie Yan, Yingfei Liu, Jianjian Sun, Fan Jia, Shuailin Li, Tiancai Wang, and Xiangyu Zhang. Cross modal trans-former: Towards fast and robust 3d object detection. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 18268–18278, 2023. 2 [60] Yan Yan, Yuxing Mao, and Bo Li. SECOND: Sparsely Em-bedded Convolutional Detection. Sensors , 18, 2018. 2 [61] Kun Yang, Dingkang Yang, Jingyu Zhang, Mingcheng Li, Yang Liu, Jing Liu, Hanqi Wang, Peng Sun, and Liang Song. Spatio-temporal domain awareness for multi-agent collabo-rative perception. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 23383–23392, 2023. 1, 3, 6, 7 [62] Zetong Yang, Yanan Sun, Shu Liu, and Jiaya Jia. 3DSSD: Point-Based 3D Single Stage Object Detector. In CVPR ,2020. 2 [63] Hanrong Ye and Dan Xu. Diffusionmtl: Learning multi-task denoising diffusion model from partially annotated data. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition , pages 27960–27969, 2024. 5 [64] Haibao Yu, Yizhen Luo, Mao Shu, Yiyi Huo, Zebang Yang, Yifeng Shi, Zhenglong Guo, Hanyu Li, Xing Hu, Jirui Yuan, et al. Dair-v2x: A large-scale dataset for vehicle-infrastructure cooperative 3d object detection. In CVPR ,pages 21361–21370, 2022. 1, 3 [65] Gang Zhang, Junnan Chen, Guohuan Gao, Jianmin Li, Si Liu, and Xiaolin Hu. Safdnet: A simple and effective net-work for fully sparse 3d object detection. In CVPR , pages 14477–14486, 2024. 1, 2 [66] Binyu Zhao, Wei ZHANG, and Zhaonian Zou. Bm2cp: Effi-cient collaborative perception with lidar-camera modalities. In Conference on Robot Learning , pages 1022–1035. PMLR, 2023. 1, 3 [67] Lianqing Zheng, Sen Li, Bin Tan, Long Yang, Sihan Chen, Libo Huang, Jie Bai, Xichan Zhu, and Zhixiong Ma. Rc-fusion: Fusing 4-d radar and camera with bird’s-eye view features for 3-d object detection. IEEE Transactions on In-strumentation and Measurement , 72:1–14, 2023. 1 [68] Walter Zimmer, Gerhard Arya Wardana, Suren Sritharan, Xingcheng Zhou, Rui Song, and Alois C Knoll. Tumtraf v2x cooperative perception dataset. In CVPR , pages 22668– 22677, 2024. 1 27400

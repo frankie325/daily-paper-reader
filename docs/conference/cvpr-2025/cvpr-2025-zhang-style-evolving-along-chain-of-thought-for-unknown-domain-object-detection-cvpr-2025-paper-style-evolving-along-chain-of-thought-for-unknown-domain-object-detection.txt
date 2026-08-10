@@ -1,0 +1,315 @@
+Title: Style Evolving along Chain-of-Thought for Unknown-Domain Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhang_Style_Evolving_along_Chain-of-Thought_for_Unknown-Domain_Object_Detection_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 00:58:04 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Style Evolving along Chain-of-Thought for Unknown-Domain Object Detection 
+
+## Zihao Zhang 1, Aming Wu 2, Yahong Han 1* 1College of Intelligence and Computing, Tianjin University, Tianjin, China 
+
+> 2
+
+## School of Electronic Engineering, Xidian University, Xi’an, China   
+
+> zhangzihao2490@tju.edu.cn, amwu@xidian.edu.cn, yahong@tju.edu.cn
+
+## Abstract 
+
+Recently, a task of Single-Domain Generalized Object De-tection (Single-DGOD) is proposed, aiming to generalize a detector to multiple unknown domains never seen before during training. Due to the unavailability of target-domain data, some methods leverage the multimodal capabilities of vision-language models, using textual prompts to estimate cross-domain information, enhancing the model’s gener-alization capability. These methods typically use a single textual prompt, referred to as the one-step prompt method. However, when dealing with complex styles, such as the combination of rain and night, we observe that the perfor-mance of the one-step prompt method tends to be relatively weak. The reason may be that many scenes incorporate a single style and a combination of multiple styles. The one-step prompt method may not effectively synthesize combined information involving various styles. To address this limita-tion, we propose a new method, i.e., Style Evolving along Chain-of-Thought, which aims to progressively integrate and expand style information along the chain of thought, enabling the continual evolution of styles. Specifically, by progressively refining style descriptions and guiding the di-verse evolution of styles, this method enhances the simula-tion of various style characteristics, enabling the model to learn and adapt to subtle differences more effectively. Ad-ditionally, it exposes the model to a broader range of style features with different data distributions, thereby enhancing its generalization capability in unseen domains. The signif-icant performance gains over five adverse-weather scenar-ios and the Real to Art benchmark demonstrate the supe-riorities of our method. Our code is available at https: //github.com/ZZ2490/SE-COT .
+
+## 1. Introduction 
+
+Single-domain generalization (DG) [2, 7, 34] aims to train a model on source domains to generalize to unseen target domains, posing a greater challenge than standard domain 
+
+> *Corresponding author.
+> Figure 1. Style evolution along Chain-of-Thought involves a pro-cess that progresses from coarse to fine, continuously refining and expanding styles. (a) illustrates the style description guided by the Chain-of-Thought. (b) demonstrates how using text prompts rang-ing from simple to complex guides style evolution, enabling the model to progressively learn and adapt to subtle differences be-tween styles.
+
+generalization. Though widely studied in image classifica-tion [15, 24, 32], it remains a developing area in object de-tection [10, 35]. Currently, there are two mainstream solu-tions. Firstly, decoupling domain-invariant features through self-supervised methods enhances the model’s generaliza-tion ability in the target domain, such as [38, 39]. Sec-ondly, some approaches utilize textual prompts to estimate cross-domain information, enhancing the model’s general-ization capability. Specifically, by employing a single tex-tual prompt, these methods leverage the multimodal capa-bilities of vision-language models to simulate target domain styles [3, 9] or estimate domain shifts [33], thereby im-proving the model’s detection performance in the target do-main. This approach typically employs a single-step textual prompt, hence referred to as the one-step prompt method. Presently, one-step prompt methods have achieved state-of-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 14225 the-art performance in Single-domain generalization for im-age classification [15, 21, 24], object detection [10, 29, 35], and semantic segmentation [5, 17, 41]. Existing one-step prompt methods typically rely on single-step prompts to estimate cross-domain information. These prompts often contain basic, essential information, such as ‘driving on a rainy night’. For example, C-GAP [33] and PODA [9] utilize textual descriptions of weather and time to estimate domain shifts and simulate styles across different domains, aiming to improve the model’s general-ization in unknown domains. However, in complex scenar-ios, such as combinations of styles like rainy and night, the performance of one-step prompts tends to be limited. This limitation arises because one-step prompts struggle to effec-tively synthesize combined information involving multiple styles. For instance, an image of driving on a rainy night in-cludes multiple style features. Using one-step prompt meth-ods for style generation in such cases often results in overly simplistic style effects, which fail to accurately capture the true style of real-world scenarios. To address the limitation, we propose a new method, i.e., Style Evolving along Chain-of-Thought, which aims to pro-gressively integrate and expand style information along the chain of thought, enabling continuous style evolution. This method not only provides a more accurate simulation of the true styles in real-world scenarios but also helps the model gradually learn and adapt to the subtle differences between various styles, thereby enhancing its generalization capabil-ity in unseen domains. Specifically, as illustrated in Fig. 1 (a), we use text prompts that evolve from simple to com-plex, rough to refined, and partial to holistic to guide the style evolution. In the absence of target-domain data, this approach allows for the gradual accumulation and fusion of multiple styles while continuously expanding style di-versity, as shown in Fig. 1 (b). Since the category space remains consistent between the target and source domains, with differences mainly in the style space, the model can progressively learn and adapt to the subtle differences be-tween styles during the style evolution process. Addition-ally, exposing the model to a wide range of style features with different data distributions during training can robustly adapt to various styles, thereby improving its generalization ability in unknown domains. To more effectively simulate styles during training and minimize substantial semantic in-formation loss, we decouple style features and exclusively perform style evolution of these style features. This ap-proach effectively achieves style evolution while alleviating the impact of style transfer on class-related features. Fur-thermore, we introduce a novel concept, the Class-Specific Prototype, designed to capture class-related semantic fea-tures. This prototype captures inherent invariant character-istics across different categories, thereby enriching seman-tic features. It also acts as a supervisory signal, guiding the disentanglement process more effectively and facilitat-ing the separation of class-related features. The significant performance gains over five adverse-weather scenarios and the Real to Art benchmark demonstrate the superiorities of our method. To summarize, our contributions are as follows: • We propose a new method, i.e., Style Evolving along Chain-of-Thought, which aims to progressively sim-ulate styles with different data distributions, enhancing the model’s generalization capability in unseen domains. • We achieve accurate style evolution by introducing fea-ture disentanglement and Class-Specific Prototypes while avoiding the loss of class-related semantic information. • We evaluate the efficacy of our proposed approach across five diverse weather-driving scenarios and Real to Art benchmarks, achieving state-of-the-art performance. 
+
+## 2. Relate Work 
+
+2.1. Single-Domain Generalization 
+
+Single Domain Generalization (SDG), a more challeng-ing research topic in the domain generalization field, can achieve strong generalization across multiple unseen tar-get domains with training solely on a source domain. This makes SDG a precious research area, particularly for sce-narios where obtaining data in extreme conditions is chal-lenging. Currently, SDG research is well-established in image classification, such as [28, 37] which improves the model’s generalization on the target domain by introduc-ing data augmentation strategies and employing adversar-ial training to generate diverse input images. SDG is also explored in the field of semantic segmentation, such as [9, 19, 25]. While SDG tasks have shown impressive results in image classification and semantic segmentation, they haven’t been thoroughly investigated in the field of object detection. Single-DGOD [38] is the first method proposed for single-domain generalization tasks in object detection, contributing an excellent dataset and an effective method. It employs Cyclic-Disentangled Self-Distillation to extract domain-invariant and domain-specific features, enhancing generalization to the target domain. These methods enhance the generalization performance in the target domain through data augmentation or extracting domain-invariant features, without incorporating text prompts. 
+
+2.2. Prompt-driven Single-Domain Generalization 
+
+The contrastive image-language pretraining model CLIP has recently achieved remarkable success in multimodal learning, supporting diverse downstream tasks like zero-shot image synthesis [12, 20], visual commonsense rea-soning [14], semantic segmentation [8], open-vocabulary object detection [42], and few-shot learning [36]. Mean-while, text prompt-based methods have achieved state-of-the-art performance in Single-domain generalization for im-14226 Figure 2. The overall architecture of the model. Leveraging contrastive loss and two consistency losses, we disentangle the first-layer features into content and style features. For style features, the CGSE module is employed to obtain style transfer parameters for style migration. Regarding content features, semantic enhancement is performed through class-specific prototypes. Ultimately, these two features are fused and input into the backbone network to generate features from layers 2 to 4. The output is then fed into the Region Proposal Network (RPN) for subsequent target localization and classification tasks. 
+
+age classification [15, 24, 32], object detection [10, 35], and semantic segmentation [17, 41]. For instance, PODA [9] achieves zero-shot domain adaptation in semantic segmen-tation through a prompting approach and exhibits promising results in the single-domain generalization domain. Most existing methods [9, 33] use simple text prompts, or one-step prompting, to obtain prior knowledge of the target domain. Although straightforward, this approach often fails to capture the target domain’s complex characteris-tics and diverse styles. To address this issue, we propose a new method, i.e., Style Evolving along Chain-of-Thought, which aims to leverage the chain of thought to progressively simulate styles with different data distributions. 
+
+## 3. Method 
+
+This paper explores leveraging the multimodal capabilities of vision-language models to address single-domain gen-eralization in object detection. The framework consists of two main components: the first, style evolution, is detailed in Section 3.1, while the second, style transfer, is illustrated in Fig. 2. 
+
+3.1. Chain of Thought-Guided Style Evolution 
+
+The parameters for style evolution are trained indepen-dently in a dedicated phase and repeated multiple times throughout the training process to ensure accurate style sim-ulation. As shown in Fig. 3, we use images from the source domain to generate image descriptions, achievable with any image captioning model. We enhanced a traditional image captioning model [40] to generate only words pertinent to the image, selecting the most relevant terms such as ‘sunny,’ ‘day,’ and ‘realistic.’ We then leverage ChatGPT [1] to generate supplemen-tary descriptions from these keywords, creating distinct vo-cabularies for weather descriptions like ‘rainy’ and ‘foggy,’ and style descriptions like ‘anime’ and ‘art.’ This set is de-noted as W = {W1, W 2, . . . , W n}, where n represents the number of vocabularies. Specifically, we construct five vo-cabularies: weather, time, style, action, and detail. From each vocabulary, we randomly select one word, denoted as 
+
+W ir , and then use CLIP for text feature extraction and ini-tial style fusion. This process yields the foundational tex-tual features for the initial stage of style evolution, F 1 
+
+> t
+
+, as illustrated below: 
+
+F 1 
+
+> t
+
+=
+
+> n
+
+X
+
+> i=1
+
+Etext (W ir ). (1) Subsequently, we use ChatGPT[1] to combine these words into phrases, denoted as Pr . For example, ‘Driving down the road on a rainy night’ and ‘An art-style portrait im-age.’ We also integrate multiple styles to create a complex description that seamlessly fits into real-world scenarios. Next, we extract features from the composed description 
+
+Pr and add them to the text features F 1 
+
+> t
+
+obtained in the first step: 
+
+F 2 
+
+> t
+
+= Etext (Pr ) + F 1 
+
+> t
+
+. (2) Next, we incorporate detailed stylistic descriptions into the existing phrases, obtaining a complete sentence Sr describ-ing the scene. This allows for style expansion based on the existing styles, simulating a richer variety of style features with different data distributions. Following this, feature ex-traction is conducted on Sr , and the outcomes are amalga-mated with the previously extracted features F 2 
+
+> t
+
+. This iter-ative process yields increasingly refined textual features F 3      
+
+> t14227 Figure 3. Complex Style Evolution: By using text prompts that progress from simplicity to complexity, the style is continuously evolved and expanded, thereby simulating a richer variety of style features with different data distributions. Parameters μtand σtare trained using consistency loss, aligning the text features with the source domain visual features, and are subsequently utilized for style evolution.
+
+for guiding subsequent style evolution: 
+
+F 3 
+
+> t
+
+= Etext (Sr ) + F 2 
+
+> t
+
+. (3) After obtaining refined textual features F 3 
+
+> t
+
+, we employ a visual feature extractor to extract source features Fs from source domain images. By utilizing the first-layer fea-tures of the backbone, we perform style evolution. Here, we adopt the concept of Adaptive Instance Normalization (AdaIN) [13] for style evolution. Initially, source features 
+
+Fs undergo normalization, resulting in normalized features 
+
+F ′
+
+> s
+
+, where μ(Fs) and σ(Fs) represent the mean and vari-ance calculations along the channel dimension of the source domain feature Fs:
+
+F ′ 
+
+> s
+
+= Fs − μ(Fs)
+
+σ(Fs) . (4) Subsequently, we utilize textual features to train two learnable parameters μt and σt for performing style evo-lution on the visual features F ′ 
+
+> s
+
+of the source domain. Per-forming style evolution using source domain visual features allows the model to encounter style features with different data distributions during the training phase, enhancing the feature’s generalization across different domains: 
+
+Fi = σt(F ′
+
+> s
+
+) + μt. (5) By calculating the cosine similarity along the channel dimension between textual features F 3 
+
+> t
+
+and visual features 
+
+Fi, we compute the consistency loss Ltc :
+
+Ltc = 1 − sim (Fi, F 3 
+
+> t
+
+), (6) where sim(a , b) denotes the average of the cosine similarity between all corresponding elements of feature maps a and b. Through iterative updates, the two parameters μt and σt, are continuously refined. In the end, we obtain the parameters for source domain image style evolution. 
+
+3.2. Style Disentangled Module 
+
+To avoid losing significant semantic information during the style transfer process, we initially decouple the features of the first layer and then perform style evolution exclusively on the style features. We have designed two feature extrac-tors EStyle and EContent for extracting style features Fs
+
+and content features Fc separately. Since style evolution is conducted on the first-layer features, here F1 represents the first-layer feature map. The process is as follows: 
+
+Fs = EStyle (F1) , F c = EContent (F1) . (7) To better ensure the extraction of style and content fea-tures and to ensure their more thorough decoupling, we em-ploy three types of losses for supervision. Firstly, we use contrastive loss Ld to ensure a more thorough decoupling of style and content features. For the sake of simplicity in notation, let sim(a , b) denote the average of the cosine sim-ilarity between all corresponding elements of feature maps a and b. The contrastive loss Ld is defined as follows: 
+
+Ld = −(log exp( sim (F1, F s)/τ )
+
+P1 
+
+> j=0
+
+exp ( sim (F1, P [j]) /τ ) ), (8) where P = [ Fs, F c], and τ is a hyperparameter. In the ex-periments, τ is set to 1.0. Additionally, we utilize textual prompts F st from the source domain to supervise decou-pling the style features, aiming to decouple the style fea-tures Fs consistent with the source domain text descriptions 
+
+F st . We apply consistency loss Lsc to constrain the fea-ture decoupling, using it to represent the textual features of the source domain descriptions and to denote the decoupled style features Fs. The consistency loss is computed between these two representations Fs and F st . The consistency loss 
+
+Lsc is defined as follows: 
+
+Lsc = 1 − sim (Fs, F st ) . (9) Regarding content features, we aim to incorporate more class-specific information. Therefore, we introduce a novel prototype, the class-specific prototype, to cluster class-specific relevant features. Detailed descriptions of this ap-proach will be provided in Section 3.3. In this section, we obtain the Class-Specific Prototype Fp through clustering high-level features and then downsample it to the same di-mension as Fc to supervise the decoupling of content fea-tures, as shown below: 
+
+Lgc = 1 − sim (Down (Fp), F c) , (10) where Down represents the downsampling operation. This ensures that the content features include more class-related semantic characteristics. 14228 3.3. Class-Specific Prototype Clustering Module 
+
+The acquisition of Class-Specific prototypes is optimized by capturing distinctive invariant features for each class. We employ the Class-Specific Prototype Clustering Module to effectively cluster Class-Specific prototypes, denoted as Fp.These prototypes act as supervisory signals, aiding in style decoupling and enhancing content features. The Class-Specific Prototype Clustering Module begins with 2-norm normalization of the input feature map F ,followed by dimensionality reduction through convolution. The convolutional layer calculates scores, known as soft as-signment probabilities, for each pixel in the feature map rel-ative to a set of K prototypes. These probabilities are then normalized using the SoftMax function, resulting in θ:
+
+θ = ConvSof t (L2( F )) . (11) The number of Class-Specific Prototypes denoted as K,is a hyperparameter matching the number of classes in the dataset. Dimensionality reduction aligns the number of channels with K. Scores for each pixel, corresponding to 
+
+K prototypes, are converted into a tensor with the same spa-tial dimensions as the input feature map. The input feature map is reshaped to (N, C, H * W). During initialization, a learnable 2D tensor of cluster centers with dimensions (K, C) is created and expanded to (N, K, C), referred to as sp .Residuals between each prototype and pixel are computed and weighted by the soft assignment probabilities. The cal-culation process is as follows: 
+
+F 1 
+
+> p
+
+= θ(Resize (θ) − Resize (sp )) . (12) The residuals are summed to produce the weighted resid-uals for each prototype, resulting in a tensor with shape (N, K, C). After applying 2-norm normalization, the weighted residuals are reshaped to (N, K * C) along the final dimen-sion. The process is as follows: 
+
+F 2 
+
+> p
+
+= L2( Resize (L2  sum  F 1
+
+> p
+
+ )) . (13) The weighted residuals F 2 
+
+> p
+
+are then passed to the fully connected layer, and the output tensor is reshaped to (N, K, C) and then expanded to the original spatial dimensions of the input feature map to obtain F 3 
+
+> p
+
+, which is then returned along with the cluster center centroid: 
+
+F 3 
+
+> p
+
+= Resize (Linear  F 2
+
+> p
+
+). (14) Furthermore, the F 3 
+
+> p
+
+is concatenated with the input fea-ture map F along the channel dimension and then reduced back to its original channel dimension using convolution: 
+
+Fp = Conv (Cat  F, F 3
+
+> p
+
+), (15) this results in the prototype-enhanced feature map Fp,which better highlights the features of the foreground. 
+
+## 4. Experiments 
+
+In the experiments, for SDG, we follow the settings of the work [38] to validate the model’s generalization capabil-ity. Additionally, to further verify the effectiveness of our method, we evaluated the model on the Reality-to-Art gen-eralization benchmark. 
+
+4.1. Experimental setup 
+
+Dataset. The entire experiment is structured around two benchmarks. Diverse Driving Weather Scenarios. For training, we exclusively use a dataset [38] of daytime sunny images, comprising 19,395 images and 8,313 images for validation and subsequent model selection. After train-ing the model on the source domain data, we directly test its performance on the target domain, which includes four distinct weather conditions: 26,158 images of clear night scenes, 3,501 images of rainy scenes at dusk, 2,494 im-ages of rainy scenes at night, and 3,775 images of foggy scenes during the daytime. The category space is consistent across all five datasets, including seven classes: bus, bicy-cle, car, motor, person, rider, and truck. Generalization from Reality to Art. During training, as in [18], the Pascal VOC2007 and VOC2012 trainval sets are used as the train-ing datasets. The method’s generalization ability to unseen domains is evaluated on the Clipart1k, Watercolor2k, and Comic2k datasets. The Clipart dataset shares the same 20 classes as Pascal VOC, while Watercolor2k and Comic2k consist of 6 classes each, which are subsets of the Pascal VOC classes. 
+
+Metric. For a fair comparison with other methods, we employ the same evaluation metric parameters as other S-DGOD methods, measuring our model’s performance us-ing the mean Average Precision (mAP) metric with an Intersection-over-Union (IoU) threshold of 0.5. For differ-ent test datasets, we assess the mAP@0.5 for all categories in the dataset to evaluate the generalization performance of our model across various scenes and classes. 
+
+4.2. Implementation Details 
+
+To evaluate the effectiveness of our method, we use the same baseline model, Faster R-CNN [31], as employed in other S-DGOD approaches. To thoroughly assess the model’s generalization capability, we present detection re-sults using three different backbones, as shown in Table 1 and Table 2. The detector is initialized with pre-trained weights from CLIP [30], and during training, the weights of layers 1 through 3 remain frozen. 
+
+Style Evolution Stage. We enhanced a traditional im-age captioning model [40] to generate only words related to the image and select the most relevant terms, such as ‘sunny,’ ‘day,’ and ‘realistic.’ Any image captioning model can be used as a substitute here. Then we use ChatGPT [1] to generate related words, forming multiple vocabularies. 14229 Table 1. Single-Domain Generalization Results (mAP(%)) in Di-verse Weather Driving Scenarios. The bold sections represent the best results.                                                                      
+
+> Method mAP Day Clear Night Sunny Dusk Rainy Night Rainy Day Foggy Faster R-CNN(Res101) [31] 48.1 34.4 26.0 12.4 32.0 SW [27] 50.6 33.4 26.3 13.7 30.8 IBN-Net [26] 49.7 32.1 26.1 14.3 29.6 IterNorm [16] 43.9 29.6 22.8 12.6 28.4 ISW [4] 51.3 33.2 25.9 14.1 31.8 S-DGOD (Res101)[38] 56.1 36.6 28.2 16.6 33.5 C-Gap (Res101)[33] 51.3 36.9 32.3 18.7 38.5 PDOC (Res101)[22] 53.6 38.5 33.7 19.2 39.1 UFR (Res101)[23] 58.6 40.8 33.2 19.2 39.6 DIV (Res101) [6] 52.8 42.5 38.1 24.1 37.2 Ours(Res50) 48.4 33.5 28.6 16.1 36.9 Ours(Res101) 55.4 42.0 39.2 24.5 40.6 Ours(Swin) 64.4 52.7 49.5 33.7 44.9
+
+We construct five vocabularies: weather, time, style, action, and detail. In the first phase of style evolution, we randomly select a word from multiple vocabularies, such as ‘rainy’ or ‘anime,’ and use a text encoder to extract features, obtaining initial text features. In the second phase, we leverage Chat-GPT to generate phrases, such as ‘driving down the road on a rainy night’ or ‘an anime-style image.’ Finally, we ex-tract words from the detail vocabulary, such as ‘pedestrian’ and ‘motorcycle,’ to further enrich the descriptions, creat-ing more refined style texts. These style text features are combined with the features obtained in the second phase to achieve progressively evolved style features. Using the final style features, we learn two sets of style parameters, denoted as μt and σt, each consisting of 256 learnable chan-nels. We use the stochastic gradient descent optimizer for parameter optimization, with a learning rate of 1.0, a mo-mentum of 0.9, and a weight decay of 0.0005. Training is conducted on a single 3090 GPU with a batch size of 2. 
+
+Style Transfer Stage. In each training iteration, we ran-domly select one set of learned style parameters from mul-tiple sets for style transfer, simulating the style space of the target domain. For the decoupled style features, we apply style transfer using randomly selected style parameters μt
+
+and σt. Additionally, we utilize Class-Specific prototypes for semantic enhancement of the content features. After ob-taining the transferred style features and enhanced content features, we merge them and input them into the backbone network for feature extraction at layers 2-4. Subsequently, we pass them through the Region Proposal Network (RPN) for subsequent classification and localization tasks. 
+
+4.3. Comparison with the State of the Art 
+
+Diverse Driving Weather Scenarios. We compared our method with the current state-of-the-art S-DGOD method, as shown in Table 1. Using the same backbone network, our method achieved the best results across four unknown tar-get domains. Additionally, we reported the model’s detec-tion performance with different backbone networks. When using SwinTransformer as the backbone, the accuracy of our method was further improved. Figure 5 shows the de-
+
+Table 2. Single-Domain Generalization Results (mAP(%)) from Real to Artistic. The bold represent the best results. 
+
+Method mAP VOC Comic Watercolor Clipart Faster R-CNN(Res101)[31] 80.4 19.4 45.6 26.5 NP(Res101)[11] 79.2 28.9 53.3 35.4 C-Gap(Res101)[33] 80.5 29.4 50.7 36.7 DIV[6] 80.1 33.2 57.4 38.9 Ours(Res50) 78.5 29.4 53.2 34.7 Ours(Res101) 82.9 34.8 57.5 40.2 Ours(Swin) 87.6 36.9 60.7 42.5 
+
+tection results in target domains. The results indicate that our model excels under challenging and low-visibility con-ditions, such as rainy nights, accurately identifying objects that are difficult for the human eye to discern. 
+
+Generalization from Reality to Art. We evaluate our method on the challenging domain shift from reality to artistic benchmark, where the distribution shift is substan-tial, particularly from PASCAL VOC to Clipart, Watercolor, and Comic. As shown in Table 2, our model, using the same ResNet-101 backbone, achieves the best performance across these three target domains, thereby validating its gen-eralization capability to unknown target domains. Com-pared to the one-step prompt method C-Gap, our method improves performance by 18%, 13%, and 9% on the Comic, Watercolor, and Clipart datasets, respectively. This demon-strates that our approach facilitates better style evolution, enabling the model to handle a broader range of data distri-butions during training and thereby enhancing its general-ization performance on unseen domains. 
+
+Table 3. Per-class results (%) on Day Foggy. The bold sections 
+
+represent the best results.                                                                 
+
+> Method AP mAP Bus Bike Car Motor Person Rider Truck All Faster R-CNN [31] 28.10 29.70 49.70 26.30 33.20 35.50 21.50 32.00 S-DGOD [38] 32.90 28.00 48.80 29.80 32.50 38.20 24.10 33.50 C-Gap [33] 36.10 34.30 58.00 33.10 39.00 43.90 25.10 38.50 PDOC [22] 36.10 34.50 58.40 33.30 40.50 44.20 26.20 39.10 UFR [23] 36.90 35.80 61.70 33.70 39.50 42.20 27.50 39.60 Ours(Res101) 39.33 36.28 60.82 33.79 39.41 42.68 31.77 40.58 Ours(Swin) 42.11 38.32 62.79 40.75 47.48 48.04 35.41 44.99
+
+Daytime Clear to Day Foggy. Compared to clear weather, foggy conditions introduce even more severe oc-clusion, especially in dense fog scenarios. The perfor-mance of different object categories varies significantly un-der dense fog, posing a significant challenge to detection tasks. As shown in Table 3, our model outperforms all existing state-of-the-art single-domain generalization ob-ject detection methods, including C-Gap [33], PDOC [22], and UFR [23] across almost all categories. This remark-able achievement not only further demonstrates our supe-rior generalization performance in foggy conditions but also validates the robustness of our model in extreme scenarios. Since the DIV[6] method does not report the AP values for 14230 Figure 4. Qualitative Results : Detection results on different weather conditions. The first and second rows display the results from C-GAP [33] and our method. Objects highlighted in red boxes represent those missed by C-GAP [33] but correctly identified by our method. Table 4. Per-class results (%) on Dusk Rainy. The bold sections 
+
+represent the best results.                                                                 
+
+> Method AP mAP Bus Bike Car Motor Person Rider Truck All Faster R-CNN [31] 28.50 20.30 58.20 6.50 23.40 11.30 33.90 26.00 S-DGOD [38] 37.10 19.60 50.90 13.40 19.70 16.30 40.70 28.20 C-Gap [33] 37.80 22.80 60.70 16.80 26.80 18.70 42.40 32.30 PDOC [22] 39.40 25.20 60.90 20.40 29.90 16.50 43.90 33.70 UFR [23] 37.10 21.80 67.90 16.40 27.40 17.90 43.90 33.20 Ours(Res101) 45.75 19.20 74.32 23.43 35.81 22.14 53.47 39.16 Ours(Swin) 57.34 40.23 76.76 28.36 50.03 32.66 60.80 49.45
+
+the seven categories under different weather conditions, we are unable to make a comparison with it. 
+
+Daytime Clear to Dusk Rainy. From Fig. 5, it can be observed that in dusk rainy conditions, raindrops cause par-tial occlusion and the insufficient lighting further increases the overall detection difficulty. As shown in Table 4, our method significantly outperforms other approaches in the Dusk Rainy scenario, demonstrating its superiority in ex-treme conditions. 
+
+Generalization from Reality to Comic. We evaluate the generalization ability of our method in transferring from real domains to artistic domains, where the data distribu-tion differences are more significant compared to various weather datasets. This includes generalization scenarios from PASCAL VOC to Clipart, Watercolor, and Comic datasets. Table 5 shows the generalization results from PASCAL VOC to the Comic style dataset. As observed from the table, using the same Res101 backbone network, our method achieves an 18% improvement on the Comic style dataset. This validates the generalization capability of our approach across different style target domains. Our study demonstrates that employing a Chain-of-Thought ap-proach to guide style evolution enables the model to grad-ually learn and adapt to subtle differences between styles during the evolution process. Additionally, by simulating a wide range of style features with varying data distribu-tions during training, we significantly enhance the model’s robustness and generalization ability in unknown domains. 
+
+Table 5. Per-class results (%) on VOC to Comic. The bold sec-tions represent the best results.                                                  
+
+> Method AP mAP Bike Bird Car Cat Dog Person All Faster R-CNN[31] 36.50 8.60 25.90 9.20 10.80 25.20 19.37 NP[11] 42.44 18.25 38.79 17.33 24.29 32.18 28.88 C-Gap[33] 41.98 15.94 41.97 18.77 24.60 33.26 29.42 DIV[6] 54.10 16.90 30.10 25.00 27.40 45.90 33.20 Ours(Res101) 47.00 22.99 44.95 20.91 29.42 43.63 34.82 Ours(Swin) 47.73 21.72 47.60 23.27 30.78 50.42 36.92
+
+4.4. Ablation Study 
+
+To validate the effectiveness of each module in our method, we performed ablation studies. The framework consists of several components: Chain-of-Thought-Guided Style Evo-lution, Style Disentanglement Module, and Class-Specific Prototype Clustering Module. We also compared our Chain-of-Thought approach with a one-step generation method to highlight its advantages. Table 6 shows the baseline method in the first row. The second row il-lustrates the one-step prompt method, where a complete prompt is provided, such as ‘Driving on a rainy night, heavy rain pouring down, with some pedestrians and vehicles on the road.’ The third row demonstrates Chain-of-Thought-Guided Style Evolution. The fourth row features our Style Disentanglement Module, which enhances style features. The fifth row incorporates Class-Specific Prototypes, fur-ther improving content features and supervising the disen-tanglement process. The results confirm that the Style Dis-entanglement Module and Class-Specific Prototypes are ef-fective and that Chain of Thought significantly improves generalization to unseen domains compared to the one-step prompt approach. 
+
+The Impact of the Chain of Thought Hierarchy. Our style evolution guidance currently employs a three-tiered chain of thought, progressing from individual words to phrases, and finally to sentences, to gradually guide style development. Additionally, we evaluated the impact of dif-ferent chain-of-thought levels on model performance, as shown in Figure 6. Level 1 represents the one-step prompt method, where all necessary information is provided in a single prompt, such as “Driving on a rainy night, heavy 14231 Figure 5. Visualization analysis of our method : The first column shows the model’s detection results. The second column visualizes the features with style evolution using a one-step method, while the third and fourth columns represent style evolution guided by two-level and three-level chains of thought, respectively. The feature heatmaps show that as the chains of thought progress, the model increasingly focuses on foreground objects, validating the effectiveness of the method. Table 6. Ablation analysis (%) of our proposed method. One-step represents the method using single-step prompts for style genera-tion. CGSE represents the approach employing a chain of thought-guided styles evolving. SDM denotes style disentanglement, while CPCM signifies class-specific prototype semantic enhancement.                                                   
+
+> Method Source Target Baseline One-step CGSE SDM CPCM Day Clear Night Clear Dusk Rainy Night Rainy Day Foggy
+> ✓49.6 34.7 25.7 11.8 28.4
+> ✓✓52.4 36.9 28.9 14.7 32.1
+> ✓✓54.2 40.7 31.2 17.9 35.7
+> ✓✓✓54.7 40.2 32.8 20.6 36.2
+> ✓✓✓56.2 42.4 36.4 22.6 38.6
+> ✓✓✓✓55.4 42.0 39.2 24.5 40.6
+
+rain poured down, with some pedestrians and vehicles on the road.” Level 2 moves from words to phrases, simplify-ing the three-step prompt. Level 4 builds on Level 3 with added detail, while Level 5 introduces sentence templates, such as ‘a hard-to-see photo of a .’ or ‘a bright photo of a .’ However, likely due to limitations in current language model encoding capabilities, the three-tiered chain achieved the best results. With increasing levels, model performance decreased, potentially due to the influence of excessive in-formation on style evolution. 
+
+4.5. Visualization Analysis 
+
+In Figure 5, we present a comprehensive visual analysis of our method, primarily using heatmap visualizations to vali-date the effectiveness of style evolution guided by the chain of thought. The first column displays the model’s detec-tion results, directly reflecting its performance. The sec-ond column shows style transfer using a one-step prompt method. The third and fourth columns represent style evo-lution guided by two-level and three-level chain of thought, respectively. Figure 5 demonstrates that as the chain of thought levels progresses, the model’s focus on the tar-get significantly increases, with feature maps containing richer target information and reduced background interfer-
+
+Figure 6. Analysis of Chain of Thought Hierarchy. Different levels represent the use of various the Chain of Thought Hierarchies. 
+
+ence. This confirms that gradual guidance through chains of thought enables the model to encounter a wider range of data distributions during training, enhancing its generaliza-tion to unseen target domains. 
+
+## 5. Conclusion 
+
+For the Single-DGOD task, we propose a new method, i.e., Style Evolving along Chain-of-Thought, which con-tinuously layers, integrates, and expands styles using text prompts that range from simple to complex and from coarse to fine-grained. This approach allows the model to en-counter a richer variety of style features with different data distributions during training, thereby enhancing its gener-alization capability in unseen domains. Additionally, we introduce a Style Disentangled Module and Class-Specific Prototype to effectively perform style evolution. Experi-mental results show that our method outperforms others in detection across driving weather scenarios and Real-to-art benchmarks, validating its effectiveness. 14232 Acknowledgment. This work is supported by the National Nature Science Foundation of China (Nos. 62376186, 62472333). 
+
+## References 
+
+[1] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Lan-guage models are few-shot learners. Advances in neural in-formation processing systems , 33:1877–1901, 2020. 3, 5 [2] Yuhua Chen, Wen Li, Christos Sakaridis, Dengxin Dai, and Luc Van Gool. Domain adaptive faster r-cnn for object de-tection in the wild. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 3339–3348, 2018. 1 [3] Junhyeong Cho, Gilhyun Nam, Sungyeon Kim, Hunmin Yang, and Suha Kwak. Promptstyler: Prompt-driven style generation for source-free domain generalization. In Pro-ceedings of the IEEE/CVF International Conference on Computer Vision , pages 15702–15712, 2023. 1 [4] Sungha Choi, Sanghun Jung, Huiwon Yun, Joanne T. Kim, Seungryong Kim, and Jaegul Choo. Robustnet: Improving domain generalization in urban-scene segmentation via in-stance selective whitening. In 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021. 6[5] Sungha Choi, Sanghun Jung, Huiwon Yun, Joanne T Kim, Seungryong Kim, and Jaegul Choo. Robustnet: Improving domain generalization in urban-scene segmentation via in-stance selective whitening. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 11580–11590, 2021. 2 [6] Muhammad Sohail Danish, Muhammad Haris Khan, Muhammad Akhtar Munir, M Saquib Sarfraz, and Mohsen Ali. Improving single domain-generalized object detection: A focus on diversification and alignment. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 17732–17742, 2024. 6, 7 [7] Jinhong Deng, Wen Li, Yuhua Chen, and Lixin Duan. Un-biased mean teacher for cross-domain object detection. Cor-nell University - arXiv,Cornell University - arXiv , 2020. 1 [8] Jian Ding, Nan Xue, Gui-Song Xia, and Dengxin Dai. De-coupling zero-shot semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 11583–11592, 2022. 2 [9] Mohammad Fahes, Tuan-Hung Vu, Andrei Bursuc, Patrick P´ erez, and Raoul de Charette. Poda: Prompt-driven zero-shot domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 18623– 18633, 2023. 1, 2, 3 [10] Qi Fan, Wei Zhuo, Chi-Keung Tang, and Yu-Wing Tai. Few-shot object detection with attention-rpn and multi-relation detector. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 4013–4022, 2020. 1, 2, 3 [11] Qi Fan, Mattia Segu, Yu-Wing Tai, Fisher Yu, Chi-Keung Tang, Bernt Schiele, and Dengxin Dai. Towards robust ob-ject detection invariant to real-world domain shifts. In The Eleventh International Conference on Learning Representa-tions (ICLR 2023) . OpenReview, 2023. 6, 7 [12] Rinon Gal, Or Patashnik, Haggai Maron, Gal Chechik, and Daniel Cohen-Or. Stylegan-nada: Clip-guided do-main adaptation of image generators. Cornell University -arXiv,Cornell University - arXiv , 2021. 2 [13] Jawook Gu and Jong Chul Ye. Adain-based tunable cycle-gan for efficient unsupervised low-dose ct denoising. IEEE Transactions on Computational Imaging , 7:73–85, 2021. 4 [14] Yahong Han, Aming Wu, Linchao Zhu, and Yi Yang. Visual commonsense reasoning with directional visual connections. 
+
+Frontiers of Information Technology & Electronic Engineer-ing , 22(5):625–637, 2021. 2 [15] Robert M Haralick, Karthikeyan Shanmugam, and Its’ Hak Dinstein. Textural features for image classification. IEEE Transactions on systems, man, and cybernetics , (6):610–621, 1973. 1, 2, 3 [16] Lei Huang, Yi Zhou, Fan Zhu, Li Liu, and Ling Shao. Itera-tive normalization: Beyond standardization towards efficient whitening. Cornell University - arXiv,Cornell University -arXiv , 2019. 6 [17] Chuong Huynh, Anh Tuan Tran, Khoa Luu, and Minh Hoai. Progressive semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition , pages 16755–16764, 2021. 2, 3 [18] Naoto Inoue, Ryosuke Furuta, Toshihiko Yamasaki, and Kiy-oharu Aizawa. Cross-domain weakly-supervised object de-tection through progressive domain adaptation. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , pages 5001–5009, 2018. 5 [19] Yunpei Jia, Jie Zhang, Shiguang Shan, and Xilin Chen. Single-side domain generalization for face anti-spoofing. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition , pages 8484–8493, 2020. 2 [20] Gihyun Kwon and JongChul Ye. Clipstyler: Image style transfer with a single text condition. arXiv: Computer Vi-sion and Pattern Recognition,arXiv: Computer Vision and Pattern Recognition , 2021. 2 [21] Deng Li, Aming Wu, Yahong Han, and Qi Tian. Prototype-guided cross-task knowledge distillation for large-scale mod-els. arXiv preprint arXiv:2212.13180 , 2022. 2 [22] Deng Li, Aming Wu, Yaowei Wang, and Yahong Han. Prompt-driven dynamic object-centric learning for single do-main generalization. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 17606–17615, 2024. 6, 7 [23] Yajing Liu, Shijun Zhou, Xiyao Liu, Chunhui Hao, Baojie Fan, and Jiandong Tian. Unbiased faster r-cnn for single-source domain generalized object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition , pages 28838–28847, 2024. 6, 7 [24] Dengsheng Lu and Qihao Weng. A survey of image classi-fication methods and techniques for improving classification performance. International journal of Remote sensing , 28 (5):823–870, 2007. 1, 2, 3 14233 [25] Cheng Ouyang, Chen Chen, Surui Li, Zeju Li, Chen Qin, Wenjia Bai, and Daniel Rueckert. Causality-inspired single-source domain generalization for medical image segmenta-tion. IEEE Transactions on Medical Imaging , 42(4):1095– 1106, 2022. 2 [26] Xingang Pan, Ping Luo, Jianping Shi, and Xiaoou Tang. Two at Once: Enhancing Learning and Generalization Capaci-ties via IBN-Net , page 484–500. 2018. 6 [27] Xingang Pan, Xiaohang Zhan, Jianping Shi, Xiaoou Tang, and Ping Luo. Switchable whitening for deep representation learning. In 2019 IEEE/CVF International Conference on Computer Vision (ICCV) , 2019. 6 [28] Fengchun Qiao, Long Zhao, and Xi Peng. Learning to learn single domain generalization. In 2020 IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,2020. 2 [29] Fengchun Qiao, Long Zhao, and Xi Peng. Learning to learn single domain generalization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 12556–12565, 2020. 2 [30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PMLR, 2021. 5 [31] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: Towards real-time object detection with region proposal networks. Advances in neural information process-ing systems , 28, 2015. 5, 6, 7 [32] Aditya Vailaya, Anil Jain, and Hong Jiang Zhang. On image classification: City images vs. landscapes. Pattern recogni-tion , 31(12):1921–1935, 1998. 1, 3 [33] Vidit Vidit and Engilberge. Clip the gap: A single domain generalization approach for object detection. 2023. 1, 2, 3, 6, 7 [34] Xudong Wang, Zhaowei Cai, Dashan Gao, and Nuno Vas-concelos. Towards universal object detection by domain attention. Cornell University - arXiv,Cornell University -arXiv , 2019. 1 [35] Xin Wang, Thomas E Huang, Trevor Darrell, Joseph E Gon-zalez, and Fisher Yu. Frustratingly simple few-shot object detection. arXiv preprint arXiv:2003.06957 , 2020. 1, 2, 3 [36] Yaqing Wang, Quanming Yao, James T Kwok, and Lionel M Ni. Generalizing from a few examples: A survey on few-shot learning. ACM computing surveys (csur) , 53(3):1–34, 2020. 2[37] Zijian Wang, Yadan Luo, Ruihong Qiu, Zi Huang, and Mahsa Baktashmotlagh. Learning to diversify for single do-main generalization. International Conference on Computer Vision,International Conference on Computer Vision , 2021. 2[38] Aming Wu and Cheng Deng. Single-domain generalized ob-ject detection in urban scene via cyclic-disentangled self-distillation. In Proceedings of the IEEE/CVF Conference on computer vision and pattern recognition , pages 847–856, 2022. 1, 2, 5, 6, 7 [39] Aming Wu and Cheng Deng. Discriminating known from unknown objects via structure-enhanced recurrent varia-tional autoencoder. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 23956–23965, 2023. 1 [40] Kelvin Xu, Jimmy Ba, Ryan Kiros, Kyunghyun Cho, Aaron Courville, Ruslan Salakhudinov, Rich Zemel, and Yoshua Bengio. Show, attend and tell: Neural image caption gen-eration with visual attention. In International conference on machine learning , pages 2048–2057. PMLR, 2015. 3, 5 [41] Changqian Yu, Jingbo Wang, Chao Peng, Changxin Gao, Gang Yu, and Nong Sang. Bisenet: Bilateral segmentation network for real-time semantic segmentation. In Proceed-ings of the European conference on computer vision (ECCV) ,pages 325–341, 2018. 2, 3 [42] Alireza Zareian, Kevin Dela Rosa, Derek Hao Hu, and Shih-Fu Chang. Open-vocabulary object detection using captions. In 2021 IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , 2021. 2 14234

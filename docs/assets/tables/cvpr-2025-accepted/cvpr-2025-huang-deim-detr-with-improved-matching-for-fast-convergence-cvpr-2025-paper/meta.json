@@ -1,0 +1,78 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1682,
+      "height": 735,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1611,
+      "height": 934,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 809,
+      "height": 161,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 878,
+      "height": 414,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 566,
+      "height": 138,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 788,
+      "height": 422,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 701,
+      "height": 280,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 646,
+      "height": 176,
+      "label": "Table"
+    }
+  ]
+}

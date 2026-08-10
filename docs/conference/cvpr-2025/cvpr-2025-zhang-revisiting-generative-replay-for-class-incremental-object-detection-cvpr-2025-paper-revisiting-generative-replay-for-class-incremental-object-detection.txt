@@ -1,0 +1,267 @@
+Title: Revisiting Generative Replay for Class Incremental Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhang_Revisiting_Generative_Replay_for_Class_Incremental_Object_Detection_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 02:13:33 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Revisiting Generative Replay for Class Incremental Object Detection 
+
+## Shizhou Zhang 1 Xueqiang Lv 1 Yinghui Xing 1* Qirui Wu 1 Di Xu 2 Yanning Zhang 1
+
+> 1
+
+Northwestern Polytechnical University 2Huawei Cloud Computing Technologies Co., Ltd 
+
+## Abstract 
+
+Generative replay has gained significant attention in class-incremental learning; however, its application to Class Incremental Object Detection (CIOD) remains lim-ited due to the challenges in generating complex images with precise spatial arrangements. In this study, motivated by the observation that the forgetting of prior knowledge is predominantly present in the classification sub-task as op-posed to the localization sub-task, we revisit the generative replay method for class incremental object detection. Our method utilize a standard Stable Diffusion model to gener-ate image-level replay data for all old and new tasks. Ac-cordingly, the old detector and a stage-wise detector are conducted on the synthetic images respectively to deter-mine the bounding box positions through pseudo-labeling. Furthermore, we propose to use a Similarity-based Cross Sampling mechanism to select valuable confusing data be-tween old and new tasks to more effectively mitigate catas-trophic forgetting and reduce the false alarm rate for the new task. Finally, all synthetic and real data are integrated for current-stage detector training, where the images gen-erated for previous tasks are highly beneficial in minimizing the forgetting of existing knowledge, while those synthesized for the new task can help bridge the domain gap between real and synthetic images. We conducted extensive exper-iments on PASCAL VOC 2007 and MS COCO benchmark datasets in multiple settings to showcase the efficacy of our proposed approach, which achieves state-of-the-art re-sults. The code is available at https://github.com/qiangzai-lv/RGR-IOD. 
+
+## 1. Introduction 
+
+Continual learning, also known as incremental learning, en-deavors to establish a unified model with the capacity to adapt to continuous influxes of data, integrating new infor-mation while retaining the knowledge acquired from prior tasks. In order to address the primary challenge in contin-ual learning, namely catastrophic forgetting, numerous al-gorithms have been carefully devised. Regularization-based    
+
+> *Corresponding Author: xyh 7491@nwpu.edu.cn Car:97.6 Aeroplane:90.8
+> Ap(areoplane):78.4 AP(aeroplane):24.6 AP(aeroplane):6.4 AP(aeroplane):0.0
+> e:90.8 Car:32.0 Car:91.7 Car:70.5 Car:90.8 Aeroplane:90.8 ar:90.8
+> Average Precision
+> 45 50 55 60 65 70 75 80
+> phase (5-5(4 tasks))
+> 1234mAP oAP
+
+Figure 1. Forgetting curve for Average Precision (AP) on the PAS-CAL VOC dataset under 5-5 (4 tasks) setting. mAP denotes mean Average Precision, and oAP denotes objectness Average Precision (AP calculated in class-agnostic manner) indicating the bounding box regression accuracy. Green boxes denote correct detections, whereas red boxes indicate errors in classification. Note that even when the AP for “aeroplane” decreased to 0, the object can still be correctly localized. 
+
+methods [17, 18, 24, 32] address the issue of forgetting by imposing constraints on parameter optimization. Con-versely, replay-based approaches [9, 15, 25] propose train-ing the model with a combination of new data and data re-tained from previous tasks. Notably, replay-based strategies are particularly straightforward and effective as they either retain partial data from past tasks or generate image data re-lated to previous tasks utilizing a robust generative model. With the rapid advancement in generative models, the Stable Diffusion (SD) method [29] has garnered significant attention due to its capability to generate high-quality im-ages from contextually informative text prompts after be-ing trained on a large-scale dataset of image-text pairs [33]. Techniques in generative replay continual learning based on the SD model have achieved substantial progress in image classification tasks [9, 25], typically characterized by the depiction of a single object within the image. In real-world scenarios, Class Incremental Object Detection (CIOD) is This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 20340 imperative for the analysis of complex scenes involving multiple instances with diverse labels. To extend the ap-plicability of generative methods to object detection, par-ticularly in CIOD, certain pioneering works [6, 15, 37, 47] have been introduced, which integrate layout, bounding box coordinates, or other geometric constraints into the diffu-sion model to accomplish instance-level controlled com-plex scene image generation for object detection, thereby enhancing detection performance. Furthermore, [15] pro-pose a method to iteratively refine the pre-trained SD model utilizing a trained detector, in order to continuously adapt it for the generation of tasks previously encountered. In this research, we observe that during the CIOD learn-ing process, knowledge degradation impacts the classifica-tion subtask more significantly than the localization sub-task, specifically the bounding box regression subtask, as illustrated in Fig. 1. We revisit the use of generative replay for CIOD by employing the standard SD model without adapting it to any specific domain datasets or introducing additional geometric constraints. Our revisit of generative replay, termed as RGR, consists of following three charac-teristics: 1) Image-level generative replay for all previous and new tasks. The SD model generates image-level replay data directly, primarily featuring a single object per image, using a text prompt such as “a realistic clear photo of [cls]”, where [cls] denotes the class names. The images generated for old tasks help maintain the knowledge already acquired, whereas those for new tasks are used to bridge the domain gap between real and synthetic images. 2) Pseudo label-ing for all synthetic images. To determine bounding box positions necessary for detector training, a pseudo-labeling approach is used: the old detector Mt−1 handles the gen-erated images for old tasks, and a stage-wise detector Mst ,trained solely with current stage data, processes images for the new task. The synthetic images with high confidence score pseudo labels are considered to subject to more simi-lar distributions with real images and are more likely to be selected. 3) Similarity-based Cross Sampling (SCS) mech-anism to select valuable data. We implement a SCS tech-nique to filter and identify more challenging samples be-tween old and new tasks, significantly lowering the false alarm rate for the new task while better preserving for-merly learned knowledge. Specifically, Mt−1 is used in new task image data and Mst in old task image data, with images that can produce high-confidence outputs being se-lected with greater likelihood. In addition, to address the problem of missing annota-tions where CIOD only labels instances of the current task’s classes, the previous detector Mt−1 is applied to the current task’s real data to generate pseudo-labels. Ultimately, the synthetic images from both previous and current tasks are merged with the current task’s real images to refine the de-tector. We conducted comprehensive experiments in PAS-CAL VOC [7] and MS COCO [19] data set to evaluate ef-fectiveness in multiple settings. The results show that our proposed method outperforms other state-of-the-art meth-ods by a large margin. Our contributions can be summarized as follows, • Instead of developing a costly generative model for com-plex scenarios and multi-class instances in CIOD, we pro-pose using an existing SD model for image-level genera-tive replay for all tasks, preserving knowledge and bridg-ing the gap between generated and real images. • We propose to employ a SCS method to sift through and pinpoint more difficult samples across both old and new tasks. This approach substantially reduces false alarms for the new task while effectively retaining the previously acquired knowledge. • We perform extensive experiments on the PASCAL VOC and MS COCO datasets under various settings, and our proposed approach attains state-of-the-art results when compared to other current methods. 
+
+## 2. Related works 
+
+Continual Learning for Classification. Continual learn-ing, which is a vibrant research area in artificial intelli-gence, seeks to learn sequentially in order to acquire, up-date, accumulate, and utilize knowledge without forgetting previously learned information. Most of the significant re-search on continual learning has been concentrated on clas-sification tasks. Approaches in this field can be catego-rized into regularization-based, structure-based, and replay-based methods. Some regularization-based approaches fo-cus on maintaining the stability of logits [18] or inter-mediate representations [34] to retain learned information, while others impose constraints on model weights [17] or on gradients during the optimization process [1, 23, 35]. Structure-based methods concentrate on learning specific parameters for various tasks and involve architectures that dynamically expand [31] or use grouped parameters within a static model [8]. Replay-based techniques can be further divided into experience replay [4, 20, 48] and generative replay methods [14, 44], according to whether the replay data is sampled and stored from actual experiences or gen-erated using a synthetic model. Lately, continual learning utilizing foundation models has garnered significant inter-est. Techniques such as L2P [38], O-LoRA [36], and VPT-NSP 2 [24], which strive for continuous learning based on parameter-efficient transfer learning methods, have attained impressive outcomes. 
+
+Continual Learning for Object Detection. Class In-cremental Object Detection (CIOD) introduces more com-plexities in the realm of continual learning. Distinct from standard continual learning focused on classification with separate tasks, CIOD needs to handle instances from past or future tasks that might appear in the current task. These in-20341 Stable Diffusion        
+
+> “a realistic clear photo of cat” Prompt of
+> Synthetic Images of Object detector
+> Synthetic Images
+> Pseudo labeling Confidence-based
+> sampling
+> Cat:0.96 Cat:0.99
+> Image Level Generative Replay
+> Object detector
+> Object detector ,
+> trained with only
+> with class 'dog'
+> Cat:0.96 Dog:0.89
+> Similarity-based Cross-Sampling Output Image of SCS Prompt of Prompt of
+> Cat:0.96
+> IGR SCS
+> Dog 0.96
+> SCS IGR
+> Object detector
+> Pseudo labeling
+> Object detector
+> Cat:0.94
+
+Figure 2. Overall framework of our proposed method. It consists of two key modules, i.e . Image-Level Generative Replay (IGR) and Similarity-based Cross-Sampling (SCS). IGR leverages confidence-based sampling to generate images for both the current task Tt and the previous tasks T1: t−1. Building on IGR, SCS assesses the similarity of an image for both tasks using outputs from Mt−1 and Mst ,enabling it to identify and select more challenging samples. 
+
+stances could be mistakenly identified as background, lead-ing to avoidable inconsistencies in learning. Past work on CIOD generally falls into two main approaches. The first involves knowledge distillation techniques [5, 26]. For in-stance, BPF [26] connects models from different stages to ensure they optimize in a consistent direction. MMA [5] merges the background with all previous classes into a single entity to reduce conflicts in optimization goals be-tween past and current tasks. The second approach in-volves retaining knowledge by replaying prior data, using stored images [22], instances [21, 41], or features [2]. CL-DETR [22] introduced a strategy for selecting examples that statistically align with the training distribution for replay. ABR [21] replays foreground objects from earlier tasks kept in a buffer to reinforce acquired knowledge. RODEO [2] replays compressed representations kept in a fixed-capacity memory, enabling incremental object detection in a stream-ing manner. 
+
+Generative Replay for Continual Learning. Within continual learning, replay-based strategies prominently fea-ture generative replay as a promising technique. This in-volves training an auxiliary generative model, such as gen-erative adversarial networks (GAN) [39, 44, 45] and vari-ational autoencoder (VAE) [3, 14], to replay synthetically generated data. Notable examples include models like L-VAEGAN [43], which combines GANs and VAEs to en-hance generation quality and inference accuracy. In object detection, some research focuses on using diffusion mod-els [29] to produce detection data with precise generational control, such as InstanceDiffusion [37], which enables lo-cal, instance-level data control, and SDDGR [15], which in-corporates stable diffusion for customized controlled sam-ples in CIOD tasks. Motivated by the finding that CIOD often suffers from forgetting due to bounding box misclassifications, this study introduces the generation of image-level data for previously acquired tasks. Additionally, SCS is proposed to identify challenging examples from both prior and current tasks by selecting misclassified instances that are correctly localized, aiming to substantially reduce false alarms for new tasks while effectively retaining previously acquired knowledge. 
+
+## 3. Method 
+
+3.1. Preliminaries 
+
+Problem Formulation of CIOD. In sequential class in-cremental object detection, tasks are introduced in an or-dered manner represented as T = {T 1, T2, . . . , Tt, . . . , Tn}.For each task Tt, the dataset is given by  Dt = {X t, Yt},where  Xt denotes the images and  Yt the corresponding la-bels. Each successive task introduces a new set of cate-gory  C = {C 1, C2, . . . , Ct, . . . , Cn}, where Ci ∩ C j ∈ ∅ 
+
+for any i̸ = j, and data from previous tasks are not ac-cessible during the training of the current task. The goal of CIOD is to effectively detect targets in the classes of current task Ct while minimizing the degradation on pre-viously seen classes C1: t−1. Interestingly, in practical ap-plications, images in  Xt may still contain targets from past tasks while only the instances belonging to classes of Ct are annotated as foreground objects, leading to missing annota-tion issue in CIOD. Thus, the model  Mt−1 can be used to predict on  Xt, creating pseudo-labels to mitigate forgetting. However, foreground of classes C1: t−1 may sometimes not be available on current task, which nullifies a significant number of methods that rely on them. Our method tack-20342 bird:0.96 teddy bear:0.93   
+
+> "bird" "donut" "teddy
+> bear"
+> bird:0.99 bird:0.93 teddy bear:0.96 teddy bear:0.9 teddy bear:0.64 donut:0.37 donut:0.93 donut:0.98 donut:0.90 Figure 3. Image-Level generation results. We employ text prompts “A realistic clear photo of a [cls].” By using confidence-based sam-pling, we can exclude inferior images.
+
+les this issue by generating replay images that incorporate foreground elements from earlier tasks and then by assign-ing pseudo-labels to these images. This strategy not only alleviates the challenge of absent pseudo-labels but also fa-cilitates improved knowledge transfer and retention from 
+
+Mt−1 to Mt.
+
+Two Stage Object Detectors. This study centers on the analysis of two-stage detectors with an emphasis on the R-CNN family, particularly Faster R-CNN [28], which gener-ally comprises a feature extractor, a region proposal net-work (RPN), and a Region of Interest Head (RoI Head) that includes a class-level classification and a bounding box regression network.  M = {fb, f rpn , f roi −cls , f roi −box },with a total loss  L = Lrpn + Lroi-cls + Lroi-box . Notably,  frpn 
+
+and  froi −box  are class-agnostic networks. 
+
+Stable Diffusion Model. Diffusion models serve as ro-bust generative frameworks that enable the generation of high-resolution images through a dual-phase method: (i) introducing Gaussian noise to the data during an initial for-ward diffusion stage, and (ii) subsequently eliminating that noise to reconstruct the original image. Stable Diffusion (SD) refines this approach by leveraging a VAE [16] for en-coding into latent space, paired with a U-Net [30] architec-ture for the diffusion process. Employing a cross-attention conditioning mechanism alongside the potent embedding capacity of CLIP’s text encoder, SD efficiently generates high-resolution images from a text prompt T. This effi-ciency is particularly valuable for creating replay data for past tasks. However, SD’s generative capabilities encounter difficulties in scenarios demanding exact spatial arrange-ments, such as the precise localization of objects in the con-text of object detection. 
+
+3.2. Overall Framework 
+
+Our method aims to address the challenges of CIOD by leveraging the power of Stable Diffusion to generate the most valuable data for both the old and new tasks in or-der to combat forgetting of pervious learned knowledge and reduce the domain gap between the real and synthetic im-ages. As can be seen in Fig. 2 that our method consists of two key modules Image-Level Generative Replay (IGR) and Similarity-based Cross Sampling (SCS). We found that in CIOD, the primary challenge lies in the forgetting of clas-sification knowledge rather than the ability to locate ob-jects, as shown in Fig. 1. Consequently, rather than ob-taining precise control at the instance level for creating complex scene images, we employ the conventional SD model to generate data at the image level and implement confidence-based sampling, which has been shown to effec-tively prevent forgetting of previously acquired tasks. The SCS method enhances this process through similarity-based cross-sampling, selecting valuable data based on inter-class similarity to help the model capture key discriminative fea-tures across categories. The SCS approach focuses on choosing images that are prone to misclassification but can be accurately localized. Such challenging samples across various tasks can aid the detector in identifying crucial dis-tinguishing features among different categories. Ultimately, the generated images for both earlier and current tasks, de-noted as Dgen −(1: t), are merged with the actual image data 
+
+Dt. This dataset undergoes pseudo-labeling with the prior detector, thereby creating the training set used to update 
+
+Mt−1.
+
+3.3. Image Level Generative Replay 
+
+As indicated in Fig. 1, the primary challenge in CIOD is the significant forgetting of classification knowledge rather than the ability to locate objects. Moreover, prior studies have shown that instance-level image generation with com-plex scenes using Stable Diffusion is still not an adequate substitute for real data [37]. Therefore, we opted for image-level generation, i.e . featuring mainly a single object in the image, combined with pseudo labeling as a simple and ef-fective approach to replaying images from old tasks. In our Image-Level Generative Replay (IGR) approach, we design textual prompts to generate synthetic images that resemble data from previous tasks  T1: t−1. The tex-tual prompt follows the template: “A realistic clear photo of  cls j ”.  cls j ∈ C 1: t−1. To ensure the quality of the gen-erated images, we use object detectors  Mt−1 to produce the pseudo labels for each generated image and those im-ages with high confidence pseudo labels are finally selected. Each synthetic image is passed through  Mt−1, and we eval-uate its output as follows: Let  N be the number of detected instances of  cls j in the output of  Mt−1 and  bk is the kth 
+
+bbox of  cls j . The image is retained if  N ≥ 1 and as follow: 
+
+min   
+
+> k∈{ 1,...,N }
+
+Conf (bk) ≥ τ (1) or the image will be discarded. τ is the specified confi-20343 dence threshold. We show some exemplar synthetic images in Fig. 3. The outputs of IGR will constitute the generated image set for previous tasks Dgen −(1: t−1) .
+
+3.4. Similarity-based Cross-Sampling 
+
+Furthermore, based on inter-class similarity, we propose Similarity-based Cross-Sampling (SCS) to select valuable data which contain instances that are prone to misclassified but can be accurately localized. Such challenging samples across various tasks can aid the detector in identifying cru-cial distinguishing features among different categories. As shown in Fig. 4, SCS mainly includes two aspects. On one hand, for those generated samples of previous tasks 
+
+Dgen-(1:t-1) , a detector Mst trained using the current task dataset Dt alone which is expected to be capable of detect-ing new classes in the current task. This detector is then used to evaluate the inter-class similarity between new and old tasks. For each image in Dgen −(1: t−1) , we use Mst to make predictions, and we only retain detection boxes whose confidence scores exceed a threshold τ ,
+
+Bpred = {bk | conf (bk) ≥ τ }, (2) where conf (bk) denotes the confidence score for the box bk.Then, we define the pseudo labels generated by Mt−1 as 
+
+Bpseudo = {bpseudo  
+
+> j
+
+} (3) We then calculate the minimum IoU between all labels in the two sets Bpseudo and Bpred ,
+
+IoU min = min   
+
+> bpseudo
+> j∈Bpseudo , b k∈Bpred
+
+IoU (bpseudo  
+
+> j
+
+, b k). (4) If IoU min is greater than a threshold η, then the image is deemed to contain a scene with significant similarity be-tween new and old tasks. Such images are prioritized for replay data to effectively reduce the false positive rate on the new task, as the decision boundary between the confus-ing classes can be greatly enlarged with hard samples. On the other hand, to further mitigate the domain gap between the synthetic and real images, unlike traditional CIOD training which typically focuses on a single real image domain, our CIOD framework leverages a mixed-domain approach in each incremental stage  Tt. Specifically, we not only synthesize and replay the data of  Dgen −(1: t−1) ,but also synthesize a part of the data of  Dgen −t and com-bine them with Dt together to update the detector. Because the old task data are dominated by synthetic data and the new task data are mainly real images, the model tends to be biased by the domain information, rather than the semantic differences between various categories. To improve multi-domain adaptation, the integration of both synthetic and real data helps the model differentiate the unique characteristics of each domain, ensuring a robust transfer of knowledge across incremental tasks. Object detector 
+
+> Object detector
+> : 0.78 : 0.46 : 0.91 : 0.81
+> No Instance
+> : 0.95 : 0.82
+> Pseudo
+> Labeling Cross-Sampling Pseudo
+> Labeling
+
+Figure 4. Similarity-based Cross-Sampling. By cross-filtering im-ages using Msi and Mt−1, we ultimately obtain a set of images with high similarity between old and new tasks. 
+
+3.5. Current Stage Training 
+
+Pseudo Labeling on Dt. For the setting of CIOD, only the classes for current task are annotated, therefore the pseudo labeling on current task image data Dt with the old detector 
+
+Mt−1 is essential to address the missing annotation prob-lem. Our research shows that the old detector  Mt−1 often correctly locate the objects while classify them with wrong labels when generating pseudo-labels. The wrong pseudo labels will hinder the learning of new classes and acceler-ate the forgetting of previously learned knowledge. To ad-dress this issue, we enhanced the standard pseudo-labeling approach by filtering out these misclassified pseudo-labels based on the ground truth for the new task. Specifically, for each pseudo-labeled bounding box  bpseudo  produced by the previous model  Mt−1 , we compute its maximum IoU with all ground truth boxes  BGT  in the image: 
+
+IoU max( bpseudo , B GT ) = max 
+
+> bgt ∈BGT
+
+IoU (bpseudo , b gt ) (5) If  IoU max( bpseudo , B GT ) > γ  , where  γ is a hyperparame-ter (typically set to 0.5), we discard  bpseudo . This filtering step helps to reduce the negative effect of incorrect pseudo-labels on learning new classes. 
+
+Training Data and Loss Function. The synthetic image data for both old and new tasks Dgen −(1: t−1) and Dgen −(t)
+
+are combined together with the real image data of current task Dt to serve as the training data of current stage learn-ing. Nonetheless, the knowledge provided by synthetic data may not be so accurate, we also need to adjust the loss gen-erated by synthetic images during model training. The over-all loss  L is computed as a weighted sum of the losses from synthesized data and real data: 
+
+L = Lsynth + Lreal (6) 
+
+Lsynth = λrpn Lsynth rpn + λcls Lsynth cls + λreg Lsynth reg 
+
+where  λ is a hyperparameter that adjusts the significance of the synthetic data  λ ∈ [0 , 1]  in the loss function. Given that synthetic data often consists of simple single-instance 20344 Table 1. Comparison with state-of-the-art methods in single step incremental settings on PASCAL VOC 2007. We use bold to indicate the best results and underlines to highlight the second-best results. The methods that adopt example-replay (rehearsal-based methods) are marked by ∗ for fair comparison. Our method significantly outperforms the comparisons on all datasets. 
+
+Methods 19-1 15-5 10-10 5-15 Old New All Old New All Old New All Old New All Joint Training 76.8 78.1 76.9 78.1 73.2 76.9 77.0 76.8 76.9 74.5 77.7 76.9 Fine-tuning 10.2 69.8 13.2 12.9 49.9 22.2 5.9 63.9 34.9 0.0 73.0 54.7 ORE ∗ [12] 69.4 60.1 68.9 71.8 58.7 68.5 60.4 68.8 64.6 - - -ILOD-Meta ∗ [13] 70.9 57.6 70.2 71.7 55.9 67.8 68.4 64.3 66.3 - - -OW-DETR ∗ [10] 70.2 62.0 69.8 72.2 59.8 69.1 63.5 67.9 65.7 - - -ABR ∗ [21] 71.0 69.7 70.9 73 65.1 71.0 71.2 72.8 72.0 64.7 71.0 69.4 Faster ILOD [27] 68.9 61.1 68.5 71.6 56.9 67.9 69.8 54.5 62.1 62.0 37.1 43.3 PPAS [46] 70.5 53.0 69.2 - - - 63.5 60.0 61.8 - - -MVC [40] 70.2 60.6 69.7 69.4 57.9 66.5 66.2 66.0 66.1 - - -MMA [5] 71.1 63.4 70.7 73 60.5 69.9 69.3 63.9 66.6 66.8 57.2 59.6 PseudoRM [42] 72.9 67.3 72.6 73.4 60.9 70.3 69.1 68.6 68.9 - - -PROB [49] 73.9 48.5 72.6 73.5 60.8 70.1 66.0 67.2 66.5 - - -BPF [26] 74.5 65.3 74.1 75.9 63.0 72.7 71.7 74.0 72.9 66.4 75.3 73 
+
+RGR(Ours) 75.8 67.2 75.4 75.6 69.0 74.0 75.4 76.3 75.8 69.8 77.2 75.3   
+
+> Table 2. Comparison with state-of-the-art methods in multiple step incremental settings on PASCAL VOC 2007. The methods that adopt example-replay (rehearsal-based methods) are marked by ∗for fair comparison.
+
+Methods 10-5(3 tasks) 5-5(4 tasks) 10-2(6 tasks) 15-1(6 tasks) 1-10 11-20 1-20 1-5 6-20 1-20 1-10 11-20 1-20 1-15 15-20 1-20 Joint Training 77.0 76.8 76.9 74.5 77.7 76.9 77.0 76.8 76.9 78.1 73.2 76.9 Fine-tuning 5.4 42.1 23.7 0.0 17.6 13.2 3.6 15.4 9.5 0.0 6.7 2.2 ABR ∗ [21] 68.7 67.0 67.9 64.7 56.4 58.4 67.0 58.1 62.6 68.7 56.7 65.7 Faster ILOD [27] 68.3 57.9 63.1 55.7 16.0 25.9 64.2 48.6 56.4 66.9 44.5 61.3 MMA [5] 66.7 61.8 64.2 62.3 31.2 38.9 65.0 53.1 59.1 68.3 54.3 64.1 BPF [26] 69.1 68.2 68.7 60.6 63.1 62.5 68.7 56.3 62.5 71.5 53.1 66.9 
+
+RGR(Ours) 71.9 71.7 71.8 61.2 71.1 68.6 68.5 62.7 65.6 72.0 58.1 68.6 
+
+images, such data may not provide sufficient regression knowledge. Because this knowledge will not be greatly for-gotten as Fig. 1 shows, the real image data are enough to gradually enhance the localization ability. Therefore, we assign a relatively larger weight to  cls  in the loss computa-tion. 
+
+## 4. Experiments 
+
+4.1. Experiment Setup 
+
+Datasets. To evaluate our proposed approach, we utilize the MS COCO 2017 [19] and PASCAL VOC 2007 [7] datasets, adhering to experimental protocols established in prior studies [5, 21, 26, 40, 42, 49]. Each training task in-cludes only images relevant to the specific task category, and non-relevant category annotations are excluded. This configuration is both practical and accommodates possible image repetition across tasks. The PASCAL VOC 2007 dataset covers 20 object classes with a total of 9,963 images, equally split into training and validation (50% each) and testing (50%). Conversely, the more intricate MS COCO 2017 dataset comprises 80 object classes, providing 118k images for training and 5,000 for validation. 
+
+Metrics. Our proposed method is assessed using mean average precision (mAP) at a 0.5 IoU threshold on the PAS-CAL VOC 2007 dataset. Meanwhile, for the MS COCO 2017 dataset, we apply the standard COCO metrics, which involve evaluating performance across multiple IoU thresh-olds ranging from 0.5 to 0.95 (mAP[50:95]), along with specific evaluations at 0.5 IoU (mAP[50]) and 0.75 IoU (mAP[75]). 
+
+Implementation Details. In line with the experimental 20345 Table 3. Comparison with state-of-the-art methods in single step incremental settings on MS COCO 2017. The methods that adopt example-replay (rehearsal-based methods) are marked by ∗ for fair comparison. 
+
+Methods 40+40 70+10 AP AP 50 AP 75 AP AP 50 AP 75 
+
+Joint Training 40.2 61.6 43.5 40.2 61.6 43.5 Fine-tuning 21.6 33.4 23.1 5.6 8.6 6.2 ILOD-Meta ∗ 23.8 40.5 24.4 - - -ABR ∗ 34.5 57.8 35.2 31.1 52.9 32.7 Faster ILOD 20.6 40.1 - 21.3 39.9 -PseudoRM 25.3 44.4 - - - -MMA 33.0 56.6 34.6 30.2 52.1 31.5 BPF 34.4 54.3 37.3 36.2 56.8 38.9 
+
+RGR(Ours) 35.6 56.0 38.2 36.6 56.6 39.6 
+
+procedures outlined in prior studies [21, 26], our approach expands upon the Faster R-CNN [28] framework using a ResNet-50 [11] backbone that has been pretrained on Ima-geNet. The detector is trained with the SGD optimizer, us-ing a batch size of 8. The initial learning rates are set to 0.01 for the base task and 0.005 for incremental tasks. We assess the methods based on mean average precision at a 0.5 IoU threshold on the PASCAL VOC 2007 benchmark. The de-ployed diffusion model, Stable Diffusion 1.5, is fine-tuned on the COCO dataset for experiments on the VOC dataset and fine-tuned on the VOC dataset for experiments on the COCO dataset to better align with the real image style. 
+
+4.2. Comparison with state-of-the-art method 
+
+In order to ensure a fair comparison with prior studies, we assess the performance of our proposed approach un-der both single-step and multi-step incremental settings. We compare our approach against two baseline methods: Fine-tuning, which involves incrementally training the model without regularization or data replay, and Joint training, where the model is trained on the complete dataset with all annotations accessible. The results are presented after the training on the ultimate task is completed. 
+
+4.2.1. On PASCAL VOC 2007. 
+
+Our experiments adhered to established protocols from pre-vious studies, employing consistent class increment config-urations such as the 19-1, 15-5, 10-10, and 5-15 settings, with a predetermined class sequence for PASCAL VOC 2007 over two incremental phases. In multi-step incremen-tal settings, we assessed the configurations of 10-5, 5-5, 10-2 and 15-1 sequentially adding 5, 5, 2 and 1 classes per step, to eventually encompass all 20 classes. 
+
+Two Incremental Phase Setting. Tab. 1 illustrates that our approach, denoted as RGR , consistently outperforms the state-of-the-art BPF [26] and other comparison meth-ods across various incremental settings. In particular, RGR 
+
+achieves notable improvements in mean Average Precision (mAP) over BPF, with increases of 1.3%, 1.3%, 2.9%, and 2.3% observed in the 19-1, 15-5, 10-10, and 5-15 settings, respectively. Importantly, RGR sustains high performance on both old and new classes, underscoring its ability to effectively mitigate catastrophic forgetting while ensuring strong learning of new classes. 
+
+Multi Incremental Phase Setting. The challenge of managing long-term CIOD is notable, as maintaining a bal-ance between model stability and adaptability becomes in-creasingly difficult with the accumulation of tasks. Accord-ing to Tab. 2 for PASCAL VOC 2007, our proposed RGR ,offers distinct advantages across all multi-step configura-tions. In particular, RGR achieves mAP improvements of 3.1%, 6.1%, 3.1%, and 1.7% under the 10+5, 5+5, 10+2, and 15+1 settings, respectively, consistently outperforming other methods. Traditional methods face challenges with in-creased forgetting during multiple incremental phases and the forgetting is often mitigated by decreasing the learn-ing rate or applying strong regularization. While this strat-egy helps retain existing knowledge, it limits the acquisi-tion of new class information, making these classes vul-nerable to further forgetting in subsequent phases, and ul-timately hampering generalization across all tasks. As the task increases, a significant drop in generalization perfor-mance is observed. Conversely, our RGR approach enables the model to maintain its flexibility while effectively learn-ing new classes. As demonstrated in Tab. 2, RGR achieves mAP improvements of 3.5%, 8.0%, 6.4%, and 5.0% with the addition of new classes in the 10+5, 5+5, 10+2 and 15+1 settings. 
+
+4.2.2. On MS COCO 2017. 
+
+Using the MS COCO 2017 dataset, we exhibit performance results for the incremental configurations 40-40 and 70-10 as documented in earlier studies [15, 26]. Tab. 3 illustrates that our method ( RGR ) outperforms the current best BPF by 1.2% in AP, 1.7% in AP50, and 0.9% in AP75. More-over, for the 70+10 configuration, our method exceeds BPF by 0.4% in AP, and 0.7% in AP75. These results also demonstrate the superiority of our method. 
+
+4.3. Ablation Study 
+
+Main components. We evaluate the effectiveness of each component in our proposed method on the PASCAL VOC 2007 dataset under the 10-10, 5-15, and 15-5 incremental settings. The baseline model uses only the pseudo-labeling method, following BPF, and we sequentially add compo-nents of our proposed approach. As shown in Tab. 4, adding the IGR component results in significant improvements in mAP across all classes, with gains of 1.4%, 6.5%, and 20346 Table 4. Investigation on the effectiveness of the main components in our method. 
+
+Model IGR SCS VOC(10-10) VOC(15-5) VOC(10-5) 1-10 11-20 1-20 1-15 15-20 1-20 1-10 11-15 16-20 1-20 (a) ✗ ✗ 72.0 75.5 73.7 70.6 58.6 67.3 58.8 73.9 50.2 60.4 (b) ✓ ✗ 74.9 75.3 75.1 75.6 68.4 73.8 71.6 77.6 63.9 71.2 (c) ✓ ✓ 75.4 76.3 75.8 75.6 69.0 74.0 71.9 77.1 66.3 71.8 
+
+Table 5. Ablation experiments for τ in IGR under VOC 10-10 and VOC 10-5 settings. 
+
+τ VOC(10-10) VOC(10-5) Old New All 1-10 11-20 1-20 0.50 74.2 76.0 75.1 70.8 71.2 71.0 0.80 75.0 76.4 75.7 71.6 71.6 71.6 0.90 75.4 76.3 75.8 71.9 71.7 71.8 
+
+0.95 74.8 76.0 75.4 71.8 71.6 71.7 
+
+Table 6. Ablation experiments for η in SCS under VOC 10-10 and VOC 10-5 settings. 
+
+η VOC(10-10) VOC(10-5) Old New All 1-10 11-20 1-20 0.4 74.6 75.7 75.1 71.4 71.0 71.2 0.6 75.4 76.3 75.8 72.0 71.4 71.7 0.8 75.1 76.4 75.7 71.9 71.7 71.8 
+
+0.9 74.8 75.8 75.3 71.1 71.6 71.3 10.8% for the 10-10, 15-5, and 10-5 settings, respectively. When we further add the SCS component, the performance improves even more, with additional gains of 0.7%, 0.2%, and 0.6% across all classes for each of the 10-10, 15-5, and 10-5 settings. Notably, the SCS component not only mit-igates forgetting effectively but also improves the model’s plasticity, enhancing its ability to learn new tasks without losing performance on old ones. In Fig. 5, we also present the mAP for each category in the 5-5 (4 tasks) setting. It can be observed that SCS effectively mitigates forgetting for certain similar categories (e.g. “dog” and “cat”, “bus” and “train”, etc.). These results validate the contributions of each component in alleviating forgetting and boosting per-formance on new tasks, highlighting the overall effective-ness of our approach. 
+
+Impact of hyper-parameter τ and η. The hyper-parameter τ in Eq.(1) is introduced to be a threshold to sam-ple images generated by Stable Diffusion, ensuring high-quality generated images for training. As shown in Tab. 5, the model performance improves as τ increases, reaching the best results when τ = 0.90. The parameter η represents the IoU threshold for cross-sampling, measuring the simi-larity of images between tasks. As shown in the Tab. 6, the best performance is achieved when replaying images with moderate similarity. Average Precision 
+
+> 30 40 50 60 70 80 90
+> aeroplane bicycle bird boat bottle bus car cat chair cow diningtable dog horse motorbike person pottedplant sheep sofa train tvmonitor
+> IGR+SCS IGR
+
+Figure 5. Comparison of mAP on each category between IGR and IGR+SCS in the 5-5 (4 tasks) setting of the VOC dataset. 
+
+## 5. Conclusions 
+
+In this paper, we suggest revisiting generative replay using an existing Stable Diffusion model rather than enhancing the generative model to precisely control the generation of complex scenarios with multi-class instances or iteratively refining with images from previous tasks for class incre-mental object detection. Our approach synthesizes replay data at the image level, focusing mainly on a single ob-ject per image for both past and present tasks, aiming to preserve acquired knowledge and bridge the domain gap between generated and real images. We propose to em-ploy the Similarity-based Cross Sampling method to sift through and pinpoint more difficult samples across both old and new tasks, which substantially reduces false alarms for the new task while effectively retaining the previously ac-quired knowledge. Extensive experiments are conduted on the PASCAL VOC and MS COCO datasets under multiple settings, and our proposed approach achieves state-of-the-art results compared to other methods. 
+
+Acknowledgement 
+
+This work was supported in part by the National Nat-ural Science Foundation of China (NSFC) under Grant 62101453, 62476223, 62201467, 62476226; in part by In-novation Capability Support Program of Shaanxi (Program No. 2024ZC-KJXX-043);in part by the Young Talent Fund of Xi’an Association for Science and Technology under Grant 959202313088. 20347 References 
+
+[1] C. Liu X. Hong Y. Zhou. A. Zhang, D. Yang. Specify-ing what you know or not for multi-label class-incremental learning. In Proceedings of the AAAI Conference on Artifi-cial Intelligence , 2025. 2 [2] Manoj Acharya, Tyler L Hayes, and Christopher Kanan. Rodeo: Replay for online object detection. arXiv preprint arXiv:2008.06439 , 2020. 3 [3] Ali Ayub and Alan R Wagner. Eec: Learning to encode and regenerate images for continual learning. arXiv preprint arXiv:2101.04904 , 2021. 3 [4] Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, and Simone Calderara. Dark experience for gen-eral continual learning: a strong, simple baseline. Advances in neural information processing systems , 33:15920–15930, 2020. 2 [5] Fabio Cermelli, Antonino Geraci, Dario Fontanel, and Bar-bara Caputo. Modeling missing annotations for incremental learning in object detection. In CVPR , 2022. 3, 6 [6] Kai Chen, Enze Xie, Zhe Chen, Lanqing Hong, Zhenguo Li, and Dit-Yan Yeung. Integrating geometric control into text-to-image diffusion models for high-quality detection data generation via text prompt. ILCR , 2024. 2 [7] Mark Everingham, Luc Van Gool, Christopher KI Williams, John Winn, and Andrew Zisserman. The pascal visual object classes (voc) challenge. International journal of computer vision , 88:303–338, 2010. 2, 6 [8] Chrisantha Fernando, Dylan Banarse, Charles Blundell, Yori Zwols, David Ha, Andrei A Rusu, Alexander Pritzel, and Daan Wierstra. Pathnet: Evolution channels gradient descent in super neural networks. arXiv preprint arXiv:1701.08734 ,2017. 2 [9] Rui Gao and Weiwei Liu. Ddgr: Continual learning with deep diffusion-based generative replay. In International Conference on Machine Learning , pages 10744–10763. PMLR, 2023. 1 [10] Akshita Gupta, Sanath Narayan, KJ Joseph, Salman Khan, Fahad Shahbaz Khan, and Mubarak Shah. Ow-detr: Open-world detection transformer. In CVPR , 2022. 6 [11] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , pages 770–778, 2016. 7 [12] KJ Joseph, Salman Khan, Fahad Shahbaz Khan, and Vi-neeth N Balasubramanian. Towards open world object de-tection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 5830–5840, 2021. 6 [13] KJ Joseph, Jathushan Rajasegaran, Salman Khan, Fa-had Shahbaz Khan, and Vineeth N Balasubramanian. In-cremental object detection via meta-learning. IEEE TPAMI ,2021. 6 [14] Ronald Kemker and Christopher Kanan. Fearnet: Brain-inspired model for incremental learning. arXiv preprint arXiv:1711.10563 , 2017. 2, 3 [15] Junsu Kim, Hoseong Cho, Jihyeon Kim, Yihalem Yimolal Tiruneh, and Seungryul Baek. Sddgr: Stable diffusion-based deep generative replay for class incremental object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 28772–28781, 2024. 1, 2, 3, 7 [16] Diederik P Kingma. Auto-encoding variational bayes. ICLR ,2013. 4 [17] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, et al. Overcoming catastrophic forgetting in neu-ral networks. Proceedings of the national academy of sci-ences , 114(13):3521–3526, 2017. 1, 2 [18] Zhizhong Li and Derek Hoiem. Learning without forgetting. 
+
+IEEE transactions on pattern analysis and machine intelli-gence , 40(12):2935–2947, 2017. 1, 2 [19] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 , pages 740–755. Springer, 2014. 2, 6 [20] Ruiqi Liu, Boyu Diao, Libo Huang, Zijia An, Zhulin An, and Yongjun Xu. Continual learning in the frequency domain. In 
+
+Advances in Neural Information Processing Systems , pages 85389–85411. Curran Associates, Inc., 2024. 2 [21] Yuyang Liu, Yang Cong, Dipam Goswami, Xialei Liu, and Joost van de Weijer. Augmented box replay: Overcoming foreground shift for incremental object detection. In ICCV ,2023. 3, 6, 7 [22] Yaoyao Liu, Bernt Schiele, Andrea Vedaldi, and Christian Rupprecht. Continual detection transformer for incremen-tal object detection. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 23799–23808, 2023. 3 [23] David Lopez-Paz and Marc’Aurelio Ranzato. Gradient episodic memory for continual learning. Advances in neu-ral information processing systems , 30, 2017. 2 [24] Yue Lu, Shizhou Zhang, De Cheng, Yinghui Xing, Nannan Wang, Peng Wang, and Yanning Zhang. Visual prompt tun-ing in null space for continual learning. 2024. 1, 2 [25] Zichong Meng, Jie Zhang, Changdi Yang, Zheng Zhan, Pu Zhao, and Yanzhi WAng. Diffclass: Diffusion-based class incremental learning. ECCV , 2024. 1 [26] Qijie Mo, Yipeng Gao, Shenghao Fu, Junkai Yan, Ancong Wu, and Wei-Shi Zheng. Bridge past and future: Overcom-ing information asymmetry in incremental object detection. 
+
+arXiv preprint arXiv:2407.11499 , 2024. 3, 6, 7 [27] Can Peng, Kun Zhao, and Brian C Lovell. Faster ilod: In-cremental learning for object detectors based on faster rcnn. 
+
+Pattern recognition letters , 140:109–115, 2020. 6 [28] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: Towards real-time object detection with region proposal networks. IEEE transactions on pattern analysis and machine intelligence , 39(6):1137–1149, 2016. 4, 7 [29] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨ orn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of 20348 the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. 1, 3 [30] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: Convolutional networks for biomedical image segmen-tation. In Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18 , pages 234–241. Springer, 2015. 4 [31] Andrei A Rusu, Neil C Rabinowitz, Guillaume Desjardins, Hubert Soyer, James Kirkpatrick, Koray Kavukcuoglu, Raz-van Pascanu, and Raia Hadsell. Progressive neural networks. 
+
+arXiv preprint arXiv:1606.04671 , 2016. 2 [32] Gobinda Saha, Isha Garg, and Kaushik Roy. Gradient pro-jection memory for continual learning. ICLR , 2021. 1 [33] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Worts-man, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. Advances in Neural In-formation Processing Systems , 35:25278–25294, 2022. 1 [34] Christian Simon, Piotr Koniusz, and Mehrtash Harandi. On learning the geodesic path for incremental learning. In Pro-ceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition , pages 1591–1600, 2021. 2 [35] Shipeng Wang, Xiaorong Li, Jian Sun, and Zongben Xu. Training networks in null space of feature covariance for continual learning. In Proceedings of the IEEE/CVF con-ference on Computer Vision and Pattern Recognition , pages 184–193, 2021. 2 [36] Xiao Wang, Tianze Chen, Qiming Ge, Han Xia, Rong Bao, Rui Zheng, Qi Zhang, Tao Gui, and Xuanjing Huang. Or-thogonal subspace learning for language model continual learning. arXiv preprint arXiv:2310.14152 , 2023. 2 [37] Xudong Wang, Trevor Darrell, Sai Saketh Rambhatla, Ro-hit Girdhar, and Ishan Misra. Instancediffusion: Instance-level control for image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 6232–6242, 2024. 2, 3, 4 [38] Zifeng Wang, Zizhao Zhang, Chen-Yu Lee, Han Zhang, Ruoxi Sun, Xiaoqi Ren, Guolong Su, Vincent Perot, Jen-nifer Dy, and Tomas Pfister. Learning to prompt for con-tinual learning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 139–149, 2022. 2 [39] Tongtong Wu, Xuekai Li, Yuan-Fang Li, Gholamreza Haf-fari, Guilin Qi, Yujin Zhu, and Guoqiang Xu. Curriculum-meta learning for order-robust continual relation extraction. In Proceedings of the AAAI conference on artificial intelli-gence , pages 10363–10369, 2021. 3 [40] Dongbao Yang, Yu Zhou, Aoting Zhang, Xurui Sun, Dayan Wu, Weiping Wang, and Qixiang Ye. Multi-view correlation distillation for incremental object detection. PR , 2022. 6 [41] Dongbao Yang, Yu Zhou, Xiaopeng Hong, Aoting Zhang, and Weiping Wang. One-shot replay: Boosting incremental object detection via retrospecting one object. In Proceed-ings of the AAAI Conference on Artificial Intelligence , pages 3127–3135, 2023. 3 [42] Dongbao Yang, Yu Zhou, Xiaopeng Hong, Aoting Zhang, Xin Wei, Linchengxi Zeng, Zhi Qiao, and Weipinng Wang. Pseudo object replay and mining for incremental object de-tection. In ACM MM , 2023. 6 [43] Fei Ye and Adrian G Bors. Learning latent representations across multiple data domains using lifelong vaegan. In Com-puter Vision–ECCV 2020: 16th European Conference, Glas-gow, UK, August 23–28, 2020, Proceedings, Part XX 16 ,pages 777–795. Springer, 2020. 3 [44] Mengyao Zhai, Lei Chen, Frederick Tung, Jiawei He, Megha Nawhal, and Greg Mori. Lifelong gan: Continual learn-ing for conditional image generation. In Proceedings of the IEEE/CVF international conference on computer vision ,pages 2759–2768, 2019. 2, 3 [45] Mengyao Zhai, Lei Chen, Jiawei He, Megha Nawhal, Fred-erick Tung, and Greg Mori. Piggyback gan: Efficient life-long learning for image conditioned generation. In Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceedings, Part XXI 16 , pages 397–413. Springer, 2020. 3 [46] Wang Zhou, Shiyu Chang, Norma Sosa, Hendrik Hamann, and David Cox. Lifelong object detection. arXiv preprint arXiv:2009.01129 , 2020. 6 [47] Jingyuan Zhu, Shiyu Li, Yuxuan Liu, Ping Huang, Jiu-long Shan, Huimin Ma, and Jian Yuan. Odgen: Domain-specific object detection data generation with diffusion mod-els. NeurIPS , 2024. 2 [48] Zhilin Zhu, Xiaopeng Hong, Zhiheng Ma, Weijun Zhuang, Yaohui Ma, Yong Dai, and Yaowei Wang. Reshaping the on-line data buffering and organizing mechanism for continual test-time adaptation. In European Conference on Computer Vision , pages 415–433. Springer, 2024. 2 [49] Orr Zohar, Kuan-Chieh Wang, and Serena Yeung. Prob: Probabilistic objectness for open world object detection. In 
+
+CVPR , 2023. 6 20349

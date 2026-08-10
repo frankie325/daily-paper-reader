@@ -1,0 +1,384 @@
+Title: Boltzmann Attention Sampling for Image Analysis with Small Objects
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhao_Boltzmann_Attention_Sampling_for_Image_Analysis_with_Small_Objects_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 13:13:22 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Boltzmann Attention Sampling for Image Analysis with Small Objects 
+
+# Theodore Zhao * Sid Kiblawi * Naoto Usuyama Ho Hin Lee Sam Preston Hoifung Poon Mu Wei †
+
+# Microsoft, Redmond, WA, USA 
+
+# https://aka.ms/boltzformer 
+
+# Abstract 
+
+Detecting and segmenting small objects, such as lung nodules and tumor lesions, remains a critical challenge in image analysis. These objects often occupy less than 0.1% of an image, making traditional transformer archi-tectures inefficient and prone to performance degradation due to redundant attention computations on irrelevant re-gions. Existing sparse attention mechanisms rely on rigid hierarchical structures, which are poorly suited for detect-ing small, variable, and uncertain object locations. In this paper, we propose BoltzFormer, a novel transformer-based architecture designed to address these challenges through dynamic sparse attention. BoltzFormer identifies and fo-cuses attention on relevant areas by modeling uncertainty using a Boltzmann distribution with an annealing sched-ule. Initially, a higher temperature allows broader area sampling in early layers, when object location uncertainty is greatest. As the temperature decreases in later layers, attention becomes more focused, enhancing efficiency and accuracy. BoltzFormer seamlessly integrates into existing transformer architectures via a modular Boltzmann atten-tion sampling mechanism. Comprehensive evaluations on benchmark datasets demonstrate that BoltzFormer signif-icantly improves segmentation performance for small ob-jects while reducing attention computation by an order of magnitude compared to previous state-of-the-art methods. 
+
+# 1. Introduction 
+
+Transformer [23] has significantly changed the field of image analysis. Its attention-based architecture introduces flexibility in handling inputs from various modalities, in-cluding images, text, and other forms of prompts. Seminal works such as SAM [14], SAM 2 [19], and SEEM [32] unify segmentation tasks for various object types, making the models flexible and generalizable. There is also rising 
+
+> *Equal contribution.
+> †Corresponding authors.
+
+interest in adapting such promptable segmentation models to key application domains, such as biomedicine (e.g., MedSAM [16], BiomedParse [28], and MedSAM-2 [29]). While the progress is exciting, challenges abound. Asalient growth area is small objects, which are particu-larly difficult for conventional segmentation models, espe-cially when there is no user-provided bounding box and only the object description is available as input [7, 28]. This challenge is especially pronounced in critical appli-cation domains such as biomedicine, when important ob-jects like lung nodules, tumor lesions, vessels, and many other anatomical structures are tiny, sometimes occupy-ing less than 0.1% of the image. By default, many stan-dard segmentation models require the user to conduct the object detection step and provide object-specific spatial prompts as input, such as bounding boxes, points, or scrib-bles [15, 16, 24, 29]. In many applications, there are a large number of objects and this approach is clearly not scalable. Ideally, a user can simply specify the object description in a text prompt, and the model can automatically detect and segment the given objects, as in BiomedParse [28]. How-ever, in such an end-to-end setting, small objects pose sig-nificant challenges because they are particularly hard to lo-cate and identify. The difficulty in detecting and segmenting small objects originates from the nature of the attention mechanism in transformer. For a small object, the relevant information is confined within a tiny portion of the image (the object and its neighborhood). This means that the vast majority of attention computation would be spent on irrelevant pixels far away from the object. In addition to being wasteful, this also introduces significant distractions and noises, making the learning less efficient. Prior work has attempted to address this issue by focusing decoding on the foreground regions [7, 27]. However, they used relatively rigid rules, which are ill-suited for small objects due to their variability and the uncertainty about their locations. In this paper, we propose a novel transformer architec-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 25950 Figure 1. The overall architecture of BoltzFormer for end-to-end object detection and segmentation via a unified text prompt. BoltzFormer     
+
+> is a novel transform-based architecture that introduces a Boltzmann attention sampling module to dynamically propose sparse areas to focus cross-attention in each layer using a Boltzmann distribution. To account for uncertainty, which is especially high in earlier stage of computation, BoltzFormer starts with a high temperature in the first layer, which gradually cools down in subsequent layers. This is reminiscent of a reinforcement learning process, where exploration is favored in the initial layers (more sparse areas being sampled), and exploitation in later layers (focusing on a handful of most promising areas). The model takes image (upper left) and text prompt (lower left) as input, and outputs segmentation mask (upper right) for the object specified in the text prompt. Specifically, we use a standard image encoder to obtain multiscale visual features, including a high-resolution semantic map (upper middle). BoltzFormer starts with a set of latent queries that try to model the correct semantic for the prompted object in the image (middle left). In each layer, the query vectors are combined with the semantic map to produce a Boltzmann distribution over the image, which is then used to sample the sparse areas. They each attend exclusively to the visual features in the sampled area and update themselves (see Figure 2 for more details). The queries communicate with the text embeddings through self-attention after each Boltzmann attention sampling layer (center block). After the transformer layers, each query is combined with the image semantic map to generate a candidate predicted mask. The predictions are aggregated by a pixel grounded mask aggregation (PiGMA) module into the final mask prediction (upper right, see Figure 3 for details).
+
+ture, BoltzFormer , which learns to use a Boltzmann dis-tribution to dynamically propose sparse candidate areas to focus attention computation on. BoltzFormer takes an im-age and a natural-language description as input and con-ducts end-to-end detection and segmentation of the object as specified by the text prompt, as illustrated in Fig. 1. To accommodate uncertainty about the object location, Boltz-Former employs an annealing schedule, which starts with a high temperature for the Boltzmann distribution so that it would propose more areas to sample when the uncertainty is the highest, and cools down in subsequent layers as the object location becomes clearer so that the model can fo-cus on identifying the details in the object segment. The Boltzmann sampling step is modular and can be easily in-corporated into any modern transformer-based image anal-ysis process. We develop a reference system for BoltzFormer by com-bining the Boltzmann sampling module with state-of-the-art design for end-to-end image analysis. Specifically, we use a state-of-the-art image encoder to extract multi-scale visual features and a semantic map, and learn a set of latent query vectors in tandem with the image representation and text embedding. The learning is unrolled in a deep architecture with transformer-based layers augmented by the Boltzmann attention sampling module. In the final layer, the query vec-tors are combined with the image representation to gener-ate candidate segmentation masks, which are aggregated by a Pixel Grounded Mask Aggregation (PiGMA) module to produce the final segmentation mask output. We highlight our contributions as follows: • To the best of our knowledge, we are the first to incorpo-rate Boltzmann sampling into transformer to focus atten-tion computation on sparse areas of the image that most likely contain the queried object. We conducted thorough ablation studies to establish the best practice for this novel transformer architecture. • We propose a novel PiGMA module to efficiently ag-gregate an ensemble of segmentation mask predictions based on the query vectors. Through ablation studies, we demonstrate the effectiveness of this ensemble approach. 25951 • We conducted extensive evaluation on end-to-end ob-ject segmentation via a text prompt, using challenging segmentation datasets with objects of size ranging from 0.002%-20% of the image. Remarkably, BoltzFormer 
+
+substantially outperforms prior best methods, attaining a gain of 3-12 absolute points in mean Dice score, while re-ducing attention computation by an order of magnitude. 
+
+# 2. Related work 
+
+Segmentation and detection have been the core parts of image analysis, especially in medical images. Architec-ture wise, the field witnesses the progress from convolu-tional neural networks (CNNs), particularly architectures like Fast R-CNN [9], U-Net [20], Mask R-CNN [10] and Sparse R-CNN [22] to recent development of transform-ers. This transformer revolution led to seminal works in-cluding DETR [5], MaskFormer [6], and Mask2Former [7]. All these works used transformer decoder as the unifying architecture. These transformer decoder for segmentation and detec-tion nourished the recent developments toward generalized promptable image segmentation models, including Segment Anything Model (SAM) [14], SAM 2 [19], and Segment Everything Everywhere Model (SEEM) [32]. All these models feature a transformer mask decoder with flexibil-ity in taking prompts such as points, bounding boxes and text. While the image encoder and prompt encoder are flex-ibly chosen, the transformer mask decoder plays the criti-cal role in performing quality segmentation. The decoders of SAM and SAM 2 were derived from MaskFormer [6], and SEEM was built upon the Mask2Former [7] architec-ture. Our work aims to improve upon the above mentioned transformer mask decoder architectures in the text prompt-ing scenario. There have been several advances in biomedical segmen-tation by utilizing the architectures presented above and training them with more biological focused data. Med-SAM [16] was finetuned on SAM using a large-scale dataset of over 1.5 million image-mask pairs across 10 imaging modalities and 30 cancer types, demonstrating superior segmentation performance and adaptability com-pared to modality-specific models. MedSAM 2 [17] ex-tends MedSAM to 3D medical imaging, supporting seg-mentation in volumetric and time-sequential data. Biomed-Parse [28], built upon SEEM, is a biomedical foundational model in that unifies segmentation, detection, and recogni-tion tasks. By using text prompts, BiomedParse removes manual bounding-box interactions and enables scalable and accurate segmentation. In evaluations, BiomedParse out-performed state-of-the-art models, particularly for objects with complex and irregular shapes. However, finding small objects with text prompt is still a challenge. In order to improve segmentation performance, re-…      
+
+> Boltzmann distribution Boltzmann sampling
+> Sigmoid Cross-attention K, V QAdd & Norm
+> …
+> Visual features Semantic map Latent queries at layer ℓ − 1 dot MLP Latent queries at layer ℓ
+> Figure 2. Illustration of the Boltzmann attention sampling block (center block in Fig. 1). The latent queries from the previous layer each goes through the MLP transformation (Eq. (3)) with dimen-sion kept constant. Each transformed query vector takes dot prod-uct with all feature vectors on the semantic map, yielding scalars on the map. We use sigmoid to transform the scores into (0,1), and compute the Boltzmann distribution of temperature τℓusing Eq. (5). We then draw from the distribution to sample the correspond-ing patches in the visual feature for Ntrials with replacement. The query attends exclusively to the samples features and add to itself. We perform the same for all query vectors and apply layer normal-ization on them at the end.
+
+searchers have developed attention masking techniques. One closely approach is in Mask2Former [7], where the masked attention operation is hard thresholded by the previ-ous layer’s prediction. However, the prediction is not con-sistent across the layers, and the model struggles with small objects. MP-Former [27] proposed to introduce ground truth mask with point noise during training, however, the distribution difference between training and inference am-plifies the inference time error, which is severe for small objects. In contrast, the proposed Boltzmann attention sam-pling uses probabilistic sampling to promote identifying the right regions throughout all layers. We compared our Boltz-mann sampling strategy with the fixed threshold technique in ablation studies. The proposed Boltzmann attention sampling shares sim-ilarity with several approaches aimed at making transform-ers effective for handling long sequences [3, 8]. However, the proposed method is fundamentally different in that the Boltzmann sampling is done prior to the standard full at-tention, whereas methods for long sequences directly mod-ify the full attention computation. Conceptually, attention-25952 for-long-sequence methods sample to approximate where as the proposed method sample to focus. In computer vision, Deformable DETR [30] reduces computation by focusing on a deformable neighbor around a reference point, achiev-ing sparsity but more in a deformable convolution fashion. Most of these works typically rely on fixed patterns, while 
+
+BoltzFormer learns a spatial probability distribution and se-lects in a stochastic manner. 
+
+# 3. Method 
+
+The overall architecture of our model is illustrated in Figure 1. BoltzFormer is a transformer decoder that takes in image features from an image encoder (upper left) and text em-beddings from a language encoder (lower left). The output is a binary segmentation mask (upper right) corresponding to the text prompt. The core component is the Boltzmann attention sampling block (center) to be described in details. 
+
+## 3.1. Problem Setup 
+
+We formulate the problem as pixel-wise binary classifica-tion (pixel belongs to the text prompt semantics or not). We encode the input image using a backbone followed by a pixel decoder following [7], resulting in visual features 
+
+V(λ) ∈ R Hλ × Wλ ×d with different down-sampling factors λ.A semantic map S ∈ RH×W ×d is derived from the multi-scale visual features to represent the unified image seman-tics. The text prompt is encoded into a sequence of embed-dings T ∈ RNT ×d. We classify each pixel (x, y ) with 
+
+Uxy (μ) = sigmoid (μT Sxy ), (1) where the μ ∈ Rd vector is found by BoltzFormer as a function B of the image and text features 
+
+μ = B(V, S, T). (2) Below we show how BoltzFormer finds a good μ vector based on the image and text features. 
+
+## 3.2. BoltzFormer 
+
+BoltzFormer finds the μ vector by finding a latent query vec-tor q ∈ Rd, which maps to μ through a nonlinear MLP transformation 
+
+μ = MLP (q). (3) Instead of using a single latent query vector q, we initiate an ensemble of m queries, forming Q = [ q(1) , · · · , q (m)].Each query yields its own prediction at the end. The ensem-ble reduce uncertainty as Boltzmann sampling is a stochas-tic process, and also communicate among themselves. 
+
+3.2.1. Text-conditioned prior 
+
+Prior to taking any input from the image, we start the latent query Q0 by conditioning on the text embedding T:
+
+Q0 = FFN (LayerNorm ([ Q, T] + SelfAttn [Q, T])) , (4)     
+
+> Figure 3. The architecture of the PiGMA module. The module takes in the predictions from the final layer queries. The query en-semble prediction part (top row) simply averages the predictions and interpolates to higher resolution. The pixel grounded correc-tion part (de)convolutes the predictions twice into higher resolu-tion. In each convolution layer, we feed in the resized original im-age and concatenate on the channel dimension. cis the intermedi-ate convolution dimension. Finally, the query ensemble prediction and pixel grounded correction are averaged and passed through a sigmoid transformation to produce the pixel-wise probability mask prediction.
+
+where Q is the learnable initial query matrix. We con-catenate [Q, T] before performing self-attention, and split out only the Q part before the feed-forward network layer FFN. The same operation applies to following [Q, T] self-attention blocks. 
+
+3.2.2. Boltzmann Attention Sampling 
+
+The latent queries then go through L layers of BoltzFormer 
+
+blocks (big box in the lower center of Fig. 1). The core in each block is the Boltzmann attention sampling unit (center small box in Fig. 1 and the whole Fig. 2) where the queries 
+
+Qℓ sample information from the visual features to update themselves. Each Boltzmann attention sampling unit is fol-lowed by a self-attention layer for the queries to attend to each other and to the text embeddings. The steps are de-scribed in details below. 
+
+Step 1. Boltzmann distribution Given the query q(i) 
+
+> ℓ
+
+at layer ℓ, we first use it to compute the Boltzmann distribution on the image, which is a probability field 
+
+pxy (q(i) 
+
+> ℓ
+
+) = exp( Uxy (MLP (q(i) 
+
+> ℓ
+
+)) /τ ℓ)
+
+R 
+
+> x′y′
+
+exp( Ux′y′ (MLP (q(i) 
+
+> ℓ
+
+)) /τ ℓ) . (5) Here we apply the same MLP transformation in Eq. (3), and the pixel confidence estimator Eq. (1). The integral is on all (x′, y ′) on the image field to normalize the distribu-tion. Note that we use a continuous form here to efficiently consider different scales of image features. The discrete dis-tribution can be easily obtained through grid interpolation in real implementation. Based on Eq. (5), areas with higher confidence scores 
+
+Uxy are assigned higher sampling probabilities. The sam-25953 pling temperature τℓ controls the concentration of the dis-tribution in high-confidence areas. As layer ℓ increases, we gradually decrease the temperature according to τℓ =
+
+τ0/(1 + ℓ), where τ0 is the temperature at the base layer 
+
+ℓ = 0 . As illustrated at the bottom of Figure 1, we en-courage exploration across the entire image in the early lay-ers and progressively shift towards exploitation of the most confident regions. 
+
+Step 2. Random attention sampling We then sample from the visual feature V(λ) according to the Boltzmann distribution pxy (q(i) 
+
+> ℓ
+
+) estimated by query q(i) 
+
+> ℓ
+
+. (In each layer we use one of the visual feature scales λ. We leave it to the implementation details in appendix.) As V(λ)
+
+forms a down-sampled grid on the image, we first interpo-late pxy (q(i) 
+
+> ℓ
+
+) to assign probability for each patch. We draw from the distribution over the patches for N independent trials 1. The union of the sampled patches forms an attention set A(i) 
+
+> ℓ
+
+. Since one patch can be sampled multiple times, the total size of the sampled set satisfies |A (i) 
+
+> ℓ
+
+| ≤ N .Each query vector q(i) 
+
+> ℓ
+
+then exclusively attends to the vi-sual features in the sampled region and adds to itself. In the multi-head cross-attention, the attention score on the image for each head j is calculated as 
+
+αjxy =exp 
+
+
+
+W Qj q(i) 
+
+> ℓ
+
+· W Kj V(λ) 
+
+> xy
+
+/d 
+
+P
+
+> (x′,y ′)∈A (i)
+> ℓ
+
+exp 
+
+
+
+W Qj q(i) 
+
+> ℓ
+
+· W Kj V(λ) 
+
+> x′y′
+
+/d 
+
+
+
+for (x, y ) ∈ A (i) 
+
+> ℓ
+
+, and 0 elsewhere 2. The output of head j
+
+attention is 
+
+Hj = X
+
+> (x′,y ′)∈A (i)
+> ℓ
+
+αjx′y′ W Vj V(λ) 
+
+> x′y′
+
+.
+
+The query is then updated by combining the heads and adding to itself: 
+
+q(i) 
+
+> ℓ+1
+
+= q(i) 
+
+> ℓ
+
++ [ H1, · · · , H h]W O .
+
+We apply the same process for all query vectors 
+
+q(1)  
+
+> ℓ
+
+, · · · , q (m) 
+
+> ℓ
+
+, followed by a layer normalization on the up-dated query ensemble before advancing to the next step. 
+
+Step 3. Inter-query attention After all the queries go through the Boltzmann attention sampling process, we ap-ply a self-attention block such that the information is shared           
+
+> 1For computational efficiency, we sample from a Bernoulli distribution with probability 1−(1 −p(x, y ;q(i)
+> ℓ)) Nfor each (x, y )in parallel as an approximation.
+> 2We used the equivalent PyTorch attention masking feature in practice.
+
+among themselves and with the text embeddings (to the right of the Boltzmann attention sampling box in Fig. 1): FFN (LayerNorm ([ Qℓ+1 , Tℓ]+ SelfAttn [Qℓ+1 , Tℓ])) . (6) Again, we split out the Q part before going through the feed-forward network layer. Here Tℓ is the text embedding from the previous layer. The updated query embeddings and text embeddings are fed into the next BoltzFormer block. 
+
+## 3.3. PiGMA Query Aggregation 
+
+After L blocks of Boltzmann attention sampling, we obtain 
+
+m finalized latent query vectors q(1)  
+
+> L
+
+, . . . , q (m) 
+
+> L
+
+. By applying the MLP transformation in Eq. (3) and estimating pixel-wise confidence score using Eq. (1), each query yields a mask prediction. In this work we use the PiGMA module illustrated in Fig. 3 to aggregate the mask predictions from multiple queries. The aggregated prediction combines the following two components. 
+
+Query Ensemble Prediction As the m predicted masks are the final pixel-wise confidence estimation, this compo-nent is simply the average of the mask predictions: 
+
+M = 1
+
+m
+
+> m
+
+X
+
+> i=1
+
+MLP (q(i) 
+
+> L
+
+) · S. (7) 
+
+Pixel-Grounded Correction To better address the in-trinsic randomness in the query predictions, we apply a lightweight two-layer convolutional network to the mask predictions, grounding on the original image pixels to give a high-resolution correction to the ensemble prediction. We illustrate the architecture in Figure 3. The final output from PiGMA is the average of these two components. We further apply a pixel-wise sigmoid trans-formation to obtain a probabilistic mask prediction. The fi-nal mask prediction is supervised using the sum of the Dice loss [18] and binary cross-entropy loss. 
+
+## 3.4. Remarks 
+
+We finish this section with a few technical remarks. • The goal of BoltzFormer is to reduce the attention region by first “guessing” on a learnable probability distribution. Each “guess” doesn’t need to be perfect, as there are mul-tiple queries and rounds. The more relevant feature in each sampled set will be picked out by the cross-attention block efficiently, and shifts the updated query to focus more on those regions. Compared to standard attention which tries to focus on the desired feature only through optimizing on the massive number of tokens, sampling plus attention relieves the learning burden when the tar-get region is very small. 25954 • When BoltzFormer advances to the next round, features sampled in the previous round that are more relevant will be amplified through cross-attention. As the attention out-put is added to the original query vector, the next round’s Boltzmann distribution, estimated by the updated query vector, will more focus on the relevant features. Based on this mechanism, it is beneficial to spread out the sampling distribution in the early layers, reducing the likelihood of omitting any relevant features. The annealing tempera-ture scheduling is designed to balance the exploration and exploitation. • The ensemble of multiple queries not only diversify the exploration in Boltzmann sampling, but also boosts the final performance by their inter-communication through the self-attention layers. Once one of the queries get closer to the desired feature, all other queries can update towards the desired state. 
+
+# 4. Experiments 
+
+In order to evaluate the effectiveness of BoltzFormer ,we conducted extensive experiments on seven public im-age segmentation datasets from Medical Segmentation De-cathlon (MSD) [1], LIDC-IDRI [2] and AMOS22 [13]. We used the GPT-4 enriched data from BiomedParse 3 [28] to evaluate text prompt segmentation for the targets in these datasets. Example prompts include “right kidney in abdom-inal MRI” and “neoplasm in lung CT”. We ensure each of these datasets contain segmentation object types that are smaller than 1% of the image size in terms of area. The total benchmark suite covers a wide range of object sizes from below 0.002% to over 20% of image area, crossing four orders of magnitude. We provide detailed information in the Appendix. 
+
+## 4.1. Baselines 
+
+We compared BoltzFormer with three categories of baseline implementations. 
+
+Segmentation FM decoder comparison: We took the transformer decoder architectures of SOTA promptable im-age segmentation foundation models (FM), including SAM [14] ( ICCV 2023), SEEM [32] ( NeurIPS 2024), and the recent SAM 2 [19] (image version). To compare with 
+
+BoltzFormer in the same text prompt setting, we cus-tomized SAM and SAM 2 to take in text embeddings us-ing UniCL [26] as the language encoder. For image back-bone, we used the Hiera [4, 21] model with masked autoen-coder (MAE) pre-training [11], following the implementa-tion in SAM 2 [19]. We compared the decoders in settings with different backbone configurations (Hiera-S and Hiera-BP). To test the compatibility of BoltzFormer with differ-
+
+> 3We note that the processed variants are different from the original ver-sions in that the images are in 2D and the split definition could be different.
+> Figure 4. Examples of Boltzmann sampling from the intermedi-ate layers during inference. For each image and text prompt, the queries only attend to the samples patches at each layer. The dark region is completely masked out in that layer. Boundaries of the ground truth object is marked in red.
+
+ent backbone architectures, we also implemented an addi-tional experiment using the Focal-L [25] backbone initial-ized from SEEM 32. The pixel decoder architecture fol-lows [7, 31, 32]. For all decoder-backbone combinations, we trained on the entirety of the benchmark suite jointly. 
+
+Pre-trained foundation model comparison: We took the weights of the state-of-the-art biomedical image founda-tion model BiomedParse [28] for comparison. BiomedParse takes in text prompt and performs segmentation for objects in medical images. The model was not further fine-tuned exclusively on the benchmark suite in this paper. 
+
+Expert model comparison: We used nnU-Net [12] as the expert model baseline. We trained 35 nnU-Net models in fully supervised setting performing binary segmentation for each object type in each dataset, without text prompting. 
+
+## 4.2. Results 
+
+Table 1 shows the Dice score evaluation of BoltzFormer 
+
+compared with all the baseline models. Holding the im-age backbone constant, BoltzFormer outperformed all other segmentation FM decoders in mean Dice score averaged across the benckmark suite. The average performance improvements against the baseline decoders are: 12.4% against SAM, 12.6% against SAM 2, and 2.1% against SEEM. On individual benchmarks, BoltzFormer won over all baselines in most cases. In pre-trained model com-parison, BoltzFormer outperformed BiomedParse on aver-age and on each individual dataset. BoltzFormer also out-performed nnU-Net with 35 task-specific expert models. Lastly, BoltzFormer on the FocalL backbone shows dom-inant performance across the benchmark suite. In terms of failure analysis, the ratio of failure cases where the model completely missed the target was esti-mated at 1.4%. Common failure examples are: 1. extremely small targets (e.g. a few pixels), 2. low contrast, 3. presence of other plausible objects. 25955 Table 1. Evaluation results on segmentation benchmarks measured in mean Dice score (%). The first three sections are baseline models of the three categories. We present results of BoltzFormer in the last section. For BoltzFormer and the segmentation FM decoder baselines, we present each implementation as “DECODER+BACKBONE”. We mark each baseline decoders implementation with “text” to emphasize that they were all customized to take text prompts using the exact same language encoder as BoltzFormer . We mark the highest scoring model with bold in each column. We use underline to denote the best model under the same backbone size (e.g, S, BP). Method Avg. LIDC AMOS-CT AMOS-MRI MSD-Lung MSD-Panc. MSD-HepVes MSD-Colon 
+
+Expert models trained for each class in each dataset separately 
+
+nnU-Net 67.3 64.8 85.0 85.2 60.2 52.4 61.3 62.4 
+
+Pre-trained biomedical foundation model 
+
+BiomedParse 73.0 73.8 91.9 87.6 66.1 60.2 64.8 66.4 
+
+Segmentation FM decoders trained on this benchmark suite with custom text encoders and backbones 
+
+SAM+Heira-S (text) 67.0 67.1 88.4 83.9 61.6 55.1 61.2 52.0 SAM+Heira-BP (text) 64.9 62.8 86.7 81.2 57.2 51.4 60.8 54.0 SAM2+Heira-S (text) 65.6 65.4 88.2 82.6 59.8 52.8 59.8 50.6 SAM2+Heira-BP (text) 66.1 63.2 88.1 82.0 64.2 52.9 60.1 51.6 SEEM+Heira-S (text) 71.5 72.1 91.1 88.2 65.9 61.4 63.9 58.0 SEEM+Heira-BP (text) 73.8 72.9 92.0 89.3 69.3 64.6 65.7 63.3 
+
+BoltzFormer (our method) trained on this benchmark suite with custom text encoders and backbones 
+
+BoltzFormer+Heira-S 73.8 73.3 91.3 88.7 70.4 63.7 64.4 65.2 BoltzFormer+Heira-BP 74.5 73.6 92.0 89.3 71.4 61.0 66.7 66.7 
+
+BoltzFormer+FocalL 75.2 75.4 92.7 90.2 70.2 64.0 67.0 66.7 
+
+## 4.3. Performance on small objects 
+
+To show the advantage of BoltzFormer in segmenting small objects, we filtered the segmentation examples into small and large groups with the threshold at 1% of the total im-age area. Table 2 shows the performance stratified by ob-jects size, where BoltzFormer significantly outperformed all other baselines on small objects. Interestingly, we no-ticed that while BoltzFormer was leading on the large ob-ject group as well, the gap between BoltzFormer and the best competing method on large objects is very small, prov-ing that the improvement from our approach was mainly contributed by the small objects. 
+
+Table 2. Dice score (with std) on small objects ( < 1% image area), large objects ( ≥ 1% image area), and all objects. We calculated the average Dice score for each size group on each dataset in the benchmark suite, and reported the dataset average weighted by the ratio of the corresponding size group in each dataset. SAM SAM2 SEEM BoltzFormer Small 64.5 (0.52) 62.1 (0.53) 68.9 (0.50) 71.4 (0.44) 
+
+Large 82.3 (0.57) 82.3 (0.57) 87.1 (0.36) 87.5 (0.35) 
+
+All 67.1 (0.46) 65.0 (0.46) 71.5 (0.44) 73.7 (0.38) 
+
+## 4.4. Visualization of Boltzmann attention sampling 
+
+In Fig. 4 we show the two examples of Boltzmann atten-tion sampling during text prompt segmentation inference. The query only attends to the visual features on the sampled patches. The sampling is spread out at the earlier layers, for the model to explore the image features. In the middle lay-ers, BoltzFormer begins to exhaust the features in the target region, while continuing to explore other parts of the image. The sampling is highly concentrated on the target regions when getting close to the last layer to refine the prediction with the most relevant features. Note that in the second example, the query didn’t attend to any feature from the target region until layer 5, however, after that the model quickly focused on the target region. 
+
+# 5. Ablation studies 
+
+We conducted thorough ablation studies for all newly in-troduced components in BoltzFormer to examine their ef-fectiveness. We used Heiera-S as the backbone, and held all non-ablated parts constant for all experiments. Standard deviation estimates are provided in parentheses. 
+
+## 5.1. Boltzmann attention sampling 
+
+To show the effectiveness of Boltzmann attention sampling in attention masking, we compared with the standard full attention, as well as fixed threshold masking following [7, 32]. Table 3 shows the average Dice score evaluated across the benchmark suite, where Boltzmann attention sampling showed significant advantage over full attention and fixed threshold masking. 25956 Table 3. Average Dice score (%) when using regular full attention, fixed attention mask threshold, and Boltzmann attention sampling. Full attention 0.5 threshold Boltz. sampling (ours) 71.2 (0.43) 72.4 (0.41) 73.7 (0.38) 
+
+## 5.2. Temperature for sampling 
+
+Temperature is the critical parameter in balancing explo-ration vs. exploitation and controlling the annealing behav-ior. In Table 4 we experimented with different base temper-atures in the layer-decay formula τℓ = τ0 
+
+> ℓ+1
+
+. We found that a balanced value τ0 = 1 yielded the best performance. The performance dropped significantly when the temperature is too high, as the model explored for too long and couldn’t exploit the most relevant features.              
+
+> Table 4. Average Dice score (%) when changing the base layer temperature in Boltzmann sampling. Temp. τ0= 0 .25 τ0= 0 .5τ0= 1 τ0= 2
+> Dice 73.6 (0.40) 73.0 (0.43) 73.7 (0.38) 72.2 (0.42)
+
+## 5.3. Sampling size 
+
+We experimented with the number of samples drawn by each query in each layer, measured as a percentage of the total number of visual features Nv in that layer. In Table 5 we observed that with as few as 5% features BoltzFormer is able to deliver satisfactory performance, and 10% sampling gave the best performance. Further increasing the sample size didn’t help with the model performance.           
+
+> Table 5. Average Dice score (%) when changing the number of independent samples in Boltzmann sampling. Nvrefers to the total number of visual features in that layer. # sample 5% Nv10% Nv20% Nv50% Nv
+> Dice 72.9 (0.40) 73.7 (0.38) 72.4 (0.42) 73.6 (0.40)
+
+## 5.4. Number of queries 
+
+One key component in BoltzFormer is the design of multiple queries which perform independent distribution estimation and sampling. The self-attention layer after each Boltzmann attention sampling layer communicates the useful features across the ensemble. From Table 6 we observed that as few as 10 queries is enough for best performance, and there was no notable difference when further increasing the number of queries. When there is no ensemble (only 1 query) the performance dropped notably.          
+
+> Table 6. Average Dice score (%) when changing the number of queries in BoltzFormer .# queries 110 32 101 Dice 72.8 (0.42) 73.8 (0.38) 73.8 (0.38) 73.7 (0.38)
+
+## 5.5. Text-conditional query prior 
+
+The self-attention layer before the first Boltzmann attention sampling block helps the queries to initialize based on the semantic from the text prompt. Table 7 illustrates the per-formance gain from text-conditioning (Eq. (4)).   
+
+> Table 7. Average Dice score (%) when using unconditioned query prior v.s. using query prior conditioned on input text. Unconditioned prior Text-conditioned prior 72.3 (0.44) 73.7 (0.38)
+
+## 5.6. PiGMA module 
+
+The PiGMA module at the end of the model provides a non-linear aggregation of the different predictions from the mul-tiple queries by grounding on the original image. Table 8 shows the improvement from pixel grounded correction.   
+
+> Table 8. Average Dice score (%) when using query ensemble pre-diction only v.s. adding high resolution pixel grounded correction. Query ensemble only With pixel grounded correction 73.2 (0.43) 73.7 (0.38)
+
+# 6. Conclusion 
+
+Detecting and segmenting small objects remains a signif-icant challenge in holistic image analysis. In this paper, we introduced BoltzFormer for detecting and segmenting small objects by learning to dynamically sample sparse ar-eas for focused self-attention using a Boltzmann distribu-tion with an annealing temperature schedule. Effectively, 
+
+BoltzFormer adopts a form of reinforcement learning by maintaining layerwise representation (state) and selecting the sparse subset of the image (action) through Boltzmann sampling (policy). In thorough evaluation on standard im-age analysis datasets with small objects, BoltzFormer sub-stantially outperforms prior best methods in segmentation accuracy, while reducing self-attention computation by an order of magnitude. Future work will focus on enhancing accuracy and efficiency, as well as expanding applications to additional modalities and object types. 25957 References 
+
+[1] Michela Antonelli, Annika Reinke, Spyridon Bakas, Key-van Farahani, Annette Kopp-Schneider, Bennett A Landman, Geert Litjens, Bjoern Menze, Olaf Ronneberger, Ronald M Summers, et al. The medical segmentation decathlon. Nature communications , 13(1):4128, 2022. 6 [2] Samuel G Armato III, Geoffrey McLennan, Luc Bidaut, Michael F McNitt-Gray, Charles R Meyer, Anthony P Reeves, Binsheng Zhao, Denise R Aberle, Claudia I Hen-schke, Eric A Hoffman, et al. The lung image database consortium (LIDC) and image database resource initiative (IDRI): a completed reference database of lung nodules on CT scans. Medical physics , 38(2):915–931, 2011. 6 [3] Iz Beltagy, Matthew E Peters, and Arman Cohan. Long-former: The long-document transformer. arXiv preprint arXiv:2004.05150 , 2020. 3 [4] Daniel Bolya, Chaitanya Ryali, Judy Hoffman, and Christoph Feichtenhofer. Window attention is bugged: How not to interpolate position embeddings. In The Twelfth Inter-national Conference on Learning Representations . 6 [5] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In European confer-ence on computer vision , pages 213–229. Springer, 2020. 3 [6] Bowen Cheng, Alex Schwing, and Alexander Kirillov. Per-pixel classification is not all you need for semantic segmen-tation. Advances in neural information processing systems ,34:17864–17875, 2021. 3 [7] Bowen Cheng, Ishan Misra, Alexander G Schwing, Alexan-der Kirillov, and Rohit Girdhar. Masked-attention mask transformer for universal image segmentation. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , pages 1290–1299, 2022. 1, 3, 4, 6, 7 [8] Rewon Child, Scott Gray, Alec Radford, and Ilya Sutskever. Generating long sequences with sparse transformers. arXiv preprint arXiv:1904.10509 , 2019. 3 [9] Ross Girshick. Fast r-cnn. In Proceedings of the IEEE inter-national conference on computer vision , pages 1440–1448, 2015. 3 [10] Kaiming He, Georgia Gkioxari, Piotr Doll´ ar, and Ross Gir-shick. Mask R-CNN. In Proceedings of the IEEE inter-national conference on computer vision , pages 2961–2969, 2017. 3 [11] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Doll´ ar, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 16000– 16009, 2022. 6 [12] Fabian Isensee, Paul F Jaeger, Simon AA Kohl, Jens Pe-tersen, and Klaus H Maier-Hein. nnU-Net: a self-configuring method for deep learning-based biomedical image segmen-tation. Nature methods , 18(2):203–211, 2021. 6 [13] Yuanfeng Ji, Haotian Bai, Chongjian Ge, Jie Yang, Ye Zhu, Ruimao Zhang, Zhen Li, Lingyan Zhanng, Wanling Ma, Xi-ang Wan, et al. Amos: A large-scale abdominal multi-organ benchmark for versatile medical image segmentation. Ad-vances in neural information processing systems , 35:36722– 36732, 2022. 6 [14] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-thing. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , pages 4015–4026, 2023. 1, 3, 6[15] Ho Hin Lee, Yu Gu, Theodore Zhao, Yanbo Xu, Jianwei Yang, Naoto Usuyama, Cliff Wong, Mu Wei, Bennett A. Landman, Yuankai Huo, Alberto Santamaria-Pang, and Hoi-fung Poon. Foundation models for biomedical image seg-mentation: A survey, 2024. 1 [16] Jun Ma, Yuting He, Feifei Li, Lin Han, Chenyu You, and Bo Wang. Segment anything in medical images. Nature Communications , 15(1):654, 2024. 1, 3 [17] Jun Ma, Sumin Kim, Feifei Li, Mohammed Baharoon, Reza Asakereh, Hongwei Lyu, and Bo Wang. Segment anything in medical images and videos: Benchmark and deployment, 2024. 3 [18] Fausto Milletari, Nassir Navab, and Seyed-Ahmad Ahmadi. V-Net: Fully convolutional neural networks for volumetric medical image segmentation. In 2016 fourth international conference on 3D vision (3DV) , pages 565–571. IEEE, 2016. 5[19] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, et al. Sam 2: Segment anything in images and videos. arXiv preprint arXiv:2408.00714 , 2024. 1, 3, 6 [20] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-Net: Convolutional networks for biomedical image segmen-tation. In Medical Image Computing and Computer-Assisted Intervention–MICCAI 2015: 18th International Conference, Munich, Germany, October 5-9, 2015, Proceedings, Part III 18 , pages 234–241. Springer, 2015. 3 [21] Chaitanya Ryali, Yuan-Ting Hu, Daniel Bolya, Chen Wei, Haoqi Fan, Po-Yao Huang, Vaibhav Aggarwal, Arkabandhu Chowdhury, Omid Poursaeed, Judy Hoffman, et al. Hi-era: A hierarchical vision transformer without the bells-and-whistles. In International Conference on Machine Learning ,pages 29441–29454. PMLR, 2023. 6 [22] Peize Sun, Rufeng Zhang, Yi Jiang, Tao Kong, Chen-feng Xu, Wei Zhan, Masayoshi Tomizuka, Lei Li, Zehuan Yuan, Changhu Wang, et al. Sparse r-cnn: End-to-end ob-ject detection with learnable proposals. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 14454–14463, 2021. 3 [23] A Vaswani. Attention is all you need. Advances in Neural Information Processing Systems , 2017. 1 [24] Hallee E Wong, Marianne Rakic, John Guttag, and Adrian V Dalca. Scribbleprompt: fast and flexible interactive segmen-tation for any biomedical image. In European Conference on Computer Vision , pages 207–229. Springer, 2024. 1 [25] Jianwei Yang, Chunyuan Li, Xiyang Dai, and Jianfeng Gao. Focal modulation networks. Advances in Neural Information Processing Systems , 35:4203–4217, 2022. 6 25958 [26] Jianwei Yang, Chunyuan Li, Pengchuan Zhang, Bin Xiao, Ce Liu, Lu Yuan, and Jianfeng Gao. Unified contrastive learning in image-text-label space. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 19163–19173, 2022. 6 [27] Hao Zhang, Feng Li, Huaizhe Xu, Shijia Huang, Shilong Liu, Lionel M Ni, and Lei Zhang. Mp-former: Mask-piloted transformer for image segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition , pages 18074–18083, 2023. 1, 3 [28] Theodore Zhao, Yu Gu, Jianwei Yang, Naoto Usuyama, Ho Hin Lee, Sid Kiblawi, Tristan Naumann, Jianfeng Gao, Angela Crabtree, Jacob Abel, Christine Moung-Wen, Brian Piening, Carlo Bifulco, Mu Wei, Hoifung Poon, and Sheng Wang. A foundation model for joint segmentation, detection, and recognition of biomedical objects across nine modalities. 
+
+Nature Methods , 2024. 1, 3, 6 [29] Jiayuan Zhu, Yunli Qi, and Junde Wu. Medical SAM 2: Seg-ment medical images as video via segment anything model 2. arXiv preprint arXiv:2408.00874 , 2024. 1 [30] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable transformers for end-to-end object detection. In International Conference on Learning Representations . 4 [31] Xueyan Zou, Zi-Yi Dou, Jianwei Yang, Zhe Gan, Linjie Li, Chunyuan Li, Xiyang Dai, Harkirat Behl, Jianfeng Wang, Lu Yuan, et al. Generalized decoding for pixel, image, and lan-guage. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pages 15116–15127, 2023. 6 [32] Xueyan Zou, Jianwei Yang, Hao Zhang, Feng Li, Linjie Li, Jianfeng Wang, Lijuan Wang, Jianfeng Gao, and Yong Jae Lee. Segment everything everywhere all at once. Advances in Neural Information Processing Systems , 36, 2024. 1, 3, 6, 725959

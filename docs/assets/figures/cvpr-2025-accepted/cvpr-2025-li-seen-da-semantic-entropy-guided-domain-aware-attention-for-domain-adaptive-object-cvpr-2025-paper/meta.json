@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1796,
+      "height": 561,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1765,
+      "height": 486,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1721,
+      "height": 633,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 678,
+      "height": 458,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 687,
+      "height": 463,
+      "label": "Figure"
+    }
+  ]
+}

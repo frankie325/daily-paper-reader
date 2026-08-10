@@ -1,0 +1,310 @@
+Title: CorrBEV: Multi-View 3D Object Detection by Correlation Learning with Multi-modal Prototypes
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Xue_CorrBEV_Multi-View_3D_Object_Detection_by_Correlation_Learning_with_Multi-modal_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 13:39:07 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# CorrBEV: Multi-View 3D Object Detection by Correlation Learning with Multi-modal Prototypes 
+
+## Ziteng Xue 1* Mingzhe Guo 3* Heng Fan 4 Shihui Zhang 1,5 B Zhipeng Zhang 2 B
+
+## School of Information Science and Engineering, Yanshan University 1
+
+## School of Artificial Intelligence, Shanghai Jiao Tong University 2 , Beijing Jiaotong University 3
+
+## University of North Texas 4, Hebei Key Laboratory of CVT & SI 5
+
+## Abstract 
+
+Camera-only multi-view 3D object detection in autonomous driving has witnessed encouraging developments in recent years, largely attributed to the revolution of fundamental ar-chitectures in modeling bird’s eye view (BEV). Despite the growing overall average performance, we contend that the exploration of more specific and challenging corner cases hasn’t received adequate attention. In this work, we delve into a specific yet critical issue for safe autonomous driv-ing: occlusion. To alleviate this challenge, we draw inspi-ration from the human amodal perception system, which is proven to have the capacity for mentally reconstructing the complete semantic concept of occluded objects with prior knowledge. More specifically, we introduce auxiliary visual and language prototypes, akin to human prior knowledge, to enhance the diminished object features caused by oc-clusion. Inspired by Siamese object tracking, we fuse the information from these prototypes with the baseline model through an efficient depth-wise correlation, thereby enhanc-ing the quality of object-related features and guiding the learning of 3D object queries, especially for partially oc-cluded ones. Furthermore, we propose the random pixel drop to mimic occlusion and the multi-modal contrastive loss to align visual features of different occlusion levels to a unified space during training. Our inspiration originates from addressing occlusion, however, we are surprised to find that the proposed framework also enhances robustness in various challenging scenarios that diminish object repre-sentation, such as inclement weather conditions. By apply-ing our model to different baselines, i.e., BEVFormer and SparseBEV, we demonstrate consistent improvements. 
+
+## 1. Introduction 
+
+The camera-only solution currently stands out as one of the most captivating domains in both the industry and academia    
+
+> *Equal Contribution. B: Corresponding author. Ours  Baseline
+> Occluded Target Missed continuously
+> Inject to Visual & Language Prior Knowledge
+> In
+> sual &Langua
+> (a) (b)
+> Construction Vehicle! Car? Truck?
+> Occluded target
+> Complete diminished representation
+> Target Successfully Detected via Our Correlation Learning
+
+Figure 1. (a) The motivation of our proposed CorrBEV: injecting visual and language prior knowledge to complete dismissed rep-resentation in the real driving scene (taking the occluded target as an example); (b) The comparison of one baseline model (Sparse-BEV [28] here) and our method in detecting the occluded object. 
+
+of autonomous driving. 3D object detection from multi-view images, typically the initial phase of the solution, has witnessed significant progress in recent years. It is observed that most research efforts in 3D object detection are devoted to enhancing average performance. This inclination can be traced back to the original intention and design of evalu-ation benchmarks, in which metrics like NDS and mAP in nuScenes [2] are primarily proposed to average scores across all scenes and categories rather than emphasizing a special scenario. Consistent with this ethos, the foun-dational architectures of multi-view 3D object detection frameworks have undergone a remarkable evolution, transi-tioning from depth-estimated [14, 24] to depth-free [25, 30, 44], from single-frame [44] to multi-frame [13, 33], from dense-query [25] to sparse-query [26, 28]. However, the improvements in overall performance sometimes fall short of meeting the demands of developers, as critical agents often hold more significance for down-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 27413 stream planning systems but are easily overlooked by the average perception scores. For instance, the failure to detect a partially occluded pedestrian near the ego car has minimal impact on average performance but is crucial for ensuring safe autonomous driving. Recent works like RoboBEV [48] have reassessed the limitation of the current evaluation pro-tocol and advocated for assessing methods under different scenarios of interest. Besides, methods designed for speci-fied cases like long-range detection [15] are also introduced to address corner cases. While encouraged by the notable progress, we notice that the occlusion problem remains less explored. This motivates us to fill the gap in this work. It’s easy to understand that there is no chance to local-ize the completely occluded target with solely single-frame knowledge. One effective approach that has been demon-strated to alleviate this challenge is the incorporation of more temporal information. Yet this is not the topic of our work. We primarily tend to enhance the detection quality of partially occluded objects with only single-frame clues. By doing so, our proposed method can seamlessly integrate with almost all existing methods regardless of their baseline architecture design. The resilience of our method will be proved in the later experiments. Then, what is the inherent difficulty in detecting partially occluded objects? Gener-ally, occlusion diminishes the quality of learned visual rep-resentation as fewer discernible features are available com-pared with non-occluded objects. It’s akin to a chicken-and-egg scenario because detecting occluded objects neces-sitates sufficient contextual cues, yet such information is in-herently limited due to occlusion. So, could we introduce additional clues for occluded objects? 
+
+We try to find the answer from the human vision and recognition systems, which are proven to have the capacity for mentally reconstructing the complete semantic concept of occluded objects with prior knowledge [17, 19]. This ability, known as amodal perception, enables us to assimi-late integral information from both visible cues and imper-ceptible signals [36]. Inspired by this mechanism, we pro-pose a novel plug-and-play architecture termed CorrBEV, which incorporates auxiliary semantic prototypes for occlu-sion reasoning. As an old saying goes, “A picture paints a thousand words” . One intuitive way is to supply richer vi-sual priors from image templates that correspond with dif-ferent human-defined object categories. Besides, human language, specifically the category name itself, encapsu-lates compact knowledge about the described object, which has already demonstrated effectiveness in improving vision tasks [9, 10, 29, 37, 52]. Therefore, it sounds reasonable to introduce language clues alongside the visual priors to en-hance representation learning of partially occluded objects. We provide an example to illustrate this motivation in Fig. 1. More specifically, our proposed framework consists of three core components. Firstly, the Multi-modal Proto-type Generator provides prior knowledge for improving the representation quality of targets. We crop images with 2D ground-truth boxes in the training dataset and use a pub-licly available model to extract feature embeddings. The feature embeddings are then clustered based on visibility level 1 and category to form occlusion-aware visual proto-types. The language prototypes are obtained by transform-ing category names ( e.g. pedestrian) to embeddings with pre-trained BERT [8]. Secondly, the Correlation-guided Query Learner injects the knowledge of multi-modal pro-totypes to the model, which is inspired by Siamese Object Tracking [1, 20, 55]. The depth-wise correlation operator transforms prototypes and backbone features into salient maps, which we find partially occluded objects can be bet-ter localized than that in 3D space. The decoder then gen-erates 3D object queries with the salient maps and sam-ples 2D features from both the backbone and the corre-lation feature in a dual way. Last but not least, during training, the pseudo-occlusion processor in our proposed 
+
+Occlusion-aware Trainer randomly drops pixels in less-occluded objects, which can balance the distribution of ob-jects with different occlusion levels. Besides, we also pro-pose to align vision and language representation with con-trastive loss [32]. Considering one language embedding as a cluster center, the alignment training forces the model to predict closer representation in the latent space for occluded and non-occluded objects of the same category. To demonstrate the effectiveness and generality of the proposed method, we apply our model to both BEV-Former [25] (dense-query) and SparseBEV [28] (sparse-query). Without bells and whistles, our model improves the aforementioned two baselines for 2.6%/2.7% mAP and 2.6%/1.6% NDS on nuScenes [2] validation split, respec-tively. The advances are maintained in our introduced occlusion-aware evaluation. More surprisingly, while our approach mainly aims at mitigating the negative effects of occlusion, we observed that our method also enhances the robustness of baseline techniques in other challenging sce-narios from RoboBEV [48]. The results highlight the re-silience of our proposal, which can effectively address the diminished representation caused by various conditions en-countered in the real world. In summary, our contributions are four-fold: ( i) We pro-pose a plug-and-play model that incorporates auxiliary vi-sual and language clues to improve the robustness of de-tection methods, especially on partially occluded objects. 
+
+(ii) We innovatively introduce correlation learning to ele-gantly inject the knowledge of multi-modal prototypes into multi-view 3D detection models. (iii) We optimize the train-ing pipeline of multi-view detection methods by proposing 
+
+> 1In nuScenes [2], “visibility” is defined as the fraction of pixels of a particular annotation that are visible over the 6 camera feeds, grouped into 4 bins. Please refer to nuScenes [2] and Sec. 4 for more details. 27414
+
+random masking and multi-modal alignment to improve the capability of detecting occluded objects. (iv) We prove the effectiveness of our model on different baseline methods. 
+
+## 2. Related Work 
+
+Multi-view Camera-based 3D Object Detection. Bene-fiting from the intrinsic complementarity in different obser-vation angles, recent year’s attention in camera-based 3D object detection is turning from a single-view to its multi-view counterparts. The related methods can be roughly categorized into two branches. The first one explicitly constructs dense BEV representations by lifting the 2D image features to 3D space. Specifically, the pioneering work LSS [35] performs view transformation with the pre-dicted categorical depth distribution of each pixel. The follow-up method BEVDet [14] designs rich image-level and BEV-level augmentations in training. BEVDepth [24] and BEVStereo [23] further improve the quality of BEV features with explicit depth supervision. Another branch densely or sparsely projects 3D queries to 2D images for sampling and aggregating visual information. The pioneer-ing work DETR3D [44] is inspired by its 2D parent DETR [4], which builds relations between sparse 3D object queries with 2D points in the images. BEVFormer [25] chooses to explicitly learn BEV representation. PETR [30] employs 3D position coding to generate 3D position-aware features. Sparse4D [26] and SparseBEV [28] can be regarded as the temporal version of DETR3D [44], which explores a fully sparse manner to aggregate multi-frame features. As the recent consensus in practical application sug-gests, handling corner cases may be the last mile of per-ception systems. The research community also proposes different works to catch up with this trend. For instance, RoboBEV[48] tags the nuScenes with different challenging attributes for more sufficiently evaluating models. Far3D [15] and LR3D [50] pay attention to long-distance objects, which tends to expand the spatial range of BEV detection methods. OpenSight [53] proposes to leverage multi-modal LiDAR and camera data for open-vocabulary 3D object de-tection. In this work, we focus on handling occlusion cases which are essential for safe autonomous driving. 
+
+Handling Occlusion in 3D Object Detection. Occlu-sion presents an inevitable and critical challenge in au-tonomous driving, particularly in the realm of 3D ob-ject detection. Significant efforts have been made to ad-dress this issue through LiDAR-based [12, 40, 49] and camera-based [5, 18, 39, 51] solutions. In LiDAR-based approaches, a common strategy involves recovering hid-den 3D information. For example, WYSIWYG [12] min-imizes shape distortion due to occlusion by utilizing visi-bility information via a raycasting algorithm. BtcDet [49] incorporates a sub-network designed to estimate the com-plete occupancy of objects in occluded regions. Camera-based methods tackle occlusion through modeling 2D oc-cluded keypoints [39], reconstructing boxes using shape priors [18], predicting 2D depth maps [41], and estimating uncertainty [5]. Additionally, a widely recognized strategy for mitigating the adverse effects of occlusion involves the fusion of temporal information [26, 31, 33, 42]. However, temporal models may lose efficacy for moving objects due to the challenges of accurate motion compensation. More-over, the ambiguous context of occluded targets and their foreground objects can diminish the quality of temporal learning. In camera-based multi-view 3D object detection, we observed that the occlusion challenge has received lim-ited attention. Previous work OccluBEV [46] predicts 3D voxel segmentation masks based on labels derived from Li-DAR points. Differently, we propose a general framework that leverages vision-language multi-modal information to enhance diminished object representations caused by occlu-sion and other challenging driving environments, without relying on additional LiDAR data. 
+
+## 3. Method 
+
+This section details our proposed framework CorrBEV, as shown in Fig. 2. We first delineate the process of gener-ating visual and language prototypes in Sec. 3.1. Then, in Sec. 3.2, we propose correlation learning to use the prior knowledge of multi-modal prototypes. Finally, Sec. 3.3 in-troduces the designed occlusion-aware trainer. 
+
+3.1. Multi-modal Prototype Generator 
+
+As aforementioned, insufficient contextual cues introduce an inherent challenge in detecting occluded objects. In this work, we propose the Multi-modal Prototype Generator to mitigate this problem by imitating human imagination abil-ity with auxiliary prior knowledge beyond the observations (images). Specifically, for learning visual prototypes, we offline crop 2D object templates in the bounding boxes and use DeViT [54] to transform these templates to feature em-beddings Pv ∈ RK×N ×D , where K and N denote the number of samples and categories, respectively. D is the number of channels. As we primarily want to alleviate the occlusion problem, we split the prototypes based on the vis-ibility label of each ground-truth box and then average the 
+
+K samples, obtaining Pvo ∈ R(N ×M )×D . M is the number of visibility levels ( N = 10 , M = 4 in nuScenes [2]). For the language prototypes, we use the pre-trained BERT [8] to extract high-level semantic information in object category names, obtaining Pl ∈ RN ×D . To adapt the prototypes to the detection task, we fine-tune the text encoder during training. Since we use the relatively light BERT encoder, rare training costs would be introduced (see experiments). The visual prototypes are offline generated, therefore the image encoder is frozen in training. Besides, training the image encoder is not a wise decision considering its cost. 27415 Pseudo-occlusion Processor   
+
+> samples with different visibility
+> Backbone & FPN Multi-view features Correlation features
+> …
+> Learnable queries Contrastive Loss Cls & Reg Head Sample Sample
+> Project
+> Dual-path Mixed Sampling
+> ×𝑳
+> Correlation Concat & Linear
+> Concat & Linear
+> “car ”“trailer ”“bus ”
+> …
+> “truck ”
+> Image templates
+> …
+> Language embeddings
+> …
+> 🔥
+> Language embeddings Occlusion queries Project Occlusion discriminative features
+> Correlation heatmaps …
+> Visual templates Crop and Resize Box GT
+> Image Encoder Text Encoder
+> Cross-Attention
+
+Figure 2. Overall architecture of the proposed CorrBEV for multi-view 3D object detection. The vision-language prototypes provide prior knowledge to improve the capability of detecting occluded objects. 
+
+In our work, we innovatively propose a simple way to fine-tune the visual prototypes. In specific, we initialize a tensor of trainable parameters ( nn . Embedding in PyTorch [34]) with the raw visual embedding. Finally, we concatenate and squeeze the visual and language prototypes along the chan-nel dimension by broadcasting, obtaining P ∈ R(N ×M )×D .
+
+3.2. Correlation-guided Query Learner 
+
+The next step is to fuse the multi-modal prototypes with baseline models. There are three predefined goals: 1) guar-antee the efficiency; 2) enhance the feature quality, espe-cially the partially occluded objects; 3) guide the detection of partially occluded objects. In this work, we introduce the correlation learner to satisfy all the requirements. For efficiency, we introduce the depth-wise correlation from Siamese Object Tracking [1, 56] to fuse multi-modal prototypes with the backbone features Fb ∈ RH×W ×D . H
+
+and W represent the height and width of the feature. The implementation of this operator equals to depth-wise con-volution in modern deep-learning frameworks 2. Hence, the efficiency (our first goal) is guaranteed, while achieving the correlation feature Fcorr ∈ RH×W ×(N ×M ×D),
+
+Fcorr = Conv 1×1(P, Fb), (1) where Conv 1×1 is the 1 × 1 convolution operator which takes the fused multi-modal prototypes P as the convolu-tion kernel. We reduce the feature dimension of Fcorr to D
+
+> 4
+
+for efficiency. Correlation is an operator that was initially designed to find the most similar objects with exemplars [1] in an image. The depth-wise version extends the original 
+
+> 2Modern deep-learning frameworks implement “convolution” as “cor-relation” because of its efficiency and similar functionality [34].
+
+correlation operator to multi-dimension [20], aiming at en-hancing target-related features meanwhile decreasing the response of unrelated backgrounds (our second goal). Considering the discriminative semantic properties within the correlation feature, we try to take its advantage for occlusion reasoning from two aspects. Firstly, we pro-pose Object Query Initializer to guide the generation of ob-ject candidates, i.e., 3D object queries in DETR-like de-coder [44], with the correlation feature. The motivation is inspired by our observation that it’s easier to localize partially occluded objects in 2D images than in 3D BEV space, since the feature sampling of 3D object queries may unexpectedly mix an occluded target with its foreground object. Specifically, we predict confidence maps Hvis ∈
+
+RH×W ×N ×M for each visibility and category with correla-tion feature Fcorr . We extract the embeddings from the cor-relation feature at the top k positions of the confidence maps (k is the number of 3D object queries). The embeddings are regarded as target-aware object queries Qt ∈ Rk×D ,
+
+Qt = {Ficorr | i ∈ argmax kHvis }, (2) where i is the pixel index. The target-aware queries Qt are fused with learnable queries Qlearn in the baseline models by cross-attention, 
+
+Q = CrossAttn(q = Qlearn , k = Qt, v = Qt). (3) The number of object queries Q is the same as that in base-line models, guaranteeing fair comparisons. Secondly, we try to construct object-aware 3D object representations with the correlation feature. As aforemen-tioned, the diminished 2D features of partially occluded ob-jects would degrade the learning effectiveness of 3D object 27416 1 2 3 4
+
+> Visibility Level
+> 0510 15 20 25 30 35 40
+> Number of Samples
+> ×10e4
+> car truck construction_vehicle bus trailer barrier motorcycle bicycle pedestrian traffic_cone
+
+Figure 3. The distribution of different visibility levels in nuScenes. 
+
+queries. To alleviate the occlusion ambiguity, we propose Dual-path Mixed Sampling to guide the learning of 3D ob-ject queries. In specific, the 3D object queries sample fea-tures by projecting the predefined 3D sampling points p to the 2D feature planes ( i.e., the backbone feature Fb and the correlation feature Fcorr ), which is guided by predicting sampling offsets ∆p. Then, the 3D object queries Q are updated by aggregating the sampled features, 
+
+Qup = Linear 
+
+"
+
+1
+
+|V| 
+
+X
+
+> i∈V
+> Nref
+
+X
+
+> j=1
+
+Fi,j b (pij + ∆ pij ); 1
+
+|V| 
+
+X
+
+> i∈V
+> Nref
+
+X
+
+> j=1
+
+Fi,j corr (pij + ∆ pij )
+
+#
+
++ Q,
+
+(4) where Linear represents the linear layer, [·; ·] indicates the concatenation along channel dimention. Nref is the total reference points for each 3D object query. |V| is the num-ber of surrounding cameras. With the proposed method, our correlation-based query learner can effectively guide the de-tection of partially occluded objects (our third goal). 
+
+3.3. Occlusion-aware Trainer 
+
+Pseudo-occlusion Processor. As shown in Fig. 3, the num-ber of objects with different visibility levels is obviously unequal, which poses a challenge to optimize targets in mi-norities. Motivated by data augmentation in 2D tasks [57], we introduce a pseudo-occlusion processor ( P2 ) to balance the distribution of objects with different visibility levels. Specifically, the proposed P2 randomly drops pixels in the 2D bounding boxes of non-occluded objects ( i.e., with vis-ibility value of 3 or 4 in nuScenes [2]) and replaces the dropped pixels with mean values of the region. 
+
+Contrastive Semantic Alignment. Contrastive learning was generally used in self-supervised learning [6] and multi-modal alignment [38]. We introduce contrastive learning in this work to: 1) intra-class: align the representa-tion of objects with different occlusion levels to one unified space ( i.e. , language), therefore enhancing the classification accuracy of partially occluded objects, 2) inter-class: en-large the representation distinguishability of different cate-gories. In particular, we follow previous works [21, 29] ap-plying dot product between each query with language proto-types to predict logits and compute focal loss for each query. 
+
+## 4. Experiments 
+
+4.1. Datasets and Metrics 
+
+Following our baselines [25, 28], we conduct experiments on the nuScenes [2] dataset. The benchmark comprises 1000 driving scenes and is split into 700/150/150 for train-ing/validation/testing. For 3D object detection, there are about 1.4M annotated 3D bounding boxes from 10 classes. Alongside coordinates and scale labels of the 3D bounding box, the dataset also provides object visibility levels. The visibility levels are officially divided into four ranges, i.e., 
+
+0-40%, 40-60%, 60-80%, and 80-100%. Since occlusion is the key factor for low-visibility samples, we regard the performances on four visibility levels as the indicator of de-tection robustness under different occlusion conditions. For evaluating and comparing the detection perfor-mances of different methods, we adopt the mean average precision (mAP) and nuScenes detection score (NDS) as primary metrics, as well as five True Positive (TP) metrics, including mean Average Translation Error (mATE), mean Average Scale Error (mASE), mean Average Orientation Error (mAOE), mean Average Velocity Error (mAVE), and mean Average Attribute Error (mAAE). Additionally, we report the recall of four visibility levels to evaluate the de-tection capability on partially occluded objects. 
+
+4.2. Implementation Details 
+
+As mentioned before, the proposed method can be easily plugged into recent multi-view 3D object detection meth-ods. To prove the generality of our method, we apply it to both sparse-query based SparseBEV [28] and dense-query based BEVFormer [25]. For fair comparisons, we adopt the same training settings with the baselines. All experiments are performed with 8 NVIDIA GeForce RTX 3090 GPUs. 
+
+4.3. State-of-the-art Comparison 
+
+Evaluation of Overall Performance. To evalu-ate the proposed CorrBEV, we apply our method to BEVFormer small [25] and SparseBEV [28], dubbed CorrBEV f m and CorrBEV sp , respectively. The results are presented in Tab. 1 and Tab. 2. Compared with the baseline BEVFormer small [25], our CorrBEV f m obtains consider-able gains of 2.6%/3.6% mAP and 2.6%/2.0% NDS on the validation and test splits of nuScenes, respectively. The ad-vancement of our method is also preserved for sparse-query 27417 Table 1. Performance comparison on validation split of nuScenes [2]. “Res50” and “Res101” denote ResNet50 [11] and ResNet101 [11], respectively. † denotes without using historical frames. “-” indicates the checkpoint is not provided by the corresponding method. 
+
+Method Backbone mAP ↑ NDS ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓ Vis 1 Vis 2 Vis 3 Vis 4
+
+Recall ↑ Recall ↑ Recall ↑ Recall ↑
+
+BEVDet [14] Res50 29.8 37.9 0.725 0.279 0.589 0.860 0.245 34.7 46.0 56.0 64.8 BEVDet4D [13] Res50 32.2 45.7 0.703 0.278 0.495 0.354 0.206 36.2 47.8 55.5 64.6 BEVDepth [24] Res50 35.1 47.5 0.639 0.267 0.479 0.428 0.198 34.8 46.9 56.2 66.8 BEVStereo [23] Res50 37.2 50.0 0.598 0.270 0.438 0.367 0.190 35.1 46.4 57.6 66.6 PETR [30] Res50 31.7 36.7 0.839 0.280 0.615 0.953 0.232 45.6 58.6 62.7 69.8 PETRv2 [31] Res50 34.9 45.6 0.700 0.275 0.580 0.437 0.187 - - - -HoP [58] Res50 40.0 51.0 0.607 0.275 0.515 0.286 0.216 49.8 59.3 67.0 74.6 SOLOFusion [33] Res50 43.7 53.8 0.567 0.274 0.511 0.252 0.181 48.8 59.1 66.4 71.8 StreamPETR [42] Res50 45.0 55.0 0.569 0.267 0.413 0.265 0.196 59.9 69.3 73.0 77.9 RayDN [27] Res50 46.9 56.3 0.579 0.264 0.433 0.256 0.187 60.5 70.4 75.0 78.3 SparseBEV [28] Res50 44.8 55.8 0.581 0.271 0.373 0.247 0.190 60.4 70.5 74.9 80.0 CorrBEV sp (ours) Res50 47.5 57.4 0.598 0.253 0.335 0.246 0.200 69.1 77.6 83.0 87.4 
+
+SparseBEV [28] Res101 50.1 59.2 0.562 0.265 0.321 0.243 0.195 69.1 77.7 80.3 82.9 CorrBEV sp (ours) Res101 51.7 60.6 0.554 0.247 0.298 0.241 0.189 72.7 82.3 84.6 88.4 
+
+BEVFormer † 
+
+> small
+
+[25] Res101 33.2 40.5 0.786 0.282 0.438 0.862 0.221 46.4 58.4 64.1 69.9 CorrBEV † 
+
+> f m
+
+(ours) Res101 35.2 42.3 0.751 0.275 0.416 0.853 0.211 47.9 59.9 64.2 70.8 
+
+BEVFormer small [25] Res101 37.0 47.9 0.721 0.280 0.407 0.436 0.220 50.7 60.6 65.2 72.4 CorrBEV f m (ours) Res101 39.6 50.5 0.689 0.279 0.368 0.407 0.191 51.3 62.8 67.0 72.3 
+
+Table 2. Performance comparison on the nuScenes test split. 
+
+Method Backbone mAP ↑ NDS ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓
+
+FCOS3D [43] Res101 35.8 42.8 0.690 0.249 0.452 1.434 0.124 PGD [7] Res101 38.6 44.8 0.626 0.245 0.451 1.509 0.127 PETR [30] Res101 37.0 45.5 0.647 0.251 0.433 0.933 0.143 UVTR [22] Res101 37.9 48.3 0.731 0.267 0.350 0.510 0.200 PolarFormer [16] Res101 41.5 47.0 0.657 0.263 0.405 0.911 0.139 M2BEV [47] Res101 42.9 47.4 0.583 0.374 0.254 0.376 1.053 BEVFormer base [25] Res101 44.5 53.5 0.631 0.257 0.405 0.435 0.143 FrustumFormer [45] Res101 47.8 56.1 0.575 0.257 0.402 0.411 0.132 BEVFormer small [25] Res101 37.7 48.7 0.675 0.268 0.454 0.479 0.138 CorrBEV f m (ours) Res101 41.3 50.7 0.646 0.265 0.482 0.473 0.134 
+
+SparseBEV [28] Res101 54.3 62.7 0.502 0.244 0.324 0.251 0.126 CorrBEV sp (ours) Res101 56.2 64.0 0.488 0.241 0.303 0.243 0.123 
+
+based method. It shows that with SparseBEV [28], our CorrBEV sp gains improvements of 2.7% mAP and 1.6% NDS on the validation split. Notably, our module only introduces 7.48% additional training costs to the baseline SparseBEV (21.41 v.s. 19.92 GPU days on a single RTX 3090). And the impact on inference speed is small, with 18.4 FPS compared to the baseline’s 21.7 FPS. As shown in the table, our model can also be easily integrated into the single-frame based detector, the static BEVFormer †
+
+> small
+
+with the proposed model improves the baseline for a consid-erable 2.0% mAP. The results demonstrate the effectiveness and generalization of the proposed framework. 
+
+Evaluation of Occlusion Performance. Besides the en-hancement of overall performance, we also show improve-ments in detecting occluded objects with our method. Be-fore detailing the results, we first describe an interest-ing observation. As shown in Tab. 1, the overall perfor-mance of SOLOFusion [33] clearly outperforms the base-line BEVFormer small for 6.7% mAP. Yet surprisingly, the recalls on severely occluded conditions (Vis 1 and Vis 2) are pretty lower than BEVFormer small . This proves our above claim that the improvements in overall performance and occlusion robustness may not be consistent. By applying our model to the two baseline frameworks, performances across all occlusion levels are consistently enhanced, which demonstrates the effectiveness of our design by introduc-ing multi-modal prototypes to provide prior knowledge for occlusion reasoning. We surprisingly find that the severely 27418 1 2 3 4 average     
+
+> Visibility Level
+> 0.0 10.0 20.0 30.0 40.0
+> Improvement of Recall(%)
+> Distance threshold:1.0m
+> CorrBEV sp
+> SparseBEV RayDN StreamPETR SOLOFusion
+> 1234average
+> Visibility Level
+> 0.0 10.0 20.0 30.0 40.0
+> Distance threshold:2.0m
+> CorrBEV sp
+> SparseBEV RayDN StreamPETR SOLOFusion
+
+Figure 4. Relative improvement comparison of recall (SOLOFu-sion [33] serves as the reference method). Table 3. Component-wise ablation on nuScenes validation split. CL denotes contrastive loss and P2 is Pseudo-occlusion Processor.                                                                 
+
+> #Prototype Type CL P2 mAP ↑NDS ↑Vis 1Vis 2Vis 3Vis 4
+> Text Image Recall ↑Recall ↑Recall ↑Recall ↑
+> ①----44.8 55.8 60.4 70.5 74.9 80.0
+> ②✓---45.9 56.3 64.8 72.6 77.5 83.4
+> ③✓✓--46.5 56.6 68.0 74.5 80.5 85.2
+> ④✓✓✓-46.9 57.1 68.3 77.1 82.6 86.8
+> ⑤✓✓✓✓47.5 57.4 69.1 77.6 83.0 87.4
+
+Table 4. Prototype fine-tuning ablation on nuScenes val split.                                             
+
+> #Prototype Training mAP ↑NDS ↑Vis 1Vis 2Vis 3Vis 4
+> Text Image Recall ↑Recall ↑Recall ↑Recall ↑
+> ①--45.9 54.8 62.2 71.1 76.5 82.4
+> ②✓-46.3 56.0 65.9 74.0 80.2 84.1
+> ③-✓46.8 56.8 67.0 75.2 81.4 84.8
+> ④✓✓47.5 57.4 69.1 77.6 83.0 87.4
+
+occluded objects have the largest improvements compared with baseline SparseBEV (60.4% v.s. 69.1% recall in Vis 1). We also observe that for dense-query based methods like BEVFormer, the performance in high visibility (less occlu-sion) is close (72.4% vs. 72.3% recall in Vis 4), while the conclusion is contrary for sparse-query based SparseBEV (80.0% vs. 87.4% recall in Vis 4). This observation matches our intuition that dense visual feature sampling for non-occluded objects is sufficient enough for learning 3D rep-resentation, while additional prior knowledge can complete the 3D representation generated by sparse sampling. More-over, we present the relative improvement of recall under different occlusion conditions in Fig. 4 for an intuitive com-parison, where our model shows consistent improvements. Since the recall of partially occluded objects is crucial for safe autonomous driving (see Fig. 6),we believe our work could further benefit the downstream prediction and plan-ning systems. 
+
+Evaluation of Performance in other Corner Cases. As stated above, our inspiration stems from the challenge of addressing occlusion. However, this is not the only goal. We also evaluate performance across various scenarios pre-sented in RoboBEV [48], which similarly diminishes ob-ject representations. As illustrated in Fig. 5 , applying our model to the baseline (BEVFormer small ) yields consis-tent improvements across all scenarios, particularly under 
+
+Snow and ColorQuant . These encouraging results bolster NDS +0.6 
+
+> CamCrash ColorQuant MotionBlur Brightness LowLight Fog
+> mAP +1.9 mAP +2.6 mAP +0.9 mAP +4.3 mAP +1.6 mAP +1.7
+> FrameLost
+> mAP +0.1 NDS +2.1 NDS +2.2 NDS +0.9 NDS +2.8 NDS +1.2 NDS +1.7
+> Snow
+> mAP +2.9 NDS +3.3
+> 15.9 14.0 12.5 9.60 31.0 32.7 43.9 45.6 16.2 17.8 31.3 32.5 45.4 48.2 32.2 36.5 36.1 33.5 27.3 24.0 18.8 19.7 33.8 34.7 29.0 27.0 43.0 40.8 19.2 19.1 35.2 33.4 mAP NDS Ours Baseline
+> mAP +0.1 mAP +2.0 NDS +2.2 NDS +2.2
+
+Figure 5. Performance comparison under different corner cases. 
+
+our confidence that vision-language multi-modality learn-ing could serve as a promising approach to mitigate feature degradation in real-world driving environments. 
+
+4.4. Component-wise Analysis 
+
+Different Prototype Settings. In our framework, the in-troduced multi-modal prototypes provide prior knowledge to compensate the diminished visual features through query initialization and sampling. As shown in Tab. 3, we study the influence of different settings for the prototypes. ① de-notes the baseline results (SparseBEV [28]). By exploiting the text prototype for occlusion-aware correlation learning, the performance noticeably improves for 1.1% mAP and 1.5% NDS respectively ( ②v.s. ①). Applying both text and visual prototypes further brings gains for 0.6% mAP and 0.3% NDS ( ③v.s. ②). This demonstrates the effectiveness of our design for 3D detection, as well as the complementar-ity of visual and language knowledge. Notably, the perfor-mance of each visibility level obtains consistent improve-ments, showing the enhanced capability of our method in detecting objects in different occlusion conditions. 
+
+Different Strategies in Occlusion-aware Training. We improve the training strategies of baseline framework by introducing the pseudo-occlusion processor (P2) and multi-modal contrastive learning (CL). Tab. 3 shows that CL brings gains of 0.4% mAP and 0.5% NDS ( ④vs. ③). Ap-plying P2 further improves for 0.6% mAP and 0.3% NDS (⑤vs. ④). The performance of each visibility level is also consistently enhanced. Notably, the proposed two training strategies introduce rare training costs and zero inference burden. Meanwhile surprisingly, changing the occlusion distribution of training samples doesn’t bring negative ef-fects to the overall performances, which we believe more methods can benefit from this cost-free lunch. 
+
+4.5. Further Analysis 
+
+Prototype Fine-tuning. As aforementioned, we fine-tune the multi-modal prototypes to adapt the detection task and 27419 Ours SparseBEV Ground Truth     
+
+> occlusion by intra-class targets occlusion by static objects occlusion by intra-class targets
+> Cam_Front_Left Cam_Front Cam_Front_Right Cam_Back_Right Cam_Back Cam_Back_Left
+
+Figure 6. Visualization results of SparseBEV and our CorrBEV sp in two typical occlusion cases (see dashed circles). 
+
+our model. Tab. 4 presents the effect of this design. Not sur-prisingly, if we freeze one of them during training ( ② and 
+
+③), the performance degrades. Compared with language prototypes, freezing the visual one brings more negative ef-fects to the model, where the mAP drops from 47.5% to 46.3% ( ④vs. ②). The underlying reason is that the visual prototypes and the original backbone features belong to the same domain, which contains less complementary informa-tion than language from another domain. Hence, the visual prototypes need more effort to adapt the model. 
+
+Qualitative Results. Fig. 6 presents a qualitative com-parison between the baseline SparseBEV and our proposed CorrBEV sp . As previously discussed, our primary concern is the threat to safe driving caused by occlusion. There-fore in the figure, we highlight two typical occlusion sce-narios where our CorrBEV sp demonstrates its positive ef-fect. Firstly, in the “front” camera, a pedestrian partially occluded by a traffic light pole is successfully identified by our method, whereas it is missed by the baseline Sparse-BEV (highlighted by the cyan circle). This scenario rep-resents a critical corner case in practical driving environ-ments. Missing detection of such objects could lead to col-lisions, resulting in casualties and property damage. Even late detection could necessitate emergency braking, thereby reducing driving comfort. Secondly, in the “front left” and “back right” cameras, our method more accurately identifies crowded pedestrians and barriers occluded by intra-class objects, while the baseline method misses some of these targets (yellow circles). In summary, the qualitative com-parison demonstrates the advances of our method in detect-ing partially occluded objects. We believe our study will contribute positively to safer autonomous driving. 
+
+Contrastive Alignment. One goal of our multi-modal con-trastive learner is to increase the separation between dif-ferent categories and pull the objects in the same category closer in high-dimensional space. “Motorcycles, bicycles and pedestrians” are easily confused types, as a person is frequently riding the bike. Fig. 7 visualizes the hidden features of the above three categories using t-SNE [3]. It (a) 
+
+> motorcycle bicycle pedestrian motorcycle bicycle pedestrian
+
+Figure 7. The visualization of embeddings with t-SNE for inter-class (pedestrian, bicycle, motorcycle). Left: our baseline [28], Right: with our contrastive learner. 
+
+demonstrates that our contrastive learner effectively com-pacts the embeddings for objects within the same cate-gory, reducing the confusion between bicycles and motor-cycles. Type confusion is a significant issue in practical autonomous driving systems because downstream tracking and prediction tasks may assign different motion models to these categories. Therefore, we believe this design not only enhances the perception but also benefits motion prediction. 
+
+## 5. Conclusion 
+
+In this paper, we propose CorrBEV, a plug-and-play frame-work to address the occlusion challenge for camera-based multi-view 3D detection task. The essence is introducing multi-modal prototypes as prior knowledge for occlusion reasoning. By incorporating the well-designed occlusion-aware trainer, we demonstrate consistent improvements in two different baseline frameworks. Besides, we conduct a thorough evaluation and analysis of detection performance under different occlusion conditions, which we believe is an insightful contribution to the field. Notably, our occlusion-aware design methodology aligns with real-world require-ments and we expect the community to divert more atten-tion to occlusion handling in BEV perception. 27420 Acknowledgements. This work is supported by the Na-tional Natural Science Foundation of China No. 62476235, Hebei Natural Science Foundation No. F2023203012 and Innovation Capability Improvement Plan Project of Hebei Province No. 22567626H. Heng Fan is not supported by any funds for this work. 
+
+## References 
+
+[1] Luca Bertinetto, Jack Valmadre, Joao F Henriques, Andrea Vedaldi, and Philip HS Torr. Fully-convolutional siamese networks for object tracking. In Computer Vision–ECCV 2016 Workshops: Amsterdam, The Netherlands, October 8-10 and 15-16, 2016, Proceedings, Part II 14 . Springer, 2016. 2, 4 [2] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Gi-ancarlo Baldan, and Oscar Beijbom. nuscenes: A multi-modal dataset for autonomous driving. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2020. 1, 2, 3, 5, 6 [3] T Tony Cai and Rong Ma. Theoretical foundations of t-sne for visualizing high-dimensional clustered data. Journal of Machine Learning Research , 2022. 8 [4] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In European confer-ence on computer vision . Springer, 2020. 3 [5] Hansheng Chen, Yuyao Huang, Wei Tian, Zhong Gao, and Lu Xiong. Monorun: Monocular 3d object detection by re-construction and uncertainty propagation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10379–10388, 2021. 3 [6] Ting Chen, Simon Kornblith, Mohammad Norouzi, and Ge-offrey Hinton. A simple framework for contrastive learning of visual representations. In International conference on ma-chine learning . PMLR, 2020. 5 [7] Xiaowei Chi, Jiaming Liu, Ming Lu, Rongyu Zhang, Zhao-qing Wang, Yandong Guo, and Shanghang Zhang. Bev-san: Accurate bev 3d object detection via slice attention networks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023. 6 [8] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding. arXiv preprint arXiv:1810.04805 , 2018. 2, 3 [9] Xiuye Gu, Tsung-Yi Lin, Weicheng Kuo, and Yin Cui. Open-vocabulary object detection via vision and language knowledge distillation. arXiv preprint arXiv:2104.13921 ,2021. 2 [10] Mingzhe Guo, Zhipeng Zhang, Heng Fan, and Liping Jing. Divert more attention to vision-language tracking. Advances in Neural Information Processing Systems , 2022. 2 [11] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , 2016. 6 [12] Peiyun Hu, Jason Ziglar, David Held, and Deva Ramanan. What you see is what you get: Exploiting visibility for 3d object detection. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition , 2020. 3 [13] Junjie Huang and Guan Huang. Bevdet4d: Exploit tempo-ral cues in multi-camera 3d object detection. arXiv preprint arXiv:2203.17054 , 2022. 1, 6 [14] Junjie Huang, Guan Huang, Zheng Zhu, Yun Ye, and Dalong Du. Bevdet: High-performance multi-camera 3d object de-tection in bird-eye-view. arXiv preprint arXiv:2112.11790 ,2021. 1, 3, 6 [15] Xiaohui Jiang, Shuailin Li, Yingfei Liu, Shihao Wang, Fan Jia, Tiancai Wang, Lijin Han, and Xiangyu Zhang. Far3d: Expanding the horizon for surround-view 3d object detec-tion. In Proceedings of the AAAI Conference on Artificial Intelligence , 2024. 2, 3 [16] Yanqin Jiang, Li Zhang, Zhenwei Miao, Xiatian Zhu, Jin Gao, Weiming Hu, and Yu-Gang Jiang. Polarformer: Multi-camera 3d object detection with polar transformer. In Pro-ceedings of the AAAI conference on Artificial Intelligence ,2023. 6 [17] Philip J Kellman and Christine M Massey. Perceptual learn-ing, cognition, and expertise. In Psychology of learning and motivation . Elsevier, 2013. 2 [18] Abhijit Kundu, Yin Li, and James M Rehg. 3d-rcnn: Instance-level 3d object reconstruction via render-and-compare. In Proceedings of the IEEE conference on com-puter vision and pattern recognition , pages 3559–3568, 2018. 3 [19] Steven Lehar. Gestalt isomorphism and the quantification of spatial perception. Gestalt theory , 1999. 2 [20] Bo Li, Wei Wu, Qiang Wang, Fangyi Zhang, Junliang Xing, and Junjie Yan. Siamrpn++: Evolution of siamese vi-sual tracking with very deep networks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019. 2, 4 [21] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jian-wei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, et al. Grounded language-image pre-training. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10965–10975, 2022. 5 [22] Yanwei Li, Yilun Chen, Xiaojuan Qi, Zeming Li, Jian Sun, and Jiaya Jia. Unifying voxel-based representation with transformer for 3d object detection. Advances in Neural In-formation Processing Systems , 2022. 6 [23] Yinhao Li, Han Bao, Zheng Ge, Jinrong Yang, Jianjian Sun, and Zeming Li. Bevstereo: Enhancing depth estimation in multi-view 3d object detection with temporal stereo. In Pro-ceedings of the AAAI Conference on Artificial Intelligence ,2023. 3, 6 [24] Yinhao Li, Zheng Ge, Guanyi Yu, Jinrong Yang, Zengran Wang, Yukang Shi, Jianjian Sun, and Zeming Li. Bevdepth: Acquisition of reliable depth for multi-view 3d object detec-tion. In Proceedings of the AAAI Conference on Artificial Intelligence , 2023. 1, 3, 6 [25] Zhiqi Li, Wenhai Wang, Hongyang Li, Enze Xie, Chong-hao Sima, Tong Lu, Yu Qiao, and Jifeng Dai. Bevformer: 27421 Learning bird’s-eye-view representation from multi-camera images via spatiotemporal transformers. In European con-ference on computer vision . Springer, 2022. 1, 2, 3, 5, 6 [26] Xuewu Lin, Tianwei Lin, Zixiang Pei, Lichao Huang, and Zhizhong Su. Sparse4d: Multi-view 3d object detec-tion with sparse spatial-temporal fusion. arXiv preprint arXiv:2211.10581 , 2022. 1, 3 [27] Feng Liu, Tengteng Huang, Qianjing Zhang, Haotian Yao, Chi Zhang, Fang Wan, Qixiang Ye, and Yanzhao Zhou. Ray denoising: Depth-aware hard negative sampling for multi-view 3d object detection. In 18th European Conference on Computer Vision (ECCV) , 2024. 6 [28] Haisong Liu, Yao Teng, Tao Lu, Haiguang Wang, and Limin Wang. Sparsebev: High-performance sparse 3d object de-tection from multi-camera videos. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,2023. 1, 2, 3, 5, 6, 7, 8 [29] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Chunyuan Li, Jianwei Yang, Hang Su, Jun Zhu, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. arXiv preprint arXiv:2303.05499 , 2023. 2, 5 [30] Yingfei Liu, Tiancai Wang, Xiangyu Zhang, and Jian Sun. Petr: Position embedding transformation for multi-view 3d object detection. In European Conference on Computer Vi-sion , pages 531–548. Springer, 2022. 1, 3, 6 [31] Yingfei Liu, Junjie Yan, Fan Jia, Shuailin Li, Aqi Gao, Tian-cai Wang, and Xiangyu Zhang. Petrv2: A unified framework for 3d perception from multi-camera images. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion , pages 3262–3272, 2023. 3, 6 [32] Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Repre-sentation learning with contrastive predictive coding. arXiv preprint arXiv:1807.03748 , 2018. 2 [33] Jinhyung Park, Chenfeng Xu, Shijia Yang, Kurt Keutzer, Kris M Kitani, Masayoshi Tomizuka, and Wei Zhan. Time will tell: New outlooks and a baseline for temporal multi-view 3d object detection. In The Eleventh International Con-ference on Learning Representations , 2022. 1, 3, 6, 7 [34] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, et al. Pytorch: An im-perative style, high-performance deep learning library. Ad-vances in neural information processing systems , 2019. 4 [35] Jonah Philion and Sanja Fidler. Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unproject-ing to 3d. In Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceed-ings, Part XIV 16 . Springer, 2020. 3 [36] Lu Qi, Li Jiang, Shu Liu, Xiaoyong Shen, and Jiaya Jia. Amodal instance segmentation with kins dataset. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019. 2 [37] Jie Qin, Jie Wu, Pengxiang Yan, Ming Li, Ren Yuxi, Xuefeng Xiao, Yitong Wang, Rui Wang, Shilei Wen, Xin Pan, et al. Freeseg: Unified, universal and open-vocabulary image seg-mentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023. 2 [38] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learn-ing transferable visual models from natural language super-vision. In International conference on machine learning .PMLR, 2021. 5 [39] N Dinesh Reddy, Minh Vo, and Srinivasa G Narasimhan. Occlusion-net: 2d/3d occluded keypoint localization using graph networks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 7326– 7335, 2019. 3 [40] David Schinagl, Georg Krispel, Horst Possegger, Peter M Roth, and Horst Bischof. Occam’s laser: Occlusion-based attribution maps for 3d object detectors on lidar data. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 1141–1150, 2022. 3 [41] Yongzhi Su, Yan Di, Guangyao Zhai, Fabian Manhardt, Ja-son Rambach, Benjamin Busam, Didier Stricker, and Fed-erico Tombari. Opa-3d: Occlusion-aware pixel-wise aggre-gation for monocular 3d object detection. IEEE Robotics and Automation Letters , 8(3):1327–1334, 2023. 3 [42] Shihao Wang, Yingfei Liu, Tiancai Wang, Ying Li, and Xi-angyu Zhang. Exploring object-centric temporal modeling for efficient multi-view 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion , pages 3621–3631, 2023. 3, 6 [43] Tai Wang, Xinge Zhu, Jiangmiao Pang, and Dahua Lin. Fcos3d: Fully convolutional one-stage monocular 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision , 2021. 6 [44] Yue Wang, Vitor Campagnolo Guizilini, Tianyuan Zhang, Yilun Wang, Hang Zhao, and Justin Solomon. Detr3d: 3d object detection from multi-view images via 3d-to-2d queries. In Conference on Robot Learning . PMLR, 2022. 1, 3, 4 [45] Yuqi Wang, Yuntao Chen, and Zhaoxiang Zhang. Frustum-former: Adaptive instance-aware resampling for multi-view 3d detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023. 6 [46] Ziteng Wen, Hai Xu, Chenyu Liu, Tao Guo, Jinshui Hu, Xuming He, Fengren Wang, Shun Lou, and Haibo Fan. Oc-clubev: Occlusion aware spatiotemporal modeling for multi-view 3d object detection. In Proceedings of the 31st ACM International Conference on Multimedia , pages 4074–4083, 2023. 3 [47] Enze Xie, Zhiding Yu, Daquan Zhou, Jonah Philion, Anima Anandkumar, Sanja Fidler, Ping Luo, and Jose M Alvarez. M2bev: Multi-camera joint 3d detection and segmentation with unified birds-eye view representation. arXiv preprint arXiv:2204.05088 , 2022. 6 [48] Shaoyuan Xie, Lingdong Kong, Wenwei Zhang, Jiawei Ren, Liang Pan, Kai Chen, and Ziwei Liu. Robobev: Towards robust bird’s eye view perception under corruptions. arXiv preprint arXiv:2304.06719 , 2023. 2, 3, 7 [49] Qiangeng Xu, Yiqi Zhong, and Ulrich Neumann. Behind the curtain: Learning occluded shapes for 3d object detection. In Proceedings of the AAAI Conference on Artificial Intelli-gence , 2022. 3 27422 [50] Zetong Yang, Zhiding Yu, Chris Choy, Renhao Wang, An-ima Anandkumar, and Jose M Alvarez. Improving distant 3d object detection using 2d box supervision. arXiv preprint arXiv:2403.09230 , 2024. 3 [51] Hongdou Yao, Jun Chen, Zheng Wang, Xiao Wang, Pengfei Han, Xiaoyu Chai, and Yansheng Qiu. Occlusion-aware plane-constraints for monocular 3d object detection. IEEE Transactions on Intelligent Transportation Systems , 2023. 3 [52] Hao Zhang, Feng Li, Xueyan Zou, Shilong Liu, Chunyuan Li, Jianwei Yang, and Lei Zhang. A simple framework for open-vocabulary segmentation and detection. In Proceed-ings of the IEEE/CVF International Conference on Com-puter Vision , 2023. 2 [53] Hu Zhang, Jianhua Xu, Tao Tang, Haiyang Sun, Xin Yu, Zi Huang, and Kaicheng Yu. Opensight: A simple open-vocabulary framework for lidar-based object detection. arXiv preprint arXiv:2312.08876 , 2023. 3 [54] Xinyu Zhang, Yuting Wang, and Abdeslam Boularias. Detect every thing with few examples, 2023. 3 [55] Zhipeng Zhang and Houwen Peng. Deeper and wider siamese networks for real-time visual tracking. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , 2019. 2 [56] Zhipeng Zhang, Yihao Liu, Xiao Wang, Bing Li, and Weim-ing Hu. Learn to match: Automatic matching network design for visual tracking. Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , 2021. 4 [57] Zhun Zhong, Liang Zheng, Guoliang Kang, Shaozi Li, and Yi Yang. Random erasing data augmentation. In Proceedings of the AAAI conference on artificial intelligence , 2020. 5 [58] Zhuofan Zong, Dongzhi Jiang, Guanglu Song, Zeyue Xue, Jingyong Su, Hongsheng Li, and Yu Liu. Temporal enhanced training of multi-view 3d object detector via historical object prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 3781–3790, 2023. 6 27423

@@ -1,0 +1,398 @@
+Title: ROD-MLLM: Towards More Reliable Object Detection in Multimodal Large Language Models
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Yin_ROD-MLLM_Towards_More_Reliable_Object_Detection_in_Multimodal_Large_Language_CVPR_2025_paper.pdf
+
+Published Time: Mon, 19 May 2025 12:45:33 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# ROD-MLLM: Towards More Reliable Object Detection in Multimodal Large Language Models 
+
+# Heng Yin 1* Yuqiang Ren 2* Ke Yan 2† Shouhong Ding 2 Yongtao Hao 1†
+
+> 1
+
+# Tongji University 2YouTu Lab, Tencent 
+
+{yinheng, haoyt}@tongji.edu.cn, ryuqiang@gmail.com, {kerwinyan, ericshding}@tencent.com 
+
+# Abstract 
+
+Multimodal large language models (MLLMs) have demon-strated strong language understanding and generation ca-pabilities, excelling in visual tasks like referring and grounding. However, due to task type limitations and dataset scarcity, existing MLLMs only ground objects present in images and cannot reject non-existent objects ef-fectively, resulting in unreliable predictions. In this paper, we introduce ROD-MLLM , a novel MLLM for Reliable 
+
+Object Detection using free-form language. We propose a query-based localization mechanism to extract low-level object features. By aligning global and object-level visual information with text space, we leverage the large language model (LLM) for high-level comprehension and final lo-calization decisions, overcoming the language understand-ing limitations of normal detectors. To enhance language-based object detection, we design an automated data an-notation pipeline and construct the dataset ROD . This pipeline uses the referring capabilities of existing MLLMs and chain-of-thought techniques to generate diverse expres-sions corresponding to zero or multiple objects, addressing the shortage of training data. Experiments across various tasks, including referring, grounding, and language-based object detection, show that ROD-MLLM achieves state-of-the-art performance among MLLMs. Notably, in language-based object detection, our model achieves +13.7 AP im-provement on D 3 benchmark over existing MLLMs and sur-passes most specialized detection models, especially in sce-narios requiring complex language understanding. 
+
+# 1. Introduction 
+
+Multimodal large language models (MLLMs) have shown remarkable visual understanding capabilities. Their excep-tional multitasking and generalization abilities make them          
+
+> *Equal contribution. This work was done during Heng Yin’s internship at Tencent YouTu Lab.
+> †Corresponding author. Locate sheep with black faces in the image.
+> Help me find man in blue swinging a baseball bat .
+> [ <BOX1> ]
+> None
+> [<BOX1>, <BOX2>]
+> Free-Form Description vs. Multi Objects
+> Free-Form Description vs. Non-Existing Objects
+> [ <BOX1> ]
+> Existing MLLMs for Localization
+> Ours
+> Ours
+> Existing MLLMs for Localization
+> Missing
+> Mismatch
+> Object quantity
+> Rich semantics
+> Rich semantics
+
+Figure 1. Object Detection with Free-Form Description. This task targets rich semantic expressions and diverse object quanti-ties. Existing MLLMs focus on single-object referring expres-sion comprehension but struggle with multiple and non-existent objects, often missing targets or making incorrect associations. 
+
+highly promising for applications in fields like smart de-vices [56], autonomous driving [16, 51], and intelligent healthcare [48]. Through rich visual instruction tuning, many methods [10, 31, 54, 63, 65] perform well in tasks such as image caption [46], visual question answering [1], and visual dialogue [11]. However, these methods only pro-cess coarse-grained visual information at the global level. To enhance fine-grained visual understanding, many methods pursue region-level perception, achieving localiza-tion based on object expressions. However, all these meth-ods have two shortcomings as shown in Fig. 1: richness of expression semantic and diversity of object quantity .Methods that accomplish visual grounding [5, 17, 35, 52, 55, 62] are primarily focused on the referring expression comprehension (REC) task [23, 36, 57], which assumes that a given object description corresponds to a unique object This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 14358 in the image, thereby neglecting scenarios with multiple matching objects or the absence of the described object. A few methods [61] that achieve object detection prelimi-narily realizes multi-object localization and the rejection of non-existent objects, but they are limited in the semantic richness of object expressions, focusing mainly on simple categories (e.g., person, bike). In practical scenarios, a text description may correspond to multiple objects in the image or not correspond to any object. Incorrect associations can cause the model’s output to deviate from the user’s true in-tent, leading to task failure. Therefore, we need to achieve a more reliable localization task in MLLMs, specifically the language-based object detection. It can locate all targets (zero, one, or multiple) in the image that meet the require-ments based on the user’s natural descriptions. In this paper, we propose ROD-MLLM , a MLLM 
+
+for Reliable Object Detection using free-form language. One of our motivations is that while LLMs have emerged with powerful language capabilities through large amounts of parameters and pre-training [3, 39], achieving precise object localization requires additional significant training costs [35, 61]. Some existing detectors [26, 38] can per-form open vocabulary detection (OVD) for simple category phrases, but are limited by language models [12, 33] in un-derstanding complex semantics. Thus, we aim to decouple language-based object detection into low-level localization 
+
+and high-level comprehension . We use an open vocabu-lary detector as the low-level locator, combining it with the user’s query to get candidate objects. After being extracted through ROI Align [18], the local object features are pro-jected into the language space and then sent to the LLM along with the global visual features. The LLM processes both global and local visual features along with the user’s textual instructions to perform high-level comprehension, making the final localization decision by selecting objects that meet the criteria or rejecting non-existent objects. Furthermore, to achieve the model’s detection capabili-ties for free-form descriptions, we design an automated an-notation pipeline to construct a language-based object de-tection dataset ROD , addressing the lack of training sets in this domain. Unlike general detection tasks, language-based object detection is particularly challenging due to its fully open-set language description. Based on existing de-tection [44] and grounding [41] datasets, we use MLLMs to generate rich object descriptions and propose a chain-of-thought (COT) based condition judgment method to match descriptions with object bounding boxes, enabling zero-to-multiple object localization based on descriptions. Owing to to architectural improvements and the con-structed new dataset, we promote language-based object de-tection in MLLMs. We evaluate ROD-MLLM on multi-ple benchmarks, including language-based detection, REC, and region captioning. Compared to existing MLLMs, our method achieve AP improvements of +9.7 on Omni-Label [43] and +13.7 on D 3 [50], even outperforming most specialized detection methods. Our main contributions are as follows: • We propose ROD-MLLM , a multimodal large language model that can perform language-based object detection. It achieves unified object localization based on free-form language descriptions and can reject non-existent objects. • We design an automated annotation pipeline for lan-guage based detection, and build ROD dataset containing over 500K object description-image pairs. This dataset can effectively improve the detection ability for free ob-ject description, alleviating the shortcomings of general MLLMs that can only perform REC tasks. • We conduct experiments on various benchmarks related to object localization and generation, including language-based object detection, REC and region captioning. Our results demonstrate superior performance across these tasks compared with other MLLMs. 
+
+# 2. Related Work 
+
+2.1. Language-Based Object Detection 
+
+Language-based object detection expands the fixed cate-gories of traditional closed-set detection [27, 44] to free-form descriptions, making it significantly more challenging. Some vision-language models [14, 26, 32] reformulates this task into a region-phrase matching task. They em-ploy region-level contrastive learning inspired by CLIP [42] and unify grounding and detection datasets. Although these specialized models have made initial progress in language-based object detection, their reliance on normal language models like BERT [12] limits their language comprehen-sion capabilities, making it difficult to handle complex de-scriptions. To evaluate this new challenging task, several manually annotated benchmarks have been proposed, such as OmniLabel [43] and D 3 [50]. They feature rich object ex-pressions designed by humans and include diverse bound-ing box annotations. However, there is currently no dedi-cated dataset available for training to enhance the capabili-ties of models in language-based object detection. To the best of our knowledge, we are the first to pro-pose an automated annotation pipeline for generating train-ing data for language-based object detection, which lever-ages the MLLMs’ capabilities in referring and reasoning to generate descriptions and match them with bounding boxes. 
+
+2.2. MLLMs for Localization 
+
+Recent advancements have enabled MLLMs to acquire ob-ject localization capabilities, facilitating more fine-grained visual tasks. These localization tasks can be categorized into two types: grounding and detection. Most MLLMs tend to focus more on the former. Shikra [5] implements 14359 Low-Level Locator (OVD) 
+
+Inst 1: Locate <p> horseman 's helmet </p>. 
+
+Common objects: person. bicycle. horse… 
+
+Query objects: horseman. helmet. 
+
+Tokenizer 
+
+# Large Language Model 
+
+> <a0>
+
+Res 1: <box>[ ]</box>  
+
+> <a1> <a2>
+
+Inst 2: Locate <p> horseman without helmet </p>. 
+
+Res 2: None 
+
+Visual Encoder  ROIAlign 
+
+Low-Level Localization 
+
+High-Level Comprehension  <a1>     
+
+> Context-Agnostic Object Extraction
+> Generate Candidate Boxes
+> (𝑋 1
+> 𝑎0 , 𝑌 1
+> 𝑎0 )
+> (𝑋 2
+> 𝑎0 , 𝑌 2
+> 𝑎0 )
+> (𝑋 1𝑎1 , 𝑌 1𝑎1 )
+> (𝑋 2𝑎1 , 𝑌 2𝑎1 )
+> (𝑋 1𝑎2 , 𝑌 1𝑎2 )
+> (𝑋 2𝑎2 , 𝑌 2𝑎2 )
+> <a0> <a1> <a2>
+> <a0> <a1> <a2>
+> horseman’s helmet
+> horseman without helmet
+> LLM
+> Internal
+> Inference
+
+Figure 2. The Architecture of ROD-MLLM. It decomposes the language-based detection into low-level localization and high-level comprehension. The former generates object candidate boxes with low-level locator, while the latter makes the final localization decisions and generation with the LLM. Each extracted box (region) is assigned an anchor token a<{k}> to refer to and aggregate region features. 
+
+referential dialogues in MLLMs by textualizing bounding boxes. Pink [52] further introduces more reasoning into referential comprehension. MiniGPT-v2 [4] combines var-ious localization tasks such as REC and object parsing and grounding. Ferret [55] focuses on referring and ground-ing tasks. And Groma [35] achieves more precise visual grounding through decoupled localization. However, these methods only address objects present in the image, and tend to establish incorrect visual associations when given de-scriptions of non-existent objects. Griffon [60] begins to implement detection tasks within MLLMs, initially achiev-ing the rejection of non-existent objects. However, due to the limited scope of typical detection datasets, it excels only in detecting simple categories and cannot perform well on language-based object detection. Unlike all previous meth-ods, our approach achieves language-based object detec-tion within MLLMs. It can locate all objects in an image that meet the conditions specified by free-form language de-scriptions and can reject objects that do not match. 
+
+# 3. Method 
+
+In this section, we introduce the architecture of ROD-MLLM as shown in Fig. 2. It consists of two parts: low-level localization and high-level comprehension, which will be explained in Sec. 3.1 and Sec. 3.2. 
+
+3.1. Low-Level Localization 
+
+Query Based Localization. There are three main ways to represent object coordinates in language models: spe-cial coordinate tokens [6, 47], textual coordinate boxes [5, 55, 61], and decoupled coordinate box extraction proposed in Groma [35]. For the precision of detection boxes, we follow the third approach. However, Groma incurs signif-icant training costs to obtain a class-agnostic region pro-posal network (RPN), which limits its generalization to novel objects [37]. Different from this, we propose query based localization mechanism. Specifically, we first sim-plify the language-based detection to open vocabulary de-tection (OVD) for recalling candidate objects, which is suit-able for existing open vocabulary detectors. As shown in the lower part of Fig. 2, we extract the object expression be-tween the special tags <p> and </p> from the user query, and use N-gram to extract mentioned objects, which are then used as text queries for the low-level locator (OVD) to extract candidate boxes B:
+
+B = L(I, Oquery , Ocommon ) (1) where L is the low-level locator, I is the image, Oquery is the set of query objects and Ocommon is the set of common objects from COCO [27] which is used for normal VQA perception enhancement when there are no query objects. This process not only leverages the powerful localization capabilities of the low-level locator but also avoids its short-comings in understanding complex sentence contexts. Ad-ditionally, the query objects extraction mechanism reduces the computational burden of irrelevant candidate boxes in-creasing the length of the visual information context. 
+
+Multi Granularity Visual Input. Given an image I, it is encoded by the visual encoder fV to obtain multiple-layer features E{1∼L}I , where L is number of layers of vision en-coder. We use a two-layer MLP projector on EL−1 
+
+> I
+
+to obtain the global image embedding Eg 
+
+> I
+
+in the language space. For the candidate box set B obtained by the query based loca-tor, we construct a three-layer feature pyramid E{12 ,18 ,L −1}I14360 from the multiple-layer features and take the average to ex-tract regional features. Then we use 8 ×8 ROI Align [18] to extract regional visual features ER ∈ R|B|× 8×8 accord-ing to the bounding box coordinates. Different from pre-vious methods [35, 62, 63] that embed a regional feature into only one text token through downsampling or average pooling, we divide a region into 2 ×2 patches and pass each patch through a MLP layer to obtain a text token. Using more tokens to encode a region allows the LLM to have more fine-grained local information. As shown in Fig. 3, the LLM has two granularities of visual input: global and regional feature tokens. Following tokens of each region, we use a region anchor token <a i> to aggregate regional information and be used for regional reference. User: Image: <image><image>…<image> Regions: <region>…<region> <𝒂 𝟎 >…<region>…<region> <𝒂 𝑩 −𝟏 >  
+
+> {Instruction}
+> Assistant: {Response} N𝑟𝑒𝑔𝑖𝑜𝑛 𝑡𝑜𝑘𝑒𝑛
+> N𝑖𝑚𝑎𝑔𝑒 𝑡𝑜𝑘𝑒𝑛
+
+Figure 3. Multi granularity visual input, where N image token is the number of image tokens and N region token is the number of tokens for each region (implemented as 4). <a {0∼|B|− 1}> are region anchor tokens to refer to and aggregate the features of regions. Object Localization (Detection + Grounding):                  
+
+> User: Locate <p>person who is sitting on the bench</p> in the image.
+> Assistant (One object) :<box>[<a4>]</box>
+> Assistant (Multi objects) :<box>[<a5><a31>]</box>
+> Assistant (No object) :None
+> User: Categories: <p>car</p>,<p>bicycle<p>,<p>person</p>. Locate the
+> above categories in the image.
+> Assistant (Partial existence) :<p>car</p><box>[<a3>]</box>,
+> <p>person</p><box>[<a5><a8>]</box>
+> Assistant (None existence) :None
+> Region Caption:
+> User: Give a description of the region <box>[ <a2> ]</box>.
+> Assistant: A yellow sleeping cat.
+> Referential Dialogue:
+> User: Why is <p>person</p><box>[<a4>]</box> pointing at
+> <p>person</p><box>[<a5>]</box>.
+> Assistant: He is telling <p>person></p><box>[<a2>]</box> that
+> <p>person</p><box>[<a5>]</box> ordered the pancakes.
+
+Figure 4. We unify various task formats, including object lo-calization, region caption, and referential dialogue. Unlike typ-ical MLLMs that perform REC tasks, our ROD-MLLM returns “None” when no matched object is not found. 
+
+3.2. High-Level Comprehension 
+
+Unified Referring, Grounding and Detection with LLM. 
+
+We employ the LLM Vicuna 7B [9] to perform high-level comprehension of low-level localization results. As shown in the top part of Fig. 2, for a given text expression, the LLM leverages its powerful language comprehension abil-ities, determines whether each region meets the require-ments and provides the final output. Similarly, when pro-vided with a region anchor token, the LLM can interpret the associated image content, enabling tasks such as region captioning and referential dialogue. As shown in Fig. 4, our framework unifies multiple task forms such as referring, grounding and detection. Among them, The tags <p> and 
+
+</p> are used to wrap expressions. Each anchor token in 
+
+<box>[]</box> is used to refer a specific region with coor-dinates. In particular, when there is no object in the image that meets the requirements, the LLM will output None .
+
+Confidence Score Calculation. In detection tasks, Average Precision (AP) is commonly used to measure performance. This requires the model to output the confidence score for each predicted bounding box in order to rank them. Unlike discriminative model detectors, we use confidence calcula-tion based on generated anchor tokens as follows, 
+
+T = {t1, . . . , t m−1, t ∗
+
+> m
+
+, t m+1 , . . . , t ∗
+
+> n
+
+, . . . , t L} (2) 
+
+Zm = {zm, 1, z m, 2, . . . , z m, |V |} (3) 
+
+Ct∗ 
+
+> m
+
+= P (t∗
+
+> m
+
+) = exp( zm,t ∗ 
+
+> m
+
+)
+
+P|V | 
+
+> j=1
+
+exp( zm,j ) (4) where T are output tokens of the LLM, containing region anchor tokens {t∗
+
+> m
+
+, t ∗
+
+> n
+
+, . . . }. Zm represents the logits for 
+
+mth token position ( |V | is the vocabulary length), which are converted to probabilities using softmax. The token proba-bility is taken as the confidence score Ct∗ 
+
+> m
+
+∈ [0 , 1] .
+
+# 4. Data Annotation Pipeline 
+
+Currently, most detection datasets [25, 27, 44] are designed for predefined simple categories, while the language-based object detection datasets OmniLabel [43] and D 3 [50] serve only for evaluation. To address data scarcity, we design an automated annotation pipeline. We focus on datasets that already have bounding box annotations, specifically detec-tion (Sec. 4.1) and grounding (Sec. 4.2) datasets. 
+
+4.1. Building Data from Detection Dataset 
+
+Step 1. Object Description Generation. As shown in Fig. 5(left), we use the Objects365 dataset [44] as detec-tion data source. By limiting the number (no more than 10) and the IoU ( < 0.5) of instances, we sample 100K im-ages for categories in Objects365. Since detection datasets only provide simple categories, we expand them into lan-guage descriptions. One useful feature is that while current MLLMs can hardly find all instances based on a description, they excel at the reverse task, which is generating descrip-tions based on given coordinates. So we choose InternVL2-76B [7, 8] to generate descriptions for its strong under-standing of coordinates. For an image-object category-coordinate triplet ⟨I, O, C ⟩, we input it into InternVL2-76B to generate an object description. Ultimately, we obtain a collection of object descriptions Sdesc .
+
+Step 2. Description Condition Decomposition. For a de-scription from Sdesc and an object, directly using MLLM to 14361 Building from Detection Dataset                
+
+> Step 1. Object Description Generation
+> dolphin swimming near the edge of a pool
+> Step 2. Description Condition Decomposition
+> Condition 1 : the object is a dolphin
+> Condition 2 : the dolphin is swimming
+> Condition 3 : the dolphin is near the edge of a pool
+> Step 3. COT based Condition Judgment
+> Is Object 1 meet Condition 1 ? {R} Answer: yes
+> {R}: Object 1 is a dolphin.
+> Is Object 1 meet Condition 2 ? {R} Answer: yes
+> {R}: Object 1 is swimming in a pool.
+> …
+> Is Object 3 meet Condition 3 ? {R} Answer: no
+> {R}: Object 3 is in the water but not at the edge.
+
+Building from Grounding Dataset               
+
+> Captions with Entity Bounding Boxes:
+> 1. Man wearing a gray jacket sitting on a green bench petting a black dog
+> wearing a red collar .
+> 2. …
+> Step 1. Generate Existing Objects
+> man in a gray jacket man sitting on bench jacket worn by the man
+> black dog being petted red collar on a black dog
+> Step 2. Generate Non-existent Objects with Confusion
+> man in a red jacket person feeding a cat white dog being petted
+> dog without a collar collar that is not worn by a dog
+
+Figure 5. Automated Annotation Pipeline of ROD Dataset . For detection datasets (left part), the process mainly includes three steps: de-scription generation, condition decomposition, and condition judgment. For grounding datasets (right part), the process primarily involves generating existing objects and non-existing objects with confusion. {R} stands for Reason. 
+
+determine whether they are semantically matched can eas-ily lead to hallucinations. Inspired by vision-language com-positionality [15, 22, 58], we decompose a description into several conditions that must be met to reduce the difficulty of subsequent judgment. As shown in Fig. 5, the description “dolphin swimming near the edge of a pool ” can be decom-posed into three conditions. An object satisfies a description if and only if it meets all the conditions. Through few-shot contextual learning, the LLM DeepSeek [28] can accurately decompose the description into conditions. 
+
+Step 3. COT based Condition Judgment. Using the ob-ject description conditions from the previous step, we an-notate each description for two images: the source image, serving as a positive sample with the object present, and a randomly sampled image of the same category, likely not matching the description, as a negative sample. To improve annotation accuracy, we propose a chain-of-thought (COT) based condition judgment. We input the list of objects and conditions into the MLLM, asking it to assess whether each object meets a specific condition. The MLLM first de-scribes the actual situation of the object in the image as a reason, then provides its judgment on whether the object meets the condition. Then we obtain a set of object descrip-tions along with their matching or non-matching object sets. 
+
+4.2. Building Data from Grounding Dataset 
+
+The annotation of grounding dataset include two steps: 
+
+Step 1. Generating Existing Objects. Flickr30K Enti-ties [41] provides five captions for each image, with co-ordinate box annotations for entities within the captions as shown in Fig. 5(right). Typically, existing methods use this dataset solely for phrase localization tasks, ne-glecting its rich linguistic context. We transform it into a language-based detection dataset focused on single ob-ject description. Specifically, we input the set of cap-tions C = {c1, c 2, . . . , c 5} for each image into the LLM DeepSeek [28] and mark the entities within the captions. We manually design examples to guide the LLM in expand-ing the entities into descriptive phrases, which capturing rich information about the objects’ attributes, states, actions and relationships. For each image, we generate approxi-mately 5 object descriptions of existing objects. 
+
+Step 2. Generating Non-existent Objects. To achieve language-based detection, we mine non-existent objects to create confusing absent objects that are category-consistent but semantically inconsistent. This enhances the model’s ability to distinguish between similar objects. We guide the LLM to generate objects similar to those in the caption but with subtle differences. For example, in Fig. 5 (right image), “ Person feeding a cat ” is a confusing absent ob-ject. Rejecting it requires the model to understand that the main target is a “ Person ” and recognize that the object in the “feeding ” relationship is a “ dog ” not a “ cat ”. We also guide the LLM to generate descriptions with negative semantics (e.g., without , that is not ) to enhance understanding.                              
+
+> COCO RefCOCO/g/+ Flickr30k OmniLabel D3ROD
+> Expression Type Category Desc. Phrase Desc. Desc. Desc. Negative Semantic %%%!!!
+> #Boxes per Expr. 0/1/n 11/n 0/1/n 0/1/n 0/1/n Trainable !!!%%!
+
+Table 1. Comparison of datasets including COCO [27], Ref-COCO/g+ [23, 36, 57], Flickr30k [41],OmniLabel [43], D 3 [50]. 
+
+Ultimately, we obtain 200K and 300K description-image pairs from the detection and grounding datasets, respec-tively, and we term this more reliable object detection dataset ROD. As shown in Tab. 1, compared to other datasets, ROD features a rich variety of expression types and a diverse number of boxes. Please refer to the Appendix for more details and statistical analysis of the dataset. 14362 Type Method OmniLabel [43] D3 [50] AP-d AP-dP AP-dS AP-dM AP-dL Full Pres Abs Specialists RegionCLIP [64] 2.6 3.2 3.6 2.7 2.3 - - -OFA-DOD [50] - - - - - 21.6 23.7 15.4 Grounding DINO [32] - - - - - 20.7 20.1 22.5 OWLv2 [38] 21.9 26.9 32.9 20.5 14.4 22.8 22.1 24.7 GLIP-T [26] 16.4 25.8 29.4 14.8 8.2 19.1 18.3 21.5 FIBER-B [14] 22.3 34.8 38.6 19.5 12.4 22.7 21.5 26.0                                         
+
+> Generalists
+> MLLM with a larger parameter scale
+> InternVL2-76B [8] 15.3 19.3 21.9 15.2 11.3 25.3 25.7 23.5 InternVL2-8B [8] 4.5 5.2 6.2 4.2 3.9 9.8 11.0 6.2 Griffon(13B) [61] 7.2 12.7 12.5 6.3 4.5 12.3 12.4 12.2 Groma(7B) [35] 15.6 27.2 21.4 15.6 11.3 16.0 15.9 16.3
+> ROD-MLLM(7B) 25.3 30.9 31.8 24.5 21.0 29.7 30.0 28.7
+> Table 2. Zero-shot evaluation on language-based object detection. AP-d represents Average Precision for descriptions, P stands for Positive descriptions, and S/M/L represent different lengths. Pres and Abs are abbreviations for Presence and Absence, respectively. Specialists and Generalists denote models limited to localization tasks and those capable of diverse tasks (e.g., image captioning, dialogue), respectively. We make InternVL-76B gray because its parameter size (76B) far exceeds that of the other listed MLLMs.
+
+# 5. Experiments 
+
+In this section, we first detail the implementation of ROD-MLLM (Sec. 5.1). Then, we evaluate it from multiple tasks: language-based object detection (Sec. 5.2), basic referring and grounding (Sec. 5.3), and general referring expression comprehension (Sec. 5.4). Finally, we conduct ablation ex-periments (Sec. 5.5) and give qualitative analysis (Sec. 5.6). 
+
+5.1. Implementation Details 
+
+Model Setting. We use CLIP ViT-L-336px [42] as the visual encoder and Vicuna-7B v1.5 [9] as the LLM. OWLv2 [38] serves as the low-level locator, with Ground-ing DINO-T [32] also tested in ablation studies (Sec. 5.5). For bounding box extraction, we use {1,2,L}-gram to iden-tify query objects from user input, where L is the length of words in the user query. Bounding boxes are filtered with NMS at a 0.6 threshold, retaining up to 100 boxes with con-fidence scores above 0.12. 
+
+Training Setting. ROD-MLLM’s training consists of two stages: pre-training alignment and instruction fine-tuning. In the first stage, we train the image and region projectors with a learning rate of 1e-4 and a batch size of 128 for 2 epochs, keeping other parts frozen. In the second stage, we introduce the LoRA [20] module for the LLM, using the same learning rate and batch size for 1 epoch. The LoRA parameters are set to a rank of 128 and an alpha of 256. 
+
+Datasets. We collect and unify multiple datasets into previously delineated task format, focusing on global and regional visual feature alignment pretraining. For global alignment, we use 558K image-caption pairs from LAION-CCSBU [45]. For regional alignment, we utilize COCO [27] and Objects365 [44] for single and dense de-tection training, our automatic annotated data ROD for language-based object detection. Additionally, we use Re-fCOCO/+/g [23, 36, 57], gRefCOCO [29], and sampled GRIT-20M [40] for REC, and Flickr30K Entities [41] for grounded captioning. Visual Genome [24] is used for single and dense region captioning to align region anchor tokens. During instruction-tuning stage, most of the data is sampled from pre-training data, and LLaVA Instruct 665K [30] and VCR [59] are introduced for global and regional dialogues. Please refer to the Appendix for more data details. 
+
+5.2. Evaluation on Language-Based Detection 
+
+Evaluation Benchmarks and Metrics. We conduct zero-shot evaluations on two language-based detection bench-marks, OmniLabel [43] and D 3 [50]. For OmniLabel, we evaluate Average Precision for descriptions (AP-d), includ-ing fine-grained metrics like AP-dP for positive descriptions and AP-dS/M/L for descriptions of varying lengths ( ≤ 3, 4 
+
+∼ 8, > 8). For D 3, the AP metric is divided into Presence (Pres) and Absence (Abs, e.g., refrigerator without fruit )descriptions, along with a comprehensive metric (Full). 
+
+Evaluation Results. As shown in Tab. 2, our method signif-icantly outperforms existing MLLMs. Specifically, on the OmniLabel dataset, we achieve a substantial improvement (+9.7 AP) in free-form object description detection (AP-d) compared to all MLLMs of similar scale. Our model uses OWLv2 [38] as the low-level locator but achieves a higher AP (21.9 to 25.3), demonstrating the effectiveness of high-level comprehension in the LLM. Notably, despite FIBER-B [14] being trained on a larger object detection dataset and performing better on AP-dS and AP-dP, it significantly un-derperforms our ROD-MLLM on metrics involving nega-tive descriptions (AP-d) and longer texts (AP-dM and AP-dL). This highlights that ROD-MLLM excels at understand-ing more complex object descriptions. On the D 3 [50] benchmark, which emphasizes language descriptions, we achieve a clear advantage over both spe-cialized and general MLLMs. We see an 86% improvement 14363 Type Method RefCOCO RefCOCO+ RefCOCOg                                                                                                                                 
+
+> val test-A test-B val test-A test-B val test Specialists MDETR [21] 87.5 90.4 82.7 81.1 85.5 73.0 83.3 83.3 G-DINO-L [32] 90.6 93.2 88.2 82.8 89.0 75.9 86.1 87.0 UNINEXT-L [53] 91.4 93.7 88.9 83.1 87.9 76.2 86.9 87.5 Generalists Qwen-VL [2] 89.4 92.3 85.3 83.1 88.3 77.2 85.6 85.5 Ferret-7B [55] 87.5 91.4 82.5 80.8 87.4 73.1 83.9 84.8 Shikra-7B [5] 87.0 90.6 80.2 81.6 87.4 72.1 82.3 82.2 Groma [35] 89.5 92.1 86.3 83.9 88.9 78.1 86.4 87.0 Pink [52] 88.7 92.1 84.0 81.8 88.2 73.9 83.9 84.3
+> ROD-MLLM 90.2 93.0 86.3 84.8 89.9 77.5 86.7 86.7 Table 3. Performance Comparison(Acc@0.5) of Refer Experssion Comprehension (REC) on RefCOCO/+/g [23, 36, 57].
+> Type Methods val test-A test-B
+> Pr. N-acc. Pr. N-acc. Pr. N-acc. Specialists MCN [34] 28.0 30.6 32.3 32.0 26.8 30.3 VLT [13] 36.6 35.2 40.2 34.1 30.2 32.5 MDETR [21] 42.7 36.3 50.0 34.5 36.5 31.0 UNINEXT-R50 [53] 58.2 50.6 46.4 49.3 42.9 48.2 Generalists ROD-MLLM 53.2 51.8 55.4 63.7 51.8 57.9
+> Table 4. Performance comparison of Generalized Referring Expression Comprehension (GREC) on gRefCOCO [29]. Pr represents Pr@( F1 = 1 ,IoU ≥0.5), which is the overall precision when the IoU threshold is set to ≥0.5and the F1 score of the predicted box equals 1. N-acc represents the accuracy of rejecting non-existent referent expression.
+
+in AP (16.0 to 29.7) compared to MLLMs. Although we use InternVL-76B for automatic data annotation, we achieve better performance on D 3, demonstrating the effectiveness of converting detection data annotation into region caption-ing and COT-based condition judgment. Our method also outperforms specialized models in both presence (Pres) and absence (Abs) description metrics (29.7 vs. 22.8), demon-strating strong generalization on unseen descriptions. 
+
+5.3. Evaluation on Basic Referring and Grounding 
+
+Region Captioning requires the model to describe con-tent within a provided coordinate box, which is referred to in the instruction like “ Give a description of the region <box>[<a{k}>]</box> ”. We evaluate on RefCOCOg [36] and Visual Genome [24] as shown in Tab. 5, improving CIDEr on RefCOCOg by 6.5 points over SOTA and achiev-ing comparable performance on Visual Genome, demon-strating ROD-MLLM’s strong reference understanding and the region anchor token’s effectiveness.                          
+
+> Model RefCOCOg Visual Genome
+> METEOR CIDEr METEOR CIDEr GRIT [49] 15.2 71.6 17.1 142 Kosmos-2 [40] 14.1 62.3 --GPT4RoI [62] --17.4 145.2 Groma [35] 16.8 107.3 19.0 158.4
+> ROD-MLLM 17.3 113.8 19.0 158.5
+> Table 5. Performance comparison of region captioning.
+
+REC. Compared to language-based object detection, REC focuses on locating a single referent object. We evaluate on RefCOCO/+g datasets [23, 36, 57]. It is worth noting that there is a conflict between the REC and the detection task due to the different number of output objects [61]. To alleviate this, we add “ Answer with regions. ” to the instruc-tion. As shown in Tab. 3, ROD-MLLM outperforms most other MLLMs, showing it improves the detection perfor-mance while maintaining excellent REC capabilities. 
+
+5.4. Evaluation on GREC 
+
+General REC (GREC) [19, 29] focuses on referring com-prehension of multiple or non-existent targets (e.g., mom and kid ). We only compare this task with specialized mod-els since typical MLLMs for REC can only locate a single object. Unlike basic REC, the metric Pr@( F 1 = 1 , IoU ≥
+
+0.5) is quite strict, which requires exact one-to-one match-ing of all predicted and ground truth (GT) boxes with IoU 
+
+≥ 0.5 for a correct prediction. N-acc is used to measure the accuracy of rejecting non-existent references. As shown in Tab. 4, ROD-MLLM outperforms existing methods on most metrics. On testA and testB splits, ROD-MLLM improves the Pr metric by 10.8% and 20.7%, re-spectively, and achieves higher N-acc, demonstrating effec-tiveness in rejecting non-existent references. From Tab. 3 and Tab. 4, we can see that the performance gap between MDETR [21] and ROD-MLLM is larger in GREC than REC (+25% vs. +3%), validating LLM’s advantage in un-derstanding more complex expressions. 
+
+5.5. Ablation Study 
+
+ROD dataset. In the lower part of Tab. 6, we examine the impact of ROD datasets constructed differently. Com-pared to the Base model without ROD dataset, various ROD 14364 the two donuts that are complete circles and are      
+
+> not partially off screen
+> hot air balloon landing on the ground
+> arock climber without helmet
+> boys that aren’t wearing red shirts
+> Ours Ground Truth Groma Griffon OWLv2
+> a)
+> b)
+> c)
+> d)
+
+Figure 6. Qualitative results of language-based object detection. Methods include OWLv2 [38], Griffon [61], Groma [35] and our ROD-MLLM. Green text indicates the main target of the expression and red text indicates negative semantics. 
+
+Method OmniLabel D3
+
+AP-d AP-dP Full Pres Abs 
+
+Different Low-Level Locators 
+
+GD-T [32] 25.9 30.5 29.5 30.0 27.8 
+
+Different Ways to Extract Boxes 
+
+Only Common 10.8 13.5 18.8 19.4 16.8 Only Query 24.4 29.7 28.5 29.0 27.0 
+
+Effect of ROD 
+
+Base 18.8 24.2 22.8 22.7 23.3 +ROD (detection) 23.1 28.2 27.4 27.7 26.3 +ROD (grounding) 23.2 28.7 26.6 26.3 27.4 +ROD (mixed) 24.1 29.2 27.7 27.6 27.9 Ours 25.3 30.9 29.7 30.0 28.7 
+
+Table 6. Ablation on low-level locators, bounding box extraction methods, and ROD dataset effects. “Only Common” uses COCO common objects [27], “Only Query” uses query-extracted objects. ROD (detection, grounding, mixed) refers to datasets from detec-tion, grounding, and a mix, each totaling 200K. 
+
+datasets provide similar significant improvements (+4.6 AP and +3.8 on D 3 Full), showing the effectiveness of our au-tomated annotation pipeline. Mixing these datasets further boosts gains (+4.9 AP), likely due to mitigating overfitting from a single source of annotated data. 
+
+Different Low-Level Detectors. As shown in the first part of Tab. 6, replacing OWLv2 [38] with Grounding DINO-T [32] as the low-level locator shows that final metrics fluc-tuate by no more than 1 point. This validates that ROD-MLLM is not reliant on a specific OVD. The low-level lo-cator acts only as a candidate box extractor, with content understanding handled by the LLM. 
+
+Ways to Extract Boxes. We conduct experiments on var-ious box extraction methods. As shown in Tab. 6, using only common objects as candidate boxes significantly re-duces performance, as fixed object categories struggle to recall all relevant objects for the user’s query. In contrast, query-based object boxes maintain most performance, high-lighting the effectiveness of our query-based localization. 
+
+5.6. Qualitative Results 
+
+We show qualitative results in the Fig. 6. MLLMs like Grif-fon [61] and Groma [35] always detect one or all objects, regardless of the specific semantics. The low-level loca-tor OWLv2 [38] we used also struggles with accurately in-terpreting descriptions, as it is only suitable for category phrase localization. In Fig. 6 b), our model correctly iden-tifies that the hot air balloon is not landing, resulting in a detection of None. In case d), involving complex nega-tive semantics, our model successfully filters out the targets among three people. These examples demonstrate that our method has superior understanding and localization capa-bilities compared to existing methods. 
+
+# 6. Conclusion 
+
+We introduce ROD-MLLM, a multimodal large language model designed for more reliable object detection using free-form language. It utilizes a query-based low-level localization method to accurately extract relevant ob-jects for high-level comprehension. To address dataset limitations, we design an automated annotation pipeline and build the ROD dataset, which includes rich object descriptions and corresponding bounding boxes in var-ious quantities. ROD-MLLM’s strong performance in language-based object detection underscores its potential for broader and more diverse localization applications. 14365 References 
+
+[1] Stanislaw Antol, Aishwarya Agrawal, Jiasen Lu, Margaret Mitchell, Dhruv Batra, C Lawrence Zitnick, and Devi Parikh. Vqa: Visual question answering. In Proceedings of the IEEE international conference on computer vision , pages 2425– 2433, 2015. 1 [2] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A frontier large vision-language model with versatile abilities. arXiv preprint arXiv:2308.12966 , 2023. 7 [3] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Lan-guage models are few-shot learners. Advances in neural in-formation processing systems , 33:1877–1901, 2020. 2 [4] Jun Chen, Deyao Zhu, Xiaoqian Shen, Xiang Li, Zechun Liu, Pengchuan Zhang, Raghuraman Krishnamoorthi, Vikas Chandra, Yunyang Xiong, and Mohamed Elhoseiny. Minigpt-v2: large language model as a unified interface for vision-language multi-task learning. arXiv preprint arXiv:2310.09478 , 2023. 3 [5] Keqin Chen, Zhao Zhang, Weili Zeng, Richong Zhang, Feng Zhu, and Rui Zhao. Shikra: Unleashing multi-modal llm’s referential dialogue magic. arXiv preprint arXiv:2306.15195 , 2023. 1, 2, 3, 7 [6] Ting Chen, Saurabh Saxena, Lala Li, David J Fleet, and Ge-offrey Hinton. Pix2seq: A language modeling framework for object detection. arXiv preprint arXiv:2109.10852 , 2021. 3 [7] Zhe Chen, Weiyun Wang, Hao Tian, Shenglong Ye, Zhang-wei Gao, Erfei Cui, Wenwen Tong, Kongzhi Hu, Jiapeng Luo, Zheng Ma, et al. How far are we to gpt-4v? closing the gap to commercial multimodal models with open-source suites. arXiv preprint arXiv:2404.16821 , 2024. 4 [8] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al. Internvl: Scaling up vision foundation mod-els and aligning for generic visual-linguistic tasks. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 24185–24198, 2024. 4, 6, 2, 3, 8, 9 [9] Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E Gonzalez, et al. Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt quality. See https://vicuna. lmsys. org (accessed 14 April 2023) , 2(3):6, 2023. 4, 6 [10] Wenliang Dai, Junnan Li, Dongxu Li, Anthony Meng Huat Tiong, Junqi Zhao, Weisheng Wang, Boyang Li, Pascale Fung, and Steven Hoi. Instructblip: towards general-purpose vision-language models with instruction tuning. In Proceed-ings of the 37th International Conference on Neural Infor-mation Processing Systems , Red Hook, NY, USA, 2023. Cur-ran Associates Inc. 1 [11] Abhishek Das, Satwik Kottur, Khushi Gupta, Avi Singh, Deshraj Yadav, José MF Moura, Devi Parikh, and Dhruv Ba-tra. Visual dialog. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 326–335, 2017. 1 [12] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional trans-formers for language understanding. In Proceedings of the 2019 conference of the North American chapter of the asso-ciation for computational linguistics: human language tech-nologies, volume 1 (long and short papers) , pages 4171– 4186, 2019. 2 [13] Henghui Ding, Chang Liu, Suchen Wang, and Xudong Jiang. Vision-language transformer and query generation for refer-ring segmentation. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 16321–16330, 2021. 7 [14] Zi-Yi Dou, Aishwarya Kamath, Zhe Gan, Pengchuan Zhang, Jianfeng Wang, Linjie Li, Zicheng Liu, Ce Liu, Yann Le-Cun, Nanyun Peng, et al. Coarse-to-fine vision-language pre-training with fusion in the backbone. Advances in neural information processing systems , 35:32942–32956, 2022. 2, 6[15] Sivan Doveh, Assaf Arbelle, Sivan Harary, Roei Herzig, Donghyun Kim, Paola Cascante-Bonilla, Amit Alfassy, Rameswar Panda, Raja Giryes, Rogerio Feris, et al. Dense and aligned captions (dac) promote compositional reasoning in vl models. Advances in Neural Information Processing Systems , 36:76137–76150, 2023. 5 [16] Daocheng Fu, Xin Li, Licheng Wen, Min Dou, Pinlong Cai, Botian Shi, and Yu Qiao. Drive like a human: Rethinking au-tonomous driving with large language models. In Proceed-ings of the IEEE/CVF Winter Conference on Applications of Computer Vision , pages 910–919, 2024. 1 [17] Qiushan Guo, Shalini De Mello, Hongxu Yin, Wonmin Byeon, Ka Chun Cheung, Yizhou Yu, Ping Luo, and Sifei Liu. Regiongpt: Towards region understanding vision lan-guage model. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 13796– 13806, 2024. 1 [18] Kaiming He, Georgia Gkioxari, Piotr Dollár, and Ross Gir-shick. Mask r-cnn. In Proceedings of the IEEE international conference on computer vision , pages 2961–2969, 2017. 2, 4[19] Shuting He, Henghui Ding, Chang Liu, and Xudong Jiang. Grec: Generalized referring expression comprehension. 
+
+arXiv preprint arXiv:2308.16182 , 2023. 7 [20] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al. Lora: Low-rank adaptation of large language models. ICLR ,1(2):3, 2022. 6 [21] Aishwarya Kamath, Mannat Singh, Yann LeCun, Gabriel Synnaeve, Ishan Misra, and Nicolas Carion. Mdetr-modulated detection for end-to-end multi-modal understand-ing. In Proceedings of the IEEE/CVF international confer-ence on computer vision , pages 1780–1790, 2021. 7 [22] Amita Kamath, Cheng-Yu Hsieh, Kai-Wei Chang, and Ran-jay Krishna. The hard positive truth about vision-language compositionality. In European Conference on Computer Vi-sion , pages 37–54. Springer, 2024. 5 14366 [23] Sahar Kazemzadeh, Vicente Ordonez, Mark Matten, and Tamara Berg. Referitgame: Referring to objects in pho-tographs of natural scenes. In Proceedings of the 2014 con-ference on empirical methods in natural language processing (EMNLP) , pages 787–798, 2014. 1, 5, 6, 7 [24] Ranjay Krishna, Yuke Zhu, Oliver Groth, Justin Johnson, Kenji Hata, Joshua Kravitz, Stephanie Chen, Yannis Kalan-tidis, Li-Jia Li, David A Shamma, et al. Visual genome: Connecting language and vision using crowdsourced dense image annotations. International journal of computer vision ,123:32–73, 2017. 6, 7 [25] Alina Kuznetsova, Hassan Rom, Neil Alldrin, Jasper Ui-jlings, Ivan Krasin, Jordi Pont-Tuset, Shahab Kamali, Stefan Popov, Matteo Malloci, Alexander Kolesnikov, et al. The open images dataset v4: Unified image classification, object detection, and visual relationship detection at scale. Interna-tional journal of computer vision , 128(7):1956–1981, 2020. 4[26] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jian-wei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, et al. Grounded language-image pre-training. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10965–10975, 2022. 2, 6 [27] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 , pages 740–755. Springer, 2014. 2, 3, 4, 5, 6, 8[28] Aixin Liu, Bei Feng, Bin Wang, Bingxuan Wang, Bo Liu, Chenggang Zhao, Chengqi Dengr, Chong Ruan, Damai Dai, Daya Guo, et al. Deepseek-v2: A strong, economical, and efficient mixture-of-experts language model. arXiv preprint arXiv:2405.04434 , 2024. 5, 2, 3, 8, 10 [29] Chang Liu, Henghui Ding, and Xudong Jiang. Gres: Gen-eralized referring expression segmentation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 23592–23601, 2023. 6, 7 [30] Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. Llava-next: Im-proved reasoning, ocr, and world knowledge, 2024. 6 [31] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. Advances in neural information processing systems , 36, 2024. 1 [32] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Qing Jiang, Chunyuan Li, Jianwei Yang, Hang Su, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. In 
+
+European Conference on Computer Vision , pages 38–55. Springer, 2024. 2, 6, 7, 8 [33] Yinhan Liu. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692 , 364, 2019. 2 [34] Gen Luo, Yiyi Zhou, Xiaoshuai Sun, Liujuan Cao, Chenglin Wu, Cheng Deng, and Rongrong Ji. Multi-task collabora-tive network for joint referring expression comprehension and segmentation. In Proceedings of the IEEE/CVF Con-ference on computer vision and pattern recognition , pages 10034–10043, 2020. 7 [35] Chuofan Ma, Yi Jiang, Jiannan Wu, Zehuan Yuan, and Xiao-juan Qi. Groma: Localized visual tokenization for grounding multimodal large language models. In European Conference on Computer Vision , pages 417–435. Springer, 2025. 1, 2, 3, 4, 6, 7, 8 [36] Junhua Mao, Jonathan Huang, Alexander Toshev, Oana Camburu, Alan L Yuille, and Kevin Murphy. Generation and comprehension of unambiguous object descriptions. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , pages 11–20, 2016. 1, 5, 6, 7 [37] Matthias Minderer, Alexey Gritsenko, Austin Stone, Maxim Neumann, Dirk Weissenborn, Alexey Dosovitskiy, Aravindh Mahendran, Anurag Arnab, Mostafa Dehghani, Zhuoran Shen, et al. Simple open-vocabulary object detection. In 
+
+European conference on computer vision , pages 728–755. Springer, 2022. 3 [38] Matthias Minderer, Alexey Gritsenko, and Neil Houlsby. Scaling open-vocabulary object detection. Advances in Neu-ral Information Processing Systems , 36, 2024. 2, 6, 8 [39] Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Car-roll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al. Training language models to follow instructions with human feedback. Ad-vances in neural information processing systems , 35:27730– 27744, 2022. 2 [40] Zhiliang Peng, Wenhui Wang, Li Dong, Yaru Hao, Shaohan Huang, Shuming Ma, and Furu Wei. Kosmos-2: Ground-ing multimodal large language models to the world. arXiv preprint arXiv:2306.14824 , 2023. 6, 7 [41] Bryan A Plummer, Liwei Wang, Chris M Cervantes, Juan C Caicedo, Julia Hockenmaier, and Svetlana Lazeb-nik. Flickr30k entities: Collecting region-to-phrase corre-spondences for richer image-to-sentence models. In Pro-ceedings of the IEEE international conference on computer vision , pages 2641–2649, 2015. 2, 5, 6, 3 [42] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PMLR, 2021. 2, 6 [43] Samuel Schulter, Yumin Suh, Konstantinos M Dafnis, Zhix-ing Zhang, Shiyu Zhao, Dimitris Metaxas, et al. Omnilabel: A challenging benchmark for language-based object detec-tion. In Proceedings of the IEEE/CVF International Confer-ence on Computer Vision , pages 11953–11962, 2023. 2, 4, 5, 6 [44] Shuai Shao, Zeming Li, Tianyuan Zhang, Chao Peng, Gang Yu, Xiangyu Zhang, Jing Li, and Jian Sun. Objects365: A large-scale, high-quality dataset for object detection. In Pro-ceedings of the IEEE/CVF international conference on com-puter vision , pages 8430–8439, 2019. 2, 4, 6 [45] Piyush Sharma, Nan Ding, Sebastian Goodman, and Radu Soricut. Conceptual captions: A cleaned, hypernymed, im-14367 age alt-text dataset for automatic image captioning. In Pro-ceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 2556–2565, 2018. 6 [46] Oriol Vinyals, Alexander Toshev, Samy Bengio, and Du-mitru Erhan. Show and tell: A neural image caption gen-erator. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 3156–3164, 2015. 1 [47] Peng Wang, An Yang, Rui Men, Junyang Lin, Shuai Bai, Zhikang Li, Jianxin Ma, Chang Zhou, Jingren Zhou, and Hongxia Yang. Ofa: Unifying architectures, tasks, and modalities through a simple sequence-to-sequence learning framework. In International conference on machine learn-ing , pages 23318–23340. PMLR, 2022. 3 [48] Zhanyu Wang, Lingqiao Liu, Lei Wang, and Luping Zhou. R2gengpt: Radiology report generation with frozen llms. 
+
+Meta-Radiology , 1(3):100033, 2023. 1 [49] Jialian Wu, Jianfeng Wang, Zhengyuan Yang, Zhe Gan, Zicheng Liu, Junsong Yuan, and Lijuan Wang. Grit: A gener-ative region-to-text transformer for object understanding. In 
+
+European Conference on Computer Vision , pages 207–224. Springer, 2025. 7 [50] Chi Xie, Zhao Zhang, Yixuan Wu, Feng Zhu, Rui Zhao, and Shuang Liang. Described object detection: Liberating ob-ject detection with flexible expressions. Advances in Neural Information Processing Systems , 36, 2024. 2, 4, 5, 6 [51] Zhenhua Xu, Yujia Zhang, Enze Xie, Zhen Zhao, Yong Guo, Kwan-Yee K Wong, Zhenguo Li, and Hengshuang Zhao. Drivegpt4: Interpretable end-to-end autonomous driving via large language model. IEEE Robotics and Automation Let-ters , 2024. 1 [52] Shiyu Xuan, Qingpei Guo, Ming Yang, and Shiliang Zhang. Pink: Unveiling the power of referential comprehension for multi-modal llms. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 13838–13848, 2024. 1, 3, 7 [53] Bin Yan, Yi Jiang, Jiannan Wu, Dong Wang, Ping Luo, Ze-huan Yuan, and Huchuan Lu. Universal instance percep-tion as object discovery and retrieval. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15325–15336, 2023. 7 [54] Qinghao Ye, Haiyang Xu, Guohai Xu, Jiabo Ye, Ming Yan, Yiyang Zhou, Junyang Wang, Anwen Hu, Pengcheng Shi, Yaya Shi, et al. mplug-owl: Modularization empowers large language models with multimodality. arXiv preprint arXiv:2304.14178 , 2023. 1 [55] Haoxuan You, Haotian Zhang, Zhe Gan, Xianzhi Du, Bowen Zhang, Zirui Wang, Liangliang Cao, Shih-Fu Chang, and Yinfei Yang. Ferret: Refer and ground anything anywhere at any granularity. arXiv preprint arXiv:2310.07704 , 2023. 1, 3, 7 [56] Keen You, Haotian Zhang, Eldon Schoop, Floris Weers, Amanda Swearngin, Jeffrey Nichols, Yinfei Yang, and Zhe Gan. Ferret-ui: Grounded mobile ui understanding with mul-timodal llms. arXiv preprint arXiv:2404.05719 , 2024. 1 [57] Licheng Yu, Patrick Poirson, Shan Yang, Alexander C Berg, and Tamara L Berg. Modeling context in referring expres-sions. In Computer Vision–ECCV 2016: 14th European Conference, Amsterdam, The Netherlands, October 11-14, 2016, Proceedings, Part II 14 , pages 69–85. Springer, 2016. 1, 5, 6, 7 [58] Mert Yuksekgonul, Federico Bianchi, Pratyusha Kalluri, Dan Jurafsky, and James Zou. When and why vision-language models behave like bags-of-words, and what to do about it? In International Conference on Learning Repre-sentations , 2023. 5 [59] Rowan Zellers, Yonatan Bisk, Ali Farhadi, and Yejin Choi. From recognition to cognition: Visual commonsense rea-soning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 6720–6731, 2019. 6 [60] Yufei Zhan, Yousong Zhu, Hongyin Zhao, Fan Yang, Ming Tang, and Jinqiao Wang. Griffon v2: Advancing multimodal perception with high-resolution scaling and visual-language co-referring. arXiv preprint arXiv:2403.09333 , 2024. 3 [61] Yufei Zhan, Yousong Zhu, Zhiyang Chen, Fan Yang, Ming Tang, and Jinqiao Wang. Griffon: Spelling out all object locations at any granularity with large language models. In 
+
+European Conference on Computer Vision , pages 405–422. Springer, 2025. 2, 3, 6, 7, 8 [62] Shilong Zhang, Peize Sun, Shoufa Chen, Min Xiao, Wenqi Shao, Wenwei Zhang, Yu Liu, Kai Chen, and Ping Luo. Gpt4roi: Instruction tuning large language model on region-of-interest. arXiv preprint arXiv:2307.03601 , 2023. 1, 4, 7[63] Xiangyu Zhao, Xiangtai Li, Haodong Duan, Haian Huang, Yining Li, Kai Chen, and Hua Yang. Mg-llava: Towards multi-granularity visual instruction tuning. arXiv preprint arXiv:2406.17770 , 2024. 1, 4 [64] Yiwu Zhong, Jianwei Yang, Pengchuan Zhang, Chun-yuan Li, Noel Codella, Liunian Harold Li, Luowei Zhou, Xiyang Dai, Lu Yuan, Yin Li, et al. Regionclip: Region-based language-image pretraining. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 16793–16803, 2022. 6 [65] Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mo-hamed Elhoseiny. Minigpt-4: Enhancing vision-language understanding with advanced large language models. arXiv preprint arXiv:2304.10592 , 2023. 1 14368

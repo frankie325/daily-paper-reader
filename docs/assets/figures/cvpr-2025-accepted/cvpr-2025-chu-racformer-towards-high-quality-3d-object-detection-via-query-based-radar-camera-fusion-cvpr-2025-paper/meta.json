@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 794,
+      "height": 422,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1696,
+      "height": 773,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 834,
+      "height": 773,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 857,
+      "height": 346,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 827,
+      "height": 417,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 1725,
+      "height": 638,
+      "label": "Figure"
+    }
+  ]
+}

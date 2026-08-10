@@ -1,0 +1,301 @@
+Title: MonoDGP: Monocular 3D Object Detection with Decoupled-Query and Geometry-Error Priors
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Pu_MonoDGP_Monocular_3D_Object_Detection_with_Decoupled-Query_and_Geometry-Error_Priors_CVPR_2025_paper.pdf
+
+Published Time: Sun, 18 May 2025 22:27:23 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# MonoDGP: Monocular 3D Object Detection with Decoupled-Query and Geometry-Error Priors 
+
+# Fanqi Pu 1 Yifan Wang 1 Jiru Deng 1 Wenming Yang 1*
+
+> 1
+
+# Shenzhen International Graduate School, Tsinghua University    
+
+> {pfq23, yf-wang23, djr23 }@mails.tsinghua.edu.cn, yang.wenming@sz.tsinghua.edu.cn
+
+# Abstract 
+
+Perspective projection has been extensively utilized in monocular 3D object detection methods. It introduces geo-metric priors from 2D bounding boxes and 3D object di-mensions to reduce the uncertainty of depth estimation. However, due to errors originating from the object’s vi-sual surface, the bounding box height often fails to repre-sent the actual central height, which undermines the effec-tiveness of geometric depth. Direct prediction for the pro-jected height unavoidably results in a loss of 2D priors, while multi-depth prediction with complex branches does not fully leverage geometric depth. This paper presents a Transformer-based monocular 3D object detection method called MonoDGP, which adopts perspective-invariant ge-ometry errors to modify the projection formula. We also try to systematically discuss and explain the mechanisms and efficacy behind geometry errors, which serve as a simple but effective alternative to multi-depth prediction. Additionally, MonoDGP decouples the depth-guided decoder and con-structs a 2D decoder only dependent on visual features, pro-viding 2D priors and initializing object queries without the disturbance of 3D detection. To further optimize and fine-tune input tokens of the transformer decoder, we also in-troduce a Region Segmentation Head (RSH) that generates enhanced features and segment embeddings. Our monoc-ular method demonstrates state-of-the-art performance on the KITTI benchmark without extra data. Code is available at https://github.com/PuFanqi23/MonoDGP .
+
+# 1. Introduction 
+
+3D object detection has always been a critical research topic in the fields of autonomous driving and robotic per-ception. Compared with LiDAR- [19, 39, 40, 50] or stereo-based [9, 20, 21, 34, 42] methods, monocular 3D object detection exhibits lower spatial positional accuracy without depth information. Owing to their cost-effectiveness and   
+
+> *Corresponding author.
+> Figure 1. Comparison with MonoDETR. MonoDGP employs an RSH module for enhanced features and segment embeddings, along with an independent visual decoder for 2D query initializa-tion. We further propose a geometry error prior that converts un-even depth distribution into more concentrated error distribution.
+
+ease of configuration [23, 35], monocular methods have re-mained a primary focus of research in recent years. Without extra data, the direct prediction of 3D objects from single 2D images is an extremely challenging prob-lem. During the formation of 2D images, crucial depth-related information is compressed, resulting in an inherently ill-posed issue for direct depth estimation [23, 32, 36, 53, 56]. This limitation significantly undermines the accuracy of 3D object detection. However, under certain conditions, the uncertainty of depth estimation can be reduced with sub-stantial prior knowledge. Particularly in the realm of au-tonomous driving, where the major objects of interest, such as cars, are rigid entities with known geometric properties. Previous methods like Deep3DBox [30] and Shift R-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 6520 CNN [31] enforce geometric constraints through tight alignment between 3D box projections and 2D detections. Unlike strict constraints mentioned above, geometric depth is uniquely determined by the ratio of an object’s 3D height to its 2D projected height. This physically interpretable explicit mapping eliminates cascaded uncertainty, ensur-ing superior computational efficiency and noise robustness. However, since 2D images are inaccurate in capturing depth errors of the object visual surface, the 2D bounding box height often exceeds the projected height, which makes ge-ometric depth deviate from the actual depth. To address single-depth prediction limitations, some approaches[23, 51, 52] integrate multi-depth predictions through weighted averaging, including direct and geometric depths. Nev-ertheless, MonoCD [51] indicates that if these predicted depths cluster on the same side of the ground truth depth, even weighted averaging fails to correct the depth error. DID-M3D [32] decomposes depth into visual and attribute parts, using perspective transformation for data augmenta-tion. Similarly, the geometric depth can also be regarded as the visual depth, whose value depends on the object’s sur-face appearance and position [10]. While the depth error is determined by the object’s inherent attributes and remains invariant with changes in perspective. With more concen-trated distribution, error prediction can not only alleviate the long-tail effect of raw depth, but also avoid the problem where multiple depths fail to complement each other after weighting fusion. After introducing the geometric prior, we observed that the accuracy of the bounding boxes is often poor during the initial training stage. This may lead the model to associate depth with incorrect bounding boxes, thereby complicating the convergence process. To address this issue, we decou-ple the depth-guided decoder proposed by MonoDETR [52] and construct a 2D visual decoder for independent 2D de-tection and query initialization. Additionally, we propose a Region Segmentation Head (RSH) to strengthen the fore-ground features and provide segment embeddings for se-mantically similar input tokens. By emulating BERT [16]’s approach to handling distinct components of textual inputs, we treat the target region as one “sentence” and the back-ground region as another “sentence”. In summary, we propose a transformer-based method called MonoDGP. Our contributions are listed as follows: • We adopt perspective-invariant error prediction to replace multi-depth prediction, alleviating the long-tail effect of depth distribution and reducing learning complexities. • We construct a decoupled visual decoder to initialize queries and reference points of the depth-guided decoder, boosting the model convergence and training stability. • We present a Region Segmentation Head (RSH) to en-hance object features and suppress background noise. Additionally, segment embeddings are incorporated dur-ing depth encoding to refine contextual representations. • Evaluated on the KITTI 3D object detection benchmark, without any extra data, MonoDGP achieves the state-of-the-art (SOTA) performance among monocular detectors. 
+
+# 2. Related work 
+
+Extra training data. The main challenge of monocu-lar methods is insufficient of depth cues, which renders 3D object detection an ill-posed problem. Consequently, some approaches [14, 22, 32, 37, 46, 48] incorporate addi-tional data, such as point clouds or depth maps, enabling the model to implicitly learn depth features during training. MonoPGC [48] introduces pixel-level depth map prediction as an auxiliary task, encoding 3D coordinates into depth-perception features to perceive the spatial positions of pix-els. CaDDN [37] estimates the classified depth distribution for each pixel, generates high-quality bird’s-eye view fea-ture representations, and achieves accurate 3D object pre-dictions. OccupancyM3D [33] creates occupancy labels from point clouds, and monitors occupancy status in frus-tum space and 3D space. Given the reliance on expensive sensors and complex collection processes for supplemen-tary information, MonoDGP exclusively utilizes monocular images during the training and inference stages, thereby en-hancing the model’s practicality and deployment feasibility. 
+
+Transformer-based methods. Many previous works [23, 26, 29, 32, 41, 53] have employed convolutional neu-ral networks (CNNs) to extract local, fine-grained informa-tion at various spatial levels. Although CNN-based meth-ods demonstrate superior speed and efficiency, they require multi-layer convolution to progressively aggregate features for capturing long-distance dependencies. Additionally, non-maximum suppression (NMS) technology is employed to filter out redundant detection boxes. Benefiting from the global perception and dynamic adjustment abilities of the attention mechanism [45], an increasing number of studies [14, 52, 55] have shifted their focus toward Transformer-based monocular detectors. For instance, MonoDTR [14] proposes to conduct depth position encoding and integrates global depth information into the Transformer to guide the detection. MonoDETR [52] adheres to the DETR [5] architecture, utilizing object-level depth labels to predict the foreground depth map, constructing a depth-guided de-coder, and incorporating object queries for global feature aggregation. MonoDGP also adopts the DETR framework, initializing queries with a decoupled 2D visual decoder and introducing segment embeddings to enhance the contextual relationships among pixels. 
+
+Multi-depth estimation modes. Early monocular meth-ods [3, 8, 25, 27, 43] directly estimate object depth through end-to-end network training. Many researchers [1, 2, 4, 17, 41, 47, 54] extend the depth estimation branches by intro-6521 Figure 2. Overall architecture of our MonoDGP. The network comprises three components: feature extraction and enhancement, trans-former encoder-decoder and object detection heads. The parallel visual and depth branches within the transformer are represented by yellow and blue, respectively. The predicted depth is separated into geometric depth Zgeo , obtained from the perspective projection for-mula, and depth error Zerr to correct the formula. 
+
+ducing perspective projection and mathematical priors. For example, GUPNet [29] proposes a geometry uncertainty projection module and employs a Laplacian distribution to represent geometric depth and correlation-learned bias. To mitigate uncertainties in single depth estimation meth-ods, MonoDDE [23] introduces key points into 20 different depth branches, emphasizing the significance of diversity in depth prediction. MonoDETR [52] merges predicted results from direct depth, object-level depth map, and geometric depth. MonoCD [51] further discusses the complementar-ity among multiple depths and combines them to cancel out positive or negative errors. However, the geometric depth and errors (such as depth/height error) in the projection for-mula have not been fully explored. Based on a comprehen-sive analysis of geometric priors, MonoDGP decouples raw depth to obtain perspective-invariant depth error, providing a superior alternative to multi-depth approaches. 
+
+# 3. Method 
+
+3.1. Overview 
+
+The overall framework of MonoDGP is shown in Fig. 2. Firstly, a single-view image is processed by ResNet50 to extract multi-scale feature maps  fi ∈ R H    
+
+> 2i+3 ×W
+> 2i+3 ×C
+
+, i =0, 1, 2, 3. The RSH module then predicts target region prob-abilities and enhances visual features fV . A lightweight depth predictor subsequently estimates the depth map and generates depth features fD . Both enhanced visual features 
+
+fV and depth features fD are fed into two parallel trans-former encoders. The transformer decoder consists of a 2D visual decoder and a 3D depth-guided decoder. In the 2D decoder, object queries adaptively achieve semantic scene understanding from visual embeddings, while the 3D de-coder extracts geometric and spatial relationships from both visual and depth embeddings. Ultimately, we utilize de-coupled queries as inputs for 2D/3D detection heads sep-arately. It is worth noting that after calculating geometric depth based on the projection formula, a geometry error correction mechanism is applied to improve the accuracy of depth estimation. 
+
+3.2. Region Segmentation 
+
+The Region Segmentation Head (RSH) is specifically de-signed to enhance the fine-grained foreground feature ex-traction. As shown in Fig. 3, the RSH follows the structure of U-Net [38] and predicts the target probability for each pixel. It is essential for the depth predictor to concentrate more on the perspective and geometric cues within the fore-ground area. Therefore, the RSH provides enhanced tar-get features and segment embeddings for depth encoding. Technical details are presented below: 
+
+Region Segmentation and Enhancement. We initially utilize a ResNet backbone to downsample and extract multi-scale visual features  f0 to  f3. Subsequently, We restore  f3
+
+to high-resolution feature maps through upsampling opera-tions and skip connections. This integration of shallow and 6522 Figure 3. The structure of region segmentation module. The multi-scale feature maps are progressively upsampled and added, outputting target region probabilities by segment heads. Subsequently, enhanced features are achieved through element-wise multiplication with original features. Finally, segment embeddings are acquired under threshold constraints. 
+
+deep features improves multi-scale representation. Specif-ically, we combine the upsampled  f3 with  f2 after a  1 × 1
+
+convolution and GroupNorm layer. This process is repeated to obtain fused feature maps at various scales. We then employ an SEBlock [13] for attention weighting on each scale’s feature maps. The SEBlock implements a channel attention mechanism through two  1 × 1 convolution layers: the first convolution reduces the number of feature channels to  1/16 , while the second convolution restores the origi-nal number of channels. Finally, we achieve several se-mantic segmentation maps with the sigmoid function. By multiplying the predicted target probability with original features, RSH effectively enhances foreground features and suppresses background noise. 
+
+Region loss. We construct target region masks and set the areas within bounding boxes to 1. Guided by these region masks, we calculate the Dice loss for the target region prob-abilities at each scale and weight the sum of these losses. The Dice loss, which is based on set similarity, addresses class imbalance and improves segmentation precision. Its definition is as follows: 
+
+Liregion = 1 −
+
+2 · NiP
+
+> j=1
+
+pj · gjNiP
+
+> j=1
+
+pj + NiP
+
+> j=1
+
+gj
+
+(1) Where  pj denotes the predicted probability of the  j-th pixel, 
+
+gj represents the  j-th pixel in the ground truth label, and  Ni
+
+indicates the total number of pixels in the  i-th feature map 
+
+fi, i = 0 , 1, 2, 3. By minimizing the Dice loss, we can di-rectly optimize the overlapping areas between the predicted probabilities and the region masks, enhancing both segmen-tation accuracy and consistency. 
+
+Segment embeddings. The RSH module generates seg-ment embeddings from target region probabilities that ex-ceed a threshold of 0.5. We subsequently add these segment embeddings to the token and position embeddings. This approach is inspired by the segment embeddings mecha-nism utilized in the BERT model [16]. Segment embed-dings help to better distinguish the semantic relationships between foreground and background image tokens, similar to how different “sentences” are represented in BERT. 
+
+3.3. Decoupled Query 
+
+Geometric priors optimize depth estimation, but also in-troduce depth uncertainty to 2D detection. To mitigate this side effect, we decouple object queries for independent 2D detection. After obtaining visual embeddings  f eV and depth embeddings  f eD from two parallel encoders, MonoDGP de-composes the depth-guided decoder into a 2D decoder and a 3D decoder. The 2D visual decoder initialize 2D queries and reference points to acquire spatial position and category information. These 2D queries are then fed into the 3D de-coder to interact with visual and depth features. This allows each decoder to focus on its own specific task and ensures stable convergence during training. 
+
+2D detection decoder. We take a set of learnable ob-ject queries  q ∈ RN ×C as input, which sequentially passes through an inter-query self-attention layer, a multi-scale de-formable cross-attention layer [57], and a feedforward net-work(FFN), where  N denotes the pre-defined maximum number of objects in a single image. The 2D queries  q2d6523 Figure 4. (a) Schematic illustration of how geometry error occurs. Due to the height of the bounding box  hbbox  is larger than the projected central height  hc, there will be an error between geometric depth and ground truth depth. (b) Vehicles at different angles in a bird’s-eye view. The geometric depth  Zgeo  is the distance between the camera plane and the parallel plane on which the closest wheel sits, while depth error  Zerr  only depends on the object’s dimensions and orientation. The camera height also has a tiny effect on the  Zerr  ,rigorous proof is given in the appendix. 
+
+interact with visual embeddings  f eV to extract 2D image fea-tures, including color, edges, and texture. The queries and reference points provide an initial perception of spatial po-sitioning. The 3D decoder can utilize these 2D query priors to more rapidly focus on the target area in complex scenes. 
+
+3D detection decoder. The initialized 2D object queries 
+
+q2d ∈ RN ×C are input to the 3D depth-guided decoder. Each decoder block contains a depth cross-attention layer, an inter-query self-attention layer, a visual cross-attention layer and an FFN. Specifically, object queries first extract perspective cues from depth embeddings  f eD . Subsequently, the depth-aware queries are sent to the inter-query self-attention layer to promote information exchange. After the visual cross-attention layer and FFN, we generate 3D queries  q3d that combine semantic and geometric features, obtaining an accurate scene-level spatial understanding. 
+
+3.4. Geometry Error 
+
+Direct depth estimation is often ill-posed in monocu-lar methods. We apply the perspective projection formula 
+
+Z = f × H3D /h 2D to introduce geometric priors and mit-igate depth uncertainty. When utilizing the projection for-mula, it is essential to make sure that the object’s dimension height (such as  AB  and  CD  in Fig. 4(a)) is parallel to the projection plane, namely the X-Y plane in the camera coor-dinate system, and remains perpendicular to the X-Z plane. To guarantee the validity of the formula, we establish the following assumptions: • The roll and pitch angles of the monocular camera are set to 0 degrees by default. • The influence of ground slope can be overlooked when calculating geometric depth. Under the given assumptions, the projected central height  hc is solely dependent on the 3D height and depth, while the height of the 2D bounding box  hbbox  can be influ-enced by additional factors, including its shape and surface characteristics. As illustrated in Fig. 4 (a), the visual dis-parity typically causes a depth error  Zerr  between the actual depth  Z and the geometric depth  Zgeo , which can be formu-lated as: 
+
+Z = f · YAB 
+
+vAB 
+
+= f · Hhc
+
+, Z geo = f · YCD 
+
+vCD 
+
+= f · Hhbbox 
+
+(2) 
+
+Z = Zgeo + Zerr  (3) where  f denotes the focal length of the camera. The  Zgeo  reflects the visible surface depth, while  Zerr  is only related to the inherent attributes of the object. In com-parison to the raw depth  Z, Zerr  is perspective-invariant with less spatial uncertainty. We replace the direct depth predic-tion with the geometry error prediction, and our depth loss is calculated as follows: 
+
+Ldepth =
+
+√2
+
+σd
+
+∥Zgeo + Zerr − Zgt ∥1 + log( σd) (4) The perspective projection formula contains two vari-ables: the height of the 2D bounding box and the height of the 3D size. To correct the formula, the depth error is added to the geometric depth for the final prediction, while errors from both the 2D and 3D heights can also compensate for the geometric depth. Their predictions are formulated as: 
+
+Z = f · (H + Herr )
+
+hbbox 
+
+= Zgeo + fhbbox 
+
+· Herr  (5) 
+
+Z = f · Hhc
+
+= f · Hhbbox − herr 
+
+(6) These errors can significantly improve the performance of geometric depth. 6524 Figure 5. Comparison of 3D data distributions. With the total number of objects remaining constant, each distribution is visual-ized using a histogram. 
+
+3.5. Why Geometry Error Works? 
+
+The geometry error eliminates perspective correlation of raw depth distribution, thus reducing the learning difficulty of the network. Specifically, the reasons why geometry er-ror works can be analyzed from three aspects: • 2D and 3D attributes: why we utilize  hbbox  instead of  hc
+
+in the projection formula? • Different 3D attributes: why raw depth preforms worse than other 3D attributes? • Different geometry errors: why we select depth error? 
+
+2D and 3D attributes. 2D predictions rely on monocu-lar visual features like color, edges, textures, whereas 3D predictions require extra factors including depth position-ing and geometric perspective, which are difficult to obtain from single-view images. Benefiting from the network’s powerful capability of marginal feature extraction,  hbbox 
+
+can provide more accurate 2D priors. However, we can hardly predict  hc from direct marginal features. The geo-metric depth calculated by  hbbox  should be regarded as a re-liable surface depth, rather than an inaccurate central depth. 
+
+Different 3D attributes. Without direct depth supervi-sion, data distribution dictates network learning complex-ity. The Fig. 5 and 6 show the data distributions and box-plot of depth-related 3D attributes. Based on these figures, we can further evaluate and compare the learning difficulty across different data distributions. The central depth ex-hibits a long-tailed distribution with wide variance, while the 3D size distribution tends to be more concentrated. For instance, typical car height clusters near 1.5 meters, sim-plifying pattern recognition. The boxplot indicates that the depth distribution has a broader interquartile range (IQR) and longer whiskers, suggesting greater complexity and noise. Meanwhile, the IQR for dimension height, depth er-       
+
+> Figure 6. The boxplot of depth-related attributes. To conduct unified comparisons, the data distributions of different attributes are standardized by X′= ( X−μ)/σ in the boxplot.
+
+ror, and height error is narrower, which illustrates that these distributions are relatively compact with plain patterns. 
+
+Different geometry errors. (1) Depth error  Zerr  and di-mension height error  Herr  : Both  Zerr  and  Herr  have a narrow IQR and short whiskers, indicating that they share similar statistical properties. The primary distinction is that 
+
+Zerr  distribution is symmetrical with a median close to zero, while  Herr  distribution is skewed with a negative me-dian. This skewness may increase the complexity of the training process. According to Eq. (3) and Eq. (5), we can express  Herr  in terms of  Zerr  and  hbbox :
+
+Herr = 1
+
+f · (Z − Zgeo ) · hbbox = Zerr · hbbox 
+
+f (7) As illustrated in Fig. 4(b), when the object rotates around the center point,  Zerr  will fluctuate in tandem with  hbbox ,leading to an amplification effect on the distribution of 
+
+Herr  . Similar to the squaring operation in the chi-square distribution, the multiplication in Eq. (7) introduces nonlin-ear transformation, resulting in a skewed data distribution. (2) Bounding box height error  herr  : Compared with other geometry errors,  herr  is located in the denominator of the modified Eq. (6). Its gradient calculation formula can be expressed as: 
+
+∂L depth 
+
+∂h err 
+
+= ∂L depth 
+
+∂Z · f · H
+
+(hbbox − herr )2 (8) During the backpropagation process, the gradient calcula-tions on  herr  are non-linear and unstable, thus increasing the difficulty of model training and convergence. In summary, we obtain  Zgeo  using  hbbox  instead of 
+
+hc and select  Zerr  to compensate the projection formula. These measures can greatly optimize data distribution and reduce the model’s learning costs. The difficulty of predict-ing depth-related attributes is ranked as follows: 
+
+Z > h err > H err > Z err ≈ H >> h bbox  (9) 6525 Test, AP BEV |R40 Test, AP 3D|R40 Val, AP BEV |R40 Val, AP 3D|R40                                                                                                                                                                                                                                
+
+> Methods Extra data Reference Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard CaDDN [37] CVPR 2021 27.94 18.91 17.19 19.17 13.41 11.46 ---23.57 16.31 13.84 MonoDTR [14] CVPR 2022 28.59 20.38 17.14 21.99 15.39 12.73 33.33 25.35 21.68 24.52 18.57 15.51 DID-M3D [32] ECCV 2022 32.95 22.76 19.83 24.40 16.29 13.75 31.10 22.76 19.50 22.98 16.12 14.03 OccupancyM3D [33] LiDAR CVPR 2024 35.38 24.18 21.37 25.55 17.02 14.79 35.72 26.60 23.68 26.87 19.96 17.15 MonoPGC [48] ICRA 2023 32.50 23.14 20.30 24.68 17.17 14.14 34.06 24.26 20.78 25.67 18.63 15.65 OPA-3D [44] Depth RAL 2023 33.54 22.53 19.22 24.60 17.05 14.25 33.80 25.51 22.13 24.97 19.40 16.59 GUPNet [29] ICCV 2021 ---20.11 14.20 11.77 31.07 22.94 19.75 22.76 16.46 13.72 MonoCon [26] AAAI 2022 31.12 22.10 19.00 22.50 16.46 13.95 ---26.33 19.01 15.98 DEVIANT [18] ECCV 2022 29.65 20.44 17.43 21.88 14.46 11.89 32.60 23.04 19.99 24.63 16.54 14.52 MonoDDE [23] CVPR 2022 33.58 23.46 20.37 24.93 17.14 15.10 35.51 26.48 23.07 26.66 19.75 16.72 MonoUNI [15] NeurIPS 2023 ---24.75 16.73 13.49 ---24.51 17.18 14.01 MonoDETR [52] ICCV 2023 33.60 22.11 18.60 25.00 16.47 13.58 37.86 26.95 22.80 28.84 20.61 16.38 MonoCD [51] CVPR 2024 33.41 22.81 19.57 25.53 16.59 14.53 34.60 24.96 21.51 26.45 19.37 16.38 FD3D [49] None AAAI 2024 34.20 23.72 20.76 25.38 17.12 14.50 36.98 26.77 23.16 28.22 20.23 17.04 Ours None -35.24 25.23 22.02 26.35 18.72 15.97 39.40 28.20 24.42 30.76 22.34 19.02
+> Improvement ---0.14 +1.05 +0.65 +0.80 +1.55 +0.87 +1.54 +1.25 +0.74 +1.92 +1.73 +1.87
+
+Table 1. Comparisons with state-of-the-art monocular methods on the KITTI test and val sets for the car category. We bold the best results and underline the second-best results. The blue refers to the gain and the red is the decrease of our method. 
+
+3.6. Loss Function 
+
+The training loss consists of four distinct components: region loss  Lregion , depth map loss  Ldmap , 2D loss  L2D ,and 3D loss  L3D . Specifically,  L2D contains the losses of object category, bounding box, GIoU, and projected center point, while  L3D includes the losses of 3D size, orientation, and central depth. We denote the weights of 2D and 3D losses from  λ1 to  λ7. The overall loss is formulated as: 
+
+Loverall = L2D + L3D + λ8Ldmap + λ94X
+
+> i=0
+
+Liregion  (10) 
+
+# 4. Experiments 
+
+4.1. Settings 
+
+Dataset. We select the widely used KITTI benchmark [11] to evaluate our proposed model. This 3D object detection benchmark consists of 7481 training images and 7518 test-ing images. It has three difficulty levels (Easy, Moderate, and Hard) and three classes (Car, Pedestrian, and Cyclist). According to the prior work [7], we divide the 7481 training images into a training set with 3712 images and a validation set with 3769 images for the ablation study. 
+
+Evaluation Metrics. We present the detection outcomes categorized by three difficulty levels: easy, moderate, and hard. Consistent with prior works, our evaluation relies on average precision (AP) metrics for both 3D bounding boxes and bird’s-eye view, referred to as  AP 3D and  AP BEV  ,which are calculated at 40 recall positions following the es-tablished protocol [43]. The benchmark ranks all methods based on the moderate  AP 3D metrics of “Car” category. 
+
+Implementation Details. We take ResNet50 [12] as our backbone. In regard to Transformer, we adopt 8 heads in each attention module and set the number of queries 50 with 4 sampling points in the multi-scale deformable attention. Methods Val, Mod.                 
+
+> AP 3D
+> Params (M) ↓
+> FLOPs (G) ↓
+> Runtime (ms) ↓
+> Baseline 20.22 35.93 59.72 35
+> MonoDGP (Ours) 22.34 38.90 68.99 42 w/o Decoupled Query 21.48 37.54 65.75 39 w/o RSH 21.93 36.23 62.25 37
+
+Table 2. Ablation study of computational cost. We test the Run-time (ms) on a single RTX 3090 GPU with a batch size of 1. 
+
+The weights of losses are set as {2, 5, 2, 10, 1, 1, 1, 1, 1 }
+
+for  λ1 to  λ9. On a single RTX 3090 GPU, using Mixup3D [24], we train MonoDGP for 250 epochs with a batch size of 8 and a learning rate of 2e-4. We utilize AdamW [28] optimizer with weight decay and decrease learning rate by a factor of 0.5 at epochs 85, 125, 165, and 225. To acceler-ate the model’s convergence, we adopt group-wise one-to-many assignment [6] with 11 groups. During inference, we filter out queries with category confidence lower than 0.2. 
+
+4.2. Main Results 
+
+To evaluate the performance of our proposed method, we provide quantitative results on KITTI test and val sets. As shown in Tab. 1, MonoDGP comprehensively surpasses the baseline MonoDETR [52] and achieves competitive results on most metrics. In particular, our method improves moder-ate  AP 3D by up to 1.55% and 1.73% on the test and valida-tion set, respectively. Except that easy  AP BEV  on test set achieves the second-best lower than OccupancyM3D [33], which introduces extra data during the training phase, all other metrics reach the state-of-the-art performance. We employ early stopping to select the best validation checkpoint and use the last few checkpoints for test submis-sion. To mitigate the training instability, all ablation stud-ies follow an identical protocol where models are trained 5 times on val set with median moderate  AP 3D reported. 6526 Segment Embeddings Threshold Val, AP 3D|R40               
+
+> Easy Mod. Hard 0.3 29.77 21.51 18.35 0.5 30.57 21.64 18.74
+> 0.7 30.35 21.54 18.55 w/o 29.63 21.43 18.21
+
+Table 3. The design of region segmentation head. “w/o” denotes enhancing visual and depth features without segment embeddings.                             
+
+> Depth Predition Mode Val, AP 3D|R40
+> Easy Mod. Hard Depth Map 24.33 18.87 15.31 Direct Depth 26.60 19.23 16.47 Geometric Depth ( hbbox )9.15 7.99 5.52 Geometric Depth ( hc)27.63 20.73 18.04 Weighted Fusion 30.57 21.64 18.74 GD + Bbox Height Error 28.45 21.18 17.91 GD + Dim Height Error 30.46 22.09 18.85 GD + Depth Error 30.76 22.34 19.01
+
+Table 4. Ablation study of different depth prediction modes on KITTI val set. The weighted fusion mode integrates the results from the depth map, direct depth, and geometric depth ( hbbox ). “GD” denotes the geometric depth calculated by the formula 
+
+Zgeo = f × H3D /h bbox .
+
+4.3. Ablation Study 
+
+Computational cost. We analyze the computational costs of the main modules in Tab. 2 (Depth Error does not incur additional computation). Although the decoupled query and RSH modules introduce a slight increase in computational overhead, they greatly improve the performance. Our com-plete network achieves a runtime of 42 ms, which is com-parable to recent state-of-the-art methods such as MonoCD [51] (36 ms) and OccupancyM3D [33] (112 ms). 
+
+Region segmentation head. For the multi-scale target re-gion probabilities predicted by RSH, we set distinct thresh-olds to produce segment embeddings, which serve as input tokens for the depth encoder. The results are presented in Tab. 3. The segment embeddings strength encoders’ abil-ity to comprehend the contextual relationships among im-age pixels. Experiments further highlight the critical role of segment embeddings. Moreover, the threshold settings also influence 3D evaluation metrics. A threshold of 0.5 achieves superior results compared to other thresholds. 
+
+Depth prediction mode. Based on the same network, we compare different depth prediction modes in Tab. 4. Exper-iments indicate that single depth prediction, whether using direct depth, depth map, or geometric depth ( hbbox or hc), generally performs poorly, especially for geometric depth (hbbox ). Considering only perspective transformation on the visual surface, the moderate  AP 3D for geometric depth (hbbox ) is just 7.99% (all  AP 3D mentioned below default to the moderate level), significantly lower than other predic-                                     
+
+> Mixup3D Decoupled Query Region Segment Geometric Depth Error
+> Val, AP 3D|R40
+> Easy Mod. Hard 26.56 20.22 17.21
+> !28.17 20.79 17.52
+> !!29.82 21.38 18.04
+> !!!30.57 21.64 18.74
+> !!!30.08 21.93 18.87
+> !!!28.91 21.48 18.43
+> !!!!30.76 22.34 19.01
+> Improvement + 4.20 +2.12 +1.80
+
+Table 5. The main ablation study. 
+
+tion modes. By fusing direct depth, depth map and geomet-ric depth, the  AP 3D improves to 21.64%. When geometry errors are added to compensate for projection formulas, it can be observed that the performance achieves a substantial increase. The depth error wins the best performance with an 
+
+AP 3D of 22.34%. The dimension height error comes sec-ond at 22.09% due to its skewed distribution. The bounding box height error only attains 21.18% in  AP 3D , obviously inferior to other geometry errors. This discrepancy can be attributed to the nonlinear gradient backpropagation. 
+
+Overall performance. We explore the impact of each im-provement technique on the baseline. The main ablation study is shown in Tab. 5. The MonoDGP employs four key techniques: mixup3D augmentation, decoupling and initial-ization of 2D object queries, region enhancement with seg-ment embeddings, and depth error prediction based on ge-ometric depth. Compared to the baseline, the  AP 3D under three-level difficulties gain an increase by +4.20%, +2.12% and +1.80%, respectively. These experiments validate the effectiveness of each technique utilized in MonoDGP. 
+
+# 5. Conclusion 
+
+In this paper, we propose a novel transformer-based monocular method called MonoDGP, which employs geom-etry errors to correct projection formulas. We also compre-hensively analyze the properties of geometry errors through marginal feature extraction, data distribution, and gradient propagation. Error prediction is expected as a better alter-native to multi-depth prediction, without complex multi-branch implementations. Furthermore, MonoDGP intro-duces a 2D visual decoder for query initialization and a region segmentation head for feature enhancement. These improvements have achieved superior performance on the KITTI. Our approach can also be extended to dense depth map prediction for target regions, by only considering errors between geometric depth and surface points of the objects. 
+
+# Acknowledgement 
+
+This work was partly supported by the Special Founda-tions for the Development of Strategic Emerging Industries of Shenzhen (No.KJZD20231023094700001). 6527 References 
+
+[1] Wentao Bao, Qi Yu, and Yu Kong. Object-aware centroid voting for monocular 3d object detection. In 2020 IEEE/RSJ international conference on intelligent robots and systems (IROS) , pages 2197–2204. IEEE, 2020. 2 [2] Ivan Barabanau, Alexey Artemov, Evgeny Burnaev, and Vyacheslav Murashkin. Monocular 3d object detection via geometric reasoning on keypoints. arXiv preprint arXiv:1905.05618 , 2019. 2 [3] Garrick Brazil, Gerard Pons-Moll, Xiaoming Liu, and Bernt Schiele. Kinematic 3d object detection in monocular video. In ECCV , pages 135–152. Springer, 2020. 2 [4] Yingjie Cai, Buyu Li, Zeyu Jiao, Hongsheng Li, Xingyu Zeng, and Xiaogang Wang. Monocular 3d object detection with decoupled structured polygon estimation and height-guided depth estimation. In AAAI , pages 10478–10485, 2020. 2 [5] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In European confer-ence on computer vision , pages 213–229. Springer, 2020. 2 [6] Qiang Chen, Xiaokang Chen, Jian Wang, Shan Zhang, Kun Yao, Haocheng Feng, Junyu Han, Errui Ding, Gang Zeng, and Jingdong Wang. Group detr: Fast detr training with group-wise one-to-many assignment. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,pages 6633–6642, 2023. 7 [7] Xiaozhi Chen, Kaustav Kundu, Yukun Zhu, Andrew G Berneshawi, Huimin Ma, Sanja Fidler, and Raquel Urta-sun. 3d object proposals for accurate object class detection. 
+
+NeurIPS , 28, 2015. 7 [8] Xiaozhi Chen, Kaustav Kundu, Ziyu Zhang, Huimin Ma, Sanja Fidler, and Raquel Urtasun. Monocular 3d object de-tection for autonomous driving. In CVPR , pages 2147–2156, 2016. 2 [9] Yilun Chen, Shijia Huang, Shu Liu, Bei Yu, and Jiaya Jia. Dsgn++: Exploiting visual-spatial relation for stereo-based 3d detectors. IEEE Transactions on Pattern Analysis and Machine Intelligence , 45(4):4416–4429, 2022. 1 [10] Tom van Dijk and Guido de Croon. How do neural networks see depth in single images? In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 2183– 2191, 2019. 2 [11] Andreas Geiger, Philip Lenz, and Raquel Urtasun. Are we ready for autonomous driving? the kitti vision benchmark suite. In CVPR , pages 3354–3361. IEEE, 2012. 7 [12] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , pages 770–778, 2016. 7 [13] Jie Hu, Li Shen, and Gang Sun. Squeeze-and-excitation net-works. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 7132–7141, 2018. 4 [14] Kuan-Chih Huang, Tsung-Han Wu, Hung-Ting Su, and Win-ston H Hsu. Monodtr: Monocular 3d object detection with depth-aware transformer. In CVPR , pages 4012–4021, 2022. 2, 7 [15] Jia Jinrang, Zhenjia Li, and Yifeng Shi. Monouni: A unified vehicle and infrastructure-side monocular 3d object detec-tion network with sufficient depth clues. Advances in Neural Information Processing Systems , 36:11703–11715, 2023. 7 [16] Jacob Devlin Ming-Wei Chang Kenton and Lee Kristina Toutanova. Bert: Pre-training of deep bidirectional trans-formers for language understanding. In Proceedings of naacL-HLT , page 2. Minneapolis, Minnesota, 2019. 2, 4 [17] Jason Ku, Alex D Pon, and Steven L Waslander. Monocular 3d object detection leveraging accurate proposals and shape reconstruction. In CVPR , pages 11867–11876, 2019. 2 [18] Abhinav Kumar, Garrick Brazil, Enrique Corona, Armin Par-chami, and Xiaoming Liu. Deviant: Depth equivariant net-work for monocular 3d object detection. In ECCV , pages 664–683. Springer, 2022. 7 [19] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In CVPR , pages 12697–12705, 2019. 1 [20] Peiliang Li, Xiaozhi Chen, and Shaojie Shen. Stereo r-cnn based 3d object detection for autonomous driving. In CVPR ,pages 7644–7652, 2019. 1 [21] Peixuan Li, Shun Su, and Huaici Zhao. Rts3d: Real-time stereo 3d detection from 4d feature-consistency embedding space for autonomous driving. In AAAI , pages 1930–1939, 2021. 1 [22] Yingyan Li, Yuntao Chen, Jiawei He, and Zhaoxiang Zhang. Densely constrained depth estimator for monocular 3d object detection. In ECCV , pages 718–734. Springer, 2022. 2 [23] Zhuoling Li, Zhan Qu, Yang Zhou, Jianzhuang Liu, Haoqian Wang, and Lihui Jiang. Diversity matters: Fully exploiting depth clues for reliable monocular 3d object detection. In 
+
+CVPR , pages 2791–2800, 2022. 1, 2, 3, 7 [24] Zhenjia Li, Jinrang Jia, and Yifeng Shi. Monolss: Learnable sample selection for monocular 3d detection. In 2024 Inter-national Conference on 3D Vision (3DV) , pages 1125–1135. IEEE, 2024. 7 [25] Lijie Liu, Chufan Wu, Jiwen Lu, Lingxi Xie, Jie Zhou, and Qi Tian. Reinforced axial refinement network for monocular 3d object detection. In Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceedings, Part XVII 16 , pages 540–556. Springer, 2020. 2[26] Xianpeng Liu, Nan Xue, and Tianfu Wu. Learning auxiliary monocular contexts helps monocular 3d object detection. In 
+
+AAAI , pages 1810–1818, 2022. 2, 7 [27] Zechen Liu, Zizhang Wu, and Roland T´ oth. Smoke: Single-stage monocular 3d object detection via keypoint estimation. In CVPRW , pages 996–997, 2020. 2 [28] Ilya Loshchilov and Frank Hutter. Decoupled weight de-cay regularization. In International Conference on Learning Representations , 2018. 7 [29] Yan Lu, Xinzhu Ma, Lei Yang, Tianzhu Zhang, Yating Liu, Qi Chu, Junjie Yan, and Wanli Ouyang. Geometry uncer-tainty projection network for monocular 3d object detection. In ICCV , pages 3111–3121, 2021. 2, 3, 7 6528 [30] Arsalan Mousavian, Dragomir Anguelov, John Flynn, and Jana Kosecka. 3d bounding box estimation using deep learn-ing and geometry. In Proceedings of the IEEE conference on Computer Vision and Pattern Recognition , pages 7074– 7082, 2017. 1 [31] Andretti Naiden, Vlad Paunescu, Gyeongmo Kim, Byeong-Moon Jeon, and Marius Leordeanu. Shift r-cnn: Deep monocular 3d object detection with closed-form geometric constraints. In 2019 IEEE international conference on im-age processing (ICIP) , pages 61–65. IEEE, 2019. 2 [32] Liang Peng, Xiaopei Wu, Zheng Yang, Haifeng Liu, and Deng Cai. Did-m3d: Decoupling instance depth for monoc-ular 3d object detection. In ECCV , pages 71–88. Springer, 2022. 1, 2, 7 [33] Liang Peng, Junkai Xu, Haoran Cheng, Zheng Yang, Xiaopei Wu, Wei Qian, Wenxiao Wang, Boxi Wu, and Deng Cai. Learning occupancy for monocular 3d object detection. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition , pages 10281–10292, 2024. 2, 7, 8 [34] Xidong Peng, Xinge Zhu, Tai Wang, and Yuexin Ma. Side: center-based stereo 3d detector with structure-aware instance depth estimation. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision , pages 119– 128, 2022. 1 [35] Rui Qian, Xin Lai, and Xirong Li. 3d object detection for autonomous driving: A survey. Pattern Recognition , 130: 108796, 2022. 1 [36] Zequn Qin and Xi Li. Monoground: Detecting monocular 3d objects from the ground. In CVPR , pages 3793–3802, 2022. 1[37] Cody Reading, Ali Harakeh, Julia Chae, and Steven L Waslander. Categorical depth distribution network for monocular 3d object detection. In CVPR , pages 8555–8564, 2021. 2, 7 [38] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: Convolutional networks for biomedical image segmen-tation. In Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18 , pages 234–241. Springer, 2015. 3 [39] Shaoshuai Shi, Chaoxu Guo, Li Jiang, Zhe Wang, Jianping Shi, Xiaogang Wang, and Hongsheng Li. Pv-rcnn: Point-voxel feature set abstraction for 3d object detection. In 
+
+CVPR , pages 10529–10538, 2020. 1 [40] Shaoshuai Shi, Li Jiang, Jiajun Deng, Zhe Wang, Chaoxu Guo, Jianping Shi, Xiaogang Wang, and Hongsheng Li. Pv-rcnn++: Point-voxel feature set abstraction with local vector representation for 3d object detection. International Journal of Computer Vision , 131(2):531–551, 2023. 1 [41] Xuepeng Shi, Qi Ye, Xiaozhi Chen, Chuangrong Chen, Zhixiang Chen, and Tae-Kyun Kim. Geometry-based dis-tance decomposition for monocular 3d object detection. In 
+
+ICCV , pages 15172–15181, 2021. 2 [42] Yuguang Shi, Yu Guo, Zhenqiang Mi, and Xinjie Li. Stereo centernet-based 3d object detection for autonomous driving. 
+
+Neurocomputing , 471:219–229, 2022. 1 [43] Andrea Simonelli, Samuel Rota Bulo, Lorenzo Porzi, Manuel L´ opez-Antequera, and Peter Kontschieder. Disen-tangling monocular 3d object detection. In ICCV , pages 1991–1999, 2019. 2, 7 [44] Yongzhi Su, Yan Di, Guangyao Zhai, Fabian Manhardt, Ja-son Rambach, Benjamin Busam, Didier Stricker, and Fed-erico Tombari. Opa-3d: Occlusion-aware pixel-wise aggre-gation for monocular 3d object detection. IEEE Robotics and Automation Letters , 8(3):1327–1334, 2023. 7 [45] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. NeurIPS , 30, 2017. 2 [46] Li Wang, Liang Du, Xiaoqing Ye, Yanwei Fu, Guodong Guo, Xiangyang Xue, Jianfeng Feng, and Li Zhang. Depth-conditioned dynamic message propagation for monocular 3d object detection. In CVPR , pages 454–463, 2021. 2 [47] Tai Wang, ZHU Xinge, Jiangmiao Pang, and Dahua Lin. Probabilistic and geometric depth: Detecting objects in per-spective. In Conference on Robot Learning , pages 1475– 1485. PMLR, 2022. 2 [48] Zizhang Wu, Yuanzhu Gan, Lei Wang, Guilian Chen, and Jian Pu. Monopgc: Monocular 3d object detection with pixel geometry contexts. In 2023 IEEE International Confer-ence on Robotics and Automation (ICRA) , pages 4842–4849. IEEE, 2023. 2, 7 [49] Zizhang Wu, Yuanzhu Gan, Yunzhe Wu, Ruihao Wang, Xi-aoquan Wang, and Jian Pu. Fd3d: Exploiting foreground depth map for feature-supervised monocular 3d object de-tection. In Proceedings of the AAAI Conference on Artificial Intelligence , pages 6189–6197, 2024. 7 [50] Qiangeng Xu, Yiqi Zhong, and Ulrich Neumann. Behind the curtain: Learning occluded shapes for 3d object detection. In 
+
+AAAI , pages 2893–2901, 2022. 1 [51] Longfei Yan, Pei Yan, Shengzhou Xiong, Xuanyu Xiang, and Yihua Tan. Monocd: Monocular 3d object detection with complementary depths. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 10248–10257, 2024. 2, 3, 7, 8 [52] Renrui Zhang, Han Qiu, Tai Wang, Ziyu Guo, Ziteng Cui, Yu Qiao, Hongsheng Li, and Peng Gao. Monodetr: Depth-guided transformer for monocular 3d object detection. In 
+
+ICCV , pages 9155–9166, 2023. 2, 3, 7 [53] Yunpeng Zhang, Jiwen Lu, and Jie Zhou. Objects are differ-ent: Flexible monocular 3d object detection. In CVPR , pages 3289–3298, 2021. 1, 2 [54] Yunsong Zhou, Yuan He, Hongzi Zhu, Cheng Wang, Hongyang Li, and Qinhong Jiang. Monocular 3d object de-tection: An extrinsic parameter free approach. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 7556–7566, 2021. 2 [55] Yunsong Zhou, Hongzi Zhu, Quan Liu, Shan Chang, and Minyi Guo. Monoatt: Online monocular 3d object detection with adaptive token transformer. In CVPR , pages 17493– 17503, 2023. 2 [56] Minghan Zhu, Lingting Ge, Panqu Wang, and Huei Peng. Monoedge: Monocular 3d object detection using local per-spectives. In Proceedings of the IEEE/CVF Winter Confer-6529 ence on Applications of Computer Vision , pages 643–652, 2023. 1 [57] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable trans-formers for end-to-end object detection. arXiv preprint arXiv:2010.04159 , 2020. 4 6530

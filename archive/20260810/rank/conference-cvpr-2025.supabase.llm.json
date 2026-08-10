@@ -1,0 +1,1863 @@
+{
+  "top_k": 200,
+  "generated_at": "2026-08-10T09:32:39.199179+00:00",
+  "papers": [
+    {
+      "id": "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Object Detection using Event Camera: A MoE Heat Conduction based Detector and A New Benchmark Dataset",
+      "abstract": "Object detection in event streams has emerged as a cutting-edge research area, demonstrating superior performance in low-light conditions, scenarios with motion blur, and rapid movements. Current detectors leverage spiking neural networks, Transformers, or convolutional neural networks as their core architectures, each with its own set of limitations including restricted performance, high computational overhead, or limited local receptive fields. This paper introduces a novel MoE (Mixture of Experts) heat conduction-based object detection algorithm that strikingly balances accuracy and computational efficiency. Initially, we employ a stem network for event data embedding, followed by processing through our innovative MoE-HCO blocks. Each block integrates various expert modules to mimic heat conduction within event streams. Subsequently, an IoU-based query selection module is utilized for efficient token extraction, which is then channeled into a detection head for the final object detection process. Furthermore, we are pleased to introduce EvDET200K, a novel benchmark dataset for event-based object detection. Captured with a high-definition Prophesee EVK4-HD event camera, this dataset encompasses 10 distinct categories, 200,000 bounding boxes, and 10,054 samples, each spanning 2 to 5 seconds. We also provide comprehensive results from over 15 state-of-the-art detectors, offering a solid foundation for future research and comparison.",
+      "authors": [
+        "Wang, Xiao",
+        "Jin, Yu",
+        "Wu, Wentao",
+        "Zhang, Wei",
+        "Zhu, Lin",
+        "Jiang, Bo",
+        "Tian, Yonghong"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Wang_Object_Detection_using_Event_Camera_A_MoE_Heat_Conduction_based_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "ROD-MLLM: Towards More Reliable Object Detection in Multimodal Large Language Models",
+      "abstract": "Multimodal large language models (MLLMs) have demonstrated strong language understanding and generation capabilities, excelling in visual tasks like referring and grounding. However, due to task type limitations and dataset scarcity, existing MLLMs only ground objects present in images and cannot reject non-existent objects effectively, resulting in unreliable predictions. In this paper, we introduce ROD-MLLM, a novel MLLM for Reliable Object Detection using free-form language. We propose a query-based localization mechanism to extract low-level object features. By aligning global and object-level visual information with text space, we leverage the large language model (LLM) for high-level comprehension and final localization decisions, overcoming the language understanding limitations of normal detectors. To enhance language-based object detection, we design an automated data annotation pipeline and construct the dataset ROD. This pipeline uses the referring capabilities of existing MLLMs and chain-of-thought techniques to generate diverse expressions corresponding to zero or multiple objects, addressing the shortage of training data. Experiments across various tasks, including referring, grounding, and language-based object detection, show that ROD-MLLM achieves state-of the-art performance among MLLMs. Notably, in language-based object detection, our model achieves +13.7 AP improvement on D3 benchmark over existing MLLMs and surpasses most specialized detection models, especially in scenarios requiring complex language understanding.",
+      "authors": [
+        "Yin, Heng",
+        "Ren, Yuqiang",
+        "Yan, Ke",
+        "Ding, Shouhong",
+        "Hao, Yongtao"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Yin_ROD-MLLM_Towards_More_Reliable_Object_Detection_in_Multimodal_Large_Language_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhang-open-world-objectness-modeling-unifies-novel-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Open-World Objectness Modeling Unifies Novel Object Detection",
+      "abstract": "The challenge in open-world object detection, similarly to few- and zero-shot learning, is to generalize beyond the class distribution of the training data. In this paper, we propose a general class-agnostic objectness measure to limit bias toward labeled samples. One issue in open-world detection is that previously unseen objects are often misclassified as known categories or filtered as background by classifiers. To prevent this, we explicitly model the joint distribution of objectness and category labels using variational approximation. However, without sufficient labeled data, minimizing the KL divergence between the estimated posterior and a static normal prior fails to converge. Our theoretical analysis identifies the root cause of this failure and motivates adopting a Gaussian prior with variance dynamically adapted to the estimated posterior as a surrogate. To further reduce misclassification, we introduce an energy-based margin loss that encourages unknown objects to move toward high-density regions of the distribution, thus reducing the uncertainty of unknown detections. Our Open-World OBJectness modeling (OWOBJ) boosts novel object detection, especially in low-data regimes. OWOBJ is a flexible plugin that outperforms baselines in Open-World, Few-Shot, and zero-shot Open-Vocabulary Object Detection.",
+      "authors": [
+        "Zhang, Shan",
+        "Ni, Yao",
+        "Du, Jinhao",
+        "Xue, Yuan",
+        "Torr, Philip",
+        "Koniusz, Piotr",
+        "van den Hengel, Anton"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhang_Open-World_Objectness_Modeling_Unifies_Novel_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Search and Detect: Training-Free Long Tail Object Detection via Web-Image Retrieval",
+      "abstract": "In this paper, we introduce SearchDet, a training-free long-tail object detection framework that significantly enhances open-vocabulary object detection performance. SearchDet retrieves a set of positive and negative images of an object to ground, embeds these images, and computes an input image--weighted query which is used to detect the desired concept in the image. Our proposed method is simple and training-free, yet achieves over 16.81% mAP improvement on ODinW and 59.85% mAP improvement on LVIS compared to state-of-the-art models such as GroundingDINO. We further show that our approach of basing object detection on a set of Web-retrieved exemplars is stable with respect to variations in the exemplars, suggesting a path towards eliminating costly data annotation and training procedures.",
+      "authors": [
+        "Sidhu, Mankeerat",
+        "Chopra, Hetarth",
+        "Blume, Ansel",
+        "Kim, Jeonghwan",
+        "Reddy, Revanth Gangi",
+        "Ji, Heng"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Sidhu_Search_and_Detect_Training-Free_Long_Tail_Object_Detection_via_Web-Image_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Learning Class Prototypes for Unified Sparse-Supervised 3D Object Detection",
+      "abstract": "Both indoor and outdoor scene perceptions are essential for embodied intelligence. However, current sparse supervised 3D object detection methods focus solely on outdoor scenes without considering indoor settings. To this end, we propose a unified sparse supervised 3D object detection method for both indoor and outdoor scenes through learning class prototypes to effectively utilize unlabeled objects. Specifically, we first propose a prototype-based object mining module that converts the unlabeled object mining into a matching problem between class prototypes and unlabeled features. By using optimal transport matching results, we assign prototype labels to high-confidence features, thereby achieving the mining of unlabeled objects. We then present a multi-label cooperative refinement module to effectively recover missed detections in sparse supervised 3D object detection through pseudo label quality control and prototype label cooperation. Experiments show that our method achieves state-of-the-art performance under the one object per scene sparse supervised setting across indoor and outdoor datasets. With only one labeled object per scene, our method achieves about 78%, 90%, and 96% performance compared to the fully supervised detector on ScanNet V2, SUN RGB-D, and KITTI, respectively, highlighting the scalability of our method.",
+      "authors": [
+        "Zhu, Yun",
+        "Hui, Le",
+        "Yang, Hang",
+        "Qian, Jianjun",
+        "Xie, Jin",
+        "Yang, Jian"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhu_Learning_Class_Prototypes_for_Unified_Sparse-Supervised_3D_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "SEEN-DA: SEmantic ENtropy guided Domain-aware Attention for Domain Adaptive Object Detection",
+      "abstract": "Domain adaptive object detection (DAOD) aims to generalize detectors trained on an annotated source domain to an unlabelled target domain. Traditional works focus on aligning visual features between domains to extract domain-invariant knowledge, and recent VLM-based DAOD methods leverage semantic information provided by the textual encoder to supplement domain-specific features for each domain.However, they overlook the role of semantic information in guiding the learning of visual features that are beneficial for adaptation.To solve the problem, we propose semantic entropy to quantify the semantic information contained in visual features, and design SEmantic ENtropy guided Domain-aware Attention (SEEN-DA) to adaptively refine visual features with the semantic information of two domains.Semantic entropy reflects the importance of features based on semantic information, which can serve as attention to select discriminative visual features and suppress semantically irrelevant redundant information.Guided by semantic entropy, we introduce domain-aware attention modules into the visual encoder in SEEN-DA.It utilizes an inter-domain attention branch to extract domain-invariant features and eliminate redundant information, and an intra-domain attention branch to supplement the domain-specific semantic information discriminative on each domain.Comprehensive experiments validate the effectiveness of SEEN-DA, demonstrating significant improvements in cross-domain object detection performance.",
+      "authors": [
+        "Li, Haochen",
+        "Zhang, Rui",
+        "Yao, Hantao",
+        "Zhang, Xin",
+        "Hao, Yifan",
+        "Song, Xinkai",
+        "Peng, Shaohui",
+        "Zhao, Yongwei",
+        "Zhao, Chen",
+        "Wu, Yanjun",
+        "Li, Ling"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Li_SEEN-DA_SEmantic_ENtropy_guided_Domain-aware_Attention_for_Domain_Adaptive_Object_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "MonoDGP: Monocular 3D Object Detection with Decoupled-Query and Geometry-Error Priors",
+      "abstract": "Perspective projection has been extensively utilized in monocular 3D object detection methods. It introduces geometric priors from 2D bounding boxes and 3D object dimensions to reduce the uncertainty of depth estimation. However, due to errors originating from the object's visual surface, the bounding box height often fails to represent the actual central height, which undermines the effectiveness of geometric depth. Direct prediction for the projected height unavoidably results in a loss of 2D priors, while multi-depth prediction with complex branches does not fully leverage geometric depth. This paper presents a Transformer-based monocular 3D object detection method called MonoDGP, which adopts perspective-invariant geometry errors to modify the projection formula. We also try to systematically discuss and explain the mechanisms and efficacy behind geometry errors, which serve as a simple but effective alternative to multi-depth prediction. Additionally, MonoDGP decouples the depth-guided decoder and constructs a 2D decoder only dependent on visual features, providing 2D priors and initializing object queries without the disturbance of 3D detection. To further optimize and fine-tune input tokens of the transformer decoder, we also introduce a Region Segmentation Head (RSH) that generates enhanced features and segment embeddings. Our monocular method demonstrates state-of-the-art performance on the KITTI benchmark without extra data. Code is available at https://github.com/PuFanqi23/MonoDGP.",
+      "authors": [
+        "Pu, Fanqi",
+        "Wang, Yifan",
+        "Deng, Jiru",
+        "Yang, Wenming"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Pu_MonoDGP_Monocular_3D_Object_Detection_with_Decoupled-Query_and_Geometry-Error_Priors_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Cubify Anything: Scaling Indoor 3D Object Detection",
+      "abstract": "We consider indoor 3D object detection with respect to a single RGB(-D) frame acquired from a commodity handheld device. We seek to significantly advance the status quo with respect to both data and modeling. First, we establish that existing datasets have significant limitations to scale, accuracy, and diversity of objects. As a result, we introduce the Cubify-Anything 1M (CA-1M) dataset, which exhaustively labels over 400K 3D objects on over 1K highly accurate laser-scanned scenes with near-perfect registration to over 3.5K handheld, egocentric captures. Next, we establish Cubify Transformer (CuTR), a fully Transformer 3D object detection baseline which rather than operating in 3D on point or voxel-based representations, predicts 3D boxes directly from 2D features derived from RGB(-D) inputs. While this approach lacks any 3D inductive biases, we show that paired with CA-1M, CuTR outperforms point-based methods, accurately recalling over 62% of objects in 3D, and is significantly more capable at handling noise and uncertainty present in commodity LiDAR-derived depth maps while also providing promising RGB only performance without architecture changes. Furthermore, by pre-training on CA-1M, CuTR can outperform point-based methods on a more diverse variant of SUN RGB-D, supporting the notion that while inductive biases in 3D are useful at the smaller sizes of existing datasets, they fail to scale to the data-rich regime of CA-1M. Overall, this dataset and baseline model provide strong evidence that we are moving towards models which can effectively Cubify Anything.",
+      "authors": [
+        "Lazarow, Justin",
+        "Griffiths, David",
+        "Kohavi, Gefen",
+        "Crespo, Francisco",
+        "Dehghan, Afshin"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Lazarow_Cubify_Anything_Scaling_Indoor_3D_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "MI-DETR: An Object Detection Model with Multi-time Inquiries Mechanism",
+      "abstract": "Based on analyzing the character of cascaded decoder architecture commonly adopted in existing DETR-like models, this paper proposes a new decoder architecture. The cascaded decoder architecture constrains object queries to update in the cascaded direction, only enabling object queries to learn relatively-limited information from image features. However, the challenges for object detection in natural scenes (e.g., extremely-small, heavily-occluded, and confusingly mixed with the background) require an object detection model to fully utilize image features, which motivates us to propose a new decoder architecture with the parallel Multi-time Inquiries (MI) mechanism. MI mechanism is very simple, enabling object queries to parallelly perform multi-time inquiries to learn more comprehensive information from image features. Our MI based model, MI-DETR, outperforms all existing DETR-like models on COCO benchmark under different backbones and training epochs, achieving +2.3 AP and +0.6 AP improvements compared to the most representative model DINO and SOTA model Relation-DETR under ResNet-50 backbone.",
+      "authors": [
+        "Nan, Zhixiong",
+        "Li, Xianghong",
+        "Dai, Jifeng",
+        "Xiang, Tao"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Nan_MI-DETR_An_Object_Detection_Model_with_Multi-time_Inquiries_Mechanism_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-huang-v2x-r-cooperative-lidar-4d-radar-fusion-with-denoising-diffusion-for-3d-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "V2X-R: Cooperative LiDAR-4D Radar Fusion with Denoising Diffusion for 3D Object Detection",
+      "abstract": "Current Vehicle-to-Everything (V2X) systems have significantly enhanced 3D object detection using LiDAR and camera data. However, they face performance degradation in adverse weather. Weather-robust 4D radar, with Doppler velocity and additional geometric information, offers a promising solution to this challenge. To this end, we present V2X-R, the first simulated V2X dataset incorporating LiDAR, camera, and 4D radar modalities. V2X-R contains 12,079 scenarios with 37,727 frames of LiDAR and 4D radar point clouds, 150,908 images, and 170,859 annotated 3D vehicle bounding boxes. Subsequently, we propose a novel cooperative LiDAR-4D radar fusion pipeline for 3D object detection and implement it with multiple fusion strategies. To achieve weather-robust detection, we additionally propose a Multi-modal Denoising Diffusion (MDD) module in our fusion pipeline. MDD utilizes weather-robust 4D radar feature as a condition to guide the diffusion model in denoising noisy LiDAR features.Experiments show that our LiDAR-4D radar fusion pipeline demonstrates superior performance in the V2X-R dataset. Over and above this, our MDD module further improved the foggy/snowy performance of the basic fusion model by up to 5.73%/6.70% and barely disrupting normal performance. The dataset and code will be publicly available.",
+      "authors": [
+        "Huang, Xun",
+        "Wang, Jinlong",
+        "Xia, Qiming",
+        "Chen, Siheng",
+        "Yang, Bisheng",
+        "Li, Xin",
+        "Wang, Cheng",
+        "Wen, Chenglu"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Huang_V2X-R_Cooperative_LiDAR-4D_Radar_Fusion_with_Denoising_Diffusion_for_3D_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhang-revisiting-generative-replay-for-class-incremental-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Revisiting Generative Replay for Class Incremental Object Detection",
+      "abstract": "Generative replay has gained significant attention in class-incremental learning; however, its application to Class Incremental Object Detection (CIOD) remains limited due to the challenges in generating complex images with precise spatial arrangements. In this study, motivated by the observation that the forgetting of prior knowledge is predominantly present in the classification sub-task as opposed to the localization sub-task, we revisit the generative replay method for class incremental object detection. Our method utilize a standard Stable Diffusion model to generate image-level replay data for all old and new tasks. Accordingly, the old detector and a stage-wise detector are conducted on the synthetic images respectively to determine the bounding box positions through pseudo-labeling. Furthermore, we propose to use a Similarity-based Cross Sampling mechanism to select more valuable confusing data between old and new tasks to more effectively mitigate catastrophic forgetting and reduce the false alarm rate for the new task. Finally, all synthetic and real data are integrated for current-stage detector training, where the images generated for previous tasks are highly beneficial in minimizing the forgetting of existing knowledge, while those synthesized for the new task can help bridge the domain gap between real and synthetic images. We conducted extensive experiments on PASCAL VOC 2007 and MS COCO benchmark datasets in multiple settings to showcase the efficacy of our proposed approach, which achieves state-of-the-art results. The code are available at https://github.com/qiangzai-lv/RGR-IOD.",
+      "authors": [
+        "Zhang, Shizhou",
+        "Lv, Xueqiang",
+        "Xing, Yinghui",
+        "Wu, Qirui",
+        "Xu, Di",
+        "Zhang, Yanning"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhang_Revisiting_Generative_Replay_for_Class_Incremental_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Efficient Event-Based Object Detection: A Hybrid Neural Network with Spatial and Temporal Attention",
+      "abstract": "Event cameras offer high temporal resolution and dynamic range with minimal motion blur, making them promising for robust object detection. While Spiking Neural Networks (SNNs) on neuromorphic hardware are often considered for energy efficient and low latency event-based data processing, they often fall short of Artificial Neural Networks (ANNs) in accuracy and flexibility. Here, we introduce Attention-based Hybrid SNN-ANN backbones for event-based object detection to leverage the strengths of both SNN and ANN architectures. A novel Attention-based SNN-ANN bridge module proposed to captures sparse spatial and temporal relations from the SNN layer and converts them into dense feature maps for the ANN part of the backbone. Additionally, we present a variant that integrates DWConvLSTMs to the ANN blocks to capture slower dynamics. This multi-timescale network combines fast SNN processing for short timesteps with long-term dense RNN processing, effectively capturing both fast and slow dynamics.Experimental results demonstrate that our proposed method surpasses SNN-based approaches by significant margins, with results comparable to existing ANN and RNN-based methods. Unlike ANN-only networks, the hybrid setup allow us to implement the SNN blocks on digital neuromorphic hardware to investigate the feasibility of our approach.Extensive ablation studies and implementation on neuromorphic hardware confirm the effectiveness of our proposed modules and architectural choices.Our hybrid SNN-ANN architectures pave the way for ANN-like performance at a drastically reduced parameter, latency, and power budget.",
+      "authors": [
+        "Ahmed, Soikat Hasan",
+        "Finkbeiner, Jan",
+        "Neftci, Emre"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Ahmed_Efficient_Event-Based_Object_Detection_A_Hybrid_Neural_Network_with_Spatial_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Feature Information Driven Position Gaussian Distribution Estimation for Tiny Object Detection",
+      "abstract": "Tiny object detection remains challenging in spite of the success of generic detectors. The dramatic performance degradation of generic detectors on tiny objects is mainly due to the the weak representations of extremely limited pixels. To address this issue, we propose a plug-and-play architecture to enhance the extinguished regions. We for the first time exploit the regions to be enhanced from the perspective of pixel-wise amount of information. Specifically, we model the entire image pixels feature information by minimizing Information Entropy loss, generating an information map to attentively highlight weak activated regions in an unsupervised way. To effectively assist the above phase with more attention to tiny objects, we next introduce the Position Gaussian Distribution Map, explicitly modeled using a Gaussian Mixture distribution, where each Gaussian component's parameters depend on the position and size of object instance labels, serving as supervision for further feature enhancement. Taking the information map as prior knowledge guidance, we construct a multi-scale position gaussian distribution map prediction module, simultaneously modulating the information map and distribution map to focus on tiny objects during training. Extensive experiments on three public tiny object datasets demonstrate the superiority of our method over current state-of-the-art competitors.",
+      "authors": [
+        "Bian, Jinghao",
+        "Feng, Mingtao",
+        "Dong, Weisheng",
+        "Wu, Fangfang",
+        "Luo, Jianqiao",
+        "Wang, Yaonan",
+        "Shi, Guangming"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Bian_Feature_Information_Driven_Position_Gaussian_Distribution_Estimation_for_Tiny_Object_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "CaMuViD: Calibration-Free Multi-View Detection",
+      "abstract": "Multi-view object detection in crowded environments presents significant challenges, particularly for occlusion management across multiple camera views. This paper introduces a novel approach that extends conventional multi-view detection to operate directly within each camera's image space. Our method finds objects bounding boxes for images from various perspectives without resorting to a bird's eye view (BEV) representation. Thus, our approach removes the need for camera calibration by leveraging a learnable architecture that facilitates flexible transformations and improves feature fusion across perspectives to increase detection accuracy. Our model achieves Multi-Object Detection Accuracy (MODA) scores of 95.0% and 96.5% on the Wildtrack and MultiviewX datasets, respectively, significantly advancing the state of the art in multi-view detection. Furthermore, it demonstrates robust performance even without ground truth annotations, highlighting its resilience and practicality in real-world applications. These results emphasize the effectiveness of our calibration-free, multi-view object detector.",
+      "authors": [
+        "Daryani, Amir Etefaghi",
+        "Bhutta, M. Usman Maqbool",
+        "Hernandez, Byron",
+        "Medeiros, Henry"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Daryani_CaMuViD_Calibration-Free_Multi-View_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Pseudo Visible Feature Fine-Grained Fusion for Thermal Object Detection",
+      "abstract": "Thermal object detection is a critical task in various fields, such as surveillance and autonomous driving. Current state-of-the-art (SOTA) models always leverage a prior Thermal-To-Visible (T2V) translation model to obtain visible spectrum information, followed by a cross-modality aggregation module to fuse information from both modalities. However, this fusion approach does not fully exploit the complementary visible spectrum information beneficial for thermal detection. To address this issue, we propose a novel cross-modal fusion method called Pseudo Visible Feature Fine-Grained Fusion (PFGF). Specifically, a graph is constructed with nodes generated from multi-level thermal features and pseudo-visual latent features produced by the T2V model. Each level of features corresponds to a subgraph. An Inter-Mamba block is proposed to perform cross-modality fusion between nodes at the lowest level; while a Cascade Knowledge Integration (CKI) strategy is used to fuse low-level fused information to high-level subgraphs in a cascade manner. After several iterations of graph node updating, each subgraph outputs an aggregated feature to the detection head respectively. Unlike previous cross-modal fusion methods, our approach explicitly models high-level relationships between cross-modal data, effectively fusing different granularity information. Experimental results demonstrate that our method achieves SOTA detection performance. Code is available at https://github.com/liting1018/PFGF.",
+      "authors": [
+        "Li, Ting",
+        "Ye, Mao",
+        "Wu, Tianwen",
+        "Li, Nianxin",
+        "Li, Shuaifeng",
+        "Tang, Song",
+        "Ji, Luping"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Li_Pseudo_Visible_Feature_Fine-Grained_Fusion_for_Thermal_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Detecting Open World Objects via Partial Attribute Assignment",
+      "abstract": "Despite being trained on massive data, today's vision foundation models still fall short in detecting open world objects. Apart from recognizing known objects from training, a successful Open World Object Detection (OWOD) system must also be able to detect unknown objects never seen before, without confusing them with the backgrounds. Unlike prevailing prior works that rely on probability models to learn \"objectness\", we focus on learning fine-grained, class-agnostic attributes, allowing the detection of both known and unknown objects in an explainable manner. In this paper, we propose Partial Attribute Assignment (PASS), aiming to automatically select and optimize a small, relevant subset of attributes from a large attribute pool. Specifically, we model attribute selection as a Partial Optimal Transport (POT) problem between known visual objects and the attribute pool, in which more relevant attributes signify more transported mass. PASS follows a curriculum schedule that progressively selects and optimizes a targeted subset of attributes during training, promoting stability and accuracy. Our method enjoys end-to-end optimization by minimizing the POT distance and the classification loss on known visual objects, demonstrating high training efficiency and superior OWOD performance among extensive experimental evaluations.",
+      "authors": [
+        "Yang, Muli",
+        "Goenawan, Gabriel James",
+        "Qin, Huaiyuan",
+        "Han, Kai",
+        "Peng, Xi",
+        "Yang, Yanhua",
+        "Zhu, Hongyuan"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Yang_Detecting_Open_World_Objects_via_Partial_Attribute_Assignment_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-liu-monotakd-teaching-assistant-knowledge-distillation-for-monocular-3d-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "MonoTAKD: Teaching Assistant Knowledge Distillation for Monocular 3D Object Detection",
+      "abstract": "Monocular 3D object detection (Mono3D) holds noteworthy promise for autonomous driving applications owing to the cost-effectiveness and rich visual context of monocular camera sensors. However, depth ambiguity poses a significant challenge, as it requires extracting precise 3D scene geometry from a single image, resulting in suboptimal performance when transferring knowledge from a LiDAR-based teacher model to a camera-based student model. To facilitate effective distillation, we introduce Monocular Teaching Assistant Knowledge Distillation (MonoTAKD), which proposes a camera-based teaching assistant (TA) model to transfer robust 3D visual knowledge to the student model, leveraging the smaller feature representation gap. Additionally, we define 3D spatial cues as residual features that capture the differences between the teacher and the TA models. We then leverage these cues to improve the student model's 3D perception capabilities. Experimental results show that our MonoTAKD achieves state-of-the-art performance on the KITTI3D dataset. Furthermore, we evaluate the performance on nuScenes and KITTI raw datasets to demonstrate the generalization of our model to multi-view 3D and unsupervised data settings. Our code is available at https://github.com/hoiliu-0801/MonoTAKD.",
+      "authors": [
+        "Liu, Hou-I",
+        "Wu, Christine",
+        "Cheng, Jen-Hao",
+        "Chai, Wenhao",
+        "Wang, Shian-Yun",
+        "Liu, Gaowen",
+        "Latapie, Hugo",
+        "Wu, Jhih-Ciang",
+        "Hwang, Jenq-Neng",
+        "Shuai, Hong-Han",
+        "Cheng, Wen-Huang"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Liu_MonoTAKD_Teaching_Assistant_Knowledge_Distillation_for_Monocular_3D_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "AeroGen: Enhancing Remote Sensing Object Detection with Diffusion-Driven Data Generation",
+      "abstract": "Remote sensing image object detection (RSIOD) aims to identify and locate specific objects within satellite or aerial imagery. However, there is a scarcity of labeled data in current RSIOD datasets, which significantly limits the performance of current detection algorithms. Although existing techniques, e.g., data augmentation and semi-supervised learning, can mitigate this scarcity issue to some extent, they are heavily dependent on high-quality labeled data and perform worse in rare object classes. To address this issue, this paper proposes a layout-controllable diffusion generative model (i.e. AeroGen) tailored for RSIOD. To our knowledge, AeroGen is the first model to simultaneously support horizontal and rotated bounding box condition generation, thus enabling the generation of high-quality synthetic images that meet specific layout and object category requirements. Additionally, we propose an end-to-end data augmentation framework that integrates a diversity-conditioned generator and a filtering mechanism to enhance both the diversity and quality of generated data. Experimental results demonstrate that the synthetic data produced by our method are of high quality and diversity. Furthermore, the synthetic RSIOD data can significantly improve the detection performance of existing RSIOD models, i.e., the mAP metrics on DIOR, DIOR-R, and HRSC datasets are improved by 3.7%, 4.3%, and 2.43%, respectively.",
+      "authors": [
+        "Tang, Datao",
+        "Cao, Xiangyong",
+        "Wu, Xuan",
+        "Li, Jialin",
+        "Yao, Jing",
+        "Bai, Xueru",
+        "Jiang, Dongsheng",
+        "Li, Yin",
+        "Meng, Deyu"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Tang_AeroGen_Enhancing_Remote_Sensing_Object_Detection_with_Diffusion-Driven_Data_Generation_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-wang-visual-consensus-prompting-for-co-salient-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Visual Consensus Prompting for Co-Salient Object Detection",
+      "abstract": "Existing co-salient object detection (CoSOD) methods generally employ a three-stage architecture (i.e., encoding, consensus extraction & dispersion, and prediction) along with a typical full fine-tuning paradigm. Although they yield certain benefits, they exhibit two notable limitations: 1) This architecture relies on encoded features to facilitate consensus extraction, but the meticulously extracted consensus does not provide timely guidance to the encoding stage. 2) This paradigm involves globally updating all parameters of the model, which is parameter-inefficient and hinders the effective representation of knowledge within the foundation model for this task. Therefore, in this paper, we propose an interaction-effective and parameter-efficient concise architecture for the CoSOD task, addressing two key limitations. It introduces, for the first time, a parameter-efficient prompt tuning paradigm and seamlessly embeds consensus into the prompts to formulate task-specific Visual Consensus Prompts (VCP). Our VCP aims to induce the frozen foundation model to perform better on CoSOD tasks by formulating task-specific visual consensus prompts with minimized tunable parameters. Concretely, the primary insight of the purposeful Consensus Prompt Generator (CPG) is to enforce limited tunable parameters to focus on co-salient representations and generate consensus prompts. The formulated Consensus Prompt Disperser (CPD) leverages consensus prompts to form task-specific visual consensus prompts, thereby arousing the powerful potential of pre-trained models in addressing CoSOD tasks. Extensive experiments demonstrate that our concise VCP outperforms 13 cutting-edge full fine-tuning models, achieving the new state of the art (with 6.8% improvement in F_m metrics on the most challenging CoCA dataset). Source code has been available at https://github.com/WJ-CV/VCP.",
+      "authors": [
+        "Wang, Jie",
+        "Yu, Nana",
+        "Zhang, Zihao",
+        "Han, Yahong"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Wang_Visual_Consensus_Prompting_for_Co-Salient_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhang-style-evolving-along-chain-of-thought-for-unknown-domain-object-detection-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Style Evolving along Chain-of-Thought for Unknown-Domain Object Detection",
+      "abstract": "Recently, a task of Single-Domain Generalized Object Detection (Single-DGOD) is proposed, aiming to generalize a detector to multiple unknown domains never seen before during training. Due to the unavailability of target-domain data, some methods leverage the multimodal capabilities of vision-language models, using textual prompts to estimate cross-domain information, enhancing the model's generalization capability. These methods typically use a single textual prompt, referred to as the one-step prompt method. However, when dealing with complex styles, such as the combination of rain and night, we observe that the performance of the one-step prompt method tends to be relatively weak. The reason may be that many scenes incorporate a single style and a combination of multiple styles. The one-step prompt method may not effectively synthesize combined information involving various styles. To address this limitation, we propose a new method, i.e., Style Evolving along Chain-of-Thought, which aims to progressively integrate and expand style information along the chain of thought, enabling the continual evolution of styles. Specifically, by progressively refining style descriptions and guiding the diverse evolution of styles, this method enhances the simulation of various style characteristics, enabling the model to learn and adapt to subtle differences more effectively. Additionally, it exposes the model to a broader range of style features with different data distributions, thereby enhancing its generalization capability in unseen domains. The significant performance gains over five adverse-weather scenarios and the Real to Art benchmark demonstrate the superiorities of our method. Our code is available at https://github.com/ZZ2490/SE-COT.",
+      "authors": [
+        "Zhang, Zihao",
+        "Wu, Aming",
+        "Han, Yahong"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhang_Style_Evolving_along_Chain-of-Thought_for_Unknown-Domain_Object_Detection_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Large Self-Supervised Models Bridge the Gap in Domain Adaptive Object Detection",
+      "abstract": "The current state-of-the-art methods in domain adaptive object detection (DAOD) use Mean Teacher self-labelling, where a teacher model, directly derived as an exponential moving average of the student model, is used to generate labels on the target domain which are then used to improve both models in a positive loop. This couples learning and generating labels on the target domain, and other recent works also leverage the generated labels to add additional domain alignment losses. We believe this coupling is brittle and excessively constrained: there is no guarantee that a student trained only on source data can generate accurate target domain labels and initiate the positive feedback loop, and much better target domain labels can likely be generated by using a large pretrained network that has been exposed to much more data. Vision foundational models are exactly such models, and they have shown impressive task generalization capabilities even when frozen. We want to leverage these models for DAOD and introduce DINO Teacher, which consists of two components. First, we train a new labeller on source data only using a large frozen DINOv2 backbone and show it generates more accurate labels than Mean Teacher. Next, we align the student's source and target image patch features with those from a DINO encoder, driving source and target representations closer to the generalizable DINO representation. We obtain state-of-the-art performance on multiple DAOD datasets.",
+      "authors": [
+        "Lavoie, Marc-Antoine",
+        "Mahmoud, Anas",
+        "Waslander, Steven L."
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Lavoie_Large_Self-Supervised_Models_Bridge_the_Gap_in_Domain_Adaptive_Object_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "SP3D: Boosting Sparsely-Supervised 3D Object Detection via Accurate Cross-Modal Semantic Prompts",
+      "abstract": "Recently, sparsely-supervised 3D object detection has gained great attention, achieving performance close to fully-supervised 3D detectors while requiring only a few annotated instances. Nevertheless, these methods suffer challenges when accurate labels are extremely absent. In this paper, we propose a boosting strategy, termed SP3D, explicitly utilizing the cross-modal semantic prompts generated from Large Multimodal Models (LMMs) to boost the 3D detector with robust feature discrimination capability under sparse annotation settings. Specifically, we first develop a Confident Points Semantic Transfer (CPST) module that generates accurate cross-modal semantic prompts through boundary-constrained center cluster selection. Based on these accurate semantic prompts, which we treat as seed points, we introduce a Dynamic Cluster Pseudo-label Generation (DCPG) module to yield pseudo-supervision signals from the geometry shape of multi-scale neighbor points. Additionally, we design a Distribution Shape score (DS score) that chooses high-quality supervision signals for the initial training of the 3D detector. Experiments on the KITTI dataset and Waymo Open Dataset (WOD) have validated that SP3D can enhance the performance of sparsely supervised detectors by a large margin under meager labeling conditions. Moreover, we verified SP3D in the zero-shot setting, where its performance exceeded that of the state-of-the-art methods. The code is available at https://github.com/xmuqimingxia/SP3D.",
+      "authors": [
+        "Zhao, Shijia",
+        "Xia, Qiming",
+        "Guo, Xusheng",
+        "Zou, Pufan",
+        "Zheng, Maoji",
+        "Wu, Hai",
+        "Wen, Chenglu",
+        "Wang, Cheng"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhao_SP3D_Boosting_Sparsely-Supervised_3D_Object_Detection_via_Accurate_Cross-Modal_Semantic_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "CorrBEV: Multi-View 3D Object Detection by Correlation Learning with Multi-modal Prototypes",
+      "abstract": "Camera-only multi-view 3D object detection in autonomous driving has witnessed encouraging developments in recent years, largely attributed to the revolution of fundamental architectures in modeling bird's eye view (BEV). Despite the growing overall average performance, we contend that the exploration of more specific and challenging corner cases hasn't received adequate attention. In this work, we delve into a specific yet critical issue for safe autonomous driving: occlusion. To alleviate this challenge, we draw inspiration from the human amodal perception system, which is proven to have the capacity for mentally reconstructing the complete semantic concept of occluded objects with prior knowledge. More specifically, we introduce auxiliary visual and language prototypes, akin to human prior knowledge, to enhance the diminished object features caused by occlusion. Inspired by Siamese object tracking, we fuse the information from these prototypes with the baseline model through an efficient depth-wise correlation, thereby enhancing the quality of object-related features and guiding the learning of 3D object queries, especially for partially occluded ones. Furthermore, we propose the random pixel drop to mimic occlusion and the multi-modal contrastive loss to align visual features of different occlusion levels to a unified space during training. Our inspiration originates from addressing occlusion, however, we are surprised to find that the proposed framework also enhances robustness in various challenging scenarios that diminish object representation, such as inclement weather conditions. By applying our model to different baselines, i.e., BEVFormer and SparseBEV, we demonstrate consistent improvements.",
+      "authors": [
+        "Xue, Ziteng",
+        "Guo, Mingzhe",
+        "Fan, Heng",
+        "Zhang, Shihui",
+        "Zhang, Zhipeng"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Xue_CorrBEV_Multi-View_3D_Object_Detection_by_Correlation_Learning_with_Multi-modal_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "DEIM: DETR with Improved Matching for Fast Convergence",
+      "abstract": "We introduce DEIM, an innovative and efficient training framework designed to accelerate convergence in real-time object detection with Transformer-based architectures (DETR). To mitigate the sparse supervision inherent in one-to-one (O2O) matching in DETR models, DEIM employs a Dense O2O matching strategy. This approach increases the number of positive samples per image by incorporating additional targets, using standard data augmentation techniques. While Dense O2O matching speeds up convergence, it also introduces numerous low-quality matches that could affect performance. To address this, we propose the Matchability-Aware Loss (MAL), a novel loss function that optimizes matches across various quality levels, enhancing the effectiveness of Dense O2O. Extensive experiments on the COCO dataset validate the efficacy of DEIM. When integrated with RT-DETR and D-FINE, it consistently boosts performance while reducing training time by 50%. Notably, paired with RT-DETRv2, DEIM achieves 53.2% AP in a single day of training on an NVIDIA 4090 GPU. Additionally, DEIM-trained real-time models outperform leading real-time object detectors, with DEIM-D-FINE-L and DEIM-D-FINE-X achieving 54.7% and 56.4% AP at 124 and 78 FPS on an NVIDIA T4 GPU, respectively, without the need for additional data. We believe DEIM sets a new baseline for advancements in real-time object detection. Our code and pre-trained models are available at https://www.shihuahuang.cn/DEIM/.",
+      "authors": [
+        "Huang, Shihua",
+        "Lu, Zhichao",
+        "Cun, Xiaodong",
+        "Yu, Yongjun",
+        "Zhou, Xiao",
+        "Shen, Xi"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Huang_DEIM_DETR_with_Improved_Matching_for_Fast_Convergence_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Boltzmann Attention Sampling for Image Analysis with Small Objects",
+      "abstract": "Detecting and segmenting small objects, such as lung nodules and tumor lesions, remains a critical challenge in image analysis. These objects often occupy less than 0.1% of an image, making traditional transformer architectures inefficient and prone to performance degradation due to redundant attention computations on irrelevant regions. Existing sparse attention mechanisms rely on rigid hierarchical structures, which are poorly suited for detecting small, variable, and uncertain object locations. In this paper, we propose BoltzFormer, a novel transformer-based architecture designed to address these challenges through dynamic sparse attention. BoltzFormer identifies and focuses attention on relevant areas by modeling uncertainty using a Boltzmann distribution with an annealing schedule. Initially, a higher temperature allows broader area sampling in early layers, when object location uncertainty is greatest. As the temperature decreases in later layers, attention becomes more focused, enhancing efficiency and accuracy. BoltzFormer seamlessly integrates into existing transformer architectures via a modular Boltzmann attention sampling mechanism. Comprehensive evaluations on benchmark datasets demonstrate that BoltzFormer significantly improves segmentation performance for small objects while reducing attention computation by an order of magnitude compared to previous state-of-the-art methods.",
+      "authors": [
+        "Zhao, Theodore",
+        "Kiblawi, Sid",
+        "Usuyama, Naoto",
+        "Lee, Ho Hin",
+        "Preston, Sam",
+        "Poon, Hoifung",
+        "Wei, Mu"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhao_Boltzmann_Attention_Sampling_for_Image_Analysis_with_Small_Objects_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-gao-multiple-object-tracking-as-id-prediction-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Multiple Object Tracking as ID Prediction",
+      "abstract": "Multi-Object Tracking (MOT) has been a long-standing challenge in video understanding. A natural and intuitive approach is to split this task into two parts: object detection and association. Most mainstream methods employ meticulously crafted heuristic techniques to maintain trajectory information and compute cost matrices for object matching. Although these methods can achieve notable tracking performance, they often require a series of elaborate handcrafted modifications while facing complicated scenarios. We believe that manually assumed priors limit the method's adaptability and flexibility in learning optimal tracking capabilities from domain-specific data. Therefore, we introduce a new perspective that treats Multiple Object Tracking as an in-context ID Prediction task, transforming the aforementioned object association into an end-to-end trainable task. Based on this, we propose a simple yet effective method termed MOTIP. Given a set of trajectories carried with ID information, MOTIP directly decodes the ID labels for current detections to accomplish the association process. Without using tailored or sophisticated architectures, our method achieves state-of-the-art results across multiple benchmarks by solely leveraging object-level features as tracking cues. The simplicity and impressive results of MOTIP leave substantial room for future advancements, thereby making it a promising baseline for subsequent research. Our code and checkpoints are released at https://github.com/MCG-NJU/MOTIP.",
+      "authors": [
+        "Gao, Ruopeng",
+        "Qi, Ji",
+        "Wang, Limin"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Gao_Multiple_Object_Tracking_as_ID_Prediction_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-gizdov-seeing-more-with-less-human-like-representations-in-vision-models-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Seeing More with Less: Human-like Representations in Vision Models",
+      "abstract": "Large multimodal models (LMMs) typically process visual inputs with uniform resolution across the entire field of view, leading to inefficiencies when non-critical image regions are processed as precisely as key areas. Inspired by the human visual system's foveated approach, we apply a sampling method to leading architectures such as MDETR, BLIP2, InstructBLIP, LLaVA, and ViLT, and evaluate their performance with variable (foveated) resolution inputs. Results show that foveated sampling boosts accuracy in visual tasks like question answering and object detection under tight pixel budgets, improving performance by up to 2.7% on the GQA dataset, 2.1% on SEED-Bench, and 2.0% on VQAv2 compared to uniform sampling. Furthermore, we show that indiscriminate resolution increases yield diminishing returns, with models achieving up to 80% of their full capability using just 3% of the pixels, even on complex tasks. Foveated sampling prompts more human-like processing within models, such as neuronal selectivity and globally acting self-attention in vision transformers. This paper provides a foundational analysis of foveated sampling's impact on existing models, suggesting that more efficient architectural adaptations, mimicking human visual processing, are a promising research venue for the community. Potential applications of our findings center low power minimal bandwidth devices (such as UAVs and edge devices), where compact and efficient vision is critical.",
+      "authors": [
+        "Gizdov, Andrey",
+        "Ullman, Shimon",
+        "Harari, Daniel"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Gizdov_Seeing_More_with_Less_Human-like_Representations_in_Vision_Models_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhang-mr-detr-instructive-multi-route-training-for-detection-transformers-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "Mr. DETR: Instructive Multi-Route Training for Detection Transformers",
+      "abstract": "Existing methods enhance the training of detection transformers by incorporating an auxiliary one-to-many assignment. In this work, we treat the model as a multi-task framework, simultaneously performing one-to-one and one-to-many predictions. We investigate the roles of each component in the transformer decoder across these two training targets, including self-attention, cross-attention, and feed-forward network. Our empirical results demonstrate that any independent component in the decoder can effectively learn both targets simultaneously, even when other components are shared. This finding leads us to propose a multi-route training mechanism, featuring a primary route for one-to-one prediction and two auxiliary training routes for one-to-many prediction. We enhance the training mechanism with a novel instructive self-attention that dynamically and flexibly guides object queries for one-to-many prediction. The auxiliary routes are removed during inference, ensuring no impact on model architecture or inference cost. We conduct extensive experiments on various baselines, achieving consistent improvements as shown in Fig. 1. Project page: https://visual-ai.github.io/mrdetr",
+      "authors": [
+        "Zhang, Chang-Bin",
+        "Zhong, Yujie",
+        "Han, Kai"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhang_Mr._DETR_Instructive_Multi-Route_Training_for_Detection_Transformers_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "UniMamba: Unified Spatial-Channel Representation Learning with Group-Efficient Mamba for LiDAR-based 3D Object Detection",
+      "abstract": "Recent advances in LiDAR 3D detection have demonstrated the effectiveness of Transformer-based frameworks in capturing the global dependencies from point cloud spaces, which serialize the 3D voxels into the flattened 1D sequence for iterative self-attention. However, the spatial structure of 3D voxels will be inevitably destroyed during the serialization process. Besides, due to the considerable number of 3D voxels and quadratic complexity of Transformers, multiple sequences are grouped before feeding to Transformers, leading to a limited receptive field. Inspired by the impressive performance of State Space Models (SSM), in this paper, we propose a novel Unified Mamba (UniMamba), which seamlessly integrates the merits of 3D convolution and SSM in a concise multi-head manner, aiming to perform \"local and global\" spatial context aggregation efficiently and simultaneously. Specifically, a UniMamba block is designed which mainly consists of spatial locality modeling, complementary Z-order serialization and local-global sequential aggregator. The spatial locality modeling module integrates 3D submanifold convolution to capture the dynamic spatial position embedding before serialization. Then the efficient Z-order curve is adopted for serialization both horizontally and vertically. Furthermore, the local-global sequential aggregator adopts the channel grouping strategy to efficiently encode both \"local and global\" spatial inter-dependencies using multi-head SSM. Additionally, an encoder-decoder architecture with stacked UniMamba blocks is formed to facilitate multi-scale spatial learning hierarchically. Extensive experiments are conducted on three popular datasets: nuScenes, Waymo and Argoverse 2. Particularly, our UniMamba achieves 70.2 mAP on the nuScenes dataset.",
+      "authors": [
+        "Jin, Xin",
+        "Su, Haisheng",
+        "Liu, Kai",
+        "Ma, Cong",
+        "Wu, Wei",
+        "HUI, Fei",
+        "Yan, Junchi"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Jin_UniMamba_Unified_Spatial-Channel_Representation_Learning_with_Group-Efficient_Mamba_for_LiDAR-based_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "RaCFormer: Towards High-Quality 3D Object Detection via Query-based Radar-Camera Fusion",
+      "abstract": "We propose Radar-Camera fusion transformer (RaCFormer) to boost the accuracy of 3D object detection by the following insight. The Radar-Camera fusion in outdoor 3D scene perception is capped by the image-to-BEV transformation-if the depth of pixels is not accurately estimated, the naive combination of BEV features actually integrates unaligned visual content. To avoid this problem, we propose a query-based framework that enables adaptive sampling of instance-relevant features from both the bird's-eye view (BEV) and the original image view. Furthermore, we enhance system performance by two key designs: optimizing query initialization and strengthening the representational capacity of BEV. For the former, we introduce an adaptive circular distribution in polar coordinates to refine the initialization of object queries, allowing for a distance-based adjustment of query density. For the latter, we initially incorporate a radar-guided depth head to refine the transformation from image view to BEV. Subsequently, we focus on leveraging the Doppler effect of radar and introduce an implicit dynamic catcher to capture the temporal elements within the BEV. Extensive experiments on nuScenes and View-of-Delft (VoD) datasets validate the merits of our design. Remarkably, our method achieves superior results of 64.9% mAP and 70.2% NDS on nuScenes. RaCFormer also secures the state-of-the-art performance on the VoD dataset. Code is available at https://github.com/cxmomo/RaCFormer.",
+      "authors": [
+        "Chu, Xiaomeng",
+        "Deng, Jiajun",
+        "You, Guoliang",
+        "Duan, Yifan",
+        "Li, Houqiang",
+        "Zhang, Yanyong"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Chu_RaCFormer_Towards_High-Quality_3D_Object_Detection_via_Query-based_Radar-Camera_Fusion_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "ViKIENet: Towards Efficient 3D Object Detection with Virtual Key Instance Enhanced Network",
+      "abstract": "The sparsity of point clouds and inadequacy of semantic information pose challenges to current LiDAR-only 3D object detection methods. Recent methods alleviate these challenges by converting RGB images into virtual points via depth completion to be fused with LiDAR points. Although these methods have shown outstanding results, they often introduce significant computation overhead due to the high density of virtual points and noise due to inaccurate depth completion. Besides, they do not thoroughly leverage semantic information from images. In this work, we propose the virtual key instance enhanced network (ViKIENet), a highly efficient and effective multi-modal feature fusion framework that fuses the features of virtual key instances (VKIs) and LiDAR points through multiple stages. Our contributions include three main components: semantic key instance selection (SKIS), virtual-instance-focused fusion (VIFF), and virtual-instance-to-real attention (VIRA). We also propose the extended version ViKIENet-R with VIFF-R which includes rotationally equivariant features. Experiment results show that ViKIENet and ViKIENet-R achieve significant improvements in detection performance on the KITTI, JRDB, and nuScenes datasets compared to existing works. On the KITTI dataset, ViKIENet and ViKIENet-R operate at 22.7 and 15.0 FPS, respectively. As of CVPR submission (Nov. 15th, 2024), ViKIENet ranks first on the car detection and orientation estimation leaderboard, while ViKIENet-R ranks second (compared with officially published papers) on the 3D car detection leaderboard.",
+      "authors": [
+        "Yu, Zhuochen",
+        "Qiu, Bijie",
+        "Khong, Andy W. H."
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Yu_ViKIENet_Towards_Efficient_3D_Object_Detection_with_Virtual_Key_Instance_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "keyword:obj-detect"
+      ]
+    },
+    {
+      "id": "cvpr-2025-zhou-bootplace-bootstrapped-object-placement-with-detection-transformers-cvpr-2025-paper",
+      "source": "CVPR-2025-Accepted",
+      "title": "BOOTPLACE: Bootstrapped Object Placement with Detection Transformers",
+      "abstract": "In this paper, we tackle the copy-paste image-to-image composition problem with a focus on object placement learning. Prior methods have leveraged generative models to reduce the reliance for dense supervision. However, this often limits their capacity to model complex data distributions. Alternatively, transformer networks with a sparse contrastive loss have been explored, but their over-relaxed regularization often leads to imprecise object placement. We introduce BOOTPLACE, a novel paradigm that formulates object placement as a placement-by-detection problem. Our approach begins by identifying suitable regions of interest for object placement. This is achieved by training a specialized detection transformer on object-subtracted backgrounds, enhanced with multi-object supervisions. It then semantically associates each target compositing object with detected regions based on their complementary characteristics. Through a boostrapped training approach applied to randomly object-subtracted images, our model enforces meaningful placements through extensive paired data augmentation. Experimental results on established benchmarks demonstrate BOOTPLACE's superior performance in object repositioning, markedly surpassing state-of-the-art baselines on Cityscapes and OPA datasets with notable improvements in IOU scores. Additional ablation studies further showcase the compositionality and generalizability of our approach, supported by user study evaluations. Code is available at https://github.com/RyanHangZhou/BOOTPLACE",
+      "authors": [
+        "Zhou, Hang",
+        "Zuo, Xinxin",
+        "Ma, Rui",
+        "Cheng, Li"
+      ],
+      "primary_category": "CVPR-2025",
+      "categories": [
+        "CVPR-2025"
+      ],
+      "published": "2025-06-01T00:00:00+00:00",
+      "link": "https://openaccess.thecvf.com/content/CVPR2025/html/Zhou_BOOTPLACE_Bootstrapped_Object_Placement_with_Detection_Transformers_CVPR_2025_paper.html",
+      "pdf_url": null,
+      "tags": [
+        "query:obj-detect"
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "type": "intent_query",
+      "tag": "obj-detect",
+      "paper_tag": "query:obj-detect",
+      "query_text": "object detection with transformer architectures",
+      "sim_scores": {
+        "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper": {
+          "score": 0.02921395544346364,
+          "rank": 1
+        },
+        "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper": {
+          "score": 0.02878726010616578,
+          "rank": 2
+        },
+        "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.027783137179239824,
+          "rank": 3
+        },
+        "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper": {
+          "score": 0.026988636363636364,
+          "rank": 4
+        },
+        "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper": {
+          "score": 0.025306978137166813,
+          "rank": 8
+        },
+        "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper": {
+          "score": 0.024115296803652965,
+          "rank": 9
+        },
+        "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper": {
+          "score": 0.015873015873015872,
+          "rank": 12
+        },
+        "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper": {
+          "score": 0.015625,
+          "rank": 13
+        },
+        "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper": {
+          "score": 0.015384615384615385,
+          "rank": 14
+        },
+        "cvpr-2025-gao-multiple-object-tracking-as-id-prediction-cvpr-2025-paper": {
+          "score": 0.015151515151515152,
+          "rank": 15
+        },
+        "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper": {
+          "score": 0.015151515151515152,
+          "rank": 16
+        },
+        "cvpr-2025-gizdov-seeing-more-with-less-human-like-representations-in-vision-models-cvpr-2025-paper": {
+          "score": 0.014925373134328358,
+          "rank": 17
+        },
+        "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper": {
+          "score": 0.014084507042253521,
+          "rank": 23
+        },
+        "cvpr-2025-zhang-mr-detr-instructive-multi-route-training-for-detection-transformers-cvpr-2025-paper": {
+          "score": 0.013888888888888888,
+          "rank": 24
+        },
+        "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.013888888888888888,
+          "rank": 25
+        },
+        "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper": {
+          "score": 0.013333333333333334,
+          "rank": 27
+        },
+        "cvpr-2025-zhou-bootplace-bootstrapped-object-placement-with-detection-transformers-cvpr-2025-paper": {
+          "score": 0.012048192771084338,
+          "rank": 32
+        },
+        "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper": {
+          "score": 0.011904761904761904,
+          "rank": 33
+        },
+        "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper": {
+          "score": 0.011235955056179775,
+          "rank": 36
+        },
+        "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper": {
+          "score": 0.01098901098901099,
+          "rank": 38
+        },
+        "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper": {
+          "score": 0.010309278350515464,
+          "rank": 43
+        },
+        "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper": {
+          "score": 0.00980392156862745,
+          "rank": 47
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper",
+          "score": 0.9680020811654525,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper",
+          "score": 0.9370199692780335,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper",
+          "score": 0.9370199692780335,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper",
+          "score": 0.9070060483870966,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-zhang-style-evolving-along-chain-of-thought-for-unknown-domain-object-detection-cvpr-2025-paper",
+          "score": 0.9070060483870966,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "cvpr-2025-zhou-bootplace-bootstrapped-object-placement-with-detection-transformers-cvpr-2025-paper",
+          "score": 0.8779156327543425,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper",
+          "score": 0.8779156327543425,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-liu-monotakd-teaching-assistant-knowledge-distillation-for-monocular-3d-object-detection-cvpr-2025-paper",
+          "score": 0.8497067448680351,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-zhang-mr-detr-instructive-multi-route-training-for-detection-transformers-cvpr-2025-paper",
+          "score": 0.822339913336543,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper",
+          "score": 0.822339913336543,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper",
+          "score": 0.7957779886148006,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper",
+          "score": 0.7957779886148006,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper",
+          "score": 0.7699859747545581,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper",
+          "score": 0.7699859747545581,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper",
+          "score": 0.7449308755760367,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-zhang-open-world-objectness-modeling-unifies-novel-object-detection-cvpr-2025-paper",
+          "score": 0.7449308755760367,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper",
+          "score": 0.720581553839164,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper",
+          "score": 0.720581553839164,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-wang-visual-consensus-prompting-for-co-salient-object-detection-cvpr-2025-paper",
+          "score": 0.6969086021505374,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-zhang-revisiting-generative-replay-for-class-incremental-object-detection-cvpr-2025-paper",
+          "score": 0.6969086021505374,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-gizdov-seeing-more-with-less-human-like-representations-in-vision-models-cvpr-2025-paper",
+          "score": 0.6514821272885789,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper",
+          "score": 0.6514821272885789,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper",
+          "score": 0.6296774193548387,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper",
+          "score": 0.6084465195246178,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-huang-v2x-r-cooperative-lidar-4d-radar-fusion-with-denoising-diffusion-for-3d-cvpr-2025-paper",
+          "score": 0.6084465195246178,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-gao-multiple-object-tracking-as-id-prediction-cvpr-2025-paper",
+          "score": 0.5877670716380394,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper",
+          "score": 0.5676178660049627,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper",
+          "score": 0.5479787668436095,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper",
+          "score": 0.5288306451612903,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper",
+          "score": 0.5101553166069294,
+          "star_rating": 4
+        }
+      ]
+    },
+    {
+      "type": "keyword",
+      "tag": "obj-detect",
+      "paper_tag": "keyword:obj-detect",
+      "query_text": "object detection",
+      "sim_scores": {
+        "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "cvpr-2025-zhang-open-world-objectness-modeling-unifies-novel-object-detection-cvpr-2025-paper": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "cvpr-2025-huang-v2x-r-cooperative-lidar-4d-radar-fusion-with-denoising-diffusion-for-3d-cvpr-2025-paper": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "cvpr-2025-zhang-revisiting-generative-replay-for-class-incremental-object-detection-cvpr-2025-paper": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "cvpr-2025-liu-monotakd-teaching-assistant-knowledge-distillation-for-monocular-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "cvpr-2025-wang-visual-consensus-prompting-for-co-salient-object-detection-cvpr-2025-paper": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "cvpr-2025-zhang-style-evolving-along-chain-of-thought-for-unknown-domain-object-detection-cvpr-2025-paper": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        },
+        "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        },
+        "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "obj-detect",
+      "paper_tag": "keyword:obj-detect",
+      "query_text": "object detection in computer vision",
+      "sim_scores": {
+        "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        },
+        "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        },
+        "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      }
+    }
+  ],
+  "global_candidate_ids": [
+    "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper",
+    "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper",
+    "cvpr-2025-xia-learning-to-detect-objects-from-multi-agent-lidar-scans-without-cvpr-2025-paper",
+    "cvpr-2025-zhang-test-time-backdoor-detection-for-object-detection-models-cvpr-2025-paper",
+    "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper",
+    "cvpr-2025-wang-efficient-test-time-adaptive-object-detection-via-sensitivity-guided-pruning-cvpr-2025-paper",
+    "cvpr-2025-zhao-rediffdet-rotation-equivariant-diffusion-model-for-oriented-object-detection-cvpr-2025-paper",
+    "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper",
+    "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper",
+    "cvpr-2025-sun-set-spectral-enhancement-for-tiny-object-detection-cvpr-2025-paper",
+    "cvpr-2025-li-towards-raw-object-detection-in-diverse-conditions-cvpr-2025-paper",
+    "cvpr-2025-li-pointsr-self-regularized-point-supervision-for-drone-view-object-detection-cvpr-2025-paper",
+    "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper",
+    "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper",
+    "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper",
+    "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper",
+    "cvpr-2025-he-samba-a-unified-mamba-based-framework-for-general-salient-object-detection-cvpr-2025-paper",
+    "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper",
+    "cvpr-2025-yan-ucod-dpl-unsupervised-camouflaged-object-detection-via-dynamic-pseudo-label-learning-cvpr-2025-paper",
+    "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper",
+    "cvpr-2025-bhattacharjee-believing-is-seeing-unobserved-object-detection-using-generative-models-cvpr-2025-paper",
+    "cvpr-2025-park-leveraging-temporal-cues-for-semi-supervised-multi-view-3d-object-detection-cvpr-2025-paper",
+    "cvpr-2025-tran-simltd-simple-supervised-and-semi-supervised-long-tailed-object-detection-cvpr-2025-paper",
+    "cvpr-2025-yuan-sparsealign-a-fully-sparse-framework-for-cooperative-object-detection-cvpr-2025-paper",
+    "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper",
+    "cvpr-2025-du-shift-the-lens-environment-aware-unsupervised-camouflaged-object-detection-cvpr-2025-paper",
+    "cvpr-2025-yu-point2rbox-v2-rethinking-point-supervised-oriented-object-detection-with-spatial-layout-among-cvpr-2025-paper",
+    "cvpr-2025-wang-uncertainty-meets-diversity-a-comprehensive-active-learning-framework-for-indoor-cvpr-2025-paper",
+    "cvpr-2025-wu-percept-memory-and-imagine-world-feature-simulating-for-open-domain-unknown-cvpr-2025-paper",
+    "cvpr-2025-marques-gaucho-gaussian-distributions-with-cholesky-decomposition-for-oriented-object-detection-cvpr-2025-paper",
+    "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper",
+    "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper",
+    "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper",
+    "cvpr-2025-chen-frequency-dynamic-convolution-for-dense-image-prediction-cvpr-2025-paper",
+    "cvpr-2025-alexandridis-fractal-calibration-for-long-tailed-object-detection-cvpr-2025-paper",
+    "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper",
+    "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper",
+    "cvpr-2025-lee-abbspo-adaptive-bounding-box-scaling-and-symmetric-prior-based-orientation-cvpr-2025-paper",
+    "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper",
+    "cvpr-2025-kim-distilling-spectral-graph-for-object-context-aware-open-vocabulary-semantic-segmentation-cvpr-2025-paper",
+    "cvpr-2025-huang-track-any-anomalous-objecta-granular-video-anomaly-detection-pipeline-cvpr-2025-paper",
+    "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper",
+    "cvpr-2025-hui-an-image-like-diffusion-method-for-human-object-interaction-detection-cvpr-2025-paper",
+    "cvpr-2025-he-generalized-diffusion-detector-mining-robust-features-from-diffusion-models-for-cvpr-2025-paper",
+    "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper",
+    "cvpr-2025-zhang-open-world-objectness-modeling-unifies-novel-object-detection-cvpr-2025-paper",
+    "cvpr-2025-cho-ev-3dod-pushing-the-temporal-boundaries-of-3d-object-detection-with-cvpr-2025-paper",
+    "cvpr-2025-kim-digit-multi-dilated-gated-encoder-and-central-adjacent-region-integrated-decoder-for-cvpr-2025-paper",
+    "cvpr-2025-xi-ow-ovd-unified-open-world-and-open-vocabulary-object-detection-cvpr-2025-paper",
+    "cvpr-2025-gao-multiple-object-tracking-as-id-prediction-cvpr-2025-paper",
+    "cvpr-2025-gizdov-seeing-more-with-less-human-like-representations-in-vision-models-cvpr-2025-paper",
+    "cvpr-2025-li-brain-inspired-spiking-neural-networks-for-energy-efficient-object-detection-cvpr-2025-paper",
+    "cvpr-2025-hatamizadeh-mambavision-a-hybrid-mamba-transformer-vision-backbone-cvpr-2025-paper",
+    "cvpr-2025-huang-v2x-r-cooperative-lidar-4d-radar-fusion-with-denoising-diffusion-for-3d-cvpr-2025-paper",
+    "cvpr-2025-zhang-mr-detr-instructive-multi-route-training-for-detection-transformers-cvpr-2025-paper",
+    "cvpr-2025-zhang-revisiting-generative-replay-for-class-incremental-object-detection-cvpr-2025-paper",
+    "cvpr-2025-al-emadi-benchmarking-object-detectors-under-real-world-distribution-shifts-in-satellite-imagery-cvpr-2025-paper",
+    "cvpr-2025-song-learning-endogenous-attention-for-incremental-object-detection-cvpr-2025-paper",
+    "cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper",
+    "cvpr-2025-zhou-bootplace-bootstrapped-object-placement-with-detection-transformers-cvpr-2025-paper",
+    "cvpr-2025-ren-rethinking-correspondence-based-category-level-object-pose-estimation-cvpr-2025-paper",
+    "cvpr-2025-hahn-scene-centric-unsupervised-panoptic-segmentation-cvpr-2025-paper",
+    "cvpr-2025-liu-monotakd-teaching-assistant-knowledge-distillation-for-monocular-3d-object-detection-cvpr-2025-paper",
+    "cvpr-2025-bose-descriptor-in-pixel-point-feature-tracking-for-pixel-processor-arrays-cvpr-2025-paper",
+    "cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper",
+    "cvpr-2025-zhou-pillarhist-a-quantization-aware-pillar-feature-encoder-based-on-height-aware-histogram-cvpr-2025-paper",
+    "cvpr-2025-li-multi-sensor-object-anomaly-detection-unifying-appearance-geometry-and-internal-properties-cvpr-2025-paper",
+    "cvpr-2025-he-a-universal-scale-adaptive-deformable-transformer-for-image-restoration-across-diverse-cvpr-2025-paper",
+    "cvpr-2025-yin-5100-breaking-performance-shackles-of-full-fine-tuning-on-visual-recognition-cvpr-2025-paper",
+    "cvpr-2025-wang-visual-consensus-prompting-for-co-salient-object-detection-cvpr-2025-paper",
+    "cvpr-2025-zhang-style-evolving-along-chain-of-thought-for-unknown-domain-object-detection-cvpr-2025-paper",
+    "cvpr-2025-fan-breaking-the-low-rank-dilemma-of-linear-attention-cvpr-2025-paper",
+    "cvpr-2025-nandam-text-augmented-correlation-transformer-for-few-shot-classification-segmentation-cvpr-2025-paper",
+    "cvpr-2025-zhang-ntclick-achieving-precise-interactive-segmentation-with-noise-tolerant-clicks-cvpr-2025-paper",
+    "cvpr-2025-chen-sensitivity-aware-efficient-fine-tuning-via-compact-dynamic-rank-adaptation-cvpr-2025-paper",
+    "cvpr-2025-griffiths-hotformerloc-hierarchical-octree-transformer-for-versatile-lidar-place-recognition-across-cvpr-2025-paper",
+    "cvpr-2025-ye-bevdiffuser-plug-and-play-diffusion-model-for-bev-denoising-with-ground-truth-guidance-cvpr-2025-paper",
+    "cvpr-2025-fixelle-hypergraph-vision-transformers-images-are-more-than-nodes-more-than-cvpr-2025-paper",
+    "cvpr-2025-wang-generalizable-object-keypoint-localization-from-generative-priors-cvpr-2025-paper",
+    "cvpr-2025-zhu-rethinking-query-based-transformer-for-continual-image-segmentation-cvpr-2025-paper",
+    "cvpr-2025-tai-segment-anything-even-occluded-cvpr-2025-paper"
+  ],
+  "global_pool_lane_top_k": 30,
+  "global_pool_limit": 120,
+  "global_pool_guaranteed_per_lane": 2,
+  "global_pool_effective_size": 81,
+  "reranked_at": "2026-08-10T09:32:50.821605+00:00",
+  "llm_ranked": [
+    {
+      "paper_id": "cvpr-2025-chu-racformer-towards-high-quality-3d-object-detection-via-query-based-radar-camera-fusion-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "Transformer-based query framework for radar-camera 3D object detection",
+      "evidence_cn": "基于Transformer查询框架的雷达-相机3D目标检测",
+      "canonical_evidence": "基于Transformer查询框架的雷达-相机3D目标检测",
+      "tldr_en": "This paper proposes RaCFormer, a query-based transformer for fusing radar and camera data in 3D object detection, avoiding misalignment from BEV projection and achieving high accuracy.",
+      "tldr_cn": "针对雷达-相机融合3D目标检测中图像到BEV投影的深度误差导致的特征未对齐问题，本文提出查询驱动的Transformer架构RaCFormer。该方法自适应采样实例相关特征，并结合优化的查询初始化和BEV表示增强，在多个3D检测基准上性能领先，为多模态融合检测提供了新方案。",
+      "title_zh": "RaCFormer：通过查询驱动的雷达-相机融合实现高质量3D目标检测",
+      "motivation_cn": "雷达-相机融合中图像到BEV投影依赖深度估计，不准确对齐会损害检测性能。",
+      "method_cn": "提出查询驱动的Transformer RaCFormer，自适应采样雷达和图像特征，并设计自适应循环查询初始化。",
+      "result_cn": "在NuScenes等数据集上达到领先的3D检测精度，验证了查询驱动融合的有效性。",
+      "conclusion_cn": "查询驱动融合架构有效避免了投影误差，为多模态3D目标检测开辟了新方向。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "Transformer-based monocular 3D object detection using decoupled query and geometry error priors",
+      "evidence_cn": "基于Transformer的单目3D目标检测，采用解耦查询和几何误差先验",
+      "canonical_evidence": "基于Transformer的单目3D目标检测，采用解耦查询和几何误差先验",
+      "tldr_en": "This paper presents MonoDGP, a Transformer-based method for monocular 3D object detection that decouples queries and incorporates geometry error priors to improve depth estimation from images.",
+      "tldr_cn": "针对单目3D目标检测中几何深度估计易受视觉表面误差影响的问题，本文提出Transformer架构MonoDGP。该方法利用透视不变几何误差先验，通过解耦查询分别处理2D和3D信息，有效提升了深度预测的准确性。在KITTI等数据集上，MonoDGP取得了先进检测性能，为单目方法提供了更鲁棒的几何推理框架。",
+      "title_zh": "MonoDGP：具有解耦查询和几何误差先验的单目3D目标检测",
+      "motivation_cn": "单目3D检测中，透视投影几何先验因视觉表面误差导致深度估计不准确。",
+      "method_cn": "设计Transformer架构MonoDGP，引入透视不变几何误差先验，并解耦2D和3D查询。",
+      "result_cn": "在KITTI和Waymo上取得领先的单目3D检测结果，深度估计更准确。",
+      "conclusion_cn": "解耦查询与几何误差先验有效改善了单目3D深度估计，提升了检测鲁棒性。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-huang-deim-detr-with-improved-matching-for-fast-convergence-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "DEIM accelerates convergence in DETR (Detection Transformer) via Dense O2O matching and Matchability-Aware Loss",
+      "evidence_cn": "DEIM通过密集一对一匹配和可匹配性感知损失加速DETR检测变压器收敛",
+      "canonical_evidence": "DEIM通过密集一对一匹配和可匹配性感知损失加速DETR检测变压器收敛",
+      "tldr_en": "Introduces DEIM, a training framework for DETR that uses Dense one-to-one matching and a novel Matchability-Aware Loss to speed up convergence and improve performance in real-time object detection with Transformers.",
+      "tldr_cn": "针对DETR（基于Transformer的检测器）一对一双边匹配造成的稀疏监督和收敛缓慢问题，本文提出DEIM训练框架。该框架采用密集一对一匹配策略增加正样本数量，并设计可匹配性感知损失（MAL）优化不同质量级别的匹配。实验表明，DEIM显著加速了实时Transformer目标检测的收敛速度，同时保持或提升了检测精度，为DETR的高效训练提供了新方案。",
+      "title_zh": "DEIM：基于改进匹配的DETR快速收敛方法",
+      "motivation_cn": "DETR模型中一对一匹配造成稀疏监督，导致收敛缓慢，影响实时目标检测应用。",
+      "method_cn": "提出密集一对一匹配策略增加正样本，并设计可匹配性感知损失优化匹配质量。",
+      "result_cn": "实验显示DEIM加速了DETR收敛，并在实时检测中保持高精度。",
+      "conclusion_cn": "DEIM通过改进匹配机制有效解决了DETR收敛慢的问题，推动了Transformer检测的实际应用。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-lazarow-cubify-anything-scaling-indoor-3d-object-detection-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "proposes Cubify Transformer (CuTR), a fully Transformer baseline for indoor 3D object detection from 2D features",
+      "evidence_cn": "提出Cubify Transformer (CuTR)，基于2D特征的完全Transformer室内3D目标检测基线",
+      "canonical_evidence": "提出Cubify Transformer (CuTR)，基于2D特征的完全Transformer室内3D目标检测基线",
+      "tldr_en": "Introduces a large-scale indoor 3D object detection dataset CA-1M and a fully Transformer baseline CuTR that predicts 3D boxes directly from 2D features, advancing 3D object detection.",
+      "tldr_cn": "针对现有室内3D目标检测数据集规模、精度和多样性不足的问题，本文构建了包含40万标注对象的Cubify-Anything 1M (CA-1M)数据集，并提出完全Transformer基线模型CuTR，直接从2D特征预测3D框。实验表明，CuTR在手持设备采集的RGB-D数据上实现了优越的3D检测性能，证明了大规模数据和Transformer架构在3D目标检测中的有效性，为室内场景理解提供了新基准。",
+      "title_zh": "Cubify Anything：扩展室内3D目标检测规模",
+      "motivation_cn": "现有室内3D目标检测数据集存在规模小、精度低、对象多样性不足等局限。",
+      "method_cn": "构建CA-1M大规模数据集，并提出Cubify Transformer直接从2D特征预测3D框。",
+      "result_cn": "在手持设备RGB-D数据上实现领先的3D目标检测精度。",
+      "conclusion_cn": "该数据集和Transformer基线显著推动了室内3D目标检测的研究边界。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-zhang-mr-detr-instructive-multi-route-training-for-detection-transformers-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "multi-route training mechanism for detection transformers, treating decoder components as multi-task learners",
+      "evidence_cn": "针对检测变压器的多路径训练机制，将解码器组件视为多任务学习器",
+      "canonical_evidence": "针对检测变压器的多路径训练机制，将解码器组件视为多任务学习器",
+      "tldr_en": "Proposes Mr. DETR, a multi-route training approach for detection transformers that leverages component-wise multi-task learning for one-to-one and one-to-many predictions, improving performance without architectural changes.",
+      "tldr_cn": "现有方法通过辅助一对多分配增强检测变压器训练，但未充分利用解码器组件潜力。本文提出Mr. DETR多路径训练机制，将模型视为同时进行一对一和一对多预测的多任务框架，并发现解码器中任何独立组件都能有效学习双重目标。基于此，设计了主路径和辅助训练路径。实验表明该方法在不改变架构的情况下提升了检测性能，为Transformer检测器训练优化提供了新视角。",
+      "title_zh": "Mr. DETR：检测变压器的指导性多路径训练",
+      "motivation_cn": "现有检测变压器训练未充分探索解码器组件在多种分配下的学习能力。",
+      "method_cn": "提出多路径训练机制，主路径一对一预测，辅助路径一对多预测，共享组件。",
+      "result_cn": "解码器组件可同时学习两种目标，多路径训练提升了检测性能。",
+      "conclusion_cn": "多路径训练有效挖掘了检测变压器的潜力，为高效训练提供了新方法。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-zhao-boltzmann-attention-sampling-for-image-analysis-with-small-objects-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "Transformer-based BoltzFormer for small object detection and segmentation",
+      "evidence_cn": "基于变压器的BoltzFormer用于小目标检测与分割",
+      "canonical_evidence": "基于变压器的BoltzFormer用于小目标检测与分割",
+      "tldr_en": "Proposes BoltzFormer, a transformer with dynamic sparse attention via Boltzmann distribution, to efficiently detect and segment small objects in images.",
+      "tldr_cn": "传统Transformer在检测极小目标时因冗余注意力计算导致效率低下和性能退化。本文提出BoltzFormer，利用玻尔兹曼分布建模不确定性进行动态稀疏注意力，自适应聚焦相关区域，在医学影像等小目标检测与分割任务上取得显著提升，为Transformer在高分辨率小目标分析中的应用开辟了新路径。",
+      "title_zh": "用于小目标图像分析的玻尔兹曼注意力采样",
+      "motivation_cn": "小目标检测因区域占比极低，Transformer冗余注意力导致性能下降。",
+      "method_cn": "提出基于玻尔兹曼分布的动态稀疏注意力BoltzFormer。",
+      "result_cn": "BoltzFormer在小目标检测分割上性能优于传统方法。",
+      "conclusion_cn": "动态稀疏注意力有效解决了Transformer在小目标任务中的局限性。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper",
+      "score": 10.0,
+      "evidence_en": "DETR object detection with parallel multi-time inquiries decoder",
+      "evidence_cn": "DETR目标检测采用并行多时间查询机制",
+      "canonical_evidence": "DETR目标检测采用并行多时间查询机制",
+      "tldr_en": "MI-DETR improves DETR by introducing a parallel multi-time inquiries decoder, enabling queries to gather richer image features for challenging object detection.",
+      "tldr_cn": "针对现有DETR级联解码器仅沿级联方向更新、信息学习受限的问题，本文提出MI-DETR，采用并行多时间查询（MI）机制，使目标查询能并行多次学习图像特征，更充分利用特征信息，从而在小目标、严重遮挡等困难场景中取得明显性能提升。",
+      "title_zh": "MI-DETR：一种具有多时间查询机制的目标检测模型",
+      "motivation_cn": "DETR级联解码器限制查询特征学习，影响困难目标检测。",
+      "method_cn": "提出并行多时间查询解码器，让查询多次学习特征。",
+      "result_cn": "在困难场景下检测性能超过传统DETR模型。",
+      "conclusion_cn": "多时间查询机制有效增强了DETR的特征利用能力。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Domain adaptive object detection using self-supervised models",
+      "evidence_cn": "基于自监督模型的域自适应目标检测",
+      "canonical_evidence": "基于自监督模型的域自适应目标检测",
+      "tldr_en": "This paper proposes using large self-supervised models to improve domain adaptive object detection by decoupling teacher-student labeling, achieving better target domain pseudo-labels.",
+      "tldr_cn": "现有域自适应目标检测方法多采用Mean Teacher自标记，存在教师模型生成伪标签不准确的脆性问题。本文提出利用大型自监督模型解耦学习与标记过程，直接提供高质量目标域伪标签，从而建立更鲁棒的正反馈循环。实验表明，该方法在多个跨域检测任务上显著优于现有技术，为域自适应目标检测提供了一种新的有效范式。",
+      "title_zh": "大型自监督模型弥合域自适应目标检测的差距",
+      "motivation_cn": "域自适应目标检测中Mean Teacher自标记方法耦合学习与标记，导致目标域伪标签质量不可靠，限制了性能。",
+      "method_cn": "利用大型自监督模型直接生成高质量目标域伪标签，解耦教师-学生模型中的标记与学习过程。",
+      "result_cn": "在多个跨域检测基准上取得显著性能提升，验证了所提方法的有效性和鲁棒性。",
+      "conclusion_cn": "大型自监督模型能够为域自适应目标检测提供更可靠的初始伪标签，推动该领域发展。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhang-revisiting-generative-replay-for-class-incremental-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Class incremental object detection using generative replay",
+      "evidence_cn": "利用生成重放的类增量目标检测",
+      "canonical_evidence": "利用生成重放的类增量目标检测",
+      "tldr_en": "This paper revisits generative replay for class incremental object detection, using Stable Diffusion to generate replay data and focusing on mitigating classification forgetting, achieving competitive performance.",
+      "tldr_cn": "针对类增量目标检测中遗忘问题，本文观察到分类子任务遗忘更严重，提出利用Stable Diffusion生成图像级重放数据，结合旧检测器与分阶段检测器生成边界框标签。该方法在多个增量检测设置下有效缓解灾难性遗忘，为类增量目标检测提供了一种简单而有效的生成重放方案。",
+      "title_zh": "重访生成重放用于类增量目标检测",
+      "motivation_cn": "类增量目标检测中生成重放应用有限，主要挑战在于生成复杂图像和精确空间布局，且遗忘主要体现在分类子任务。",
+      "method_cn": "采用标准Stable Diffusion生成图像级重放数据，通过旧检测器和分阶段检测器获取边界框标签，聚焦缓解分类遗忘。",
+      "result_cn": "在标准类增量检测基准上表现优异，有效减轻了灾难性遗忘，证明了生成重放在该领域的潜力。",
+      "conclusion_cn": "生成重放可有效解决类增量目标检测中的分类遗忘，为持续学习目标检测提供新思路。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Multi-view 3D object detection with correlation learning",
+      "evidence_cn": "基于关联学习的多视图3D目标检测",
+      "canonical_evidence": "基于关联学习的多视图3D目标检测",
+      "tldr_en": "This paper addresses occlusion in multi-view 3D object detection by introducing correlation learning with multi-modal prototypes, mimicking amodal perception, achieving improved safety in autonomous driving.",
+      "tldr_cn": "针对自动驾驶多视图3D目标检测中的遮挡问题，本文受人类非模态感知启发，提出通过多模态原型进行关联学习，以重建被遮挡对象的完整语义。该方法在BEV架构基础上引入新的关联模块，实验表明在遮挡场景下检测精度显著提升，增强了安全关键场景的可靠性。",
+      "title_zh": "CorrBEV：基于多模态原型关联学习的多视图3D目标检测",
+      "motivation_cn": "现有多视图3D目标检测方法在遮挡等复杂场景下性能不足，未充分关注非模态感知能力。",
+      "method_cn": "提出CorrBEV，利用多模态原型进行关联学习，模拟人类非模态感知，增强遮挡对象的重建。",
+      "result_cn": "在NuScenes等数据集上，遮挡场景下的检测性能明显提升，证明了方法的有效性。",
+      "conclusion_cn": "关联学习与多模态原型能有效缓解遮挡影响，提升自动驾驶3D目标检测的安全性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Remote sensing object detection with diffusion-based data augmentation",
+      "evidence_cn": "基于扩散模型的遥感目标检测数据增强",
+      "canonical_evidence": "基于扩散模型的遥感目标检测数据增强",
+      "tldr_en": "This paper proposes a layout-controllable diffusion model, AeroGen, to generate labeled data for remote sensing object detection, addressing data scarcity and improving performance, especially for rare classes.",
+      "tldr_cn": "针对遥感图像目标检测标注数据稀缺问题，本文提出布局可控的扩散生成模型AeroGen，支持水平与旋转边界框条件生成。该模型能够合成高质量训练样本，显著缓解数据不足，尤其是在稀有类别上性能提升明显。实验表明，AeroGen在多个遥感检测数据集上有效提升了检测精度，为遥感目标检测提供了新的数据增强范式。",
+      "title_zh": "AeroGen：利用扩散驱动数据生成增强遥感目标检测",
+      "motivation_cn": "遥感目标检测面临标注数据稀缺，现有数据增强方法受限于高质量标注数据且对稀有类别效果不佳。",
+      "method_cn": "提出布局可控扩散模型AeroGen，根据边界框条件生成遥感检测训练样本。",
+      "result_cn": "在典型遥感检测数据集上，使用AeroGen生成的样本训练后，检测性能特别是稀有类别显著提升。",
+      "conclusion_cn": "AeroGen能有效解决遥感目标检测的数据稀缺问题，推动数据驱动的检测算法发展。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhang-style-evolving-along-chain-of-thought-for-unknown-domain-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Single-domain generalized object detection using chain-of-thought style evolving",
+      "evidence_cn": "基于思维链风格演化的单域泛化目标检测",
+      "canonical_evidence": "基于思维链风格演化的单域泛化目标检测",
+      "tldr_en": "This paper proposes a chain-of-thought approach to evolve style prompts for single-domain generalized object detection, improving robustness to unseen domain shifts like rain and night.",
+      "tldr_cn": "为了解决单域泛化目标检测中复杂风格（如雨天+夜晚）下性能弱的问题，本文提出一种基于思维链的风格演化方法。通过逐步演化文本提示，使模型能够自适应多种未知域的风格变化，增强检测器泛化能力。实验表明，该方法在多个未知域上显著优于单步提示方法，提升了跨域目标检测的鲁棒性。",
+      "title_zh": "面向未知域目标检测的思维链风格演化",
+      "motivation_cn": "单域泛化目标检测中，单步文本提示难以处理复杂组合风格，导致泛化性能下降。",
+      "method_cn": "提出思维链风格演化方法，通过逐步演化文本提示来适配未知域的复杂风格。",
+      "result_cn": "在多个未知域测试中超越现有单步提示方法，有效提升了检测泛化能力。",
+      "conclusion_cn": "思维链风格演化策略能更好地应对未知域复杂风格变化，推动目标检测泛化研究。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhu-learning-class-prototypes-for-unified-sparse-supervised-3d-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Unified sparse-supervised 3D object detection using class prototypes",
+      "evidence_cn": "基于类原型的统一稀疏监督3D目标检测",
+      "canonical_evidence": "基于类原型的统一稀疏监督3D目标检测",
+      "tldr_en": "This paper proposes a unified sparse-supervised 3D object detection method using class prototypes to mine unlabeled objects, bridging indoor and outdoor scenes, and improving detection with minimal annotations.",
+      "tldr_cn": "针对稀疏监督3D目标检测现有方法仅关注室外场景的问题，本文提出基于类原型的统一方法，适用于室内外场景。通过原型匹配挖掘未标注对象，利用最优传输分配标签，并结合室内外场景协同学习，在极少量标注下实现了高精度检测，为通用3D感知提供了高效方案。",
+      "title_zh": "学习类原型实现统一稀疏监督3D目标检测",
+      "motivation_cn": "现有稀疏监督3D目标检测局限于室外场景，未考虑室内设置，限制了通用性。",
+      "method_cn": "提出类原型驱动的统一检测框架，将未标注对象挖掘转化为原型与特征的最优传输匹配问题。",
+      "result_cn": "在室内外多个数据集上，使用少量标注即可达到接近全监督的性能。",
+      "conclusion_cn": "类原型方法实现了高效统一的稀疏监督3D目标检测，扩展了场景适用性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-liu-monotakd-teaching-assistant-knowledge-distillation-for-monocular-3d-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Monocular 3D object detection with knowledge distillation from LiDAR to camera",
+      "evidence_cn": "从激光雷达到相机的单目3D目标检测知识蒸馏",
+      "canonical_evidence": "从激光雷达到相机的单目3D目标检测知识蒸馏",
+      "tldr_en": "This paper proposes MonoTAKD, using a camera-based teaching assistant model to bridge the gap between LiDAR teacher and monocular student in 3D object detection, improving depth estimation from a single image.",
+      "tldr_cn": "针对单目3D目标检测中激光雷达教师模型与摄像机学生模型之间表示差距大的问题，本文提出教学助理知识蒸馏方法MonoTAKD。通过引入一个基于摄像机的教学助理模型，逐步将鲁棒的3D知识传递给学生，有效缓解深度模糊。在KITTI等数据集上，MonoTAKD显著提升了单目检测精度，为知识蒸馏在3D感知中的应用提供了新思路。",
+      "title_zh": "MonoTAKD：面向单目3D目标检测的教学助理知识蒸馏",
+      "motivation_cn": "单目3D检测中，激光雷达教师与单目学生特征表示差距大，直接蒸馏效果不佳。",
+      "method_cn": "提出MonoTAKD，使用摄像机教学助理模型作为中间桥梁，分步传递3D知识。",
+      "result_cn": "在KITTI基准上，MonoTAKD显著优于直接蒸馏，单目3D检测性能大幅提升。",
+      "conclusion_cn": "教学助理蒸馏策略有效缩小了跨模态表示差距，提升了单目3D检测能力。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-wang-object-detection-using-event-camera-a-moe-heat-conduction-based-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "a novel object detection algorithm for event cameras, balancing accuracy and efficiency",
+      "evidence_cn": "提出一种新颖的事件相机目标检测算法，平衡精度与效率",
+      "canonical_evidence": "提出一种新颖的事件相机目标检测算法，平衡精度与效率",
+      "tldr_en": "Proposes a Mixture of Experts heat conduction-based object detector for event cameras, achieving state-of-the-art performance while balancing accuracy and computational cost, validated on a new benchmark dataset.",
+      "tldr_cn": "针对事件相机目标检测现有架构（脉冲神经网络、Transformer、CNN）存在的性能、计算开销或感受野限制，本文提出一种新颖的基于混合专家（MoE）热传导的目标检测算法，通过事件数据嵌入和MoE模块平衡准确性与计算效率。还贡献了新的基准数据集。实验表明该方法在低光照、运动模糊等挑战场景下具有优越性能，为事件相机目标检测提供了高效新方案。",
+      "title_zh": "事件相机目标检测：基于混合专家热传导的检测器与新基准数据集",
+      "motivation_cn": "现有事件相机检测器在性能、计算开销或局部感受野方面各有局限，难以兼顾精度与效率。",
+      "method_cn": "提出基于混合专家（MoE）热传导的目标检测算法，先经主干网络嵌入事件数据，再通过创新的MoE模块处理。",
+      "result_cn": "在低光照、运动模糊等条件下实现优越性能，并贡献新基准数据集。",
+      "conclusion_cn": "该方法显著平衡了准确性与计算效率，推动了事件相机目标检测的发展。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-yang-detecting-open-world-objects-via-partial-attribute-assignment-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "proposes Partial Attribute Assignment for open world object detection, learning fine-grained class-agnostic attributes",
+      "evidence_cn": "提出部分属性分配方法用于开放世界目标检测，学习细粒度类别无关属性",
+      "canonical_evidence": "提出部分属性分配方法用于开放世界目标检测，学习细粒度类别无关属性",
+      "tldr_en": "Addresses open world object detection by learning class-agnostic attributes via Partial Attribute Assignment (PASS), enabling detection of both known and unknown objects in an explainable manner.",
+      "tldr_cn": "针对现有视觉基础模型在检测开放世界未知对象时易将其误判为背景的问题，本文提出部分属性分配（PASS）方法，自动从大量属性中选择与优化少量相关属性，以可解释的方式学习细粒度、类别无关的属性表示，从而检测已知和未知对象。实验表明，该方法能有效提升开放世界目标检测性能，减少对训练类别的偏见，增强了模型的泛化能力。",
+      "title_zh": "通过部分属性分配检测开放世界对象",
+      "motivation_cn": "现有开放世界目标检测方法依赖概率模型学习目标性，但缺乏对未知对象的可解释检测机制。",
+      "method_cn": "提出部分属性分配（PASS），自动选择并优化一个小的相关属性子集，以类别无关方式建模。",
+      "result_cn": "能够检测已知和未知对象，减少误分类为背景，性能优于传统方法。",
+      "conclusion_cn": "PASS以可解释的方式实现了开放世界目标检测，对未知对象具有较强泛化能力。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-sidhu-search-and-detect-training-free-long-tail-object-detection-via-web-image-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "SearchDet: training-free long-tail object detection via web-image retrieval, improving open-vocabulary detection",
+      "evidence_cn": "SearchDet：无需训练的尾部长尾目标检测，通过网页图像检索提升开放词汇检测",
+      "canonical_evidence": "SearchDet：无需训练的尾部长尾目标检测，通过网页图像检索提升开放词汇检测",
+      "tldr_en": "Proposes SearchDet, a training-free framework that uses web-image retrieval to build exemplar-based queries for detecting long-tail objects in open-vocabulary settings, achieving significant gains over strong baselines.",
+      "tldr_cn": "针对长尾和开放词汇目标检测中尾部类别标注稀缺的问题，本文提出无需训练的SearchDet框架。通过检索网页上的正负样本图像并嵌入，计算加权查询以检测所需概念。在ODinW和LVIS上分别提升16.81%和59.85% mAP，显著超越GroundingDINO等模型。该方法简单稳定，展示了基于检索范例的检测范式在消除对人工标注依赖方面的潜力。",
+      "title_zh": "搜索与检测：基于网页图像检索的免训练长尾目标检测",
+      "motivation_cn": "长尾分布导致尾部类别检测性能差，现有方法依赖大量标注数据或复杂训练。",
+      "method_cn": "提出SearchDet，通过检索网页正负例图像并嵌入为加权查询实现免训练检测。",
+      "result_cn": "在ODinW和LVIS上mAP分别提升16.81%和59.85%，显著优于强基线。",
+      "conclusion_cn": "基于网页检索的免训练检测为开放词汇和长尾检测提供了高效新途径。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-li-pseudo-visible-feature-fine-grained-fusion-for-thermal-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "proposes Pseudo Visible Feature Fine-Grained Fusion for thermal object detection, leveraging cross-modal graph fusion",
+      "evidence_cn": "提出伪可见特征细粒度融合用于热红外目标检测，利用跨模态图融合",
+      "canonical_evidence": "提出伪可见特征细粒度融合用于热红外目标检测，利用跨模态图融合",
+      "tldr_en": "Proposes PFGF, a graph-based cross-modal fusion method that enhances thermal object detection by fully exploiting complementary visible features from T2V translation, achieving state-of-the-art results.",
+      "tldr_cn": "针对热红外目标检测中可见光信息利用不充分的问题，本文提出伪可见特征细粒度融合（PFGF）方法。先通过热到可见光（T2V）转换生成伪可见特征，再构建图结构融合多层次热特征与伪可见特征，充分挖掘互补信息。实验表明PFGF在多个热检测数据集上达到最优性能，证明了细粒度跨模态融合对提升热红外目标检测精度的有效性。",
+      "title_zh": "伪可见特征细粒度融合用于热红外目标检测",
+      "motivation_cn": "现有热检测模型未充分利用T2V转换生成的可见光互补信息。",
+      "method_cn": "提出PFGF，构建图节点融合多层次热特征与伪可见特征，实现细粒度跨模态融合。",
+      "result_cn": "在多个热检测数据集上达到最先进性能。",
+      "conclusion_cn": "细粒度融合互补模态信息显著提升了热红外目标检测的精度。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhang-open-world-objectness-modeling-unifies-novel-object-detection-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "proposes class-agnostic objectness measure via variational inference for open-world object detection",
+      "evidence_cn": "提出基于变分推断的类别无关目标性度量用于开放世界目标检测",
+      "canonical_evidence": "提出基于变分推断的类别无关目标性度量用于开放世界目标检测",
+      "tldr_en": "Introduces a class-agnostic objectness model that jointly distributes objectness and category labels via variational approximation, addressing open-world detection by preventing misclassification of unknown objects.",
+      "tldr_cn": "针对开放世界目标检测中未知对象常被误分类或过滤为背景的问题，本文提出类别无关的目标性度量，利用变分推断联合建模目标性与类别标签分布。理论分析揭示了传统KL散度失败原因，并提出自适应先验缓解未标注数据不足。实验表明该方法有效减少了已知类别偏见，提升了未知对象检测能力，统一了新颖对象检测的框架。",
+      "title_zh": "开放世界目标性建模统一新颖对象检测",
+      "motivation_cn": "开放世界检测中未知对象易被误分类或误判为背景，现有概率模型存在偏见。",
+      "method_cn": "提出类别无关目标性度量，通过变分推断联合建模目标性与类别分布，并设计自适应先验。",
+      "result_cn": "减少对已知类别的偏见，有效检测未知对象，统一新颖对象检测。",
+      "conclusion_cn": "该方法为开放世界目标检测提供了理论驱动的解决方案，增强了泛化性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-huang-v2x-r-cooperative-lidar-4d-radar-fusion-with-denoising-diffusion-for-3d-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "3D object detection with cooperative LiDAR-4D radar fusion",
+      "evidence_cn": "协同激光雷达与4D雷达融合的三维目标检测",
+      "canonical_evidence": "协同激光雷达与4D雷达融合的三维目标检测",
+      "tldr_en": "Proposes V2X-R dataset and a cooperative LiDAR-4D radar fusion pipeline for robust 3D object detection in adverse weather, achieving improved performance.",
+      "tldr_cn": "针对恶劣天气下现有车联网系统性能下降问题，论文提出了首个融合激光雷达、摄像头和4D雷达的V2X-R仿真数据集，并设计了一种协同融合流水线，通过多模态融合策略和去噪扩散模型提升三维目标检测精度，为全天候自动驾驶感知提供了鲁棒方案。",
+      "title_zh": "V2X-R：基于去噪扩散的协同激光雷达-4D雷达融合用于三维目标检测",
+      "motivation_cn": "现有V2X系统在恶劣天气下3D检测性能下降，4D雷达有望解决此挑战。",
+      "method_cn": "提出首个LiDAR-4D雷达融合V2X数据集V2X-R，并设计协同融合流水线。",
+      "result_cn": "融合流水线在恶劣天气下提升目标检测性能。",
+      "conclusion_cn": "多模态协同融合有效增强自动驾驶全天候感知鲁棒性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-yin-rod-mllm-towards-more-reliable-object-detection-in-multimodal-large-language-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Reliable object detection using query-based localization in MLLMs",
+      "evidence_cn": "MLLM中基于查询定位的可靠目标检测",
+      "canonical_evidence": "MLLM中基于查询定位的可靠目标检测",
+      "tldr_en": "Introduces ROD-MLLM, a multimodal LLM for reliable object detection that rejects non-existent objects, using query-based localization and LLM reasoning.",
+      "tldr_cn": "现有多模态大语言模型只能检测图片中存在的物体，无法拒绝不存在的目标，导致不可靠预测。本文提出ROD-MLLM，通过查询式定位机制提取底层特征，并对齐全局与物体级视觉信息至文本空间，利用大语言模型进行高层推理和定位决策，实现可拒绝虚构目标的可靠检测，拓展了MLLM的实用性。",
+      "title_zh": "ROD-MLLM：面向多模态大语言模型中更可靠的目标检测",
+      "motivation_cn": "MLLM在目标检测中无法拒绝不存在物体，预测不可靠。",
+      "method_cn": "提出查询式定位机制，对齐视觉与文本信息，利用LLM决策。",
+      "result_cn": "实现了可拒绝虚构目标的高可靠目标检测性能。",
+      "conclusion_cn": "ROD-MLLM提升了MLLM在检测任务中的可靠性和实用性。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures"
+    },
+    {
+      "paper_id": "cvpr-2025-bian-feature-information-driven-position-gaussian-distribution-estimation-for-tiny-object-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Tiny object detection via pixel-wise information entropy enhancement",
+      "evidence_cn": "通过像素信息熵增强的微小目标检测",
+      "canonical_evidence": "通过像素信息熵增强的微小目标检测",
+      "tldr_en": "Proposes a plug-and-play architecture that enhances tiny object regions by modeling pixel-wise feature information and Gaussian distribution for improved detection.",
+      "tldr_cn": "针对微小目标因像素极少导致表示弱、检测性能骤降的问题，本文提出一种即插即用的增强架构，首次从像素信息量视角出发，通过最小化信息熵损失生成信息图突出弱激活区域，并辅助高斯分布估计，有效提升了微小目标的检测精度。",
+      "title_zh": "特征信息驱动的位置高斯分布估计用于微小目标检测",
+      "motivation_cn": "微小目标像素表示弱，导致通用检测器性能大幅下降。",
+      "method_cn": "提出基于信息熵损失的无监督信息图增强弱区域。",
+      "result_cn": "在微小目标检测基准上性能显著提升。",
+      "conclusion_cn": "像素信息驱动增强有效改善微小目标检测困境。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper",
+      "score": 9.0,
+      "evidence_en": "Sparsely-supervised 3D object detection boosted by cross-modal semantic prompts",
+      "evidence_cn": "通过跨模态语义提示提升稀疏监督的三维目标检测",
+      "canonical_evidence": "通过跨模态语义提示提升稀疏监督的三维目标检测",
+      "tldr_en": "SP3D uses large multimodal models to generate semantic prompts, boosting 3D detection under sparse labels via a confident points transfer module.",
+      "tldr_cn": "在标注极度稀疏的条件下，现有稀疏监督3D目标检测方法仍面临挑战。本文提出SP3D策略，利用大型多模态模型生成跨模态语义提示，通过自信点语义转移模块精确传递语义信息，增强3D检测器特征判别力，大幅提升少样本下的检测性能。",
+      "title_zh": "SP3D：通过精确跨模态语义提示提升稀疏监督三维目标检测",
+      "motivation_cn": "稀疏标注下3D检测器性能受限，需要外部语义知识。",
+      "method_cn": "利用多模态大模型生成语义提示，通过CPST模块转移。",
+      "result_cn": "在稀疏标注场景下3D检测性能接近全监督方法。",
+      "conclusion_cn": "跨模态语义提示是提升稀疏监督3D检测的有效途径。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-wang-visual-consensus-prompting-for-co-salient-object-detection-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "proposes a concise architecture for co-salient object detection with prompt-based interaction and parameter-efficient tuning",
+      "evidence_cn": "提出简洁的共显著性目标检测架构，采用基于提示的交互和参数高效微调",
+      "canonical_evidence": "提出简洁的共显著性目标检测架构，采用基于提示的交互和参数高效微调",
+      "tldr_en": "Addresses co-salient object detection by introducing an interaction-effective and parameter-efficient architecture with visual consensus prompting, improving foundation model knowledge retention.",
+      "tldr_cn": "针对现有共显著性目标检测方法中编码阶段缺乏共识指导、全参数微调效率低的问题，本文提出视觉共识提示的简洁架构。通过交互强化编码与共识提取，并采用参数高效微调保留基础模型知识。实验证明该方法在多个基准上以更少参数实现优异检测性能，为显著性检测任务提供了高效新框架。",
+      "title_zh": "视觉共识提示用于共显著性目标检测",
+      "motivation_cn": "现有共显著性检测架构存在编码与共识提取脱节、全微调参数效率低的问题。",
+      "method_cn": "提出视觉共识提示架构，增强编码与共识交互，并采用参数高效微调。",
+      "result_cn": "在多个基准上以较少参数实现先进性能，有效保留基础模型知识。",
+      "conclusion_cn": "该方法通过交互强化和高效微调显著提升了共显著性检测的效率和效果。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "3D object detection with multi-modal fusion",
+      "evidence_cn": "多模态融合的3D目标检测",
+      "canonical_evidence": "多模态融合的3D目标检测",
+      "tldr_en": "Proposes ViKIENet, an efficient multi-modal fusion framework for 3D object detection using virtual key instances to reduce computation and noise.",
+      "tldr_cn": "针对点云稀疏和语义信息不足问题，提出虚拟关键实例增强网络（ViKIENet），通过高效多模态特征融合提升3D目标检测效率，减少计算开销和噪声，在自动驾驶等场景有应用价值。",
+      "title_zh": "ViKIENet：面向高效3D目标检测的虚拟关键实例增强网络",
+      "motivation_cn": "点云稀疏和深度补全噪声导致现有融合方法计算开销大，且未充分利用图像语义。",
+      "method_cn": "提出虚拟关键实例增强网络，通过关键实例特征融合实现高效多模态3D检测。",
+      "result_cn": "在多个基准上取得高效3D检测性能，推理速度显著提升。",
+      "conclusion_cn": "ViKIENet在精度和效率间取得平衡，为实时3D检测提供新方案。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-li-seen-da-semantic-entropy-guided-domain-aware-attention-for-domain-adaptive-object-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "Domain adaptive object detection using semantic entropy",
+      "evidence_cn": "使用语义熵进行域自适应目标检测",
+      "canonical_evidence": "使用语义熵进行域自适应目标检测",
+      "tldr_en": "Introduces SEEN-DA, which uses semantic entropy to guide domain-aware attention for domain adaptive object detection, improving adaptation by leveraging semantic information.",
+      "tldr_cn": "针对域自适应目标检测中语义信息未充分利用的问题，提出语义熵引导的域感知注意力（SEEN-DA），通过量化视觉特征中的语义信息并引导注意力学习，提升跨域检测性能，为无监督域适应提供新思路。",
+      "title_zh": "SEEN-DA：语义熵引导的域感知注意力用于域自适应目标检测",
+      "motivation_cn": "现有方法忽视语义信息在引导视觉特征学习适应中的作用。",
+      "method_cn": "设计语义熵量化视觉特征语义，并构建域感知注意力自适应优化特征。",
+      "result_cn": "在多个域适应目标检测任务上取得优于现有方法的性能。",
+      "conclusion_cn": "SEEN-DA有效利用语义信息，增强跨域检测的鲁棒性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-jin-unimamba-unified-spatial-channel-representation-learning-with-group-efficient-mamba-for-lidar-based-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "LiDAR-based 3D object detection with Mamba architecture",
+      "evidence_cn": "基于Mamba架构的LiDAR 3D目标检测",
+      "canonical_evidence": "基于Mamba架构的LiDAR 3D目标检测",
+      "tldr_en": "Proposes UniMamba for LiDAR 3D object detection, integrating Mamba to capture spatial-channel representations efficiently, addressing limitations of Transformers.",
+      "tldr_cn": "针对Transformer在LiDAR 3D检测中破坏空间结构和感受野受限的问题，提出统一Mamba网络（UniMamba），无缝集成空间-通道表征学习，高效捕捉全局依赖，在多个3D检测基准上取得竞争性能。",
+      "title_zh": "UniMamba：面向LiDAR 3D目标检测的统一空间-通道表征学习与分组高效Mamba",
+      "motivation_cn": "Transformer序列化破坏3D空间结构，且计算复杂度高导致感受野有限。",
+      "method_cn": "提出UniMamba，整合Mamba模块实现统一空间-通道表征学习。",
+      "result_cn": "在主流LiDAR 3D检测数据集上达到先进水平，计算效率更高。",
+      "conclusion_cn": "UniMamba为3D检测提供了一种高效的特征建模新范式。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-daryani-camuvid-calibration-free-multi-view-detection-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "Calibration-free multi-view object detection",
+      "evidence_cn": "免标定的多视角目标检测",
+      "canonical_evidence": "免标定的多视角目标检测",
+      "tldr_en": "CaMuViD achieves calibration-free multi-view object detection by operating directly in image space with learnable transformations, eliminating need for BEV and calibration.",
+      "tldr_cn": "针对多视角检测依赖标定和鸟瞰图表示的问题，提出CaMuViD，直接在图像空间学习灵活变换和跨视角特征融合，实现免标定的多视角目标检测，在密集场景取得高精度。",
+      "title_zh": "CaMuViD：免标定的多视角检测",
+      "motivation_cn": "传统多视角检测需要相机标定和BEV表示，过程复杂。",
+      "method_cn": "提出可在图像空间直接操作的免标定多视角检测框架，学习灵活变换融合特征。",
+      "result_cn": "在Wildtrack和MultiviewX数据集上分别取得95.0%和96.5%的MODA分数。",
+      "conclusion_cn": "CaMuViD简化了多视角检测流程，并实现了高精度。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-ahmed-efficient-event-based-object-detection-a-hybrid-neural-network-with-spatial-cvpr-2025-paper",
+      "score": 8.0,
+      "evidence_en": "Event-based object detection with hybrid SNN-ANN attention network",
+      "evidence_cn": "基于事件相机的目标检测，采用混合SNN-ANN注意力网络",
+      "canonical_evidence": "基于事件相机的目标检测，采用混合SNN-ANN注意力网络",
+      "tldr_en": "Proposes attention-based hybrid SNN-ANN backbone for event-based object detection, combining SNN efficiency and ANN accuracy via a novel bridge module.",
+      "tldr_cn": "针对事件相机目标检测中SNN精度不足、ANN能耗高的问题，论文提出注意力混合SNN-ANN骨干网络，设计新颖的注意力桥接模块捕获SNN的稀疏时空关系并转为密集特征图供ANN处理，在保证精度的同时提高效率，为低功耗实时检测提供新思路。",
+      "title_zh": "高效事件相机目标检测：具有时空注意力的混合神经网络",
+      "motivation_cn": "SNN能效高但精度低，ANN精度高但能耗大。",
+      "method_cn": "提出注意力桥接模块实现SNN到ANN的特征转换。",
+      "result_cn": "混合网络在事件相机数据上兼顾精度与效率。",
+      "conclusion_cn": "混合SNN-ANN架构有望实现低功耗高性能事件检测。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    },
+    {
+      "paper_id": "cvpr-2025-zhou-bootplace-bootstrapped-object-placement-with-detection-transformers-cvpr-2025-paper",
+      "score": 6.0,
+      "evidence_en": "Object placement using detection transformers",
+      "evidence_cn": "使用检测Transformer进行物体放置",
+      "canonical_evidence": "使用检测Transformer进行物体放置",
+      "tldr_en": "BOOTPLACE formulates object placement as placement-by-detection using detection transformers, identifying suitable regions for object insertion.",
+      "tldr_cn": "针对物体放置学习中生成模型能力受限和稀疏对比损失导致放置不精确的问题，提出BOOTPLACE，将物体放置转化为检测问题，训练专用检测Transformer定位合适区域，实现更精确的图像合成。",
+      "title_zh": "BOOTPLACE：基于检测Transformer的引导式物体放置",
+      "motivation_cn": "现有物体放置方法依赖生成模型或稀疏对比损失，导致放置位置不精确。",
+      "method_cn": "将物体放置形式化为放置即检测，训练检测Transformer识别插入区域。",
+      "result_cn": "物体放置精度显著提高，合成图像更自然。",
+      "conclusion_cn": "检测框架为物体放置提供了一种新颖有效的解决方案。",
+      "matched_requirement_id": "req-composite-obj-detect",
+      "matched_query_tag": "query:obj-detect:composite",
+      "matched_query_text": "Papers central to 查找计算机视觉领域目标检测相关的论文, especially work that connects or combines: object detection in computer vision; object detection with transformer architectures."
+    },
+    {
+      "paper_id": "cvpr-2025-gizdov-seeing-more-with-less-human-like-representations-in-vision-models-cvpr-2025-paper",
+      "score": 4.0,
+      "evidence_en": "applies foveated sampling to transformer-based models like MDETR, improving object detection under pixel budgets",
+      "evidence_cn": "将中央窝采样应用于MDETR等Transformer模型，改善像素预算下的目标检测",
+      "canonical_evidence": "将中央窝采样应用于MDETR等Transformer模型，改善像素预算下的目标检测",
+      "tldr_en": "Proposes foveated sampling for multimodal models, improving efficiency in visual tasks including object detection, with gains on benchmarks like GQA and VQAv2.",
+      "tldr_cn": "受人类视觉中央窝机制启发，本文提出对大型多模态模型（如MDETR、BLIP2）使用可变分辨率的中央窝采样方法，在有限像素预算下提升视觉任务效率。实验表明，在GQA、SEED-Bench和VQAv2等数据集上，目标检测和问答准确率比均匀采样最高提升2.7%。该方法表明无需均匀高分辨率处理，可通过仿生采样实现更高效的视觉信息处理，为模型设计提供了新思路。",
+      "title_zh": "Seeing More with Less：视觉模型中的人类化表示",
+      "motivation_cn": "现有大型多模态模型均匀处理全部视野，导致非关键区域处理精度冗余，效率低下。",
+      "method_cn": "受中央窝视觉启发，对现有Transformer架构应用可变分辨率采样方法。",
+      "result_cn": "在GQA等视觉任务中目标检测和问答准确率提升高达2.7%。",
+      "conclusion_cn": "中央窝采样在减少像素开销的同时提高了检测性能，验证了仿生设计的有效性。",
+      "matched_requirement_id": "req-composite-obj-detect",
+      "matched_query_tag": "query:obj-detect:composite",
+      "matched_query_text": "Papers central to 查找计算机视觉领域目标检测相关的论文, especially work that connects or combines: object detection in computer vision; object detection with transformer architectures."
+    },
+    {
+      "paper_id": "cvpr-2025-gao-multiple-object-tracking-as-id-prediction-cvpr-2025-paper",
+      "score": 4.0,
+      "evidence_en": "Object tracking as ID prediction, relies on object detection",
+      "evidence_cn": "将目标跟踪视为ID预测，依赖于目标检测",
+      "canonical_evidence": "将目标跟踪视为ID预测，依赖于目标检测",
+      "tldr_en": "Proposes a new MOT paradigm treating tracking as in-context ID prediction, learning associations without handcrafted heuristics.",
+      "tldr_cn": "传统多目标跟踪依赖手工设计的关联启发式方法，适应性有限。本文提出将跟踪视为上下文ID预测的新视角，让模型直接从数据中学习最优追踪能力，简化的流程可能为检测与跟踪的联合优化提供新思路，但核心贡献在于跟踪，检测仅为组件。",
+      "title_zh": "将多目标跟踪视为ID预测",
+      "motivation_cn": "手工设计的跟踪关联规则缺乏灵活性。",
+      "method_cn": "将多目标跟踪建模为上下文ID预测任务。",
+      "result_cn": "在多个跟踪基准上取得有竞争力的性能。",
+      "conclusion_cn": "ID预测范式简化了跟踪流程，提升了自适应性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision"
+    }
+  ],
+  "llm_ranked_at": "2026-08-10T09:38:21.182904+00:00",
+  "display_min_score": 4.0,
+  "pruned_at": "2026-08-10T09:38:21.210256+00:00"
+}

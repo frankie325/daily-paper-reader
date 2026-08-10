@@ -1,0 +1,268 @@
+Title: UniMamba: Unified Spatial-Channel Representation Learning with Group-Efficient Mamba for LiDAR-based 3D Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Jin_UniMamba_Unified_Spatial-Channel_Representation_Learning_with_Group-Efficient_Mamba_for_LiDAR-based_CVPR_2025_paper.pdf
+
+Published Time: Sun, 18 May 2025 21:12:10 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# UniMamba: Unified Spatial-Channel Representation Learning with Group-Efficient Mamba for LiDAR-based 3D Object Detection 
+
+## Xin Jin →,1,3,↑ Haisheng Su →,2,3( ) Kai Liu 3 Cong Ma 3 Wei Wu 3,4 Fei HUI 1( ) Junchi Yan 2( )1Chang’an University 
+
+> 2
+
+## School of Computer Science, Shanghai Jiao Tong University 
+
+> 3
+
+## SenseAuto Research, 4Tsinghua University 
+
+{suhaisheng,yanjunchi }@sjtu.edu.cn, {jinxin,feihui }@chd.edu.cn 
+
+{liukai3.iag,macong,wuwei }@senseauto.com 
+
+## Abstract 
+
+Recent advances in LiDAR 3D detection have demon-strated the effectiveness of Transformer-based frameworks in capturing the global dependencies from point cloud spaces, which serialize the 3D voxels into the flattened 1D sequence for iterative self-attention. However, the spatial structure of 3D voxels will be inevitably destroyed dur-ing the serialization process. Besides, due to the consid-erable number of 3D voxels and quadratic complexity of Transformers, multiple sequences are grouped before feed-ing to Transformers, leading to a limited receptive field. In-spired by the impressive performance of State Space Mod-els (SSM), in this paper, we propose a novel Unified Mamba (UniMamba), which seamlessly integrates the merits of 3D convolution and SSM in a concise multi-head manner, aim-ing to perform “local and global” spatial context aggre-gation efficiently and simultaneously. Specifically, a Uni-Mamba block is designed which mainly consists of spa-tial locality modeling, complementary Z-order serialization and local-global sequential aggregator. The spatial locality modeling module integrates 3D submanifold convolution to capture the dynamic spatial position embedding before se-rialization. Then the efficient Z-order curve is adopted for serialization both horizontally and vertically. Furthermore, the local-global sequential aggregator adopts the chan-nel grouping strategy to efficiently encode both “local and global” spatial inter-dependencies using multi-head SSM. Additionally, an encoder-decoder architecture with stacked UniMamba blocks is formed to facilitate multi-scale spa-tial learning hierarchically. Extensive experiments are con-ducted on three popular datasets: nuScenes, Waymo and Argoverse 2. Particularly, our UniMamba achieves 70.2 mAP on the nuScenes dataset.    
+
+> →Equal Contribution. Corresponding Authors.
+> ↑Intern at SenseAuto Research.
+> Transformer SSM
+> LSE GSE (a) (b) (c)
+> UniMamba
+> Local Group Global Group Local-Global Group
+
+Figure 1. Comparison of different 3D backbones. (a) Transformer-based backbone using local window grouping. (b) SSM-based backbone using global sequence grouping. (c) Our proposed Uni-Mamba backbone using channel-wise local-global grouping. 
+
+## 1. Introduction 
+
+LiDAR is widely used in Autonomous Driving perception tasks [36, 37] due to its ability to provide precise 3D loca-tion information. However, unlike structured image data, the sparsity and disorder of point cloud space pose signifi-cant challenges for accurate 3D object detection. Therefore, learning effective pattern representations from 3D point clouds is a key focus of current research. Previous methods are generally classified into point-based and voxel-based approaches. Point-based meth-ods [34, 47] directly apply operators such as PointNet [30, 31] to manipulate raw point clouds, which entails a time-consuming process of sampling and grouping, leading to low computational efficiency. In contrast, voxel-based methods [4, 45, 54] convert point clouds into regular grids, This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 1407 showcasing superior performance and becoming the domi-nant mainstream architecture. Voxel-based methods can be further categorized into sparse convolution neural networks (SpCNN)-based and Transformer-based. SpCNN-based approaches [48, 50] are constrained by the inherently small receptive field of convo-lutions, which limits their ability to extract rich contextual information. Transformer-based methods [24, 28, 41] suf-fer from quadratic complexity, which tend to serialize 3D voxels into multiple 1D sequences and adopt self-attention mechanism respectively, leading to limited receptive field by group size and feature size (Fig. 1 (a)). However, both local structure details and global context are crucial [19, 20, 32] for 3D object detection from sparse and oc-cluded point clouds. Under this circumstance, a robust Li-DAR 3D backbone with flexible receptive fields and great spatial modeling capacity as well as computational effi-ciency is worth exploring. 
+
+Inspired by the remarkable success of the Mamba [11, 23, 25, 55] architecture in the areas of vision tasks, we in-vestigate its applicability to LiDAR 3D detection. Its linear complexity enables the whole sequence processing without voxel grouping (Fig. 1 (b)), thus facilitating the global con-text modeling [51]. However, simple adaptation of Mamba to LiDAR 3D backbone may have some drawbacks : (1) loss of spatial voxel locality during serialization; (2) local re-dundancy brought by coherent global modeling, causing in-ferior efficiency; (3) lack of spatial diversity to handle com-plex local and global dependencies. To this end, we propose UniMamba , a unified Mamba architecture to integrate 3D convolution and State Space Models (SSM) in a concise multi-head format, which can achieve a preferable balance between effectiveness and effi-ciency in spatial structure modeling for LiDAR 3D object detection. Specifically, our UniMamba consists of three main modules, namely spatial locality modeling, comple-mentary Z-order serialization and local-global sequential aggregator. The Spatial Locality Modeling (SLM) mod-ule aims to capture the dynamic structure embedding with 3D submanifold sparse convolution before serialization. Then the complementary Z-order serialization is proposed to transform 3D voxels into 1D sequence, considering the spatial proximity preservation both horizontally and verti-cally. Subsequently, a Local-Global Sequential Aggregator (LGSA) is designed to perform “local-global” spatial ag-gregation in a group-efficient fashion (Fig. 1 (c)), which includes two sub-modules, i.e., Local Sequential Encoder (LSE) and Global Sequential Encoder (GSE). Concretely, GSE processes all voxels in a single 1D sequence with multi-head bidirectional SSM, allowing global contextual modeling directly without multiple sub-sequence grouping. Contrary, LSE handles the grouped 1D sequences respec-tively to capture the local inter-dependencies. Besides, a channel grouping strategy is proposed to aggregate “local-global” spatial context in parallel. Finally, through stacking our UniMamba blocks into an encoder-decoder architecture with several stages, our UniMamba exhibits great poten-tial as LiDAR 3D backbone for multi-scale spatial relation modeling efficiently, achieving 70.2 mAP and 74.0 NDS on nuScenes test set particularly. In summary, the main contri-butions of our work can be summarized into three folds: • We propose UniMamba , a novel unified 3D backbone for LiDAR 3D object detection, which integrates 3D convo-lution and bidirectional SSM to achieve effective spatial modeling in a group-efficient manner. • We design a Local-Global Sequential Aggregator to si-multaneously capture local and global voxel relations in a channel-grouping fashion, benefiting from the spatial lo-cality modeling and complementary Z-order serialization in case of spatial proximity loss. • Extensive experiments are conducted on three popular benchmarks, i.e., nuScenes, Waymo and Argoverse 2, demonstrating the effectiveness of our UniMamba. 
+
+## 2. Related Work 
+
+Lidar-based 3D detectors are typically classified into point-based and voxel-based. Point-based methods [30, 31, 34, 47, 52] extract multi-scale local contextual features di-rectly from downsampled raw points. However, the down-sampling and multi-scale grouping lead to a significant computational overhead, resulting in low inference speeds that limit their practical applications. Voxel-based detec-tors [45, 54] convert unordered point clouds into structured grids through voxelization and apply various backbones to extract 3D features, which have become mainstream frame-works for outdoor 3D detection tasks. According to the net-work architecture, 3D backbones can be classified into the following three categories. 
+
+2.1. 3D Object Detection with Sparse Convolution 
+
+VoxelNet [54] pioneered voxel-based detectors by directly utilizing regular convolution. However, due to the sparsity of point clouds, the direct application of 3D convolutions in-curs significant computational costs and information redun-dancy. Therefore, existing methods [1, 3, 5, 7, 50] typically use sparse convolutional neural network (SpCNN) to extract features. Largekernel3D [4] migrate large convolutional kernels into the 3D detection domain, enhancing the inher-ent receptive field. HEDNet [49] learns long-range depen-dencies via a multi-scale encoder-decoder structure. These methods aim to improve the receptive field of SpCNN-based 3D backbones. However, the advantage of convo-lution lies in its powerful local information extraction ca-pabilities and inductive bias. Therefore, in this paper, we combine SpCNN to compensate for the lack of locality in mamba when extracting long-range contextual information. 1408 UniMamba Encoder Stage #1 (𝐻𝐻 , 𝑊𝑊 , 𝐷𝐷 )    
+
+> UniMamba Decoder UniMamba Encoder Stage #N (𝐻𝐻 ,𝑊𝑊 ,𝐷𝐷
+> 2𝑁𝑁−1 )
+> UniMamba Decoder
+> Voxelization
+
+... BEV Backbone Detection Head Down Up Up Down F1(1) F2 ( 12 ) F5 (1) F4 ( 12 )F3 ( 14 ) 
+
+> UniMamba Encoder UniMamba Decoder UniMamba Block
+> Norm
+
+⨁ Norm Linear ⨁
+
+GSE GSE LSE LSE Concat LGSA UniMamba Block UniMamba Block UniMamba Block UniMamba Block UniMamba Block SubConv3D SLM  
+
+> UniMamba 3D Backbone Point Clouds Down Down
+
+Figure 2. Illustration of our proposed UniMamba backbone, which consists of multiple stages, and each stage includes several UniMamba blocks to encode multi-scale features with an encoder-decoder architecture through down/up-sampling and stacking operations. The UniMamba Block is our core component, which efficiently enables simultaneous extraction and aggregation of local and global contextual information. In UniMamba, We first voxelize the point clouds, then adopt the proposed UniMamba 3D backbone to extract multi-scale rich spatial contextual features. Finally, these enhanced features are fed into a BEV backbone and a detection head for final 3D object detection. 
+
+2.2. 3D Object Detection with Transformer 
+
+Transformer [40] has been extensively researched in point cloud detection tasks. Due to computational efficiency con-straints, it is impractical to directly compute the attention scores for all voxels. Existing methods [8, 24, 39, 41, 46, 53] typically employ a window-based attention mechanism, dividing the 3D space into multiple small windows, and then applying shift window or multi-scale fusion to achieve a global receptive field. However, small windows still limit the receptive field. In this paper, we utilize Mamba to replace Transformer, achieving larger window groupings, which addresses the issue of limited receptive fields while also providing better inference efficiency. 
+
+2.3. Vision Task with Mamba 
+
+Mamba [6, 11] is a popular sequential modeling architecture with linear complexity. Due to its great computational effi-ciency, it has been regarded as a strong competitor to Trans-former. Some research has begun to explore its potential in vision tasks [12, 16, 21–23]. As a sequence model, most existing studies have focused on exploring different scan-ning methods. Vim [55] introduced a bidirectional SSM to learn image features. GrootVL [44] adopted a tree topol-ogy to construct scanning sequences, enhancing long-range interactions. The most advanced lidar detectors utilized the Mamba architecture, while LION [25] developed a unified RNN framework using group-based strategy. VoxelMamba [51] introduced a group-free approach to directly model global information. In this paper, we investigate the feasi-bility of Mamba-style architecture for LiDAR 3D detection, and propose UniMamba, which can effectively capture lo-cal and global voxel interactions simultaneously. 
+
+## 3. Method 
+
+In this section, we introduce the specific architecture of UniMamba, which is a voxel-based 3D backbone integrat-ing 3D convolution and bidirectional SSM to achieve effec-tive spatial modeling in a group-efficient manner. First, we present the basic concepts of Mamba (Sec. 3.1), followed by an overview of UniMamba (Sec. 3.2). Then we describe the key components of the UniMamba block (Sec. 3.3) in detail. Finally, we provide a detailed analysis of the overall composition of our backbone (Sec. 3.4). 
+
+3.1. Preliminaries 
+
+Mamba architecture is a powerful discrete variant of the State Space Model (SSM). The SSM is a continuous system that establishes a mapping between inputs x(t) → RL and output y(t) → RL through a hidden state vector h(t) → RN .This system can be expressed as follows: 
+
+h→(t) = Ah(t) + Bx(t),y(t) = Ch(t), (1) where A → RN ↑N , B → RN ↑1 and c → R1↑N represent the learnable evolution parameters and the two projection pa-rameters, respectively. To discretize it for fitting sequences and image data, the zero-order hold (ZOH)method is used to convert A and B into discrete parameters A and B with a time scale parameter !. The conversion process is as fol-lows: 
+
+A = exp( !A),
+
+B = ( !A)↓1(exp( !A) ↑ I) · !B (2) Compared to previous SSMs, Mamba [6, 11] enhances contextual awareness by introducing a dynamic selective 1409 Bi-SSM Bi-SSM ... ... ... 
+
+> [N, C] [N, C]
+
+...
+
+... ... ... ... 
+
+...
+
+... ... ... ... ... 
+
+LSE LSE GSE GSE 
+
+... 
+
+> Channel Grouping
+> Y-Axis Global Grouping X-Axis Global Grouping Y-Axis Local Grouping
+> Local-Global Sequential Aggregator ( LGSA ) Local Sequential Encoder ( LSE )
+> [N, C] [N,C]
+> Global Sequential Encoder ( GSE )
+> X-Axis Local Grouping
+
+Bi-SSM Bi-SSM 
+
+> Concat & LayerNorm
+
+Figure 3. Illustration of Local-Global Sequential Aggregator. Local Sequential Encoder (LSE) adopts the bidirectional SSM to handle the multiple 1D groups respectively with the proposed complementary Z-order serialization both vertically and horizontally. Instead, Global Sequential Encoder (GSE) handles a single group without sequence partition to capture the global inter-dependencies. Then the Local-Global Sequential Aggregator (LGSA) combines these two encoders in a multi-head format through channel grouping, which can model both local structure details and global context information simultaneously. scanning mechanism (S6). Specifically, its parameters B →
+
+RB↑L↑N , C → RB↑L↑N and ! → RB↑L↑D are directly obtained from the input x → RB↑L↑D. Thus, the dis-cretized SSM can be expressed as: 
+
+ht = Aht↓1 + Bxt,yt = Cht. (3) 
+
+3.2. Overview 
+
+As shown in Fig. 2, UniMamba comprises four main com-ponents: the Voxel Feature Encoder, a 3D backbone, a BEV backbone, and a detection head. Our contribution lies in proposing a novel 3D backbone designed to efficiently cap-ture flexible contextual information. The key component is the UniMamba Block, which first employs a spatial lo-cality modeling module (SLM) (Sec. 3.3.1) to capture the dynamic structure embedding, and then utilizes a comple-mentary Z-order (Sec. 3.3.2) to convert 3D voxels into a 1D sequence. To simultaneously capture contextual infor-mation from different receptive fields, we use Local-Global Sequential Aggregator (LGSA) (Sec. 3.3.3) to encode both local and global sequences. Additionally, similar to [49], we adopt an encoder-decoder structure to stack UniMamba blocks, forming the final backbone architecture (Sec. 3.4). 
+
+3.3. UniMamba Block 3.3.1. Spatial Locality Modeling 
+
+Like other Mamba-based architectures [12, 16, 23, 51], compressing 2D/3D space into a 1D sequence inevitably results in the loss of local spatial position information. To address this issue, most methods often design various com-plex serialization techniques to maintain locality. However, these approaches tend to incur high computational costs and yield only limited effectiveness. Inspired by previous works [25, 43] that use sparse convolutions to provide po-sitional information, we introduce a simple submanifold convolution as Spatial Locality Modeling module (SLM) within the UniMamba block: 
+
+SLM (x) = SubConv 3D(x) (4) Here, SubConv 3D(·) refers to a standard 3D submanifold convolution. Thanks to the manifold design, it possesses geometric adaptability, effectively capturing local features and maintaining shape information. Therefore, we utilize it to compensate for losing local positional information. 
+
+3.3.2. Complementary Z-order Serialization 
+
+The purpose of serializing non-empty voxels is to find a path that traverses all input voxels. To preserve spatial 1410 topology, the serialization of 3D voxels can be viewed as a space-filling curve process. Existing space-filling curves mainly include Hilbert [14] and Z-order [29] curves. While the Hilbert curve offers a better locality, constructing its index is computationally expensive. Thanks to the local-ity enhancement design (see Sec. 3.3.1), we do not heav-ily rely on preserving spatial topology information dur-ing serialization. Therefore, we opt for the computation-ally efficient Z-order curve. Specifically, given the coordi-nates of the input voxel set C = {(xi, y i, z i), i → (1 , N )},where N denotes the number of voxels, the corresponding Z-order code Z P = {zPi , i → (1 , N )} is computed by the bit-interleaving function [29]. Finally, sorting the Z-order code Z P in ascending order to gain the Z-order index 
+
+Z index = {zindex i , i → (1 , N )} for each voxel. Traditional Z-order curve using the X-axis as the primary order to calculate the index. However, we observe that in-dexing solely in the X-direction results in the preservation of spatial proximity only along the X-axis. Therefore, we introduce a variant that uses the Y-axis as the primary order for indexing. 
+
+3.3.3. Local-Global Sequential Aggregator 
+
+Richer global contextual information is essential for en-hancing 3D detection capabilities. Utilizing Mamba’s com-putational advantages, treating the entire scene as a group to extract long-range global dependencies is intuitive. But the fine-grained local information is also crucial. Therefore, we propose the Local-Global Sequential Aggregator (LGSA), which models the “local and global” inter-dependencies si-multaneously, as shown in Fig. 3. 
+
+Global Sequential Encoder (GSE) treats all non-empty voxels in the scene as a 1D sequence to directly establish a global receptive field. Unlike traditional window-based serialization, it does not create explicit local windows. The basic GSE layer includes two cascaded Mamba layers to encode the serialized voxels using Complementary Z-order. Specifically, given the input voxel sets F → RN ↑C and their corresponding voxel coordinates sets C → RN ↑3, We first serialize F using X-axis Z-order to obtain the correspond-ing voxel sequence F X and coordinates CX . Subsequently, the reordered sequence F X is input into the first Mamba layer to obtain the output F Xout . After that, the sequence 
+
+F Xout is reordered using the Y-axis Z-order curve to obtain the voxel sequence F Y and coordinates CY and input into the second Mamba layer to produce the output F G of the GSE. The specific calculations can be summarized as fol-lows: 
+
+F X , CX = Z INDEX X( F, C),
+
+F Xout = MAMBA 1(F X ),
+
+F Y , CY = Z INDEX Y( F Xout , CX ),
+
+F G = MAMBA 2(F Y )
+
+(5) where In this context, Z INDEX X( ·) and Z INDEX Y( ·)
+
+represent the Z-order curve indexing functions for the X-axis and Y-axis, respectively. MAMBA i(·) refers to the ith 
+
+basic Mamba layer in the GSE, where the input head dimen-sion is C. F Gout → RN ↑C is the output of the GSE. 
+
+Local Sequential Encoder (LSE). Unlike GSE, LSE is a window-based grouping architecture. Following the tradi-tional window partitioning method [8, 25, 41], We divide all the voxels into non-overlapping 3D windows. However, unlike the previous sequential traversal of windows, we ap-ply the Z-order curve for traversal within the local win-dows. Specifically, given a window size of (wx, w y, w z),for each voxel vi, we can compute its window coordinates 
+
+cwin = ( ↓xi/w x↔ , ↓yi/w y↔ , ↓zi/w z↔) and its local coor-dinates within window clocal = ( xi ↑ ↓ x/w x↔ · wx, y i ↑↓y/w y↔ · wy, z i ↑ ↓ z/w z↔ · wz). Then, we use the local window coordinates clocal as input for the Z-order to ob-tain the voxel index within the local window. To enhance efficiency, we adopt the grouping method consistent with FlatFormer [24]. After windows-based grouping, we parti-tion F into multiple equal-length 1D sequences, denoted as 
+
+Flocal = {fi, i → [1 , ↗N/L ↘]}, where L denotes the group size. The calculation of LSE is as follows: 
+
+f Xilocal , c Xilocal = Z INDEX X( flocal , c local ),f Xilout = MAMBA 1(f Xilocal ),f Yilocal , c Yilocal = Z INDEX Y( f Xilout , c Xilocal ),f Liout = MAMBA 2(f Yilocal ),F L = Concat (f L
+
+> 1out
+
+, . . . , f L
+
+> ↔N/L ↗out
+
+)
+
+(6) 
+
+Local-Global Aggregation. To simultaneously extract lo-cal details and global context for each voxel, We adopt a channel grouping strategy to aggregate features with differ-ent receptive fields. For the input F → RN ↑C, we divide it into M groups along the channel dimension, obtaining a set of voxel feature collections F = {Fi → RN ↑c, i → [1 , M ]},where each group has a channel dimension of c = C/M .For the first J groups, we apply GSEs for processing, while the remaining groups are processed using LSEs. Finally, we concatenate all the processed groups along the channel di-mension to obtain the final output. The computation process can be expressed as follows: 
+
+F A = Concat [F G 
+
+> 1
+
+, . . . , F GJ , F LJ+1 , . . . , F LM ],
+
+F B = LayerN orm (F A) + F A,
+
+F A→
+
+= LayerN orm (F F N (F B) + F B)
+
+(7) Where F F N (x) = Linear (Relu (Linear (x))) is a stan-dard feedforward neural network, which is used to capture the feature interactions between different receptive fields. 
+
+3.4. The UniMamba 3D Backbone 
+
+With the proposed UniMamba Block, we build UniMamba 3D Backbone with flexible receptive fields and great spatial 1411 Table 1. Comparison experiments on the nuScenes without using any test-time augmentation and model ensemble strategies. ‘C.V.’, ‘Ped.’, ‘Motor.’, ‘B.C.’, and ‘T.C.’ represent construction vehicle, pedestrian, motorcycle, bicycle and traffic cone, respectively. Method Present at mAP NDS Car Truck Bus Trailer C.V. Ped. Motor. B.C. T.C. Barrier Results on the val set CenterPoint [48] CVPR’2021 59.2 66.5 84.9 57.4 70.7 38.1 16.9 85.1 59.0 42.0 69.8 68.3 Transfusion-L [1] CVPR’2022 65.5 70.1 86.9 60.8 73.1 43.4 25.2 87.5 72.9 57.3 77.2 70.3 VoxelNeXt [5] CVPR’2023 60.5 66.7 83.9 55.5 70.5 38.1 21.1 84.6 62.8 50.0 69.4 69.4 SAFDNet [50] CVPR’2024 66.3 71.0 87.6 60.8 78.0 43.5 26.6 87.8 75.5 58.0 75.0 69.7 SEED [26] ECCV’2024 66.2 71.2 - - - - - - - - - -LION-Mamba [25] NIPS’2024 68.0 72.1 87.9 64.9 77.6 44.4 28.5 89.6 75.6 59.4 80.8 71.6 UniMamba (Ours) - 68.5 72.6 88.7 64.7 79.7 47.9 28.7 89.7 74.6 59.1 79.5 72.3                                                                                                         
+
+> Results on the test set 3DSSD [47] CVPR’2020 42.6 56.4 81.2 47.2 61.4 30.5 12.6 70.2 36.0 8.6 31.1 47.9 PillarNet [33] ECCV’2022 66.0 71.4 87.6 57.5 63.6 63.1 27.9 87.3 70.1 42.3 83.3 77.2 Focals Conv [3] CVPR’2022 63.8 70.0 86.7 56.3 67.7 59.5 23.8 87.5 64.5 36.3 81.4 74.1 LargeKernel3D [4] CVPR’2023 65.4 70.6 85.5 53.8 64.4 59.5 29.7 85.9 72.7 46.8 79.9 75.5 DSVT [41] CVPR’2023 68.4 72.7 86.8 58.4 67.3 63.1 37.1 88.0 73.0 47.2 84.9 78.4 HEDNet [49] NIPS’2023 67.7 72.0 87.1 56.5 70.0 63.5 33.6 87.9 70.4 44.8 85.1 78.1 SAFDNet [50] CVPR’2024 68.3 72.3 87.3 57.3 68.0 63.7 37.3 89.0 71.1 44.8 84.9 79.5
+> UniMamba (Ours) -70.2 74.0 87.9 60.4 70.9 65.9 36.7 90.5 73.5 49.5 86.9 79.4
+
+modeling capacity. The architecture of UniMamba is shown in Fig. 2. Following [49], we use an encoder-decoder archi-tecture to stack UniMamba Blocks for further hierarchical feature extraction. As a general voxel-based 3D backbone, we replace the backbone in LION [25] to construct our de-tector. For Argoverse 2 [42], we build on SAFDNet [50]. The configuration of the detection head and loss functions remains consistent with the baseline. 
+
+## 4. Experiments 4.1. Datasets and Metrics nuScenes [2] is a sophisticated outdoor dataset comprising 1,000 scenarios, with 700 allocated for training, 150 for val-idation, and 150 for testing. It encompasses a diverse array of object annotations across 10 categories, representing the majority of traffic participants. The size of objects varies significantly among these categories, which poses consider-able challenges for detection. We evaluate the effectiveness of our approach using the provided assessment tools, and reporting metrics including NDS and mAP. 
+
+Waymo Open Dataset (WOD) [38] is a large-scale dataset comprising 798 training scenarios and 202 validation sce-narios, with 160,000 and 40,000 samples, respectively. To assess detection performance, the dataset toolkit pro-vides metrics that include mean Average Precision (mAP) and mAPH, where mAPH is the mean average precision weighted by heading. There are two levels of detection dif-ficulty defined based on the density of points within the bounding box: LEVEL 1 (L1) includes bounding boxes with more than five points, while LEVEL 2 (L2) encom-passes bounding boxes containing one to five points. 
+
+Argoverse 2 [42] is a highly challenging dataset. It has an ultra-long detection range ( 200 m ≃ 200 m) and includes annotations for 26 different types of objects, posing signifi-cant challenges for both the real-time performance and de-tection capabilities. The dataset comprises a total of 1,000 scene sequences, with 700 designated for training and 150 for testing. We follow previous methods [10] by using mean Average Precision (mAP) to evaluate performance. 
+
+4.2. Implementation Details 
+
+We implement our UniMamba based on LION [25]. Following previous methods, we use voxel sizes of 
+
+(0 .3m, 0.3m, 0.25 m), (0 .32 m, 0.32 m, 0.1875 m), and 
+
+(0 .4m, 0.4m, 0.25 m) for voxelization of the nuScenes, Waymo, and Argoverse 2 datasets, respectively, where the number of voxel feature channels is set to 128. The downsampling stride for encoder-decoder is set to {1, 2, 2},with each scale containing 1 layer of UniMamba Block. For each UniMamba block, the number of channel groups 
+
+M is set to 4, with J = 2 groups applying GSE and the remaining two applying LSE. The other training hyperparameters are configured consistently with [25]. All experiments are conducted using 8 Tesla A800 GPUs, utilizing the AdamW [27] optimizer. For more network details, please refer to the appendix. 
+
+4.3. Comparison Experiments Result on nuscenes As shown in Tab. 1, our UniMamba demonstrates a significant performance improvement on the NuScenes dataset, being the first lidar-based method to ex-ceed 70 mAP on the test set. Compared to the traditional SpCNN-based state-of-the-art SAFDNet [50], it achieves 
+
+improvements of 1.9 mAP and 1.7 NDS . Additionally, when compared to the transformer-based method DSVT [41], 1412 Table 2. Comparison experiments on the Waymo Open validation set. All of these models are trained with single-frame inputs and no additional test-time augmentation. “Ped.” denotes Pedestrian, and “Cyc.” denotes Cyclist. Method Present at Vehicle(L1) Vehicle(L2) Ped.(L1) Ped.(L2) Cyc.(L1) Cyc.(L2) ALL (L2) AP/APH AP/APH AP/APH AP/APH AP/APH AP/APH mAP/mAPH PointPillar [17] CVPR’2019 70.43/69.83 62.18/61.64 66.21/46.32 58.18/40.64 55.26/51.75 53.18/49.80 57.85/50.69 SECOND [45] Sensors’2018 70.96/70.34 62.58/62.02 65.23/54.24 57.22/47.49 57.13/55.62 54.97/53.53 58.26/54.35 CenterPoint [48] CVPR’2021 74.20/73.60 66.20/65.70 76.60/70.50 68.80/63.20 72.30/71.10 69.70/68.50 68.20/65.80 Voxset [13] CVPR’2022 74.50/74.00 66.00/65.60 80.00/72.40 72.50/65.40 71.60/70.30 69.00/67.70 69.17/66.23 SST [8] CVPR’2022 75.13/74.64 66.61/66.17 80.07/72.12 72.38/65.01 71.49/70.20 68.85/67.61 69.28/66.26 AFDetV2 [15] AAAI’2022 77.64/77.14 69.68/69.22 80.19/72.62 72.16/66.95 73.72/72.74 71.06/70.12 70.97/68.76 PillarNet [33] ECCV’2022 79.09/78.59 70.92/70.46 80.59/74.01 72.28/66.17 72.29/71.21 69.72/68.67 70.97/68.43 PV RCNN++ [35] IJCV’2023 79.25/78.78 70.61/70.18 81.83/76.28 73.17/68.00 73.72/72.66 71.21/70.19 71.66/69.46 OcTr [53] CVPR’2023 79.20/78.70 70.80/70.40 82.20/76.30 74.00/68.50 73.90/72.80 71.10/69.20 71.97/69.37 FlatFormer [24] CVPR’2023 - / - 69.00/68.60 - / - 71.50/65.30 - / - 68.60/67.50 69.70/67.13 DSVT-V [41] CVPR’2023 79.70/79.30 71.40/71.00 83.70/78.90 76.10/71.50 77.50/76.50 74.60/73.70 74.00/72.10 MsSVT++ [18] TPAMI’2023 78.96/78.39 70.57/70.01 80.64/73.78 73.12/66.80 75.98/74.73 72.97/71.82 72.22/69.54 HEDNet [49] NIPS’2023 81.10/80.60 73.20/72.70 84.40/80.00 76.80/72.60 78.70/77.70 75.80/74.90 75.30/73.40 SEED-B [26] ECCV’2024 79.70/79.20 71.80/71.40 83.10/78.30 75.50/70.80 80.00/78.80 77.30/76.10 74.87/72.77 VoxelMamba [51] NIPS’2024 80.80/80.30 72.60/72.20 85.00/80.80 77.70/73.60 78.60/77.60 75.70/74.80 75.33/73.53 LION-Mamba-L [25] NIPS’2024 80.30/79.90 72.00/71.60 85.80/ 81.40 78.50/ 74.30 80.10/79.00 77.20/76.20 75.90/74.00 UniMamba (Ours) - 80.60/80.06 72.28/71.77 85.99 /81.25 78.66 /74.07 80.33/79.30 77.46/76.48 76.13/74.11 
+
+Table 3. Comparison experiments on the Argoverse 2 val set. Here, C-Barrel, MPC-Sign, A-Bus, C-Cone, V-Trailer, MBT, W-Device, and W-Rider refer to Construction Barrel, Mobile Pedestrian Crossing Sign, Articulated Bus, Construction Cone, Vehicular Trailer, Message Board Trailer, Wheeled Device, and Wheeled Rider, respectively. Method mAP Vehicle Bus Pedestrian Stop Sign Box Truck Bollard C-Barrel Motorcyclist MPC-Sign Motorcycle Bicycle A-Bus School Bus Truck Truck Cab C-Cone V-Trailer Sign Large Vehicle Stroller Bicyclist MBT Dog Wheelchair W-Device W-Rider CenterPoint [48] 22.0 67.6 38.9 46.5 16.9 37.4 40.1 32.2 28.6 27.4 33.4 24.5 8.7 25.8 22.1 22.6 29.5 22.4 6.3 3.9 0.5 20.1 0.0 3.9 0.5 10.9 4.2 FSDv1 [9] 28.2 68.1 40.9 59.0 29.0 38.5 41.8 42.6 39.7 26.2 49.0 38.6 20.4 30.5 21.1 14.8 41.2 26.9 11.9 5.9 13.8 33.4 0.0 9.5 7.1 14.0 9.2 VoxelNeXt [5] 30.7 72.7 38.8 63.2 40.2 40.1 53.9 64.9 44.7 39.4 42.4 40.6 20.1 25.2 16.9 19.9 44.9 20.9 14.9 6.8 15.7 32.4 0.0 14.4 0.1 17.4 6.6 HEDNet [49] 37.1 78.2 47.7 67.6 46.4 45.9 56.9 67.0 48.7 46.5 58.2 47.5 23.3 40.9 21.6 27.5 46.8 27.9 20.6 6.9 27.2 38.7 0.0 30.7 9.5 28.5 8.7 FSDv2 [10] 37.6 77.0 47.6 70.5 43.6 41.5 53.9 58.5 56.8 39.0 60.7 49.4 28.4 41.9 24.0 30.2 44.9 33.4 16.6 7.3 32.5 45.9 1.0 12.6 17.1 26.3 17.2                                                                                  
+
+> SAFDNet [50] 39.7 78.5 49.4 70.7 51.5 44.7 65.7 72.3 54.3 49.7 60.8 50.0 31.3 44.9 23.6 24.7 55.4 31.4 22.1 7.1 31.1 42.7 0.0 26.1 1.4 30.2 11.5 LION-Mamba [25] 41.5 75.1 43.6 73.9 53.9 45.1 66.4 74.7 61.3 48.7 65.1 56.2 21.7 42.7 19.0 25.3 58.4 28.9 23.6 8.3 49.5 47.3 0.0 31.4 8.7 37.6 11.8 UniMamba (Ours) 42.0 78.9 47.9 74.3 51.8 46.8 67.8 76.9 55.8 51.7 62.8 52.4 30.2 44.6 24.6 28.1 59.4 32.2 23.2 6.7 41.5 48.5 0.0 26.4 8.1 36.4 13.7
+
+UniMamba shows enhancements of 1.8 mAP and 1.3 NDS. This validates the suitability of the Mamba architecture as a 3D backbone. Notably, UniMamba has significantly improved detection performance for various object sizes, achieving a 3.9 mAP increase for Truck (large target) and a 1.9 mAP improvement for Pedestrian (small target) . This highlights the effectiveness of UniMamba’s hybrid architec-ture design and flexible receptive field. 
+
+Result on Waymo We then compare UniMamba with pre-vious methods on the Waymo dataset, establishing a new state-of-the-art. As shown in Tab. 2, our method out-performs the previous best SpCNN-based method, HED-Net [49], by 0.83 in L2 mAP. Notably, compared to the Transformer-based method DSVT [41], UniMamba has demonstrated significant advantages in small object, achiev-ing improvements of +2.56 L2 mAP for pedestrian and +2.86 L2 mAP for cyclist . This emphasizes the critical im-portance of local details for the perception of small targets. 
+
+Result on Argoverse 2 We also evaluated UniMamba on the Argoverse 2 dataset, which has a larger detection range, with results shown in Tab. 3. UniMamba achieved state-of-the-art performance, reaching 42.0 mAP. Compared to the Table 4. Ablation Study of Spatial Locality Modeling module cross Serializations. For a fair comparison, the latency is calcu-lated as the time taken to serialize 20,000 input voxels. Serialization Method w/o SLM w/ SLM Latency mAP NDS mAP NDS Random 66.2 70.9 67.4 71.5 -Hilbert 67.4 71.7 67.6 71.8 15.8 ms Z-order 67.2 71.5 67.6 71.7 0.9 ms Complementary Z-order 67.6 71.9 67.9 72.0 0.9 ms 
+
+previous state-of-the-art LION-Mamba [25], our method achieved an improvement of 0.5 mAP, by simply replac-ing its 3D backbone. This demonstrates the powerful 3D feature extraction capability of UniMamba. 
+
+4.4. Ablation Study Effect of Spatial Locality Modeling. To validate the effec-tiveness of the SLM in mitigating the loss of spatial local-ity, we compare it with several popular space-filling curves. The ”Random” refers to the configuration where no spa-tial curve is applied. As shown in rows 2-4 of Tab. 4, when neither SLM nor any spatial curve is used, perfor-1413 Table 5. Ablation Study of the Number of Channel Groups in LGSA. We use Transfusion-L [1] as the baseline. Channel Groups GSE LSE mAP NDS 1 (Baseline) 0 0 65.7 70.5 1 (LSE only) 0 1 67.7 72.0 1 (GSE only) 1 0 67.8 72.2 2 1 1 68.4 72.5 4 2 2 68.5 72.6 
+
+4 1 3 68.4 72.5 4 3 1 68.3 72.2 8 4 4 68.2 72.3 mance drops significantly (- 1.4 mAP), demonstrating the importance of spatial locality. Compared with the stan-dard Z-order curve, the Hilbert curve which better pre-serves locality shows a 0.2 mAP advantage. With SLM, the ”Random” achieves 67.4 mAP, comparable to the perfor-mance with space-filling curves. Additionally, the Z-order curve achieves performance parity with the Hilbert curve (67.6 mAP) but requires only 1/17 time cost. These results demonstrate the effectiveness of Spatial Locality Modeling in capturing the dynamic structure embedding. 
+
+Effect of Complementary Z-order Serialization. As shown in row 5 of Tab. 4, Compared to the single-direction Z-order curve, using the Complementary Z-order curve brings a 0.3 mAP improvement. This demonstrates the ef-fectiveness of using z-order for serialization from two di-rections to further enhance locality. 
+
+Effect of Design Choices in LGSA. We study the effect of LSE and GSE proposed in LGSA compared with the SpCNN-based method [1]. Experimental results are shown in rows 2-4 of Tab. 5, which indicate that the SSM-based architecture offers significant advantages, surpassing the baseline by 2.0 mAP. This confirms the effectiveness of our proposed LSE and GSE. 
+
+Number of Channel Groups in LGSA. As shown in rows 4-8 of Tab. 5, we conduct an ablation study on the number of channel groups and the quantities of LSE and GSE. It can be observed that using only two channel groups leads to a significant performance improvement (+0.6 mAP), which demonstrates the importance of simultaneously modeling both local and global receptive fields. The performance is optimal when the number of groups increases to 4. How-ever, when using an imbalanced LSE and GSE, there is a decline in performance, indicating that LSE and GSE hold equal importance for subsequent detection tasks. 
+
+Different Local-Global Feature Aggregation Methods. 
+
+To validate the effectiveness of the channel grouping strat-egy in aggregating local-global contextual information, we compare it with both sequential “LSE ↑ GSE ” and paral-lel “LSE ⇐ GSE ” approaches without channel grouping. As shown in Tab. 6, the channel grouping strategy achieves Table 6. Different Local-Global Feature Aggregation Methods. Method mAP NDS Latency Sequential 68.0 72.3 158.9ms Parallel 68.4 72.5 162.7ms Channel Group (Ours) 68.5 72.6 121.4ms                     
+
+> Table 7. Comparison of computational costs and parameters of different backbone architectures Method Backbone L2 mAP/mAPH Flops Params CenterPoint SpCNN 68.20/65.80 48.5G 2.7M FlatFormer Transformer 69.70/67.13 48.5G 1.1M
+> DSVT-V 74.00/72.10 110.2G 2.7M UniMamba Mamba 75.40/73.61 61.9G 1.6M
+
+the best performance without introducing additional time overhead. This demonstrates the effectiveness of adaptively capturing multiple receptive fields between channel groups. 
+
+Efficiency Analysis. To validate the computational effi-ciency of UniMamba, we compare it with mainstream 3D backbones based on SpCNN and Transformer. As shown in Tab. 7, UniMamba achieved an L2 mAP performance of 75.40 with a computational load of 61.9 GFlops. Com-pared to DSVT, UniMamba improves the L2 mAP by 1.4 while operating at approximately half the computational cost. These results demonstrate that UniMamba maintains strong detection accuracy with relatively low computational costs and parameter sizes. 
+
+## 5. Conclusion 
+
+In this paper, we propose a novel unified Mamba archi-tecture, UniMamba, to integrate 3D convolution and State Space Models (SSM) in a concise multi-head format. Uni-Mamba offers flexible receptive fields and excellent spa-tial modeling capabilities. We first analyze the challenges of directly applying the Mamba architecture in Lidar-based 3D detection tasks, including locality loss and limited spa-tial diversity, which restrict its ability to capture complex local and global dependencies. Then, we introduce a spa-tial locality modeling module to capture dynamic structural embeddings and use complementary Z-order curves to pre-serve spatial proximity when transforming 3D voxels into a 1D sequence. Our core contribution is the Local-Global Sequential Aggregator (LGSA), which includes a Local Se-quential Encoder and Global Sequential Encoder to capture local and global receptive fields. Additionally, we adopt a channel-grouping strategy to efficiently aggregate these various receptive fields. Experiments on three challenging datasets (nuScenes, Waymo and Argoverse 2) demonstrate the superior performance of our UniMamba. 1414 6. Acknowledgments 
+
+This work was supported in part by the following grants: 1) National Natural Science Foundation of China (No. 52172380); 2) Key Research and Development Program of Shaanxi Province (No. 2024GX-ZDCYL-01-25); 3) Key Research and Development Program of Shaanxi Province (No. 2024CY-JJQ-55). 
+
+## References 
+
+[1] Xuyang Bai, Zeyu Hu, Xinge Zhu, Qingqiu Huang, Yilun Chen, Hongbo Fu, and Chiew-Lan Tai. Transfusion: Ro-bust lidar-camera fusion for 3d object detection with trans-formers. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 1090–1099, 2022. 2, 6, 8 [2] Holger Caesar, Varun Bankiti, Alex H. Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Gi-ancarlo Baldan, and Oscar Beijbom. nuscenes: A multi-modal dataset for autonomous driving. In CVPR , 2020. 6 [3] Yukang Chen, Yanwei Li, Xiangyu Zhang, Jian Sun, and Jiaya Jia. Focal sparse convolutional networks for 3d ob-ject detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 5428– 5437, 2022. 2, 6 [4] Yukang Chen, Jianhui Liu, Xiangyu Zhang, Xiaojuan Qi, and Jiaya Jia. Largekernel3d: Scaling up kernels in 3d sparse cnns. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pages 13488–13498, 2023. 1, 2, 6 [5] Yukang Chen, Jianhui Liu, Xiangyu Zhang, Xiaojuan Qi, and Jiaya Jia. Voxelnext: Fully sparse voxelnet for 3d object de-tection and tracking. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 21674–21683, 2023. 2, 6, 7 [6] Tri Dao and Albert Gu. Transformers are SSMs: Gen-eralized models and efficient algorithms through structured state space duality. In International Conference on Machine Learning (ICML) , 2024. 3 [7] Jiajun Deng, Shaoshuai Shi, Peiwei Li, Wengang Zhou, Yanyong Zhang, and Houqiang Li. Voxel r-cnn: Towards high performance voxel-based 3d object detection. In Pro-ceedings of the AAAI Conference on Artificial Intelligence ,pages 1201–1209, 2021. 2 [8] Lue Fan, Ziqi Pang, Tianyuan Zhang, Yu-Xiong Wang, Hang Zhao, Feng Wang, Naiyan Wang, and Zhaoxiang Zhang. Embracing single stride 3d object detector with sparse trans-former. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 8458–8468, 2022. 3, 5, 7 [9] Lue Fan, Feng Wang, Naiyan Wang, and ZHAO-XIANG ZHANG. Fully sparse 3d object detection. Advances in Neu-ral Information Processing Systems , 35:351–363, 2022. 7 [10] Lue Fan, Feng Wang, Naiyan Wang, and Zhaoxiang Zhang. Fsd v2: Improving fully sparse 3d object detection with vir-tual voxels. arXiv preprint arXiv:2308.03755 , 2023. 6, 7 [11] Albert Gu and Tri Dao. Mamba: Linear-time sequence modeling with selective state spaces. arXiv preprint arXiv:2312.00752 , 2023. 2, 3 [12] Xu Han, Yuan Tang, Zhaoxuan Wang, and Xianzhi Li. Mamba3d: Enhancing local features for 3d point cloud anal-ysis via state space model. arXiv preprint arXiv:2404.14966 ,2024. 3, 4 [13] Chenhang He, Ruihuang Li, Shuai Li, and Lei Zhang. Voxel set transformer: A set-to-set approach to 3d object detection from point clouds. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 8417–8427, 2022. 7 [14] David Hilbert. ¨Uber die stetige Abbildung einer Linie auf ein Fl¨ achenst¨ uck , page 1–2. 5 [15] Yihan Hu, Zhuangzhuang Ding, Runzhou Ge, Wenxin Shao, Li Huang, Kun Li, and Qiang Liu. Afdetv2: Rethinking the necessity of the second stage for object detection from point clouds. In Proceedings of the AAAI Conference on Artificial Intelligence , pages 969–979, 2022. 7 [16] Tao Huang, Xiaohuan Pei, Shan You, Fei Wang, Chen Qian, and Chang Xu. Localmamba: Visual state space model with windowed selective scan. arXiv preprint arXiv:2403.09338 ,2024. 3, 4 [17] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12697–12705, 2019. 7 [18] Jianan Li, Shaocong Dong, Lihe Ding, and Tingfa Xu. Mssvt++: Mixed-scale sparse voxel transformer with center voting for 3d object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence , pages 1–17, 2023. 7 [19] Kunchang Li, Yali Wang, Peng Gao, Guanglu Song, Yu Liu, Hongsheng Li, and Yu Qiao. Uniformer: Unified transformer for efficient spatiotemporal representation learning. arXiv preprint arXiv:2201.04676 , 2022. 2 [20] Kunchang Li, Yali Wang, Yinan He, Yizhuo Li, Yi Wang, Limin Wang, and Yu Qiao. Uniformerv2: Spatiotemporal learning by arming image vits with video uniformer, 2022. 2 [21] Kunchang Li, Xinhao Li, Yi Wang, Yinan He, Yali Wang, Limin Wang, and Yu Qiao. Videomamba: State space model for efficient video understanding. In European Conference on Computer Vision , pages 237–255. Springer, 2024. 3 [22] Dingkang Liang, Xin Zhou, Wei Xu, Xingkui Zhu, Zhikang Zou, Xiaoqing Ye, Xiao Tan, and Xiang Bai. Pointmamba: A simple state space model for point cloud analysis. In Ad-vances in Neural Information Processing Systems , 2024. [23] Yue Liu, Yunjie Tian, Yuzhong Zhao, Hongtian Yu, Lingxi Xie, Yaowei Wang, Qixiang Ye, and Yunfan Liu. Vmamba: Visual state space model. arXiv preprint arXiv:2401.10166 ,2024. 2, 3, 4 [24] Zhijian Liu, Xinyu Yang, Haotian Tang, Shang Yang, and Song Han. Flatformer: Flattened window attention for effi-cient point cloud transformer. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023. 2, 3, 5, 7 [25] Zhe Liu, Jinghua Hou, Xinyu Wang, Xiaoqing Ye, Jingdong Wang, Hengshuang Zhao, and Xiang Bai. Lion: Linear 1415 group rnn for 3d object detection in point clouds. Advances in Neural Information Processing Systems , 37:13601–13626, 2024. 2, 3, 4, 5, 6, 7 [26] Zhe Liu, Jinghua Hou, Xiaoqing Ye, Tong Wang, Jingdong Wang, and Xiang Bai. Seed: A simple and effective 3d detr in point clouds. In European Conference on Computer Vi-sion , pages 110–126. Springer, 2025. 6, 7 [27] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 , 2017. 6 [28] Jiageng Mao, Yujing Xue, Minzhe Niu, Haoyue Bai, Jiashi Feng, Xiaodan Liang, Hang Xu, and Chunjing Xu. Voxel transformer for 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,pages 3164–3173, 2021. 2 [29] Jack A. Orenstein. Spatial query processing in an object-oriented database system. ACM SIGMOD Record , 15(2): 326–336, 1986. 5 [30] Charles R Qi, Hao Su, Kaichun Mo, and Leonidas J Guibas. Pointnet: Deep learning on point sets for 3d classification and segmentation. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 652–660, 2017. 1, 2 [31] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J Guibas. Pointnet++: Deep hierarchical feature learning on point sets in a metric space. Advances in neural information processing systems , 30, 2017. 1, 2 [32] Zhiwu Qing, Haisheng Su, Weihao Gan, Dongliang Wang, Wei Wu, Xiang Wang, Yu Qiao, Junjie Yan, Changxin Gao, and Nong Sang. Temporal context aggregation network for temporal action proposal refinement. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 485–494, 2021. 2 [33] Guangsheng Shi, Ruifeng Li, and Chao Ma. Pillarnet: Real-time and high-performance pillar-based 3d object detection. In European Conference on Computer Vision , pages 35–52. Springer, 2022. 6, 7 [34] Shaoshuai Shi, Xiaogang Wang, and Hongsheng Li. Pointr-cnn: 3d object proposal generation and detection from point cloud. In Proceedings of the IEEE/CVF conference on com-puter vision and pattern recognition , pages 770–779, 2019. 1, 2 [35] Shaoshuai Shi, Li Jiang, Jiajun Deng, Zhe Wang, Chaoxu Guo, Jianping Shi, Xiaogang Wang, and Hongsheng Li. Pv-rcnn++: Point-voxel feature set abstraction with local vector representation for 3d object detection. International Journal of Computer Vision , 131(2):531–551, 2023. 7 [36] Haisheng Su, Feixiang Song, Cong Ma, Wei Wu, and Junchi Yan. Robosense: Large-scale dataset and benchmark for ego-centric robot perception and navigation in crowded and un-structured environments. arXiv preprint arXiv:2408.15503 ,2024. 1 [37] Haisheng Su, Wei Wu, and Junchi Yan. Difsd: Ego-centric fully sparse paradigm with uncertainty denoising and itera-tive refinement for efficient end-to-end autonomous driving. 
+
+arXiv preprint arXiv:2409.09777 , 2024. 1 [38] Pei Sun, Henrik Kretzschmar, Xerxes Dotiwalla, Aurelien Chouard, Vijaysai Patnaik, Paul Tsui, James Guo, Yin Zhou, Yuning Chai, Benjamin Caine, et al. Scalability in perception for autonomous driving: Waymo open dataset. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , pages 2446–2454, 2020. 6 [39] Pei Sun, Mingxing Tan, Weiyue Wang, Chenxi Liu, Fei Xia, Zhaoqi Leng, and Dragomir Anguelov. Swformer: Sparse window transformer for 3d object detection in point clouds. In European Conference on Computer Vision , pages 426– 442. Springer, 2022. 3 [40] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, !ukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems , 30, 2017. 3 [41] Haiyang Wang, Chen Shi, Shaoshuai Shi, Meng Lei, Sen Wang, Di He, Bernt Schiele, and Liwei Wang. Dsvt: Dy-namic sparse voxel transformer with rotated sets. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 13520–13529, 2023. 2, 3, 5, 6, 7 [42] Benjamin Wilson, William Qi, Tanmay Agarwal, John Lambert, Jagjeet Singh, Siddhesh Khandelwal, Bowen Pan, Ratnesh Kumar, Andrew Hartnett, Jhony Kaesemodel Pontes, et al. Argoverse 2: Next generation datasets for self-driving perception and forecasting. arXiv preprint arXiv:2301.00493 , 2023. 6 [43] Xiaoyang Wu, Li Jiang, Peng-Shuai Wang, Zhijian Liu, Xi-hui Liu, Yu Qiao, Wanli Ouyang, Tong He, and Hengshuang Zhao. Point transformer v3: Simpler, faster, stronger. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024. 4 [44] Yicheng Xiao, Lin Song, Shaoli Huang, Jiangshan Wang, Siyu Song, Yixiao Ge, Xiu Li, and Ying Shan. Grootvl: Tree topology is all you need in state space model. arXiv preprint arXiv:2406.02395 , 2024. 3 [45] Yan Yan, Yuxing Mao, and Bo Li. Second: Sparsely embed-ded convolutional detection. Sensors , 18(10):3337, 2018. 1, 2, 7 [46] Honghui Yang, Wenxiao Wang, Minghao Chen, Binbin Lin, Tong He, Hua Chen, Xiaofei He, and Wanli Ouyang. Pvt-ssd: Single-stage 3d object detector with point-voxel transformer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 13476–13487, 2023. 3[47] Zetong Yang, Yanan Sun, Shu Liu, and Jiaya Jia. 3dssd: Point-based 3d single stage object detector. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11040–11048, 2020. 1, 2, 6 [48] Tianwei Yin, Xingyi Zhou, and Philipp Krahenbuhl. Center-based 3d object detection and tracking. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11784–11793, 2021. 2, 6, 7 [49] Gang Zhang, Chen Junnan, Guohuan Gao, Jianmin Li, and Xiaolin Hu. HEDNet: A hierarchical encoder-decoder net-work for 3d object detection in point clouds. In Thirty-seventh Conference on Neural Information Processing Sys-tems , 2023. 2, 4, 6, 7 [50] Gang Zhang, Junnan Chen, Guohuan Gao, Jianmin Li, Si Liu, and Xiaolin Hu. Safdnet: A simple and effective net-1416 work for fully sparse 3d object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 14477–14486, 2024. 2, 6, 7 [51] Guowen Zhang, Lue Fan, Chenhang He, Zhen Lei, ZHAO-XIANG ZHANG, and Lei Zhang. Voxel mamba: Group-free state space models for point cloud based 3d object detec-tion. Advances in Neural Information Processing Systems ,37:81489–81509, 2024. 2, 3, 4, 7 [52] Yifan Zhang, Qingyong Hu, Guoquan Xu, Yanxin Ma, Jian-wei Wan, and Yulan Guo. Not all points are equal: Learn-ing highly efficient point-based detectors for 3d lidar point clouds. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 18953– 18962, 2022. 2 [53] Chao Zhou, Yanan Zhang, Jiaxin Chen, and Di Huang. Octr: Octree-based transformer for 3d object detection. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 5166–5175, 2023. 3, 7 [54] Yin Zhou and Oncel Tuzel. Voxelnet: End-to-end learning for point cloud based 3d object detection. In Proceedings of the IEEE conference on computer vision and pattern recog-nition , pages 4490–4499, 2018. 1, 2 [55] Lianghui Zhu, Bencheng Liao, Qian Zhang, Xinlong Wang, Wenyu Liu, and Xinggang Wang. Vision mamba: Efficient visual representation learning with bidirectional state space model. In Forty-first International Conference on Machine Learning . 2, 3 1417

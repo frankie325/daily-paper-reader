@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 821,
+      "height": 755,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1395,
+      "height": 885,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-lavoie-large-self-supervised-models-bridge-the-gap-in-domain-adaptive-object-cvpr-2025-paper/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1755,
+      "height": 445,
+      "label": "Figure"
+    }
+  ]
+}

@@ -1,0 +1,309 @@
+Title: SP3D: Boosting Sparsely-Supervised 3D Object Detection via Accurate Cross-Modal Semantic Prompts
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhao_SP3D_Boosting_Sparsely-Supervised_3D_Object_Detection_via_Accurate_Cross-Modal_Semantic_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 14:10:13 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# SP3D: Boosting Sparsely-Supervised 3D Object Detection via Accurate Cross-Modal Semantic Prompts 
+
+# Shijia Zhao 1,2* Qiming Xia 1,2* Xusheng Guo 1,2 Pufan Zou 1,2 Maoji Zheng 1,2
+
+# Hai Wu 1,2 Chenglu Wen 1,2† Cheng Wang 1,21Fujian Key Laboratory of Sensing and Computing for Smart Cities, Xiamen University, Xiamen, China  
+
+> 2
+
+# Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University, China 
+
+# Abstract 
+
+Recently, sparsely-supervised 3D object detection has gained great attention, achieving performance close to fully-supervised 3D detectors while requiring only a few annotated instances. Nevertheless, these methods suffer challenges when accurate labels are extremely absent. In this paper, we propose a boosting strategy, termed SP3D ,explicitly utilizing the cross-modal semantic prompts gen-erated from Large Multimodal Models (LMMs) to boost the 3D detector with robust feature discrimination ca-pability under sparse annotation settings. Specifically, we first develop a Confident Points Semantic Transfer (CPST ) module that generates accurate cross-modal se-mantic prompts through boundary-constrained center clus-ter selection. Based on these accurate semantic prompts, which we treat as seed points, we introduce a Dynamic Cluster Pseudo-label Generation ( DCPG ) module to yield pseudo-supervision signals from the geometry shape of multi-scale neighbor points. Additionally, we design a Distribution Shape score ( DS score ) that chooses high-quality supervision signals for the initial training of the 3D detector. Experiments on the KITTI dataset and Waymo Open Dataset (WOD) have validated that SP3D can en-hance the performance of sparsely supervised detectors by a large margin under meager labeling conditions. More-over, we verified SP3D in the zero-shot setting, where its performance exceeded that of the state-of-the-art meth-ods. The code is available at https://github.com/ xmuqimingxia/SP3D .
+
+# 1. Introduction 
+
+3D object detection, aiming at locating and classifying ob-jects within 3D scenes, has garnered significant attention in *Equal contribution. †Corresponding author, clwen@xmu.edu.cn .      
+
+> &R,Q 63'
+> &R,Q 63'
+>     
+> &R,Q 63'
+> (DV\ 0RG +DUG
+> '$3  $QQRWDWLRQUDWH  $QQRWDWLRQUDWH  $QQRWDWLRQUDWH 
+> ϭϬ͘ϬϮ͘ϬϬ͘ϱϬ͘ϭ ϭϬ͘ϬϮ͘ϬϬ͘ϱϬ͘ϭ ϭϬ͘ϬϮ͘ϬϬ͘ϱϬ͘ϭ
+
+Figure 1. Performance comparison of the sparsely-supervised de-tector at various annotation rates. SP3D indicates the CoIn initial-ized with the proposed SP3D. autonomous driving [6, 10, 19, 34, 36]. However, the main-stream 3D detectors relies heavily on high-quality labels an-notated by humans, which is not only time-consuming but also sensitive to the subjective impression of annotators. To minimize the dependence of 3D detectors on high-quality manual annotations, recent work has begun to fo-cus on label-efficient training strategies [15, 21, 31, 37]. To discover unlabeled instances, SS3D [14] employs a self-training approach to iteratively optimize the detector trained on sparsely annotated data. CoIn [37] introduces con-trastive learning methods, enhancing the model’s discrim-inative capability for various category features. However, existing strategies make 3D detectors struggle to extract sufficiently discriminative features from extremely limited annotations. Fig. 1 shows some examples where the state-of-the-art (SoTA) sparsely-supervised object detector CoIn [37] hardly maintains robust performance with a significant reduction in annotation rate. With the successive emergence and widespread applica-tion of large language models (LLMs), such as BERT [7] and GPT [1, 3], in natural language processing, research on large multimodal models (LMMs) is also gaining mo-mentum [12, 13, 17, 27]. Benefiting from the outstanding performance of LMMs, the utilization of pre-trained LMMs has led to significant advancements in 2D vision tasks. In-spired by this, [40, 46, 50] transfers the image-text knowl-This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 29374 Forward view Top view 
+
+> Figure 2. Semantics belonging to a foreground object may be in-correctly assigned to background/other objects.
+
+edge prior from 2D LMMs to 3D point clouds. However, these methods typically focus on classifying individual in-stances, and there will be certain limitations when applying them directly to outdoor 3D object detection. Despite this, these attempts to transfer the priors from 2D LMMs to 3D point clouds still provide a new perspective for solving the problem of sparsely-supervised 3D object detection. Motivated by these methods, we proposed a two-stage training strategy, SP3D , boosting sparsely-supervised 3D object detection with cross-modal semantic prompts gen-erated by LMMs. As shown in Fig. 3, we first employ LMMs to extract semantics from 2D images and explic-itly transfer them to 3D point clouds, generating pseudo-labels for the first stage of detector training. In the second stage, we fine-tune the trained detector with sparse accurate labels. However, this enhanced paradigm still holds some challenges: (1) Semantic ambiguity at instance edges. Due to the absence of inherent depth information in images, di-rectly transferring image semantics onto point clouds may result in noisy semantic prompts at the edge of the instance. (2) Efficient generation of pseudo-labels. Based on the ob-tained semantics, directly fitting pseudo-labels may result in incomplete foreground bounding boxes. Moreover, it is difficult to assess the quality of the generated pseudo-labels because of the lack of ground truth. To address the aforementioned challenges, our SP3D first designs a Confident Points Semantic Transfer ( CPST )module, employing boundary-constrained center cluster se-lection operation to filter out inaccurate edges to obtain accurate cross-modal semantic prompts. These semantic prompts focus on central foreground semantic masks gen-erated by LMMs. Inspired by unsupervised algorithms [35, 45], we can utilize these as accurate semantic prompts as seed points to generate bounding box pseudo-labels. In this case, we introduce a Dynamic Cluster Pseudo-label Generation ( DCPG ) module and Distribution Shape score (DS score ) to efficiently discover and assess high-quality pseudo-labels with complete foreground information from seed points. As shown in Fig. 3, we utilize the generated pseudo-labels to train the 3D object detector for the first stage. After training, the 3D detector has learned a certain feature discrimination capability from the 2D images. Sub-sequently, we fine-tune the 3D detector with sparse accu-rate labels, and in conjunction with current label-efficient methods, it demonstrates relatively high detection capabili-ties even under extremely low labeling scenarios. Experiment results on the KITTI and Waymo datasets show that SP3D substantially enhances the performance of SoTA sparsely-supervised 3D object detectors. Moreover, without fine-tuning on labeled data, SP3D has also shown superior performance in a zero-shot setting, indicating the efficiency of the SP3D-initialized detector. The contribu-tions of this paper can be summarized as follows: • We propose a two-stage boosting strategy, SP3D , utiliz-ing accurate cross-modal prompts to boost the feature discrimination capability of 3D detectors under sparsely-supervised situations. • We propose a Confident Points Semantic Transfer (CPST ) module for accurate cross-modal semantic prompt generation and constraint, reducing the noise in-terference in the semantic transfer process. • We propose a Dynamic Cluster Pseudo-label Genera-tion ( DCPG ) module and Distribution Shape score ( DS score ), which generate and assess high-quality pseudo-labels based on semantic prompts to improve the detect performance. 
+
+# 2. Related work 2.1. Label-efficient 3D Object Detection 
+
+Recently, label-efficient 3D object detection methods have begun to be explored in responding to the challenge of ex-tremely low annotation volumes. Generally, these label-efficient methods can be categorized into semi-supervised [15, 24, 31, 48], and weakly-supervised [16, 21, 26, 43] approaches according to the difference in quantity and su-pervision form. In semi-supervised methods, full annota-tions are provided only for some scenes, while weakly-supervised methods typically adopt weaker annotation forms. For example, VS3D [26] leverages detectors on im-ages to guide unsupervised 3D object detection, and WS3D [21] employs point annotation as a supervision signal. To maintain accuracy while reducing the annotations, SS3D [14] introduces the concept of sparse supervision, annotat-ing only one complete 3D object per frame. CoIn [37] then adopts a contrastive instance feature mining strategy to ex-tract the feature-level pseudo-labels from a significantly re-duced amount of annotated data. However, the performance of existing methods remains constrained due to the insuffi-cient feature discriminability of the initial detector, which may affect subsequent training under very few annotations. This work aims to develop a two-stage strategy, enabling the 3D detector to maintain robust feature representation capa-bilities despite having lower instance annotation ratio. 29375 2.2. Large Multimodal Models in 3D 
+
+As the outstanding performance achieved by LMMs in 2D tasks [2, 12, 18, 25, 27], some studies have begun to ex-plore their application in the 3D domain. Inspired by CLIP [27], ULIP [40] enhances the 3D understanding capability by transferring knowledge from 2D LMM to 3D encoder through contrastive learning methods. Similar works are [46, 50]. In the outdoor scenario, SAM3D [44] employs SAM to segment BEV images of point clouds and fit bound-ing boxes based on the segmentation masks to obtain de-tection results. CLIP2Scene [5] establishes the connection between point clouds and text by using images as an inter-mediate modality, enhancing the 3D model’s semantic un-derstanding of the scene with the prior knowledge of CLIP. Unlike previous approaches, our SP3D explicitly transfers semantic masks obtained from LMMs onto point clouds to generate high-quality pseudo-labels for the first-stage train-ing of the 3D detector. 
+
+## 2.3. Multimodal Representation Learning 
+
+Recently, using multimodal methods from 2D images and 3D point clouds to enhance 3D detectors has gradually gained the community’s attention [19, 28, 32, 34, 39]. How-ever, these works mainly focus on investigating the image-point cloud fusion strategy, neglecting the utilization of im-ages to explore label-efficient 3D detection. To reduce the required annotations, some methods transfer image infor-mation into point clouds to generate pseudo-labels [41, 51]. However, semantic ambiguity may occur at the object’s edge due to the 2D-3D calibration error. MixSup [41] pro-posed a connected components labeling strategy, addressing this issue with the spatial separability property inherent to point clouds. SAL [23] employs density-based clustering to refine imperfect projection issues. Compared with these methods, our SP3D provides a simple but efficient way to reduce semantic noise caused by projection errors. 
+
+# 3. Methods 3.1. Overview 
+
+This paper introduces SP3D , explicitly utilizing the accu-rate cross-modal semantic prompts generated by LMMs to boost the sparsely-supervised 3D detectors. As shown in Fig. 3, SP3D consists of three primary components: (1) 
+
+Confident Points Semantic Transfer (CPST) module, ac-quiring accurate cross-modal semantic prompts, which we treat as seed points, with the boundary-constrained cen-ter cluster selection. (2) Dynamic Cluster Pseudo-label Generation (DCPG) module, which dynamically gener-ates pseudo-label proposals based on the geometric shapes within the multi-scale neighborhood of these seed points. (3) Distribution Shape score (DS score) , which employs unsupervised priors as the criterion for evaluating the qual-ity of pseudo-label proposals, and we subsequently apply NMS [22] to retain high-quality pseudo-labels further. We then follow the training strategy of CoIn [37] to train an ini-tial 3D detector with enhanced discriminative capacity. We detail our SP3D framework as follows. 
+
+## 3.2. Confident Points Semantic Transfer Module 
+
+Encouraged by the development of LMMs, we first utilize the prior knowledge of LMMs to extract semantic informa-tion from 2D images explicitly. Meanwhile, by integrating the calibration relationship matrix between 2D images and 3D point clouds, it is straightforward to transfer semantic information onto point clouds. However, as shown in Fig. 2, there is significant noise in the edge points of instances dur-ing the transfer process. These semantic points are mis-takenly assigned to other instances can have a detrimental impact on subsequent pseudo-label fitting and the training of the detector. To prevent the incorporation of noise during the transfer of semantic information, we use the boundary-constrained mask shrink operation, followed by the coordi-nate system transformation, to obtain accurate cross-modal semantic prompts. CSPT is illustrated in Fig. 3(a); we have divided it into two parts as LMMs-guided semantic ex-traction and confident points filtering .
+
+LMMs-guided semantic extraction. The goal of LMMs is to generate high-quality foreground semantic masks. Specifically, we take as input an image I ∈ R3×H×W and the category-text prompt T C = {tC 
+
+> 1
+
+, t C 
+
+> 2
+
+, ..., t C
+
+> C
+
+}, where H
+
+and W denote the height and width of the image, C denotes the categories of interest. We first utilize FastSAM [49] to perform speed-efficient segmentation as 
+
+MI = SAM( I), (1) where MI ∈ RM ×H×W denotes the M class-agnostic masks extracted from I, SAM( ·) indicates the FastSAM model. We then utilize MI as the mask prompts and feed them, along with image I, into the SemanticSAM [4] model, which is expected to output the descriptions 
+
+T D = {tD 
+
+> 1
+
+, t D 
+
+> 2
+
+, ..., t D
+
+> M
+
+} for each mask in MI. Specifically: 
+
+T D = SSAM( I, MI), (2) where SSAM( ·) refers to the SemanticSAM model. Then, we calculate the cosine similarity between the category-text 
+
+T C and the mask description T D to filter out uninteresting background masks, obtaining the foreground masks M′I.
+
+Confident points filtering. As fuzziness of boundaries results from depth occlusions in images and calibration in-accuracies, we opt to constrain the boundary of foreground masks before 2D-3D transfer, retaining only its central por-tion. Specifically, for each foreground mask, we denote its 29376 (a) CPST   
+
+> ࡹ࡭ࡿ ࣮ࣣࣞࣧࡹ࡭ࡿࡿ Ԣ&DU
+> &DU
+> Mask shrink
+> +LJKFRQILGHQFHPDVNV
+
+ݑݒ   
+
+> 6KUXQNPDVNV
+> Transfer
+> (b) DCPG
+> ओ
+> (c) DS score
+> 3VHXGRODEHO &RVLQH6LPLODULW\ )LOWHULQJ 6HPDQWLFVHHGSRLQW 2WKHUSRLQW ࣣࣧ ࢙ࡹࡹࡸ
+
+ଵߣ  
+
+> Ăƌ &DU
+
+ҧ௠௦௖ݏ ଶߣ ҧௗ௖ݏ     
+
+> fer r
+> Ăƌ &DU Ăƌ
+> 6KUXQN PDVNV
+> Tr
+> Ăƌ ƌƌ&DU &DU &DU UUUUĂƌ Ăƌ
+> ञ
+> Sparse labels NMS
+> Training Pseudo-labels Semantic prompts
+> NMS
+> T
+> Images LiDAR point clouds
+> Initialize Tuning
+
+࣠ௗ௘௧࣠ ௗ௘௧ 
+
+Figure 3. The overview of our SP3D, including (a) CSPT finds semantic seed points through high-confidence semantic masks transfer, (b) DCPG dynamically clusters neighbor points of seed points to fit pseudo-label proposals, and (c) DS score to evaluate the quality of generated pseudo-label proposals, serving as a scoring metric to NMS to suppress low-quality proposals. maximum and minimum values in the pixel coordinate sys-tem (u, v ) as (umin , u max , v min , v max ). We perform mask shrink to constraint boundary range of M′I to obtain ˆM′I:
+
+u ∈ [umin + 12 (1 ± γ)( umax − umin )] ,v ∈ [vmin + 12 (1 ± γ)( vmax − vmin )] ,
+
+(3) where γ denotes the shrink factor. With this constraint, we obtain the shrunk masks that filter out the semantically am-biguous regions, ensuring the accuracy of foreground se-mantic information transferred onto the point clouds. Fol-lowing [30], we transfer the semantic mask from the image onto the point clouds to obtain accurate cross-modal seman-tic prompts, namely seed points, using the camera’s intrin-sic and extrinsic parameter matrices. Note that, different from [30], we adopt the approach of explicitly transferring the shrunk masks onto the point cloud rather than implic-itly embedding unprocessed semantic masks into the point cloud’s features. This approach helps avoid potential se-mantic feature confusion between different modalities aris-ing from sparse annotations. 
+
+## 3.3. Dynamic Cluster Pseudo-label Generation 
+
+With the proposed CPST, we explicitly obtain the seman-tic seed points from transformation ˆM′I of the foreground mask. Given P ∈ RN ×3 = {p1, p 2, ..., p N } as LiDAR points, we define the seed points covered by ˆM′I as PT =
+
+{pt}, PT ⊂ P . It is crucial for the 3D detection task that obtain complete bounding boxes from these seed points. By referring to traditional unsupervised pseudo-label generation methods [45], we produce many pseudo-labels and then use the positional constraints of the seed points to retain the more promising pseudo-labels as supervisory signals. However, existing unsupervised bounding box fit-ting approaches [35, 45] usually take a fixed constant as cluster radius, leading to the problem of inadequate fore-ground or excessive background noise for the generated bounding boxes. In this case, we propose a dynamic clus-ter pseudo-label generation (DCPG) module. This module utilizes the geometry shape of the seed points’ multi-scale neighborhood to capture complete foreground information while minimizing background interference. It dynamically generates pseudo-label proposals, as shown in Fig. 3(b). Specifically, we denote P (k) 
+
+> T
+
+as the k-th instance in a point cloud frame and utilize DCPG dynamically generates a clustering radius r for the t-th seed point p(k) 
+
+> t
+
+. We define the updating function for the dynamic radius as 
+
+update( t, r init ) = rinit · tN (k) + δ, t = 1 , 2, ..., N (k), (4) where rinit is a hyper-parameter set based on empirical ex-perience, δ denotes adjustment factor to avoid r too small, and N (k) is the number of seed points in current instance. 29377 Algorithm 1 Dynamic cluster pseudo-label generation 
+
+Require: LiDAR points P, the seed points set P (k) 
+
+> T
+
+of the 
+
+k-th instance , initial radius rinit , ground remove func-tion G, box fitting function F;
+
+Ensure: Pseudo-label proposal set ˆB(k);1: Acquire the number N (k) of points for the seed points set of current instance P (k) 
+
+> T
+
+;2: Pgr ← G (P) ; // remove gound points  
+
+> 3:
+
+ˆB(k) = ∅;4: for t = 1 , 2, ..., N (k) do  
+
+> 5:
+
+pt = P (k) 
+
+> T
+
+[t] ; // loop each seed point  
+
+> 6:
+
+r ← update( t, r init ) 
+
+> 7:
+
+ˆb ← F (DBSCAN( Pgr , p t, r ))  
+
+> 8:
+
+ˆB(k) ← ˆB(k) ∪ ˆb 
+
+> 9:
+
+end for 
+
+By applying Eq. 4, we dynamically update the radius r,
+
+r ∈ (δ, r init + δ], during point clustering, thereby obtaining foreground clusters with multi-scale receptive fields. Fol-lowing [45]. We utilize the radius calculated from Eq. 4 as the clustering radius for DBSCAN [8] and employ [47] to fit the bounding box for each foreground cluster. Algorithm 1 summarizes Our DCPG. 
+
+## 3.4. Distribution Shape Score 
+
+While DCPG has the capacity for high-quality pseudo-label generation, it unavoidably produces an amount of low-quality pseudo-label proposals. The shapes of these proposals and the extent of foreground completeness con-tained within the proposals usually deviate significantly from reality. Traditional detection methods typically com-pute the Intersection over Union (IoU) score between pre-dicted bounding boxes and ground-truth (GT) boxes and then employ the NMS [22] to suppress these low-quality proposals. However, lacking GT makes it challenging to directly apply NMS using IoU as the evaluation criterion within our SP3D framework. In this case, we propose a distribution shape score (DS score) to assess the quality of the pseudo-labels using unsupervised prior knowledge. As illustrated in Fig. 3(c), we divided the DS score into two parts: distribution constraint score and meta-shape con-straint score .
+
+Distribution constraint score. Inspired by [20], within a high-quality pseudo-label proposal ˆb, the distances from its interior points pi,i =1 ,...,n to its boundary roughly follow a Gaussian distribution N (μ, σ ), where μ = 0 .8 and σ = 0 .2,respectively. In other words, we denote random variable 
+
+D = {d1, ..., d n} as the distance between pi and the box boundary of ˆb, and D ∼ N (0 .8, 0.2) . Based on this prior, we assign a distribution constraint score to the pseudo-label proposal ˆb by calculating the similarity between the random variable D corresponding to each ˆb and the normal distribu-tion N . Specifically: 
+
+sdc (ˆb) = 1
+
+|P f g |
+
+∑
+
+> pi∈P f g
+
+log( N (D|μ, σ )) , (5) where log( ·) denotes the logarithm function, Pf g is the foreground points within ˆb, and |P f g | represents the number of points in Pf g .
+
+Meta-shape constraint score. In addition, the shape of a high-quality pseudo-label is expected to be consistent with its template in the real world, which we define as the meta instance, corresponding to its category [35]. For class c,we denote Bc ∈ { lc, w c, h c} as the shape of its meta in-stance, where lc, wc and hc are the normalized length, width and height, respectively. we followed this shape prior to constructing the class-aware meta-shape constraint score 
+
+smsc (ˆb) as 
+
+smsc (ˆb) = 1 − ΦKL (Bc|| ˆBˆb), (6) where ΦKL (·) denotes the normalized KL divergence func-tion, and ˆBˆb ∈ {lˆb, w ˆb, h ˆb
+
+} indicates the normalized shape of the pseudo-label proposal. The purpose of this operation is to suppress the low-quality proposals whose shape devi-ates significantly from the meta instance. By combining the distribution constraint score and the meta-shape constraint score, we can obtain the DS score as 
+
+DS( ˆb) = λ1sdc (ˆb) + λ2smsc (ˆb), (7) where λ1 and λ2 denote weight adjustment factor. Notably, to unify the dimension, we normalized the two constraint scores before combining them, resulting in sdc and smsc .We then employ the DS score as a substitution for the con-fidence score in NMS to suppress the low-quality pseudo-labels. We utilize the obtained pseudo-labels in conjunction with CoIn [37] for the first phase of training. Subsequently, we fine-tune the trained detector with a small amount of ac-curate labels to boost the performance of the 3D detector. 
+
+# 4. Experiments 4.1. Dataset and Metrics KITTI dataset. The KITTI [9] dataset is a widely used benchmark for 3D object detection. During the first train-ing stage, we relied solely on the semantic information pro-vided by LMMs to generate pseudo-labels instead of the human-annotated ground truth. In the fine-tuning stage, we split the training set (7,481 scenes) into a train split (3,712 scenes) and a val split (3,769 scenes). We follow [37] to randomly select 10% of the scenes from the train split and retain only one instance annotation per scene. In this case, 29378 Setting Cost Method Car Ped Cyc Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard 
+
+Fully-sup. 100% VoxelRCNN 92.3 84.9 82.6 69.6 63.0 58.6 88.7 72.5 68.2 
+
+Sparsely-sup. 20% SS3D 89.3 84.2 78.2 - - - - - -2% VoxelRCNN 70.5 54.9 44.8 42.6 38.5 32.1 73.3 47.8 43.2 2% CoIn 89.1 70.2 55.6 50.8 45.2 39.6 80.2 52.3 48.6 2% CoIn++ 92.0 79.5 71.5 46.7 36.1 31.2 82.0 58.4 54.6 2% CoIn++ with SP3D 91.3 80.5 74.0 67.4 58.7 50.9 92.5 73.1 68.3    
+
+> Table 1. Comparison with SoTA sparsely-supervised methods on KITTI val split. All methods are based on VoxelRCNN, and we report the 3D AP results of full cost (100%) and limited cost (20%, 2%). The best sparsely-supervised methods are highlighted in bold .
+
+Stage Label Methods Car-3D @IoU 0.7 Car-BEV @IoU 0.7 Easy Mod Hard Easy Mod Hard Single-stage Sparse 1. CenterPoint 49.69 31.55 25.91 56.78 42.50 34.14 Sparse 2. CoIn (CenterPoint-based) 72.03 54.82 43.77 87.20 73.54 66.03 Sparse 3. 2 with SP3D (CenterPoint-based) 87.44 69.24 58.61 92.72 80.00 69.01 - 4. Improvements 3 →2 +15.41 +14.42 +14.84 +5.52 +6.46 +2.98 Two-stage Sparse 1. Voxel-RCNN 70.52 54.97 44.82 83.67 71.14 57.71 Sparse 2. CoIn (Voxel-RCNN-based) 84.56 68.47 58.02 92.31 81.01 70.24 Sparse 3. 2 with SP3D (Voxel-RCNN-based) 91.37 74.89 63.84 95.41 85.27 74.57 - 4. Improvements 3 →2 +6.81 +6.42 +5.82 +3.1 +4.26 +4.33 Multi-stage Sparse 1. CasA 74.18 57.37 45.05 85.90 73.21 57.23 Sparse 2.CoIn (CasA-based) 89.17 75.32 62.98 95.99 85.02 72.47 Sparse 3. 2 with SP3D (CasA-based) 91.12 75.94 66.46 96.55 85.65 76.31 - 4. Improvements 3 →2 +1.95 +0.62 +3.48 +0.56 +0.63 +3.84 Table 2. Comparison with different fully-supervised methods. Sparse label refers to the use of limited split (2% annotation cost). The 3D object detection and BEV detection benchmark are evaluated by mAP with R40, under IoU threshold 0.7. Methods Veh. LEVEL 1 Veh. LEVEL 2 mAP mAPH mAP mAPH CoIn 39.6 39.0 34.2 33.6 CoIn+SP3D 46.7 46.0 40.4 39.9 
+
+Improvement +7.1 +7.0 +6.2 +6.3 Table 3. Comparison with SoTA sparsely-supervised methods on WOD validation set. All methods are based on CenterPoint, and we report the results at a 1% annotation cost and 0.7 IoU threshold. we can obtain a limited split, which merely takes 2% of in-stance annotations compared with the origin train split. All results are evaluated using the official evaluation metric: 3D Average Precision (AP) across 40 recall thresholds (R40). 
+
+Waymo Open Dataset (WOD). The WOD is a widely used large-scale benchmark that contains 798, 202, and 150 sequences (approximately 200 frames per sequence) for training, validation, and testing, respectively. All results are evaluated by using 3D mean Average Precision (mAP) and its variant weighted by heading accuracy (mAPH). 
+
+## 4.2. Implementation Details Pseudo-labels generation. We directly employed the model parameters provided by FastSAM [49] and Seman-ticSAM [4] for inference without additional supervisory signals for fine-tuning. To achieve accurate segmentation results, we set a higher segmentation threshold of 0.7 dur-ing the FastSAM inference process. To mitigate computa-tional demands, we opted to generate pseudo-labels within a confined spatial domain of the semantically relevant points, specifically within an 8-meter radius. We set mask shrink factor γ to 0.3, initial cluster radius rinit to 1, adjustment factor δ to 0.1. We utilize unsupervised priors to filter out the low-quality pseudo-labels that are evidently inconsistent with the intuitive expectations and set the weight adjustment factor of DS score λ1 and λ2 as 0.5, 0.5.
+
+Detector training. We conduct all experiments with a batch size of 8 and a learning rate of 0.003 on 4 RTX 3090 GPUs. Following previous sparsely-supervised 3D object detection methods [14, 37], we choose three different clas-29379 Methods 2% 1% 0.5% Car Ped. Cyc. Avg. Car Ped. Cyc. Avg. Car Ped. Cyc. Avg. semi-sup. HSSDA 81.9 58.2 65.8 68.6 80.9 51.9 42.3 59.5 77.8 19.5 44.1 47.2 HSSDA+SP3D 83.2 60.8 74.4 72.8 83.0 53.2 69.1 68.4 82.3 22.1 46.4 50.3 
+
+Improvement +1.3 +2.6 +8.6 +4.2 +2.1 +1.3 +26.8 +8.9 +4.5 +2.6 +2.3 +3.1 sparsely-sup. CoIn 72.3 36.9 58.4 55.8 65.3 31.5 52.2 49.6 55.2 25.5 30.5 37.0 CoIn+SP3D 73.4 44.7 62.3 60.1 71.7 36.9 59.1 55.9 63.3 36.1 43.4 47.6 
+
+Improvement +1.1 +7.8 +3.9 +4.3 +6.4 +5.4 +6.9 +6.3 +8.1 +10.6 +12.5 +10.6 HINTED 85.1 60.0 81.3 75.4 82.8 49.9 74.1 68.9 80.2 45.8 64.5 63.5 HINTED+SP3D 85.5 60.1 81.4 75.6 84.0 57.2 81.0 74.0 83.2 49.2 73.9 68.7 
+
+Improvement +0.4 +0.1 +0.1 +0.2 +1.2 +7.3 +6.9 +5.1 +3.0 +3.4 +9.4 +5.2 Table 4. Improvement of SP3D in SoTA semi-supervised and sparsely-supervised methods on KITTI val split under limited cost setting. The results are evaluated by mAP with R40, under IoU thresholds 0.7, 0.5, and 0.5 for ’Car’, ’Pedestrian’, and ’Cyclist’, respectively. Additionally, the AP is computed across the difficulty levels of easy, moderate, and hard. Methods Modality Car-3D @IOU 0.5/0.7 Train Test Easy Mod. Hard VS3D L+C L 40.32/9.09 37.36/5.73 31.09/5.03 WS3DPR L+C L -/60.01 -/44.48 -/36.93 
+
+SP3D (Ours) L+C L 93.75 /69.71 76.36 /48.65 71.01 /40.53   
+
+> Table 5. Comparison of zero-shot methods on KITTI val split.
+
+sical detectors [6, 33, 42] as our architecture. And we em-ploy the OpenPCDet [29] to conduct our experiments. In the first training stage, we employ CoIn [37] to train an ini-tial detector with the generated pseudo-labels. Then, we use 
+
+limited split to fine-tune the detector. 
+
+Baselines. To thoroughly validate the effectiveness of SP3D, we select the SoTA sparsely-supervised method [37] as the primary baseline for comparison. We compare the proposed SP3D approach with the baseline under con-ventional sparse settings with 2% annotation cost. We also compared with cross-modal weakly-supervised meth-ods [16, 26] in a zero-shot setting, which also incorporate visual models to extract semantic information to enhance the performance of detectors. Furthermore, we establish baselines under progressively reduced annotation costs to evaluate the sensitivity to annotation costs. 
+
+## 4.3. Comparison with SoTA Methods Comparison with sparsely-supervised methods. We integrate our proposed SP3D into the SoTA sparsely-supervised 3D detection algorithm, CoIn++ [37]. For a fair comparison, all detectors employ the VoxelRCNN [6] as the base architecture. As illustrated in Tab. 1, SP3D sig-nificantly improves the detection performance of CoIn++. The experimental results on WOD, as reported in Tab. 3, Methods Modality Veh. Ped. Cyc. Train Test SAM3D L L 19.1 0.0 0.0 CM3D L + C L 23.7 0.1 2.6 
+
+SP3D (Ours) L + C L 35.0 15.7 5.9 
+
+> Table 6. Comparison with zero-shot methods on the WOD valida-tion set. We report Level-2 mAP with IoU thresholds of 0.7, 0.5, and 0.5 for Vehicle, Pedestrian, and Cyclist, respectively.
+
+also validate the performance enhancement of our method for the sparsely-supervised 3D object detector. However, we observe a slight decrease in precision for the ’Easy’ car category with our SP3D-initialized model in Tab. 1. This could arise because our initial pseudo-labels are inferred based on the geometric shape of the objects, which may dif-fer from the conventions of manual annotation. When the point cloud structure of an instance is relatively intact, such discrepancies can lead to noticeable differences in the size of the annotated bounding boxes. 
+
+Comparison with fully-supervised methods. For a fair comparison, we follow CoIn [37] to select CenterPoint [42], VoxelRCNN [6], and CasA [33] as our baseline detectors, representing three distinct types of detection algorithms. We initialize the 3D detector using our SP3D, followed by fine-tuning with the limited split. As shown in Tab. 2, de-tectors designed for full supervision struggle to yield opti-mal results due to scarce annotations. Despite the effective-ness of CoIn in improving this situation, the results achieved are still unsatisfactory for single-stage detection algorithms with relatively simple structures. Our designed strategy, SP3D, significantly reduces this discrepancy, enabling de-tectors to achieve similar results. 29380 Methods Car-3D @IoU 0.5 Easy Mod. Hard CPD 61.48 61.58 60.09 CPD+SP3D 73.65 66.13 63.78 
+
+Improvement +12.17 +4.55 +2.83 Table 7. Improvement for unsupervised method. 
+
+Comparison with zero-shot methods. We also com-pared SP3D with SoTA zero-shot methods. SAM3D [44] and CM3D [11] generate 3D pseudo-labels by leveraging large models for the semantic segmentation of 2D images. In line with the zero-shot approach of prior methods, no 3D annotations were used for training; instead, pseudo-labels were generated from large models and image data. As shown in Tab. 5 and Tab. 6, the results on the KITTI and Waymo datasets demonstrate that our method significantly outperforms previous approaches. 
+
+Comparison with different annotation rates. To ex-plore the robustness of SP3D, we conducted experiments on detectors across different supervision paradigms under varying annotation rates, and we reported the results on Tab. 4. For a fair comparison, we initialize the detectors by following the strategies of CoIn (CenterPoint) [37], HSSDA (PV-RCNN) [15], and HINTED (Voxel-RCNN) [38]. The experimental results show that when the annotation rate is limited, detector performance drops sharply as the amount of annotated data decreases. By inheriting SP3D, these de-tectors’ performance has been significantly enhanced, mit-igating the performance drop associated with reduced an-notation. Taking CoIn as an example, its average AP for the three categories at annotation rates of 1% and 0.5% has improved by 6.3% and 10.6%, respectively. These results indicate that even at low annotation rates, SP3D-initialized models can significantly improve the performance of 3D de-tectors across different supervision paradigms. 
+
+Comparison with unsupervised methods. To further validate the robustness of SP3D, we integrated it with the SoTA unsupervised detection method CPD [35]. As shown in Tab. 7, despite suffering some impact, the combination of SP3D and CPD still enhances the performance of the unsu-pervised 3D object detector to a certain extent. 
+
+## 4.4. Ablation Study 
+
+We conducted ablation studies based on CenterPoint to ver-ify the proposed modules’ effectiveness and recorded the results in Tab. 8. The first and third rows show that the preci-sion of pseudo-labels, as augmented by DCPG, can substan-tially amplify the 3D detector’s capabilities. This may be Mask shrink DCPG DS score Car-3D AP@IoU 0.7 Easy Mod. Hard 
+
+ 35.10 23.75 19.52 
+
+  38.26 29.25 24.74 
+
+  40.56 28.15 22.40 
+
+  47.23 33.40 27.13 
+
+   52.56 38.00 31.52 Table 8. Ablation study on KITTI val split. DS score Car-3D AP@IoU 0.7 MSC DC Easy Mod. Hard 
+
+ 44.91 33.55 28.19 
+
+ 48.48 35.39 29.75 Table 9. Ablation study of each component of DS score. due to incorporating more comprehensive foreground infor-mation in pseudo-labels, which enhanced the model’s fea-ture discrimination capability. The last two rows show that the mask shrink operation is necessary for handling seman-tic noise at the instance edges. The first three rows and fifth row show that using the DS score to filter out low-quality la-bels can significantly boost the detector’s precision. More-over, we validated the effectiveness of each component in DS score with the ablation studies presented in Tab. 9. 
+
+# 5. Discussion and Conclusion 
+
+This paper proposes a two-stage boosting strategy, SP3D, that leverages accurate cross-modality semantic prompts to enhance the sparsely-supervised 3D detectors’ capabilities. We first develop a CSPT module to obtain accurate cross-modal semantic prompts in point clouds by efficiently trans-ferring high-confidence semantic masks. We then design a DCPG module to dynamically generate pseudo-label pro-posals based on semantic prompts. Lastly, we propose a DS score as the criterion for NMS to select high-quality pseudo-labels integrated with sparsely-supervised strategy to train the initial detector. After fine-tuning with sparse GT data, SP3D show superior performance over the original sparsely-supervised 3D detector on the WOD and KITTI dataset, and remain robust performance even as the amount of annotation decreased. Limitations: SP3D exhibits a rel-atively significant degradation when fine-tuning with anno-tation rates below 0.1%, which may result from the noise introduced by extremely low annotations. Future efforts to explore efficient fine-tuning strategies to solve this issue. 
+
+Acknowledgment. This work was supported by the Na-tional Natural Science Foundation of China (No.62171393), and the Fundamental Research Funds for the Central Uni-versities (No.20720220064). 29381 References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 ,2023. 1 [2] Yutong Bai, Xinyang Geng, Karttikeya Mangalam, Amir Bar, Alan Yuille, Trevor Darrell, Jitendra Malik, and Alexei A Efros. Sequential modeling enables scal-able learning for large vision models. arXiv preprint arXiv:2312.00785 , 2023. 3 [3] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Lan-guage models are few-shot learners. Advances in neural in-formation processing systems , 33:1877–1901, 2020. 1 [4] Jiaqi Chen, Zeyu Yang, and Li Zhang. Semantic seg-ment anything. https://github.com/fudan-zvg/ Semantic-Segment-Anything , 2023. 3, 6 [5] Runnan Chen, Youquan Liu, Lingdong Kong, Xinge Zhu, Yuexin Ma, Yikang Li, Yuenan Hou, Yu Qiao, and Wen-ping Wang. Clip2scene: Towards label-efficient 3d scene understanding by clip. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 7020–7030, 2023. 3 [6] Jiajun Deng, Shaoshuai Shi, Peiwei Li, Wengang Zhou, Yanyong Zhang, and Houqiang Li. Voxel r-cnn: Towards high performance voxel-based 3d object detection. In Pro-ceedings of the AAAI conference on artificial intelligence ,pages 1201–1209, 2021. 1, 7 [7] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding. arXiv preprint arXiv:1810.04805 , 2018. 1 [8] Martin Ester, Hans-Peter Kriegel, J¨ org Sander, Xiaowei Xu, et al. A density-based algorithm for discovering clusters in large spatial databases with noise. In kdd , pages 226–231, 1996. 5 [9] Andreas Geiger, Philip Lenz, and Raquel Urtasun. Are we ready for autonomous driving? the kitti vision benchmark suite. In Conference on Computer Vision and Pattern Recog-nition (CVPR) , 2012. 5 [10] Xun Huang, Hai Wu, Xin Li, Xiaoliang Fan, Chenglu Wen, and Cheng Wang. Sunshine to rainstorm: Cross-weather knowledge distillation for robust 3d object detection. In Pro-ceedings of the AAAI Conference on Artificial Intelligence ,pages 2409–2416, 2024. 1 [11] Mehar Khurana, Neehar Peri, James Hays, and Deva Ra-manan. Shelf-supervised cross-modal pre-training for 3d ob-ject detection. In 8th Annual Conference on Robot Learning ,2024. 8 [12] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-thing. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , pages 4015–4026, 2023. 1, 3 [13] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jian-wei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, et al. Grounded language-image pre-training. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10965–10975, 2022. 1 [14] Chuandong Liu, Chenqiang Gao, Fangcen Liu, Jiang Liu, Deyu Meng, and Xinbo Gao. Ss3d: Sparsely-supervised 3d object detection from point cloud. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 8428–8437, 2022. 1, 2, 6 [15] Chuandong Liu, Chenqiang Gao, Fangcen Liu, Pengcheng Li, Deyu Meng, and Xinbo Gao. Hierarchical supervision and shuffle data augmentation for 3d semi-supervised ob-ject detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 23819– 23828, 2023. 1, 2, 8 [16] Haizhuang Liu, Huimin Ma, Yilin Wang, Bochao Zou, Tianyu Hu, Rongquan Wang, and Jiansheng Chen. Eliminat-ing spatial ambiguity for weakly supervised 3d object detec-tion without spatial labels. In Proceedings of the 30th ACM International Conference on Multimedia , pages 3511–3520, 2022. 2, 7 [17] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Chunyuan Li, Jianwei Yang, Hang Su, Jun Zhu, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. arXiv preprint arXiv:2303.05499 , 2023. 1 [18] Yixin Liu, Kai Zhang, Yuan Li, Zhiling Yan, Chujie Gao, Ruoxi Chen, Zhengqing Yuan, Yue Huang, Hanchi Sun, Jian-feng Gao, et al. Sora: A review on background, technology, limitations, and opportunities of large vision models. arXiv preprint arXiv:2402.17177 , 2024. 3 [19] Zhijian Liu, Haotian Tang, Alexander Amini, Xinyu Yang, Huizi Mao, Daniela L Rus, and Song Han. Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view repre-sentation. In 2023 IEEE international conference on robotics and automation (ICRA) , pages 2774–2781. IEEE, 2023. 1, 3 [20] Katie Luo, Zhenzhen Liu, Xiangyu Chen, Yurong You, Sagie Benaim, Cheng Perng Phoo, Mark Campbell, Wen Sun, Bharath Hariharan, and Kilian Q Weinberger. Reward fine-tuning for faster and more accurate unsupervised object dis-covery. Advances in Neural Information Processing Systems ,36, 2024. 5 [21] Qinghao Meng, Wenguan Wang, Tianfei Zhou, Jianbing Shen, Yunde Jia, and Luc Van Gool. Towards a weakly su-pervised framework for 3d point cloud object detection and annotation. IEEE Transactions on Pattern Analysis and Ma-chine Intelligence , 44(8):4454–4468, 2021. 1, 2 [22] Alexander Neubeck and Luc Van Gool. Efficient non-maximum suppression. In 18th international conference on pattern recognition (ICPR’06) , pages 850–855. IEEE, 2006. 3, 5 [23] Aljoˇ sa Oˇ sep, Tim Meinhardt, Francesco Ferroni, Neehar Peri, Deva Ramanan, and Laura Leal-Taix´ e. Better call sal: Towards learning to segment anything in lidar. In European Conference on Computer Vision , pages 71–90. Springer, 2025. 3 29382 [24] Jinhyung Park, Chenfeng Xu, Yiyang Zhou, Masayoshi Tomizuka, and Wei Zhan. Detmatch: Two teachers are bet-ter than one for joint 2d and 3d semi-supervised object de-tection. In European Conference on Computer Vision , pages 370–389. Springer, 2022. 2 [25] William Peebles and Saining Xie. Scalable diffusion models with transformers. In Proceedings of the IEEE/CVF Inter-national Conference on Computer Vision , pages 4195–4205, 2023. 3 [26] Zengyi Qin, Jinglu Wang, and Yan Lu. Weakly supervised 3d object detection from point clouds. In Proceedings of the 28th ACM International Conference on Multimedia , pages 4144–4152, 2020. 2, 7 [27] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PMLR, 2021. 1, 3 [28] Ziying Song, Feiyang Jia, Hongyu Pan, Yadan Luo, Caiyan Jia, Guoxin Zhang, Lin Liu, Yang Ji, Lei Yang, and Li Wang. Contrastalign: Toward robust bev feature alignment via con-trastive learning for multi-modal 3d object detection. arXiv preprint arXiv:2405.16873 , 2024. 3 [29] OD Team et al. Openpcdet: An open-source toolbox for 3d object detection from point clouds, 2020. 7 [30] Sourabh Vora, Alex H Lang, Bassam Helou, and Oscar Bei-jbom. Pointpainting: Sequential fusion for 3d object de-tection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 4604–4612, 2020. 4 [31] He Wang, Yezhen Cong, Or Litany, Yue Gao, and Leonidas J Guibas. 3dioumatch: Leveraging iou prediction for semi-supervised 3d object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 14615–14624, 2021. 1, 2 [32] Haiyang Wang, Hao Tang, Shaoshuai Shi, Aoxue Li, Zhen-guo Li, Bernt Schiele, and Liwei Wang. Unitr: A unified and efficient multi-modal transformer for bird’s-eye-view repre-sentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 6792–6802, 2023. 3 [33] Hai Wu, Jinhao Deng, Chenglu Wen, Xin Li, Cheng Wang, and Jonathan Li. Casa: A cascade attention network for 3-d object detection from lidar point clouds. IEEE Transactions on Geoscience and Remote Sensing , 60:1–11, 2022. 7 [34] Hai Wu, Chenglu Wen, Shaoshuai Shi, Xin Li, and Cheng Wang. Virtual sparse convolution for multimodal 3d ob-ject detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 21653– 21662, 2023. 1, 3 [35] Hai Wu, Shijia Zhao, Xun Huang, Chenglu Wen, Xin Li, and Cheng Wang. Commonsense prototype for outdoor unsuper-vised 3d object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 14968–14977, 2024. 2, 4, 5, 8 [36] Qiming Xia, Yidong Chen, Guorong Cai, Guikun Chen, Daoshun Xie, Jinhe Su, and Zongyue Wang. 3-d hanet: A flexible 3-d heatmap auxiliary network for object detection. 
+
+IEEE Transactions on Geoscience and Remote Sensing , 61: 1–13, 2023. 1 [37] Qiming Xia, Jinhao Deng, Chenglu Wen, Hai Wu, Shaoshuai Shi, Xin Li, and Cheng Wang. Coin: Contrastive instance feature mining for outdoor 3d object detection with very lim-ited annotations. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 6254–6263, 2023. 1, 2, 3, 5, 6, 7, 8 [38] Qiming Xia, Wei Ye, Hai Wu, Shijia Zhao, Leyuan Xing, Xun Huang, Jinhao Deng, Xin Li, Chenglu Wen, and Cheng Wang. Hinted: Hard instance enhanced detector with mixed-density feature fusion for sparsely-supervised 3d object de-tection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15321– 15330, 2024. 8 [39] Yichen Xie, Chenfeng Xu, Marie-Julie Rakotosaona, Patrick Rim, Federico Tombari, Kurt Keutzer, Masayoshi Tomizuka, and Wei Zhan. Sparsefusion: Fusing multi-modal sparse rep-resentations for multi-sensor 3d object detection. In Proceed-ings of the IEEE/CVF International Conference on Com-puter Vision , pages 17591–17602, 2023. 3 [40] Le Xue, Mingfei Gao, Chen Xing, Roberto Mart´ ın-Mart´ ın, Jiajun Wu, Caiming Xiong, Ran Xu, Juan Carlos Niebles, and Silvio Savarese. Ulip: Learning a unified representation of language, images, and point clouds for 3d understanding. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 1179–1189, 2023. 1, 3[41] Yuxue Yang, Lue Fan, and Zhaoxiang Zhang. Mixsup: Mixed-grained supervision for label-efficient lidar-based 3d object detection. arXiv preprint arXiv:2401.16305 , 2024. 3 [42] Tianwei Yin, Xingyi Zhou, and Philipp Krahenbuhl. Center-based 3d object detection and tracking. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11784–11793, 2021. 7 [43] Dingyuan Zhang, Dingkang Liang, Zhikang Zou, Jingyu Li, Xiaoqing Ye, Zhe Liu, Xiao Tan, and Xiang Bai. A sim-ple vision transformer for weakly semi-supervised 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 8373–8383, 2023. 2 [44] Dingyuan Zhang, Dingkang Liang, Hongcheng Yang, Zhikang Zou, Xiaoqing Ye, Zhe Liu, and Xiang Bai. Sam3d: zero-shot 3d object detection via the segment anything model. Science China Information Sciences , 67(4):149101, 2024. 3, 8 [45] Lunjun Zhang, Anqi Joyce Yang, Yuwen Xiong, Sergio Casas, Bin Yang, Mengye Ren, and Raquel Urtasun. To-wards unsupervised object detection from lidar point clouds. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9317–9328, 2023. 2, 4, 5 [46] Renrui Zhang, Ziyu Guo, Wei Zhang, Kunchang Li, Xu-peng Miao, Bin Cui, Yu Qiao, Peng Gao, and Hongsheng Li. Pointclip: Point cloud understanding by clip. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 8552–8562, 2022. 1, 3 29383 [47] Xiao Zhang, Wenda Xu, Chiyu Dong, and John M Dolan. Ef-ficient l-shape fitting for vehicle detection using laser scan-ners. In 2017 IEEE Intelligent Vehicles Symposium (IV) ,pages 54–59. IEEE, 2017. 5 [48] Na Zhao, Tat-Seng Chua, and Gim Hee Lee. Sess: Self-ensembling semi-supervised 3d object detection. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 11079–11087, 2020. 2 [49] Xu Zhao, Wenchao Ding, Yongqi An, Yinglong Du, Tao Yu, Min Li, Ming Tang, and Jinqiao Wang. Fast segment any-thing, 2023. 3, 6 [50] Xiangyang Zhu, Renrui Zhang, Bowei He, Ziyu Guo, Ziyao Zeng, Zipeng Qin, Shanghang Zhang, and Peng Gao. Point-clip v2: Prompting clip and gpt for powerful 3d open-world learning. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 2639–2650, 2023. 1, 3[51] Pufan Zou, Shijia Zhao, Weijie Huang, Qiming Xia, Chenglu Wen, Wei Li, and Cheng Wang. Adaco: Overcoming vi-sual foundation model noise in 3d semantic segmentation via adaptive label correction. arXiv preprint arXiv:2412.18255 ,2024. 3 29384

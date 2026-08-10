@@ -1,0 +1,87 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 860,
+      "height": 400,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 859,
+      "height": 507,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 740,
+      "height": 158,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 853,
+      "height": 270,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 794,
+      "height": 185,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 819,
+      "height": 260,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 861,
+      "height": 151,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 743,
+      "height": 319,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-yu-vikienet-towards-efficient-3d-object-detection-with-virtual-key-instance-cvpr-2025-paper/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 860,
+      "height": 189,
+      "label": "Table"
+    }
+  ]
+}

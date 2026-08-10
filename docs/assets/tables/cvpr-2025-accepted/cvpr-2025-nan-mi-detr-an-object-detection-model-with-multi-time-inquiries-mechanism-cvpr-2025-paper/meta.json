@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1562,
+      "height": 1120,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 805,
+      "height": 329,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1553,
+      "height": 505,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 663,
+      "height": 116,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 773,
+      "height": 418,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-nan-mi-detr-an-object-detection-model-with-multi-time-inquiries-mechanism-cvpr-2025-paper/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 678,
+      "height": 284,
+      "label": "Table"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 873,
+      "height": 224,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1499,
+      "height": 439,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 557,
+      "height": 275,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 556,
+      "height": 282,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 804,
+      "height": 128,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 642,
+      "height": 290,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 727,
+      "height": 326,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 708,
+      "height": 412,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 557,
+      "height": 277,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 674,
+      "height": 139,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-tang-aerogen-enhancing-remote-sensing-object-detection-with-diffusion-driven-data-generation-cvpr-2025-paper/table-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 609,
+      "height": 194,
+      "label": "Table"
+    }
+  ]
+}

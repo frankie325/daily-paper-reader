@@ -1,0 +1,404 @@
+Title: Search and Detect: Training-Free Long Tail Object Detection via Web-Image Retrieval
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Sidhu_Search_and_Detect_Training-Free_Long_Tail_Object_Detection_via_Web-Image_CVPR_2025_paper.pdf
+
+Published Time: Mon, 19 May 2025 12:57:27 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Search and Detect: Training-Free Long Tail Object Detection via Web-Image Retrieval 
+
+# Mankeerat Sidhu 1, Hetarth Chopra 1, Ansel Blume 1, Jeonghwan Kim 1, Revanth Gangi Reddy 1, Heng Ji 11University of Illinois Urbana Champaign, Urbana, USA 
+
+{mssidhu2, hetarth2, blume5, jk100, revanth3, hengji }@illinois.edu 
+
+# Abstract 
+
+In this paper, we introduce SearchDet, a training-free long-tail object detection framework that significantly enhances open-vocabulary object detection performance. SearchDet retrieves a set of positive and negative images of an object to ground, embeds these images, and computes an input image–weighted query which is used to detect the desired concept in the image. Our proposed method is simple and training-free, yet achieves over 16.81% mAP improvement on ODinW and 59.85% mAP improvement on LVIS com-pared to state-of-the-art models such as GroundingDINO. We further show that our approach of basing object detec-tion on a set of Web-retrieved exemplars is stable with re-spect to variations in the exemplars, suggesting a path to-wards eliminating costly data annotation and training pro-cedures. 1
+
+# 1. Introduction 
+
+The proliferation of the web as a repository of image-text data has drastically improved access to data used to train neural object detection models. Modern deep-learning models rely heavily on this colossal cache of data to train and improve their representations. Such datasets are often used to pre-train vision-language models such as CLIP [31], GLIP [23], GroundingDINO [25], and T-Rex2 [13]. While models such as GroundingDINO and GLIP have achieved substantial advances in grounded object detection by reduc-ing the pre-train-to-downstream task discrepancy, further improving the performance of these models necessitates ei-ther continual pre-training or additional task-specific fine-tuning that incurs extra costs. A crucial aspect of the aforementioned models’ training involves data indexed by search engines like Google, which provide easy access to high-recall sets of images for a text query. This capability opens up several intriguing possibil-       
+
+> 1Data and code are available at https : / / github . com / Mankeerat/SearchDet_Long_Tail_Object_Detection
+> (a) Mountain Dew
+> (b) Phone (c) Fork
+
+Figure 1. Detection results for label “Mountain Dew”. While the GroundingDINO, one of the state-of-the-art grounded object de-tection methods, fails to capture the Mountain Dew bottles in the image displayed in the figure, SearchDet manages to ground every instance of Mountain Dew that appears in the image. Detection results for other classes “Phone” and “Fork”. 
+
+ities for grounding using search engines. First, search en-gines can retrieve relevant images for a given text label, en-hancing the specificity of grounding. Secondly, unlike tradi-tional models that encode information into their parameters, search engines operate with a retrieval-based framework, utilizing databases that serve as a continuously expanding object “memory.” Integrating such external memory, i.e., the web database of images, during inference provides a po-tential path to obviate the need for additional training while improving performance on object detection. In this paper, we propose SearchDet (Search and Detect; pronounced “searched it”), an inference-stage, training-free, long-tail object detection framework that drastically improves performance while avoiding additional finetuning. This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 15129 By leveraging web-retrieved positive and negative image pairs, we calculate attention scores against the query image to perform a weighted averaging of the positive and neg-ative images (§3.1.2), ensuring that the query embedding is refined for accurate object detection. The query image representation is generated using DINOv2 [29] and com-pared against the web-retrieved image sets using similar-ity scores. Frequency-based adaptive thresholding then dy-namically determines which regions in the image are most likely to contain the object. Finally, combining Segment Anything Model’s (SAM’s) [18, 32] region proposals and similarity heatmaps allows our method to generate precise and robust object boundaries. To summarize, our contribu-tions are as follows: • An inference stage framework for open-vocabulary ob-ject detection which significantly improves on the state-of-the-art, 16.81% mAP improvement on ODinW and 59.85% mAP improvement on LVIS. Our framework avoids the need for additional finetuning or continual pre-training to enhance object detection performance by sim-ply searching for web images and comparing them to in-put image regions. • Our proposed framework demonstrates the effectiveness and potential of using the web as an external, dynamic memory that provide a stable set of support images for inference stage representations. 
+
+# 2. Related Work 
+
+## 2.1. Open-Vocabulary Object Detection 
+
+Open-vocabulary object detection involves grounding text labels within an image using bounding boxes. Open-vocabulary object detection differs from standard object de-tection where any text label may be provided, while stan-dard object detection models detect a fixed set of classes. Existing open-vocabulary object detection models such as GroundingDINO [25], T-Rex2 [13], OWL-ViT [28], and GLIP [23] utilize advances in vision-language research to extend closed-vocabulary object detection to an open-vocabulary setting. They frequently utilize a form of con-trastive language-image pre-training [30], which pairs text captions with object regions embedded with pre-trained text and image models. While this allows for fast inference times and the flexibility of an open vocabulary, this kind of training is time-consuming and resource-intensive, re-quiring large amounts of paired image-text data to achieve strong object detection performance. By contrast, our method utilizes existing tools and re-quires no additional training . Specifically, we use pre-trained segmentation [17, 18, 32] and backbone models [26, 29] with web-based retrieval to achieve strong open vocabulary performance. The search engine used for im-age retrieval serves as an ever-expanding, perpetually im-proving link between the text and image modalities, a bot-tleneck that most open vocabulary detection models address only through further pre-training on larger amounts of data. 
+
+## 2.2. Few-shot Object Detection 
+
+Few-shot object detection (FSOD) [2] is the task of detect-ing an object in an image when provided a few exemplar images of a class. Such methods use techniques from the broader few-shot learning literature including using class prototypes [15, 35, 41] to represent the class to detect, and meta-learning [7, 38, 40] to train networks to adapt their parameters and representations from few examples. In our work, we utilize a set of support images to generate a “query embedding”, which can be regarded as a class prototype, to detect objects. Like prior FSOD works, our query embed-ding can be generated from as few as one support image. Unlike most prior works, however, our method involves no training of an object detection system and relies entirely on representations derived from a frozen image backbone. 
+
+## 2.3. Image Segmentation 
+
+Image segmentation is the task of grouping pixels of an in-put image into semantically coherent “segmented” parts. This differs from semantic segmentation, which requires classifying each image pixel into a set of predefined classes. SAM [18, 32] and its variants [17, 19] are the state-of-the-art in image segmentation, providing accurate segmented entities for an input image. In our work, we utilize the image regions output by SAM (HQ) to generate region proposals for object grounding lo-cations. This is akin to classical works in object detection which generate bounding box proposals before classifying and further refining their position [8, 33]. We perform no additional finetuning on SAM and use its output masks as proposals out of the box. 
+
+# 3. SearchDet: Object Detection on Web Images 
+
+SearchDet, our proposed object detection framework, is de-signed to accurately ground objects using web-retrieved im-ages. For a given (image, object label) pair, our method starts by retrieving positive support images corre-sponding to the object label, along with negative images to exclude from the image representation. We use these re-trieved images to independently generate a singular object “query” with an attention mechanism, to detects the image’s SAM regions containing the object and to localize the ob-ject with a similarity heatmap. An adaptive thresholding technique filters the SAM regions to extract those that most closely match the query. Finally, we take the intersection of the most highly ranked SAM regions and our similarity heatmap to output the final predictions outlined in Figure 2. In this section, we first describe our approach of web-based image retrieval. We discuss the importance of posi-15130 Figure 2. The entire architecture of our method. We compare the adjusted embeddings, produced by the DINOv2 model, of the positive and negative support images, with the relevant masks extracted using the SAM model to provide an initial estimate of our segmentation BBox. We again use DINOv2 for generating pixel-precise heatmaps which provide another estimate for the segmentation. We combine both these estimates using a binarized overlap to get the final segmentation mask. 
+
+tive and negative image retrieval, our attention-based query-generation method, our use of SAM region proposals to en-hance detection precision, and frequency-based threshold-ing to output a set of object regions to improve recall. 
+
+## 3.1. Web Retrieval of Exemplars 
+
+In this section, we detail the process of retrieving positive and negative exemplars from the web for concept ground-ing, and how these examples are processed to improve de-tection accuracy. To detect the object label in the input image, we start by retrieving image exemplars of the ob-ject from the web. We utilize a search engine (in our case, Google) to download a set of images that represent the ob-ject of interest, both for positive and negative search query. The top ten images, empirically determined, from the search results are selected; without any other pre-processing and are passed to DINOv2 for embedding extraction. (described in §3.1.2). 
+
+3.1.1. Necessity of Negatives 
+
+Retrieved images for the main search query may contain secondary, associated objects in the background, making it challenging to isolate the object of interest. For exam-ple, many images of a surfboard retrieved from the web also contain water or waves, making it difficult to extract only the surfboard for our representation. We utilize “nega-tive queries” to isolate the target object from these common associations. For a given object label (the positive search query), we utilize a large language model, Microsoft Phi-3-mini-4k-instruct[1], to generate negative queries using in-context examples, such as “waves” for a surfboard or “food” for a fork 2.
+
+> 2We use the following prompt to get the negative queries - ”Given a primary visual concept, provide a list of negative concepts that would com-monly appear in the same visual setting. These negative concepts should visually interfere or hinder the localization and clear identification of the primary concept. For each example, avoid objects identical or too similar
+
+15131 (a) Without including negative support image samples 
+
+> (b) After including negative support image samples
+
+Figure 3. Illustration of our method providing more precise masks after including the negative support images. The negative query (here waves) helps our method, in a way, to not accidentally rel-evant areas, and only focus on areas represented by the positive query (here surfboard). 
+
+These negative queries represent opposing or confound-ing concepts that are likely to interfere with object detection when matching vector representations. Subtracting query embeddings generated from these negative images from the positive embeddings helps isolate the object representation. An example of detection with and without negative queries is shown in Figure 3. 
+
+3.1.2. Attention-based Query Generation 
+
+To assist with the extraction of the most pertinent fea-tures, we utilize an attention-based approach that leverages a weighted combination of positive and negative embed-dings, enhancing the areas of the input image which match the positive embeddings while diminishing the areas of the input image which match the negative embeddings. This approach is in contrast to subtracting the mean-pooled neg-ative embeddings from the positive embeddings, which can result in over-correction and loss of essential information. Denote the query embedding by q ∈ Rd (e.g., an embed-ding of the input image of a surfboard with waves ), the set of positive embeddings as Epos = {epos ,1, . . . , epos ,n pos } ⊂ 
+
+Rd (embedded images retrieved with the positive text query), and the set of negative embeddings as Eneg =
+
+{eneg ,1, . . . , eneg ,n neg } ⊂ Rd (e.g., waves ) (embedded im-ages retrieved with the negative text query). Our goal is to generate an adjusted query embedding qadjusted that accen-  
+
+> to the main concept but focus on those that share the context or back-ground. For example: Primary Concept: ’Surfboard’ Negative Concepts: ’Waves’, ’Sand’ Primary Concept: ’Fork’ Negative Concepts: ’Plates’, ’Food’ Now, for the following list of primary concepts, generate similar lists of negative concepts. conceptlist: []”
+
+tuates the surfboard features while reducing the influence of the waves. We begin by calculating the cosine similarity be-tween the query embedding q and each of the positive and negative embeddings: 
+
+Spos ,i = q · epos ,i 
+
+∥q∥∥ epos ,i ∥ , S neg ,i = q · eneg ,i 
+
+∥q∥∥ eneg ,i ∥ . (1) We then apply a softmax to the cosine similarities to com-pute the attention weights for both positive and negative em-beddings: 
+
+αpos ,i = eSpos ,i 
+
+Pnpos  
+
+> j=1
+
+eSpos ,j 
+
+, α neg ,i = eSneg ,i 
+
+Pnneg  
+
+> j=1
+
+eSneg ,j 
+
+(2) These attention weights ensure that focus is placed on em-beddings that are most similar to the query. Using the atten-tion weights, we compute the weighted sums of the positive and negative embeddings: 
+
+Apos =
+
+> npos
+
+X
+
+> i=1
+
+αpos ,i epos ,i , Aneg =
+
+> nneg
+
+X
+
+> i=1
+
+αneg ,i eneg ,i (3) The final adjusted query embedding is obtained by subtract-ing the weighted negative embeddings from the weighted positive embeddings: 
+
+qadjusted = Apos − Aneg (4) By using attention weights, the model selectively empha-sizes the most relevant aspects of the positive embeddings while minimizing the influence of shared or irrelevant fea-tures present in both positive and negative classes. 
+
+## 3.2. SAM Region Proposals 
+
+To generate region proposals for our object to ground, we turn to SAM models, which are trained to take a prompt, most commonly an image coordinate or bounding box, and generate the segmentation for the instance indicated by the prompt. These prompts can be applied in a uniform grid across images, segmenting images into a collection of high-quality object masks. By segmenting images in this way, we obtain region proposals demarcating the most prominent objects in the image. We then check the similarity between each of these region proposals and a query embedding rep-resenting the object to determine which regions contain the object to ground. To generate the query embedding, we em-bed the input image and all support images via DINOv2’s [29] CLS token. We use the same methodology, as de-scribed in subsubsection 3.1.2, to calculate the final query embeddings from all the support image embeddings. Next, we generate a region embedding [34] for each of the region proposals by masking the input image outside of the region, and then embedding this image using DINOv2’s CLS to-ken. We compute the cosine similarity between each region embedding and the query embeddings to obtain similarity scores, then filter these scores via the method of §3.2.1 to obtain a set of regions believed to contain the object. 15132 3.2.1. Frequency-based Automatic Thresholding for Concept Detection Algorithm 1 Mask Selection and Verification 
+
+Ensure: Mverified : set of verified selected masks 
+
+Definitions: 
+
+R = {rij | rij = d(qi, q j ), 1 ≤ i < j ≤ m}: refer-ence distance distribution 
+
+M (Dij ) = j: mask index function  
+
+> 1:
+
+Distance Calculation:  
+
+> 2:
+
+for each qi ∈ Q and Mj ∈ M do  
+
+> 3:
+
+Dij ← d(qi, M j ) 
+
+> 4:
+
+end for  
+
+> 5:
+
+D ← { Dij | 1 ≤ i ≤ m, 1 ≤ j ≤ n} 
+
+> 6:
+
+Ordering and Binning:  
+
+> 7:
+
+Sort D into Dsorted = {D(1) , D (2) , . . . , D (mn )} in as-cending order  
+
+> 8:
+
+for k = 1 to n do  
+
+> 9:
+
+bk ← { D(i) ∈ Dsorted | (k − 1) m < i ≤ km } 
+
+> 10:
+
+end for  
+
+> 11:
+
+Bin Analysis and Mask Selection:  
+
+> 12:
+
+for each bin bk ∈ B do  
+
+> 13:
+
+for each mask Mj do  
+
+> 14:
+
+Ck(j) ← |{ Dij ∈ bk | M (Dij ) = j}|  
+
+> 15:
+
+Pk(j) ← Ck(j)/|bk| 
+
+> 16:
+
+end for  
+
+> 17:
+
+if max j Pk(j) > T then  
+
+> 18:
+
+Mselected (k) ← arg max j Pk(j) 
+
+> 19:
+
+else  
+
+> 20:
+
+Mselected (k) ← undefined  
+
+> 21:
+
+end if  
+
+> 22:
+
+end for  
+
+> 23:
+
+Verification of Selected Masks:  
+
+> 24:
+
+μR ← 2
+
+> m(m−1)
+
+P 
+
+> 1≤i<j ≤m
+
+rij  
+
+> 25:
+
+σR ←
+
+q 2
+
+> m(m−1)
+
+P
+
+> 1≤i<j ≤m
+
+(rij − μR)2 
+
+> 26:
+
+for each Mj ∈ Mselected do  
+
+> 27:
+
+Dj ← { Dij | 1 ≤ i ≤ m} 
+
+> 28:
+
+μDj ← 1
+
+> m
+
+Pmi=1 Dij  
+
+> 29:
+
+δ ← | μDj − μR| 
+
+> 30:
+
+if δ ≤ 3σR then  
+
+> 31:
+
+A(Mj ) ← true  
+
+> 32:
+
+else  
+
+> 33:
+
+A(Mj ) ← false  
+
+> 34:
+
+end if  
+
+> 35:
+
+end for  
+
+> 36:
+
+Output:  
+
+> 37:
+
+Mverified ← { Mj ∈ Mselected | A(Mj ) = true }
+
+Grounding an object accurately poses significant chal-lenges, especially when relying solely on Euclidean dis-tances between given segmentation mask embeddings and embeddings of the input image query. Percentile or rank-based thresholding, often fail to adapt effectively to the unique distribution of distances in each image as distribu-tion of distances tends to be skewed leading to suboptimal mask selection. Empirical observations reveal that arbitrar-ily selecting a fixed number of masks with smallest dis-tances from the adjusted query embedding introduces a high rate of false positives. This issue becomes particularly pro-nounced when the concept may not be present in the image and invariably selecting a mask, compounds the problem of false positives. To address this limitation, we employ frequency-based adaptive thresholding, which dynamically adjusts the de-tection threshold based on the distribution of distances be-tween adjusted embeddings, qadjusted (as seen in Equation 4) and segmented masks. Let: • Q = {q1, q 2, . . . , q m} be the set of m adjusted query em-beddings (coming from our positive and negative query images). In this section, each qi ∈ Q is computed by directly subtracting the corresponding negative embed-ding from its positive counterpart, on a per-pair basis (i.e., without softmax weighting). • M = {M1, M 2, . . . , M n} be the set of n segmented masks, identified by SAM on our target image. • d(qi, M j ) be the Euclidean distance between the ith query embedding qi and the jth segmented mask Mj .• B = {b1, b 2, . . . , b n} be the set of data intervals or ’bins’ for creating distance distribution. • R = {rij | rij = d(qi, q j ), 1 ≤ i < j ≤ m} be the set of Euclidean distances between each pair of adjusted embeddings. We define this as the reference distance dis-tribution. • T be an empirically calculated acceptance threshold for selecting a candidate mask out of all segmented masks. The algorithm aims to identify and verify segmented masks from a target image that closely matches a set of adjusted query embeddings Q. It begins by computing the Euclidean distances Dij between each adjusted query’s em-bedding qi and each mask’s embedding Mj ∈ M generated by DINOv2. These distances are collected into a set D and then sorted in ascending order to form Dsorted . The sorted distances are partitioned into n bins B = {b1, b 2, . . . , b n},with each bin containing m distances (since there are m
+
+queries). For each bin, the algorithm analyzes the distri-bution of masks by computing the proportion Pk(j) of dis-tances in bin bk that correspond to each mask Mj . If a single mask constitutes more than T = 80% of a bin, it is selected as a candidate mask. We choose the 80% threshold empiri-cally as it consistently produces stable results. In the verification step, the algorithm assesses each se-lected mask Mj by calculating the mean μDj of all m dis-tances existing in that particular bin as shown in line 29 
+
+in the algorithm. This mean distance reflects the central measure of all distances of the selected mask with adjusted 15133 query embeddings. We then calculate the mean of R, which is the reference distance distribution, as shown in line 24 
+
+of the algorithm. The distance between these two means is computed as shown in line 29 of the algorithm. If δ is greater than three standard deviations of the distribution of 
+
+R, where the standard deviation σR is calculated in line 25 
+
+of the algorithm, we reject the mask. We empirically see that the algorithm effectively filters out less relevant masks, resulting in a robust selection of masks most representative of the adjusted query embeddings. 
+
+## 3.3. Heatmap Generation 
+
+While the Segment Anything Models typically generate high-quality object regions, they may fail to detect key ob-ject regions or may not accurately output objects of inter-est’ boundaries as seen in Figure 2, where the bounding box generated from a SAM region alone contains two cars. More generally, if we rely only on the SAM regions and the model fails to generate a region corresponding to the object of interest, then we are unable to ground the object accurately. Hence, following Blume et. al [3], we adopt a heatmap generation method to ground the object without re-liance on preexisting boundaries. To generate a heatmap of likely object locations, we independently embed the input image along with all positive and negative images to extract patch features. Each feature set is average-pooled to pro-duce a single embedding for each image. Using the same process described in subsubsection 3.1.2, the positive and negative image features are pooled into respective embed-dings. The final query embedding is obtained by subtracting the negative embedding from the positive embedding. The cosine similarity between this query embedding and upsam-pled patch features of the input image results in a heatmap of object locations. The heatmap values range from 0 to 100 and are subsequently binarized: values ≤ 50 are set to 0, and values > 50 are assigned 1. Empirical evaluation shows that a binarization threshold of 50 achieves strong performance in downstream tasks of joint object grounding. 
+
+## 3.4. Joint Object Grounding 
+
+We then calculate the intersection between each SAM mask and the binarized heatmap. Each region will output a single bounding box, as long as it has a nonempty intersection with the heatmap. If the mask is incomplete or inaccurate, the heatmap can provide complementary information (and vice versa) as illustrated in Figure 2. 
+
+# 4. Experiments 
+
+## 4.1. Datasets and Metrics 
+
+We demonstrate the effectiveness of our method on four settings - the COCO detection benchmark [24], LVIS [9], OdinW [21], and Roboflow-100 [4]. We do not use the training datasets, as ours is a training-free method; instead, we focus on the COCO-2017-val split (80 classes), and the LVIS minival-version-1.0 (1203 classes), while using the full OdinW and Roboflow-100 validation splits. We use the class names as the positive search query, get the negative query name from an LLM call, and extract 10 positive and negative support images from the web for all datasets. We pass them to our method to get a precise mask which is compared to the ground truth. We compare our method to state-of-the-art open vocabulary object detection methods including GLIP [22], DINOv [20], Grounding Dino [25], and T-Rex2 [13]. DINOv and T-Rex2 are especially perti-nent, as they also require in-context images to perform ob-ject detection. We also test our method in a few-shot setting (10-shot) on the COCO 2014 dataset, and compare it against both baseline methods like Meta-RCNN and more sophisti-cated and recent techniques like the CrossTransformer [12]. 
+
+## 4.2. Performance of Web Grounding 
+
+SearchDet demonstrates significant performance improve-ments across multiple benchmark datasets compared to state-of-the-art object detection models. Our experiment uses ten support images (both positive and negative) for our given concept, and each image takes approximately 3.5 sec-onds to run on a single NVIDIA-V100 GPU, however, the time may vary since we scrape these images from the web. As seen in Table 1 On the COCO val2017 dataset, SearchDet achieves a score of 59.34, outperforming all compared methods with improvements ranging from 13.68% (vs. T-Rex2 Text on COCO) to 28.44% (vs. DI-NOv2 on COCO). While slightly behind T-Rex2 variants on LVIS, SearchDet still shows substantial gains over other methods, with up to 62.08% improvement (vs. GLIP-L on LVIS). The LVIS training dataset has frequent, common and rare subsets, which constitute of 410739 , 19196 and 
+
+1156 number of images, with an average of 948 .59 , 39 .10 
+
+and 4.14 images per subset, showcasing that it is a long-tailed dataset with rare classes having significantly lower number of images than the frequent class. We see that on the rare category of the LVIS-minival dataset we outper-form SOTA methods excelling in detecting concepts in the long-tail region of the data frequency distribution. While other methods have a better score in the frequent and com-mon subsets, we posit that it is because those methods are not training free, and given their large availability, they are able to generalize better than us. On the rare subset, just by providing 10 support images per concept, we bootstrap our method to do better. ODinW and Roboflow are also known for their long-tailed nature as they consist of concepts and images in-the-wild which are rarer to come across. We also posit that our method lags on LVIS because our experiment chooses just 10 support images. This is supported by our stability analysis of subsection 4.3, where we see that in-15134 Table 1. Few-Shot results of our method versus other SOTA methods. We use an IoU threshold of 0.5 to get mAP across all these models.                                                           
+
+> Model COCO val LVIS Minival-1203 ODinW-35 val Roboflow100 val
+> mAP mAP mAP fmAP cmAP rmAP avg mAP med
+> GLIP-L 49.8 26.9 35.4 23.3 17.1 23.4 11.0 8.6 DINOv 46.2 ----15.7 4.8 -GroundingDINO-L 48.4 27.4 27.9 30.1 18.1 26.1 18.4 8.3 T-Rex2 (Text) 52.2 45.8 50.2 43.2 42.7 22.0 7.3 10.5 T-Rex2 (Visual-G) 46.5 45.3 49.5 42 43.8 27.8 20.5 18.5
+> SearchDet (Ours) 59.3 43.6 40.4 39.9 55.9 33.1 21.6 27.9
+> Table 2. Performance of various methods on 10-shot MS-COCO using an IoU threshold of 0.5. Our method outperforms the current state of the art by 16%.
+
+Method Finetuned mAP 
+
+FSRW [14] ✗ 12.3 Meta R-CNN [39] ✗ 19.1 TFA [37] ✓ 19.2 Multi-Relation Det [5] ✗ 31.3 FSCE [36] ✗ 30.5 Retentive RCNN [6] ✓ 19.5 HeteroGraph [10] ✗ 23.9 Meta Faster RCNN [11] ✓ 25.7 LVC [16] ✓ 34.1 CrossTransformer [12] ✗ 30.2 DiGeo [27] ✓ 18.7 DE-ViT [42] ✗ 52.9 
+
+SearchDet (Ours) ✗ 61.4 
+
+cluding more images leads to steady growth in the mAP. This also means that we generalize much better on real life long-tailed object detection applications as we always have support images for the rarest of classes that other models are not aware of. Thus as long as a rare concept’s images exist on the internet, through our framework of vector com-parison, we would be able to detect the concept. Our method’s performance is particularly noteworthy on more diverse and challenging datasets: for ODinW-35, it surpasses all other methods with improvements from 19.32% (vs. T-Rex2 Visual-G on ODinW-35) to 111.27% (vs. DinoV on ODinW-35), and on Roboflow100, it achieves remarkable gains of up to 236.27% (vs. GroundingDINO-L on Roboflow100). These results, es-pecially the substantial improvements on ODinW-35 and Roboflow100, suggest that SearchDet is robustness across varied object detection tasks. One notable observation is that the mAP scores can be significantly improved when the provided label is more descriptive. For instance, in the OdinW dataset, some labels consist of generic terms such as “20” or “boat.” Searching for “20” or “boat” often retrieves irrelevant images, despite the annotated images containing  
+
+> Figure 4. A comparison of our method’s mAP on the OdinW Dataset under different concept names. We see a 3.85% increase in the mean mAP just by including the category name (for exam-ple WildfireSmoke) with the name of the concept in the image.
+
+more specific concepts like ”20 dollar bill” or ”aerial view of boat” as seen in Figure 4 highly increases the accuracy of detection. In the few-shot setting, as presented in Table 2, we observe that we have a 16.1% performance increase over the state-of-the-art method DE-ViT [42].           
+
+> Table 3. Relationship between the number of retrieved web images and performance on COCO-val.
+> Num Images 135710
+> mAP 49.70 54.10 56.20 58.50 59.34
+
+## 4.3. Stability Analysis 
+
+Two important considerations are how the number and choice of retrieved support images affect the performance of our method. To evaluate the first, we vary the number of support images provided to our method, observing that even a single positive and negative support image is good enough to generate an mAP of 49.70 on the COCO Dataset. However, we see a steady increase in mAP as the number of retrieved instances increases in Table 3. With 10 images, we obtain an mAP of 59.34, an increase of 19.41% over a 15135 Figure 5. Stability analysis showcasing the cosine similarity of embeddings generated from the positive and negative support im-ages (ten images of each), averaged across all eighty classes in the COCO dataset. The high similarity scores demonstrate the stabil-ity of our method and exhibits consistency in embedding similari-ties despite the dynamic nature of web-image retrieval. 
+
+single image. This study indicates that not only does our method’s performance scale with the number of retrieved images but also that it is stable enough to obtain strong per-formance with only a few images. To study the similarity between different sets of retrieved images, we inspect the relationship between their embeddings. We use the set of COCO labels as queries and extract 10 positive and nega-tive support images for each class. We then average the co-sine similarities across all classes in the dataset. We notice that even though the internet is a dynamic space, the embed-dings maintain consistent similarities. In particular, we see that all positive support images exhibit strong similarity and the negative support images do the same. This observation suggests that the LLM-based method to generate a negative class helps to retrieve images that are significantly differ-ent from their positive counterparts. We further observed that by downloading images on different days of the week, we would obtain different sets of images. However, these different image sets do not have a significant effect on per-formance. These results suggest that despite the dynamic nature of the web, the retrieved images are stable enough to achieve consistent performance. 
+
+## 4.4. Ablations 
+
+> Table 4. Performance comparison on COCO Dataset
+
+Ablation mAP 
+
+Our Method 59.34 
+
+Only Positive Support Images 45.80 No RoI Refinement with Heatmaps 51.07 Mean-Pooling of Support Images 55.47 We discuss different ablations of our method on the COCO Dataset in Table 4. First, using only positive support images and removing the negative concept images leads to a significant drop in mAP (approximately 22.82%). Next, we see the usefulness of refining the SAM object predic-tions using heatmaps from the 13.94% decrease in mAP when only using SAM masks. Finally, we see the usefulness of our attention-based pooling by comparing it to mean-pooling of the support images. We find that this results in a 6.5% decrease in mAP value. These ablations demonstrate the importance of each component in our method. 
+
+## 4.5. Inference Time Analysis 
+
+Other models trade data collection and fine-tuning time for faster inference, whereas ours requires no training but takes longer for inference if we haven’t seen a class before. We are able to provide a breakdown of the inference time for each step of our process presented in Table 5. We notice that the maximum amount of time taken in our entire process is during the scraping of the images, however if the system has seen a query before, the image scraping is not done since we already cache the resulting images.        
+
+> Table 5. Contribution of each sub-process to average inference time per query. Note that image scraping and segmentation (green) are performed in parallel, and the next two steps wait for both to end before starting. Distance Calculation and Thresholding, and Heatmap Generation are also executed in parallel (yellow).
+> Sub-Process Average Time (s)
+> Image Scraping 2.9 Segmentation 2.5 Distance Calculation and Thresholding 0.57 Heatmap Generation 0.68 Max Average Time 3.58
+
+# 5. Conclusion 
+
+In this paper, we presented SearchDet, a training-free infer-ence stage framework that leverages web-retrieved images for long-tail open-vocabulary object detection. Our exper-iments demonstrate that SearchDet not only outperforms existing state-of-the-art models like GroundingDINO and GLIP-L, but also that SearchDet shows robustness against variations in exemplars used for object detection. While the performance of our method is proportional to the number of Web-retrieved images, even a single retrieved image is suffi-cient for strong performance. Our work opens new avenues for exploration, showing that training-free methods lever-aging pre-trained vision models and dynamic web images obtain strong performance without the need to continuously fine-tune or pre-train open-vocabulary detectors. 15136 References 
+
+[1] Marah Abdin, Sam Ade Jacobs, Ammar Ahmad Awan, Jyoti Aneja, Ahmed Awadallah, Hany Awadalla, Nguyen Bach, Amit Bahree, Arash Bakhtiari, Harkirat Behl, et al. Phi-3 technical report: A highly capable language model locally on your phone. arXiv preprint arXiv:2404.14219 , 2024. 3 [2] Simone Antonelli, Danilo Avola, Luigi Cinque, Donato Crisostomi, Gian Luca Foresti, Fabio Galasso, Marco Raoul Marini, Alessio Mecca, and Daniele Pannone. Few-shot ob-ject detection: A survey. ACM Computing Surveys (CSUR) ,54(11s):1–37, 2022. 2 [3] Ansel Blume, Khanh Duy Nguyen, Zhenhailong Wang, Yangyi Chen, Michal Shlapentokh-Rothman, Xiaomeng Jin, Jeonghwan Kim, Zhen Zhu, Jiateng Liu, Kuan-Hao Huang, et al. Miracle: An online, explainable multimodal in-teractive concept learning system. In Proceedings of the 32nd ACM International Conference on Multimedia , pages 11252–11254, 2024. 6 [4] Floriana Ciaglia, Francesco Saverio Zuppichini, Paul Guer-rie, Mark McQuade, and Jacob Solawetz. Roboflow 100: A rich, multi-domain object detection benchmark, 2022. 6 [5] Qi Fan, Wei Zhuo, Chi-Keung Tang, and Yu-Wing Tai. Few-shot object detection with attention-rpn and multi-relation detector. In 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2020, Seattle, WA, USA, June 13-19, 2020 , pages 4012–4021. Computer Vision Foun-dation / IEEE, 2020. 7 [6] Zhibo Fan, Yuchen Ma, Zeming Li, and Jian Sun. General-ized few-shot object detection without forgetting. In IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2021, virtual, June 19-25, 2021 , pages 4527–4536. Computer Vision Foundation / IEEE, 2021. 7 [7] Chelsea Finn, Pieter Abbeel, and Sergey Levine. Model-agnostic meta-learning for fast adaptation of deep networks. In International conference on machine learning , pages 1126–1135. PMLR, 2017. 2 [8] R Girshick. Fast r-cnn. arXiv preprint arXiv:1504.08083 ,2015. 2 [9] Agrim Gupta, Piotr Dollar, and Ross Girshick. Lvis: Adataset for large vocabulary instance segmentation. In Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 5356–5364, 2019. 6 [10] Guangxing Han, Yicheng He, Shiyuan Huang, Jiawei Ma, and Shih-Fu Chang. Query adaptive few-shot object detec-tion with heterogeneous graph convolutional networks. In 
+
+2021 IEEE/CVF International Conference on Computer Vi-sion, ICCV 2021, Montreal, QC, Canada, October 10-17, 2021 , pages 3243–3252. IEEE, 2021. 7 [11] Guangxing Han, Shiyuan Huang, Jiawei Ma, Yicheng He, and Shih-Fu Chang. Meta faster R-CNN: towards accu-rate few-shot object detection with attentive feature align-ment. In Thirty-Sixth AAAI Conference on Artificial Intelli-gence, AAAI 2022, Thirty-Fourth Conference on Innovative Applications of Artificial Intelligence, IAAI 2022, The Twel-veth Symposium on Educational Advances in Artificial Intel-ligence, EAAI 2022 Virtual Event, February 22 - March 1, 2022 , pages 780–789. AAAI Press, 2022. 7 [12] Guangxing Han, Jiawei Ma, Shiyuan Huang, Long Chen, and Shih-Fu Chang. Few-shot object detection with fully cross-transformer. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2022, New Orleans, LA, USA, June 18-24, 2022 , pages 5311–5320. IEEE, 2022. 6, 7 [13] Qing Jiang, Feng Li, Zhaoyang Zeng, Tianhe Ren, Shi-long Liu, and Lei Zhang. T-rex2: Towards generic object detection via text-visual prompt synergy. arXiv preprint arXiv:2403.14610 , 2024. 1, 2, 6 [14] Bingyi Kang, Zhuang Liu, Xin Wang, Fisher Yu, Jiashi Feng, and Trevor Darrell. Few-shot object detection via feature reweighting. In 2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019, Seoul, Korea (South), Oc-tober 27 - November 2, 2019 , pages 8419–8428. IEEE, 2019. 7[15] Bingyi Kang, Zhuang Liu, Xin Wang, Fisher Yu, Jiashi Feng, and Trevor Darrell. Few-shot object detection via feature reweighting. In Proceedings of the IEEE/CVF international conference on computer vision , pages 8420–8429, 2019. 2 [16] Prannay Kaul, Weidi Xie, and Andrew Zisserman. Label, verify, correct: A simple few shot object detection method. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2022, New Orleans, LA, USA, June 18-24, 2022 , pages 14217–14227. IEEE, 2022. 7 [17] Lei Ke, Mingqiao Ye, Martin Danelljan, Yu-Wing Tai, Chi-Keung Tang, Fisher Yu, et al. Segment anything in high qual-ity. Advances in Neural Information Processing Systems , 36, 2024. 2 [18] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-thing. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , pages 4015–4026, 2023. 2 [19] Feng Li, Hao Zhang, Peize Sun, Xueyan Zou, Shilong Liu, Jianwei Yang, Chunyuan Li, Lei Zhang, and Jianfeng Gao. Semantic-sam: Segment and recognize anything at any gran-ularity. arXiv preprint arXiv:2307.04767 , 2023. 2 [20] Feng Li, Qing Jiang, Hao Zhang, Tianhe Ren, Shilong Liu, Xueyan Zou, Huaizhe Xu, Hongyang Li, Jianwei Yang, Chunyuan Li, et al. Visual in-context prompting. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 12861–12871, 2024. 6 [21] Liunian Harold Li*, Pengchuan Zhang*, Haotian Zhang*, Jianwei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, Kai-Wei Chang, and Jianfeng Gao. Grounded language-image pre-training. In 
+
+CVPR , 2022. 6 [22] Liunian Harold Li*, Pengchuan Zhang*, Haotian Zhang*, Jianwei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, Kai-Wei Chang, and Jianfeng Gao. Grounded language-image pre-training. In 
+
+CVPR , 2022. 6 [23] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jian-wei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, et al. Grounded language-image pre-training. In Proceedings of the 15137 IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10965–10975, 2022. 1, 2 [24] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 , pages 740–755. Springer, 2014. 6 [25] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Chunyuan Li, Jianwei Yang, Hang Su, Jun Zhu, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. arXiv preprint arXiv:2303.05499 , 2023. 1, 2, 6 [26] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In 
+
+Proceedings of the IEEE/CVF international conference on computer vision , pages 10012–10022, 2021. 2 [27] Jiawei Ma, Yulei Niu, Jincheng Xu, Shiyuan Huang, Guangxing Han, and Shih-Fu Chang. Digeo: Discriminative geometry-aware learning for generalized few-shot object de-tection. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2023, Vancouver, BC, Canada, June 17-24, 2023 , pages 3208–3218. IEEE, 2023. 7 [28] Matthias Minderer, Alexey Gritsenko, Austin Stone, Maxim Neumann, Dirk Weissenborn, Alexey Dosovitskiy, Aravindh Mahendran, Anurag Arnab, Mostafa Dehghani, Zhuoran Shen, et al. Simple open-vocabulary object detection. In 
+
+European Conference on Computer Vision , pages 728–755. Springer, 2022. 2 [29] Maxime Oquab, Timoth´ ee Darcet, Th´ eo Moutakanni, Huy V Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel HAZIZA, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without super-vision. Transactions on Machine Learning Research , 2023. 2, 4 [30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PMLR, 2021. 2 [31] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PMLR, 2021. 1 [32] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, et al. Sam 2: Segment anything in images and videos. arXiv preprint arXiv:2408.00714 , 2024. 2 [33] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: Towards real-time object detection with region proposal networks. IEEE transactions on pattern analysis and machine intelligence , 39(6):1137–1149, 2016. 2 [34] Michal Shlapentokh-Rothman, Ansel Blume, Yao Xiao, Yuqun Wu, Sethuraman TV, Heyi Tao, Jae Yong Lee, Wil-fredo Torres, Yu-Xiong Wang, and Derek Hoiem. Region-based representations revisited. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 17107–17116, 2024. 4 [35] Jake Snell, Kevin Swersky, and Richard Zemel. Prototypical networks for few-shot learning. Advances in neural informa-tion processing systems , 30, 2017. 2 [36] Bo Sun, Banghuai Li, Shengcai Cai, Ye Yuan, and Chi Zhang. FSCE: few-shot object detection via contrastive proposal encoding. In IEEE Conference on Computer Vi-sion and Pattern Recognition, CVPR 2021, virtual, June 19-25, 2021 , pages 7352–7362. Computer Vision Foundation / IEEE, 2021. 7 [37] Xin Wang, Thomas E. Huang, Joseph Gonzalez, Trevor Dar-rell, and Fisher Yu. Frustratingly simple few-shot object de-tection. In Proceedings of the 37th International Conference on Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event , pages 9919–9928. PMLR, 2020. 7 [38] Xiongwei Wu, Doyen Sahoo, and Steven Hoi. Meta-rcnn: Meta learning for few-shot object detection. In Proceedings of the 28th ACM International Conference on Multimedia ,pages 1679–1687, 2020. 2 [39] Xiaopeng Yan, Ziliang Chen, Anni Xu, Xiaoxi Wang, Xi-aodan Liang, and Liang Lin. Meta R-CNN: towards gen-eral solver for instance-level low-shot learning. In 2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019, Seoul, Korea (South), October 27 - November 2, 2019 , pages 9576–9585. IEEE, 2019. 7 [40] Gongjie Zhang, Zhipeng Luo, Kaiwen Cui, and Shijian Lu. Meta-detr: Few-shot object detection via unified image-level meta-learning. 2 [41] Xinyu Zhang, Yuting Wang, and Abdeslam Boularias. Detect everything with few examples. arXiv preprint arXiv:2309.12969 , 2023. 2 [42] Xinyu Zhang, Yuting Wang, and Abdeslam Boularias. Detect everything with few examples, 2024. 7 15138

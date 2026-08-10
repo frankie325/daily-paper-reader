@@ -1,0 +1,309 @@
+Title: Visual Consensus Prompting for Co-Salient Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Wang_Visual_Consensus_Prompting_for_Co-Salient_Object_Detection_CVPR_2025_paper.pdf
+
+Published Time: Sun, 18 May 2025 23:15:02 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Visual Consensus Prompting for Co-Salient Object Detection 
+
+# Jie Wang 1, Nana Yu 1, Zihao Zhang 1, Yahong Han 1* 1College of Intelligence and Computing, Tianjin University, Tianjin, China    
+
+> wangjiexy@tju.edu.cn, yunana@tju.edu.cn, zhangzihao2490@tju.edu.cn, yahong@tju.edu.cn
+
+# Abstract 
+
+Existing co-salient object detection (CoSOD) methods gen-erally employ a three-stage architecture (i.e., encoding, consensus extraction & dispersion, and prediction) along with a typical full fine-tuning paradigm. Although they yield certain benefits, they exhibit two notable limitations: 1) This architecture relies on encoded features to facilitate con-sensus extraction, but the meticulously extracted consensus does not provide timely guidance to the encoding stage. 2) This paradigm involves globally updating all parameters of the model, which is parameter-inefficient and hinders the effective representation of knowledge within the foundation model for this task. Therefore, in this paper, we propose an interaction-effective and parameter-efficient concise ar-chitecture for the CoSOD task, addressing two key limita-tions. It introduces, for the first time, a parameter-efficient prompt tuning paradigm and seamlessly embeds consensus into the prompts to formulate task-specific Visual Consen-sus Prompts (VCP). Our VCP aims to induce the frozen foundation model to perform better on CoSOD tasks by for-mulating task-specific visual consensus prompts with min-imized tunable parameters. Concretely, the primary in-sight of the purposeful Consensus Prompt Generator (CPG) is to enforce limited tunable parameters to focus on co-salient representations and generate consensus prompts. The formulated Consensus Prompt Disperser (CPD) lever-ages consensus prompts to form task-specific visual consen-sus prompts, thereby arousing the powerful potential of pre-trained models in addressing CoSOD tasks. Extensive ex-periments demonstrate that our concise VCP outperforms 13 cutting-edge full fine-tuning models, achieving the new state of the art (with 6.8 % improvement in Fm metrics on the most challenging CoCA dataset). Source code has been available at https://github.com/WJ-CV/VCP .
+
+# 1. Introduction 
+
+Co-Salient Object Detection (CoSOD) is a group-based im-age understanding task aimed at detecting salient objects that commonly appear among a group of relevant images.     
+
+> *Corresponding author.
+> Figure 1. Existing relevant methods VS. our VCP. (a) Existing CoSOD methods based on typical architectural patterns and full fine-tuning paradigms. (b) Introducing simple tunable parame-ters as visual prompts to address foreground segmentation tasks in single-scene images. (c) Our proposed VCP and some visual-ization results. The frozen foundation model is mined to generate task-specific visual consensus prompts (with minimized tunable parameters), thereby inducing it to effectively perform CoSOD.
+
+CoSOD methods have demonstrated their effectiveness as a key pre-processing step for various computer vision tasks, such as co-segmentation [39], co-localization [9], and ob-ject tracking [34]. Additionally, with the effectiveness of CoSOD methods continue to improve, they are increasingly being utilized in numerous practical applications [8, 30, 37]. Numerous impressive CoSOD methods have been pro-posed and continually advancing the performance of this task. As illustrated in Fig.1 (a), most of these methods [33, 35, 40, 42, 44, 46] employ a common three-stage ar-chitecture: first, encoding multi-scale features using a foun-dation model pretrained on large-scale datasets; next, de-signing unique consensus mining schemes to focus on and mine co-salient object representations within the group of relevant images to complete consensus extraction and fur-ther disperse the consensus into multi-scale features; finally, obtaining co-saliency predictions using a prediction head. In this architecture, the effectiveness of encoded features greatly facilitates the extraction and dispersion of consen-sus, but the meticulously extracted consensus struggles to This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 9591 Figure 2. Quantitative comparison of our VCP with 8 represen-tative methods on the CoCA [42] dataset regarding Sm, F max  
+
+> m
+> metrics, and tunable parameters. The bubble area represents the tunable parameters (M). SCED [33], GEM [31], MCCL [44], GCoNet+ [43], CoPR [46], DMT [16], and CADC++ [41] are all full fine-tuning CoSOD methods. EVP [20] is based on prompt learning for SOD tasks, and we retrain it using the CoSOD dataset.
+
+guide feature encoding in a timely manner, as the encoder is only fine-tuned at the end of parameter optimization. In a nutshell, this architecture lacks efficient interaction between encoding and consensus, resulting in neither fully realiz-ing their potential. More critically, existing methods typi-cally employ the full fine-tuning paradigm, which involves adapting the model to the specific CoSOD task by tuning all parameters (including the large-scale pre-trained foun-dation model) using existing CoSOD datasets [19, 28, 42]. The full fine-tuning paradigm has two main limitations: 1) It is parameter-inefficient and requires many repetitions of tuning and storage of the entire pre-trained model, resulting in significant computational and storage overheads. 2) The quality and quantity of fine-tuning data also restrict the ef-fectiveness of knowledge representation of the pre-trained foundation model in this task. These limitations make it difficult for existing methods to achieve more effective and efficient CoSOD performance (Fig.1 (a) and Fig.2). Addi-tionally, they increase the difficulty of CoSOD methods in practical applications, and this difficulty further increases with the inherent trend of increasing scale of foundation models (e.g., Transformer series or large models). The parameter-efficient prompt tuning paradigm [15, 18, 21] has been proposed and promoted in Natural Language Processing (NLP) [2, 25, 26]. Inspired by that, recent works [3, 12, 23, 45] have introduced the prompt tuning paradigm into visual tasks, and guided the model to solve visual recognition tasks by freezing the foundation model and adding a few learnable parameters as task-specific vi-sual prompts. Additionally, some promising works utilize the idea of prompt tuning to address foreground segmenta-tion tasks (Fig.1 (b)). These methods [20, 22] preset sim-ple tunable embeddings as foreground prompts to address SOD-related tasks. As shown in Fig. 2, these methods per-form poorly when tackling specific CoSOD tasks, primar-ily due to two main limitations: (1) These methods solely focus on single-image foregrounds regardless of their cate-gory, while the CoSOD not only expands a group dimension but also involves numerous non-co-salient objects within the images as interference. (2) Introducing simple tunable parameters as visual prompts struggles to model intra-group co-salient representations and to achieve effective CoSOD performance. Hence, we ponder: How to formulate task-specific prompts for CoSOD to adapt the foundation model to effectively and efficiently facilitate this task? At this juncture, it is surprising to find that if the ex-traction and dispersion of consensus (the key representa-tions specific to the CoSOD task) are embedded into visual prompts, the architecture we seek for efficient interaction between consensus and encoding can perfectly align with the prompt tuning paradigm. In this spirit, we propose a concise and parameter-efficient Visual Consensus Prompt-ing (VCP) for co-salient object detection. Our VCP aims to induce the frozen pre-trained model to effectively and effi-ciently execute CoSOD tasks by constructing task-specific visual consensus prompts (with minimized tunable parame-ters). Given the critical importance of visual consensus for CoSOD tasks, we design two key components to support the implementation of VCP: the Consensus Prompt Gen-erator (CPG) and the Consensus Prompt Dispenser (CPD). The primary insight of CPG is to enforce limited tunable pa-rameters to focus on intra-group co-salient representations from frozen embedding features, thereby generating con-sensus prompts. CPD leverages consensus prompts to form task-specific visual consensus prompts and adaptively har-nesses the powerful potential of frozen Transformer layers in addressing CoSOD. We summarize the contribution of our work as follows: • An interaction-effective and parameter-efficient visual consensus prompts architecture for CoSOD is proposed, which can serve as a powerful alternative to existing methods based on the common architecture and the full fine-tuning paradigm. • The proposed Consensus Prompt Generator systemati-cally aggregates task-specific consensus prompts, while the Consensus Prompt Disperser adaptively induces the foundation model to perform better in this task. • Extensive experiments demonstrate the comprehensive performance advantage of our VCP. Particularly on the COCA dataset, which best reflects the model’s robust-ness, our VCP outperforms the state-of-the-art method by 
+
+5.6 % and 6.8 % in terms of Sm and Fm, respectively. It’s our belief that the CoSOD task can be conducted with a concise architecture in an interaction-effective and parameter-efficient manner. We hope the impressive perfor-mance of VCP can demonstrate the potential of the consen-sus prompt tuning paradigm to the CoSOD community. 9592 Figure 3. Overall framework pipeline of our proposed concise and parameter-efficient VCP model. We induce the frozen foundation model to perform better on the CoSOD task by formulating Visual Consensus Prompts with minimal tunable parameters. The proposed Consensus Prompt Generator (CPG) and Consensus Prompt Disperser (CPD) support the implementation of VCP. The CPG mines intra-group co-salient representations of the frozen embeddings to generate consensus prompts PCo . The CPD utilizes PCo to form Visual Consensus Prompts and induce the frozen transformer layers to perform the CoSOD task. 
+
+# 2. Related works 
+
+2.1. Co-Salient Object Detection 
+
+CoSOD aims to discover and segment salient objects that appear commonly within a group of images. Re-cent CoSOD methods [8, 29, 33, 35, 40, 42, 44] have achieved impressive performance, and their implementa-tion paradigms can be broadly summarized as consensus extraction and consensus dispersion. Consensus extraction aims to focus on the salient objects common to the group of images and form a consensus representation. Consen-sus dispersion utilizes the extracted consensus to guide the model’s decoding and generate predictions. Xu et al. [33] employ a hierarchical Transformer to extract semantic con-sensus and propagate consensus based on the Transformer. Some promising methods have attempted to use saliency predictions to filter out non-salient backgrounds or to fur-ther refine consensus representations [14, 43, 46]. How-ever, existing methods lack effective interaction between encoding and consensus, and they are all based on the full fine-tuning strategy, which involves adapting the model to the specific CoSOD task by adjusting all parameters (in-cluding the large-scale pre-trained foundation model) using existing CoSOD datasets. This parameter-inefficient tun-ing paradigm incurs significant computational and storage overheads, making it not only challenging to achieve better performance but also unfriendly to practical applications. In contrast, an interaction-effective and parameter-efficient architecture for CoSOD is proposed, which can serve as a powerful alternative to existing prevailing methods. 
+
+2.2. Visual Prompting Tuning 
+
+Prompt-based learning is pioneered and driven by the GPT series [2, 25, 26] in the field of NLP. It initially referred to adding task-specific descriptions to downstream inputs to assist language models in handling downstream tasks, rather than solely adapting pre-trained models to fit down-stream tasks through full fine-tuning. In addition to subse-quent work on how to construct better prompt texts [13, 27], recent efforts have also proposed treating prompts as contin-uous vectors specific to tasks and directly optimizing them through gradients during the fine-tuning process, known as Prompt Tuning [15, 18, 21]. Besides, prompt learning also shows its effectiveness in many computer vision tasks [3, 12, 20, 22, 23, 45]. VPT [12] provides a set of learn-able parameters pre-prepared for Transformer encoders, significantly outperforming full fine-tuning on 20 down-stream identification tasks. Unlike simply adding some lin-ear layers or tunable parameters to address visual recogni-tion tasks [3, 12, 23], some promising methods incorporate prompt learning into foreground segmentation tasks. EVP [20] introduces handcrafted features to create explicit visual prompts for effective single-image SOD. VSCode [22] in-corporates task-specific and domain-specific prompts to ad-dress single-modal or multi-modal SOD tasks through full fine-tuning of the model. These methods primarily focus on foreground objects in a single scene and only perform simple prompt tuning, making it difficult to model intra-group consensus and achieve satisfactory co-salient object segmentation results. 
+
+# 3. Proposed Methodology 
+
+3.1. Overview 
+
+In this section, we propose Visual Consensus Prompt tun-ing, i.e., VCP, for CoSOD, it is a concise and parameter-efficient alternative to existing full fine-tuning methods [16, 31, 33, 41, 46]. The proposed VCP is a predefined 9593 Figure 4. Overall pipeline of the proposed CPG and CPD. The CPG utilizes predefined saliency seeds to generate saliency es-timation maps through clustering, thereby obtaining consensus seeds. By selecting top-k representative consensus seeds, consen-sus prompts PCo are obtained. The CPD utilizes PCo to generate visual consensus prompts P Co V isual and induce the frozen trans-former layers to address the CoSOD task. 
+
+prompt specific to the CoSOD task, which reformulates this task to closely resemble those addressed during the orig-inal pre-training, thereby inducing the foundation model to perform well on this task. Concisely, the core of our VCP is tuning only a few task-specific parameters to adapt large-scale pre-trained Transformer models for effectively addressing CoSOD tasks. For CoSOD tasks, given a set of related images {Ii ∈ RC×H×W }Ni=1 , the model is required to search for and segment intra-group co-salient objects in order to generate co-salient prediction maps {Mi}Ni=1 .The main insight of VCP is to enforce limited tunable pa-rameters to focus on and generate task-specific consensus prompts, and utilize these prompts to induce the founda-tion model to perform effectively. As shown in Fig. 3, the proposed VCP primarily consists of two key components: the CPG and the CPD. The CPG is responsible for min-ing intra-group co-salient representations of the frozen em-beddings to generate consensus prompts. The CPD utilizes these consensus prompts to form task-specific visual con-sensus prompts and induce the frozen transformer layers to perform the CoSOD task. Segformer [32] is employed as our foundation model, which is a hierarchical Transformer architecture pretrained on ImageNet, utilized for semantic segmentation tasks. Segformer extracts multi-scale features through four stages, each comprising an overlapping patch embedding layer and several visual transformer blocks. The extracted embed-ding features E = {Es ∈ RN ×Ls×Cs , L s = HsWs}4
+
+> s=1
+
+are utilized by CPG to mine intra-group co-salient represen-tations for generating consensus prompts PCo and embed-ding prompts PEm . Inspired by traditional methods [11, 24] that employ handcrafted image features to aid segmentation tasks, we utilize fast Fourier transform [20], which gen-erates Handcrafted Prompt PHand through several prede-fined tunable embedding layers. CPD leverages consen-sus prompts to integrate three types of prompts ( PCo , PEm 
+
+and PHand ) to form task-specific visual consensus prompts 
+
+P Co V isual , thereby adaptively inducing different depths of transformer layers. We modify the original decoding part of Segformer, reconstructing a concise Prediction Head (PH) and integrating a classifier. 
+
+3.2. Consensus Prompt Generator 
+
+Effectively mining intra-group consensus representations and suppressing irrelevant feature components is crucial for specific CoSOD tasks. Therefore, we propose a CPG, which can efficiently extract co-salient representations from frozen embedding features within the group and generate consen-sus prompts PCo . As depicted in Fig. 4, initially, the CPG initializes j learnable saliency seed tensors, which are uti-lized to generate prototype representations of intra-image salient objects via clustering. These prototype representa-tions guide the model in performing the initial saliency esti-mation. Subsequently, leveraging the obtained saliency es-timation map, we generate pixel embeddings for all salient objects, i.e., consensus seeds. From these consensus seeds, 
+
+k highly relevant pixel embeddings are selected to form consensus representations, which are then mapped back to the original embeddings to generate consensus prompts 
+
+PCo .The embedding features obtained by the foundation model have a high dimensionality. A tunable linear layer (with a scale r to control the tunable parameters) is used to reduce the dimensionality of the input embed-ding features to form the initial embedding prompt PEm ∈
+
+RN ×Ls×Cr , C r = Cs/r . Inspired by [7, 14, 46], we lever-age saliency priors to assist in consensus extraction. How-ever, unlike previous approaches, we no longer rely on addi-tional large-scale saliency detection datasets to aid in train-ing the prediction head. Instead, we leverage the concept of prototype learning by learning saliency seeds (cluster centers) within the embedding to accomplish salient ob-ject representation. Specifically, j learnable saliency seeds 
+
+Sseed ∈ Rj×Cr are pre-defined. The reshaped embedding features Pem ∈ RN ×Cr ×Hs×Ws are first subjected to nor-malization and convolution operations to form soft alloca-tion probability scores Ssof t ∈ RN ×j×Ls .
+
+Ssof t = ν(Sof tmax (conv (L2(Pem )))) , (1) where L2 and ν represent L2 normalization and reshap-ing operations, respectively. Then, based on the Ssof t ∈
+
+RN ×j×Ls , the residuals Res ∈ RN ×j×Cr ×Ls between the embedding features and the saliency seeds Sseed ∈ Rj×Cr9594 are computed. 
+
+Res = ( ν(Pem ) − ν(Sseed )) × ν(Sassign ), (2) These residuals Res ∈ RN ×j×Cr ×Ls are then utilized to weightedly sum the embedding features, resulting in up-dated saliency seeds representations Supdate seed ∈ RN ×j×Cr .
+
+Supdate seed = Ls∑
+
+> i=1
+
+Res (N, j, C r , i ), (3) Finally, the updated saliency seeds are used to enhance the salient objects within the embedding features, thereby gen-erating the saliency estimation map {M s}4
+
+> s=1
+
+.
+
+M s = conv [M LP (L2(Supdate seed )) , P em ]. (4) Where [·] represents channel concatenation. We utilize a prototype learning-based approach to achieve attention on salient objects in complex scenes by learning saliency pro-totypes present in clustered embeddings. Simultaneously, we utilize CoSOD labels for multi-stage supervision to maintain consistency between the saliency estimation maps and the consensus attention targets. We utilize the obtained saliency estimation map to further filter out non-co-salient object representations in the embedding features, forming consensus prompts PCo ∈ RN ×Ls×Cr . Specifically, we utilize the saliency estimation map {M s}4 
+
+> s=1
+
+to reshape all embedding representations Pem ∈ RN ×Cr ×Hs×Ws within the group into pixel patch embeddings, namely, consensus seeds Co seed ∈ RN L s×Cr . Next, we search within the con-sensus seeds for the top-k pixel embeddings as representa-tive consensus seeds Co rep seed ∈ Rk×Cr , which exhibit the highest correlation among them. 
+
+score = Co seed ⊗ ν(average (Pem × M s)) T , (5) 
+
+Co rep seed = gather (Co seed , argtopk (score )) , (6) where ⊗ represents matrix multiplication. Finally, the ob-tained representative consensus seeds are mapped back to the original embeddings to form effective consensus fea-tures, and spatial attention Satt ∈ RN ×1×Hs×Ws is utilized to further enhance the consensus representation. The en-hanced consensus features are reshaped to form consensus prompts PCo ∈ RN ×Ls×Cr .
+
+FCo = conv (L2(Pem ), weight = ν(Co rep seed )) , (7) 
+
+PCo = ν(conv (FCo × Satt )) . (8) 
+
+3.3. Consensus Prompt Disperser 
+
+To effectively leverage the obtained consensus prompts to induce the foundation model to perform well on CoSOD tasks, a concise CPD is further proposed. Firstly, the ob-tained consensus prompts PCo are used to further guide the consensus expression within the embedding prompts 
+
+PEm through simple integration, denoted as Embedding Consensus Prompts P Co Em ∈ RN ×Ls×Cr . The P Co Em are more effective for tuning the frozen foundation model’s embedding components. Additionally, inspired by some methods that incorporate handcrafted features into mod-els and gain benefits. For example, the EVP [20] uti-lizes handcrafted features derived from fast Fourier trans-form as Explicit Visual Prompts to achieve effective fore-ground segmentation. Therefore, we also consider incor-porating handcrafted features PHand as part of the visual prompts to focus on high-frequency components within in-dividual images. However, since the handcrafted prompts used in EVP only focus on individual independent images, their effectiveness is significantly discounted when dealing with CSOD tasks that require emphasis on intra-group rele-vance (as demonstrated in the experimental section). Taking these considerations into account, we once again utilize the obtained consensus prompts PCo to highlight the consen-sus high-frequency components in the handcrafted prompts 
+
+PHand ∈ RN ×Ls×Cr , denoted as Handcrafted Consensus Prompts P Co Hand ∈ RN ×Ls×Cr . The handcrafted prompts 
+
+PHand introduced in our method are obtained directly from the input image through predefined multi-stage overlapping patch embeddings after fast Fourier transformation. The P Co Em and P Co Hand are further integrated to obtain Vi-sual Consensus Prompts P Co V isual ∈ RN ×Ls×2Cr .
+
+P Co V isual = [ PEm + PCo , P Hand + PCo ], (9) Utilizing these visual consensus prompts to perform adap-tive tunes on different depths of vision transformer layers is also crucial for inducing the foundation model to address CoSOD tasks. Therefore, multiple unshared linear layers are used to achieve adaptive tunes of different transformer layers. Then, an intra-stage shared linear layer is utilized to maintain consistency in dimensions between the prompts 
+
+P = {P nS ∈ RN ×Ls×Cs }4 
+
+> s=1
+
+and the transformer features. 
+
+P nS = M LP up (gelu (M LP nS (P Co V isual ))) . (10) Finally, the obtained task-specific prompts P will induce the foundation model to achieve effective and efficient CoSOD performance. 
+
+3.4. Prediction Head and Objective Function 
+
+The decoder of Segformer [32] utilizes multiple linear lay-ers to up-project multi-stage features to a unified dimen-sion (typically higher, d=768). The multi-scale features are concatenated in the high dimension and down-projected through linear layers to generate predictions. The decoder of Segformer possesses a significant number of parameters (3.15M), which greatly increases the number of tunable pa-rameters, contradicting the motivation to minimize tunable parameters. Therefore, a concise prediction head is de-signed, primarily comprising an ASPP, FPN-like, and an 9595 Table 1. Quantitative comparison between the proposed VCP and 13 SOTA methods on three benchmark datasets regarding six compre-hensive quantitative metrics, tunable parameters, and model size. DUT-class [42], COCO-9k [19], and COCO-SEG [28] are wildly used training datasets in CoSOD and we denote them as D, C and S, respectively. “ ↑” means that the higher the numerical value, the better the model performance. Red, blue, and green represent the top three performances, respectively. 
+
+Datasets Metrics EVP CADC GCoNet DCFM DMT CoRP CADC++ GEM GCoNet+ MCCL SCED UniTR CONDAOURS I OURS II 
+
+VS. CVPR 23 ICCV 21 CVPR 21 CVPR 22 CVPR 23 TPAMI 23 TPAMI 23 CVPR 23 TPAMI 23 AAAI 23 ACMM 23 TMM 24 ECCV 24 — —S+D C+D D C C+D C+D D S+D S+D S+D S+D S+D S+D C+D S+D CoCA 
+
+Sm↑ 0.686 0.681 0.673 0.710 0.728 0.715 0.708 0.726 0.738 0.713 0.741 0.708 0.763 0.774 0.819 +5.6% 
+
+Emax  
+
+> m
+
+↑ 0.760 0.744 0.760 0.783 0.800 0.769 0.791 0.808 0.814 0.796 0.828 0.789 0.839 0.829 0.871 +3.2% 
+
+F max  
+
+> m
+
+↑ 0.546 0.548 0.544 0.598 0.621 0.597 0.609 0.599 0.637 0.584 0.629 0.574 0.685 0.680 0.752 +6.7% MAE ↓ 0.126 0.132 0.105 0.085 0.107 0.103 0.107 0.095 0.081 0.097 0.084 0.089 0.089 0.069 0.054 -2.7% 
+
+Em↑ 0.708 0.690 0.739 0.778 0.754 0.747 — 0.767 0.783 0.764 0.804 0.766 0.790 0.813 0.830 +2.6% 
+
+Fm↑ 0.510 0.503 0.531 0.593 0.590 0.584 — 0.566 0.612 0.560 0.610 0.559 0.640 0.660 0.708 +6.8% CoSOD3k 
+
+Sm↑ 0.839 0.801 0.802 0.810 0.852 0.838 0.823 0.853 0.843 0.854 0.865 0.852 0.862 0.874 0.895 +3.0% 
+
+Emax  
+
+> m
+
+↑ 0.854 0.840 0.860 0.874 0.895 0.890 0.876 0.911 0.901 0.902 0.923 0.903 0.911 0.918 0.938 +1.5% 
+
+F max  
+
+> m
+
+↑ 0.813 0.759 0.778 0.805 0.836 0.827 0.808 0.829 0.834 0.832 0.859 0.834 0.853 0.868 0.893 +3.4% MAE ↓ 0.076 0.096 0.071 0.067 0.064 0.060 0.070 0.062 0.062 0.062 0.053 0.058 0.056 0.049 0.043 -1.0% 
+
+Em↑ 0.852 0.824 0.857 0.871 0.882 0.886 — 0.885 0.872 0.879 0.900 0.890 0.893 0.901 0.909 +0.9% 
+
+Fm↑ 0.774 0.743 0.770 0.800 0.815 0.815 — 0.803 0.813 0.809 0.842 0.821 0.827 0.850 0.860 +1.8% CoSal2015 
+
+Sm↑ 0.876 0.866 0.845 0.838 0.896 0.867 0.875 0.885 0.881 0.887 0.894 0.896 0.900 0.911 0.927 +2.7% 
+
+Emax  
+
+> m
+
+↑ 0.914 0.906 0.887 0.892 0.933 0.912 0.922 0.933 0.924 0.923 0.938 0.940 0.944 0.944 0.962 +1.8% 
+
+F max  
+
+> m
+
+↑ 0.874 0.862 0.847 0.856 0.903 0.882 0.889 0.882 0.891 0.887 0.908 0.902 0.908 0.920 0.941 +3.3% MAE ↓ 0.068 0.064 0.068 0.067 0.047 0.055 0.047 0.053 0.056 0.054 0.045 0.041 0.045 0.037 0.030 -1.1% 
+
+Em↑ 0.881 0.874 0.884 0.888 0.922 0.907 — 0.913 0.902 0.907 0.924 0.928 0.923 0.933 0.944 +1.6% 
+
+Fm↑ 0.836 0.826 0.838 0.850 0.880 0.869 — 0.856 0.870 0.868 0.892 0.887 0.887 0.902 0.915 +2.3% Tunable Param. (M) 3.7 392.85 280.36 142.3 40.4 20 393.21 52.3 18.4 27.1 156.7 146.6 24.1 4.94 4.94 Model Size (MB) 14.1 1498.7 541.7 542.9 154.4 228.3 — 199.7 70.4 104.5 1750 541 139.5 19 19 
+
+Table 2. Ablation analysis on the main components of our VCP architecture. “BL” represents the baseline, which utilizes solely the frozen foundation model and the tunable FPN-like decoder. PHand represents PEm +PHand and PCo represents PEm +PCo .
+
+Combination Tunable Param. (M) Model Size (MB) COCA CoSOD3k CoSal2015 BL PH PHand PCo Sm↑ F max  
+
+> m
+
+↑ MAE ↓ Sm↑ F max  
+
+> m
+
+↑ MAE ↓ Sm↑ F max  
+
+> m
+
+↑ MAE ↓
+
+X 0.14 0.52 0.635 0.470 0.138 0.777 0.749 0.099 0.813 0.814 0.099 
+
+X X 1.49 5.73 0.659 0.498 0.125 0.832 0.795 0.073 0.866 0.862 0.063 
+
+X X X 2.04 7.87 0.704 0.561 0.111 0.852 0.831 0.067 0.894 0.893 0.054 
+
+X X X 4.59 17.67 0.763 0.662 0.073 0.873 0.870 0.052 0.911 0.923 0.043 
+
+X X Addition 4.72 18.14 0.755 0.646 0.080 0.873 0.861 0.048 0.910 0.916 0.036 
+
+X X Concatenation 4.94 19.02 0.774 0.680 0.069 0.874 0.868 0.049 0.911 0.920 0.037 additional linear classifier. This prediction head accepts a smaller unified projection dimension and has fewer tunable parameters (1.49M). The prediction head generates a final prediction map M
+
+and classification predictions Vcla . We adopt a weighted combination Lw of commonly used binary cross-entropy loss (BCE) and IOU loss to constrain the prediction map. The predicted classes are supervised using cross-entropy loss Lce . Simultaneously, we utilize the saliency estima-tion maps generated by the CPG in four stages as initial co-salient object predictions {M s}4 
+
+> s=1
+
+to constrain them to-wards the final prediction targets. The overall loss can be expressed as: 
+
+L = αL w(M, GT ) + β 4∑
+
+> s=1
+
+Lw(M s, GT )+λL ce (Vcla , V lab ).
+
+(11) Where α, β, and λ are set to 10, 2, and 0.1, respectively. 
+
+# 4. Experiments 
+
+4.1. Datasets and Evaluation Metrics 
+
+Datasets. All experiments are evaluated based on the most commonly used three datasets for CoSOD tasks: CoCA [42], CoSOD3k [7], and CoSal2015 [36]. The three primary training datasets widely used in CoSOD tasks are the DUT-class [42], COCO-9k [19], and COCO-SEG [28] datasets, and we denote them as D, C, and S, respectively. The combinations of training datasets primarily used by exist-ing methods include D+C [14, 16, 40, 46], as well as D+S [17, 31, 33, 44]. In the comparative experiments, we con-duct experiments using both combinations of training data to ensure fairness of comparison. In all ablation experi-ments, we use the DUT-class and COCO-9k (D+C) datasets as the training set. 
+
+Evaluation Metrics. Six evaluation metrics are used for comparison, including MAE [4], Mean-Em ( Em), Emax 
+
+> m
+
+9596 Figure 5. Visual comparison between our VCP and the most representative seven methods across four scenarios. Table 3. Ablation on the CPD details and some auxiliary components in the architecture.                                                                                        
+
+> Settings Tunable Param. (M) Model Size (MB) COCA CoSOD3k CoSal2015
+> Sm↑Fmax
+> m↑MAE ↓Sm↑Fmax
+> m↑MAE ↓Sm↑Fmax
+> m↑MAE ↓
+> w/o Lce (Vcla , V lab )4.92 18.93 0.761 0.653 0.078 0.872 0.864 0.051 0.911 0.919 0.038 w/o Lw(Ms, GT )4.94 19.02 0.742 0.634 0.096 0.870 0.853 0.055 0.911 0.915 0.037
+> w/ Segformer Head 3.84 14.73 0.747 0.656 0.101 0.872 0.861 0.054 0.909 0.916 0.038 w/ Share MLP 4.53 17.41 0.768 0.669 0.067 0.871 0.865 0.051 0.905 0.914 0.042 w/ Unshare MLP 5.78 22.24 0.763 0.655 0.076 0.873 0.865 0.051 0.911 0.918 0.038
+> OURS(Adaptive MLP) 4.94 19.02 0.774 0.680 0.069 0.874 0.868 0.049 0.911 0.920 0.037
+
+[6], Sm [5], Mean-Fm ( Fm) and F max  
+
+> m
+
+[1], which are to assess the average pixel-wise absolute difference, local and global similarity, structural similarity between the predic-tions and the ground truths, and the weighted harmonic mean of precision and recall, respectively. 
+
+4.2. Implementation Details 
+
+The proposed method is based on the Pytorch framework while using a pre-trained model of Segformer [32] on the ImageNet dataset, and all experiments are conducted using a single NVIDIA 3090 GPU. We randomly pick N samples from three different groups in each training batch. 
+
+N = min (Ng (A), N g (B), N g (C), 16) . (12) Where Ng means the number of images in the correspond-ing group. For inference, all samples in each group are input at one time. We train our network using the AdamW opti-mizer, the initial learning rate is initially set to 5e-4, and cosine decay is applied to the learning rate. When training with D+C, we train the model for 100 epochs with a learn-ing rate decay to 1e-4, and the total training time is around 9 hours and the inference time is around 65.3 FPS. When training with D+S, we train for 200 epochs with a learning rate decay to 1e-5. The inputs are resized into 288 × 288 for both training and inference. 
+
+4.3. Comparisons with State-of-the-art Methods 
+
+To demonstrate the effectiveness of our VCP, we compare it with 13 SOTA CoSOD methods from the past three years, including SCED [33], MCCL [44], GCONet+ [43], GEM [31], CADC++ [41], CoPR [46], DMT [16], DCFM [38], GCoNet [8], CADC [40], UniTR [10], CONDA [17] and EVP [20]. All methods except EVP are based on Full fine-tuning for CoSOD task. EVP addresses foreground segmen-tation by introducing simple visual prompts. Since there are currently no methods that utilize prompt learning for 9597 Table 4. Ablation on the proposed visual consensus prompts P Co V isual . We introduce other visual prompts proposed in some parameter-efficient prompt tuning methods to replace our VCP in performing CoSOD tasks ( prompt = Adaptf ormer/V P T /EV P ).                                                                                                            
+
+> Prompt Tunable Param. (M) Model Size (MB) COCA CoSOD3k CoSal2015
+> Sm↑Fmax
+> m↑MAE ↓Sm↑Fmax
+> m↑MAE ↓Sm↑Fmax
+> m↑MAE ↓
+> OURS(Full-tuning) 65.79 251.43 0.740 0.624 0.093 0.866 0.854 0.055 0.905 0.911 0.040 OURS(Only PH) 1.49 5.73 0.659 0.498 0.125 0.832 0.795 0.073 0.866 0.862 0.063 Prompt=Adaptformer [3] 1.54 5.99 0.695 0.547 0.111 0.852 0.831 0.066 0.883 0.881 0.061 Prompt=VPT-Deep [12] 1.60 6.20 0.700 0.554 0.106 0.853 0.832 0.067 0.889 0.889 0.060 Prompt=EVP [20] 2.04 7.87 0.704 0.561 0.111 0.852 0.831 0.067 0.894 0.893 0.054 EVP(S+D) [20] 3.70 14.10 0.686 0.546 0.126 0.839 0.813 0.076 0.876 0.874 0.068
+> VCP( r= 8 )3.34 12.89 0.769 0.665 0.069 0.872 0.864 0.051 0.913 0.918 0.035 VCP( r= 4 )4.94 19.02 0.774 0.680 0.069 0.874 0.868 0.049 0.911 0.920 0.037
+
+CoSOD tasks, we retrain EVP [20] to attempt solving the CoSOD problem. This serves as compelling evidence to validate the effectiveness of our visual consensus prompts for CoSOD tasks. Quantitative Results: Table 1 presents a quantitative comparison of our VCP with the most repre-sentative works in the past three years across multiple met-rics. Compared to 12 full fine-tuning CoSOD methods, our VCP demonstrates a significant performance advantage on three commonly used benchmark test sets. Compared to the prompt-based tuning method EVP [20], our VCP ex-hibits overwhelmingly superior performance. Qualitative Results: Fig. 5 illustrates the visual comparisons between our VCP and seven representative works across four se-lected scenarios (“Normal”, “Distraction”, “Tiny Object” and “Variation”). Through the visual comparisons in Fig. 5, it can be observed that our VCP achieves more effec-tive localization and segmentation performance even when facing challenging cases such as multiple salient object in-terferences, small or diverse co-salient objects. 
+
+4.4. Ablation Study 
+
+We conduct ablation experiments to demonstrate the effec-tiveness of each component of the proposed VCP. All abla-tion experiments are conducted using the C+D dataset as the training set, tested on three mainstream benchmark datasets. 
+
+Effectiveness of the architecture designs. Table 2 shows the performance contributions of the main compo-nents in our architecture. “BL” represents the baseline, which utilizes solely the frozen foundation model and the tunable FPN-like decoder. PHand represents PEm +PHand 
+
+and PCo represents PEm +PCo . “Addition” represents the addition to obtain visual consensus prompts, i.e., P Co V isual =
+
+P Co Em + P Co Hand . It can be observed that the introduced hand-crafted prompts show certain improvement but the enhance-ment is limited, while our proposed consensus prompts sig-nificantly enhance the effectiveness of the model. 
+
+Effectiveness of CPD and auxiliary components. Ta-ble 3 presents the implementation details of CPD and some ablations of auxiliary components in the architecture. “Lce (Vcla , V lab )” denotes the removal of the classifier loss, and “ Lw(M s, GT )” denotes the removal of supervision for the multiscale predictions generated in CPG. Furthermore, we further execute two schemes to validate the effectiveness of CPD in performing adaptive guidance after obtaining vi-sual consensus prompts. For different depths ( n) of Trans-former layers within a specific stage, our CPD employs an adaptive tuning scheme, i.e., shared M LP up and unshared 
+
+M LP nS , while “Share MLP” and “Unshare MLP” respec-tively indicate whether M LP up and M LP nS are shared or not. We employ an adaptive approach to disperse visual consensus prompts P Co V isual , achieving a balance between parameter efficiency and effective performance. 
+
+Effectiveness of the proposed CPG. To validate the effectiveness of the consensus prompts generated by our CPG, we replace our CPG with other visual prompts (Adaptformer/VPT/EVP ) from state-of-the-art prompt tun-ing methods. As seen in Table 4, our VCP significantly out-performs existing visual prompt schemes by a large margin in addressing specific CoSOD tasks, and it can comprehen-sively outperform our full fine-tuning scheme. Additional experimental details and scalability valida-tions are provided in the supplementary materials .
+
+# 5. Conclusion 
+
+In this work, we propose VCP, a interaction-effective and parameter-efficient visual prompt tuning framework for CoSOD, serving as a potent alternative to existing meth-ods based on the common architecture and the full fine-tuning paradigm. Additionally, our formulated visual con-sensus prompts (with minimized tunable parameters) effec-tively and efficiently induce the frozen pre-trained foun-dation model to play a crucial role in CoSOD tasks. Our CPG effectively enforces limited tunable parameters to fo-cus on intra-group co-salient representations and generate key consensus prompts. Similarly, our CPD accomplishes its mission of adaptively inducing the foundation model us-ing consensus prompts. Extensive experiments demonstrate that our VCP outperforms existing state-of-the-art visual prompt schemes by a large margin when addressing specific CoSOD tasks. Compared to state-of-the-art full fine-tuning methods tailored for CoSOD tasks, our VCP still maintains a comprehensive competitive advantage. 9598 Acknowledgment. This work is supported by the National Nature Science Foundation of China (Nos.62376186). 
+
+# References 
+
+[1] Radhakrishna Achanta, Sheila Hemami, Francisco Estrada, and Sabine Susstrunk. Frequency-tuned salient region detec-tion. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recog-nit. , pages 1597–1604, 2009. 7 [2] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Lan-guage models are few-shot learners. In Proc. Adv. Neural Inform. Process. Syst. , pages 1877–1901, 2020. 2, 3 [3] Shoufa Chen, Chongjian Ge, Zhan Tong, Jiangliu Wang, Yibing Song, Jue Wang, and Ping Luo. Adaptformer: Adapt-ing vision transformers for scalable visual recognition. In 
+
+Proc. Adv. Neural Inform. Process. Syst. , pages 16664– 16678, 2022. 2, 3, 8 [4] Ming-Ming Cheng, Jonathan Warrell, Wen-Yan Lin, Shuai Zheng, Vibhav Vineet, and Nigel Crook. Efficient salient region detection with soft image abstraction. In Proc. IEEE/CVF Int. Conf. Comput. Vision , pages 1529–1536, 2013. 6 [5] Deng-Ping Fan, Ming-Ming Cheng, Yun Liu, Tao Li, and Ali Borji. Structure-measure: A new way to evaluate foreground maps. In Proc. IEEE/CVF Int. Conf. Comput. Vision , pages 4548–4557, 2017. 7 [6] Deng-Ping Fan, Cheng Gong, Yang Cao, Bo Ren, Ming-Ming Cheng, and Ali Borji. Enhanced-alignment measure for binary foreground map evaluation. In Proc. Int. Joint Conf. Artif. Intell. , pages 698–704, 2018. 7 [7] Deng-Ping Fan, Tengpeng Li, Zheng Lin, Ge-Peng Ji, Ding-wen Zhang, Ming-Ming Cheng, Huazhu Fu, and Jianbing Shen. Re-thinking co-salient object detection. IEEE Trans. Pattern Anal. Mach. Intell. , 44(8):4339–4354, 2021. 4, 6 [8] Qi Fan, Deng-Ping Fan, Huazhu Fu, Chi-Keung Tang, Ling Shao, and Yu-Wing Tai. Group collaborative learning for co-salient object detection. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 12288–12298, 2021. 1, 3, 7 [9] Guoqiang Gong, Xinghan Wang, Yadong Mu, and Qi Tian. Learning temporal co-attention models for unsupervised video action localization. In Proc. IEEE/CVF Conf. Com-put. Vis. Pattern Recognit. , pages 9819–9828, 2020. 1 [10] Ruohao Guo, Xianghua Ying, Yanyu Qi, and Liao Qu. Unitr: A unified transformer-based framework for co-object and multi-modal saliency detection. IEEE Trans. Multimedia ,26:7622–7635, 2024. 7 [11] Hailing Huang, Weiqiang Guo, and Yu Zhang. Detection of copy-move forgery in digital images using sift algorithm. In Proc. IEEE Pacific-Asia Workshop Comput. Intell. Ind. Appl. , pages 272–276, 2008. 4 [12] Menglin Jia, Luming Tang, Bor-Chun Chen, Claire Cardie, Serge Belongie, Bharath Hariharan, and Ser-Nam Lim. Vi-sual prompt tuning. In Proc. Eur. Conf. Comput. Vision ,pages 709–727. Springer, 2022. 2, 3, 8 [13] Zhengbao Jiang, Frank F Xu, Jun Araki, and Graham Neu-big. How can we know what language models know? Trans. Assoc. Comput. Linguistics , 8:423–438, 2020. 3 [14] Wen-Da Jin, Jun Xu, Ming-Ming Cheng, Yi Zhang, and Wei Guo. Icnet: Intra-saliency correlation network for co-saliency detection. In Proc. Adv. Neural Inform. Process. Syst. , pages 18749–18759, 2020. 3, 4, 6 [15] Brian Lester, Rami Al-Rfou, and Noah Constant. The power of scale for parameter-efficient prompt tuning. In Proc. Conf. Empirical Methods Nat. Lang. Process. , pages 3045–3059, 2021. 2, 3 [16] Long Li, Junwei Han, Ni Zhang, Nian Liu, Salman Khan, Hisham Cholakkal, Rao Muhammad Anwer, and Fa-had Shahbaz Khan. Discriminative co-saliency and back-ground mining transformer for co-salient object detection. In 
+
+Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 7247–7256, 2023. 2, 3, 6, 7 [17] Long Li, Nian Liu, Dingwen Zhang, Zhongyu Li, Salman Khan, Rao Anwer, Hisham Cholakkal, Junwei Han, and Fa-had Shahbaz Khan. Conda: Condensed deep association learning for co-salient object detection. In Proc. Eur. Conf. Comput. Vision , 2024. 6, 7 [18] Xiang Lisa Li and Percy Liang. Prefix-tuning: Optimizing continuous prompts for generation. In Proc. Annu. Meet. As-soc. Comput. Linguistics Int. Joint Conf. Nat. Lang. Process. ,pages 4582–4597, 2021. 2, 3 [19] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+Proc. Eur. Conf. Comput. Vision , pages 740–755. Springer, 2014. 2, 6 [20] Weihuang Liu, Xi Shen, Chi-Man Pun, and Xiaodong Cun. Explicit visual prompting for low-level structure segmenta-tions. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recog-nit. , pages 19434–19445, 2023. 2, 3, 4, 5, 7, 8 [21] Xiao Liu, Kaixuan Ji, Yicheng Fu, Weng Lam Tam, Zhengx-iao Du, Zhilin Yang, and Jie Tang. P-tuning v2: Prompt tuning can be comparable to fine-tuning universally across scales and tasks. arXiv preprint arXiv:2110.07602 , 2021. 2, 3[22] Ziyang Luo, Nian Liu, Wangbo Zhao, Xuguang Yang, Ding-wen Zhang, Deng-Ping Fan, Fahad Khan, and Junwei Han. Vscode: General visual salient and camouflaged object de-tection with 2d prompt learning. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 17169–17180, 2024. 2, 3 [23] Xing Nie, Bolin Ni, Jianlong Chang, Gaofeng Meng, Chun-lei Huo, Shiming Xiang, and Qi Tian. Pro-tuning: Unified prompt tuning for vision tasks. IEEE Trans. Circuits Syst. Video Technol. , 2023. 2, 3 [24] Alin C Popescu and Hany Farid. Exposing digital forgeries by detecting traces of resampling. IEEE Trans. Signal Pro-cess. , 53(2):758–767, 2005. 4 [25] Alec Radford, Karthik Narasimhan, Tim Salimans, Ilya Sutskever, et al. Improving language understanding by gen-erative pre-training. 2018. 2, 3 9599 [26] Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya Sutskever, et al. Language models are unsu-pervised multitask learners. OpenAI blog , 1(8):9, 2019. 2, 3[27] Taylor Shin, Yasaman Razeghi, Robert L Logan IV, Eric Wallace, and Sameer Singh. Autoprompt: Eliciting knowl-edge from language models with automatically generated prompts. In Proc. Conf. Empirical Methods Nat. Lang. Pro-cess. , pages 4222–4235, 2020. 3 [28] Chong Wang, Zheng-Jun Zha, Dong Liu, and Hongtao Xie. Robust deep co-saliency detection with group semantic. In 
+
+Proc. AAAI Conf. Artif. Intell. , pages 8917–8924, 2019. 2, 6 [29] Jie Wang, Nana Yu, Zihao Zhang, and Yahong Han. Single-group generalized rgb and rgb-d co-salient object detection. 
+
+IEEE Trans. Circuits Syst. Video Technol. , 2024. 3 [30] Wenguan Wang, Qiuxia Lai, Huazhu Fu, Jianbing Shen, Haibin Ling, and Ruigang Yang. Salient object detection in the deep learning era: An in-depth survey. IEEE Trans. Pattern Anal. Mach. Intell. , 44(6):3239–3259, 2021. 1 [31] Yang Wu, Huihui Song, Bo Liu, Kaihua Zhang, and Dong Liu. Co-salient object detection with uncertainty-aware group exchange-masking. In Proc. IEEE/CVF Conf. Com-put. Vis. Pattern Recognit. , pages 19639–19648, 2023. 2, 3, 6, 7 [32] Enze Xie, Wenhai Wang, Zhiding Yu, Anima Anandkumar, Jose M Alvarez, and Ping Luo. Segformer: Simple and ef-ficient design for semantic segmentation with transformers. In Proc. Adv. Neural Inform. Process. Syst. , pages 12077– 12090, 2021. 4, 5, 7 [33] Peiran Xu and Yadong Mu. Co-salient object detection with semantic-level consensus extraction and dispersion. In Proc. ACM Int. Conf. Multimedia , pages 2744–2755, 2023. 1, 2, 3, 6, 7 [34] Xi Yang, Shaoyi Li, Jun Ma, Jun-yan Yang, and Jie Yan. Co-saliency-regularized correlation filter for object track-ing. Signal Processing: Image Communication , 103:116655, 2022. 1 [35] Siyue Yu, Jimin Xiao, Bingfeng Zhang, and Eng Gee Lim. Democracy does matter: Comprehensive feature mining for co-salient object detection. In Proc. IEEE/CVF Conf. Com-put. Vis. Pattern Recognit. , pages 979–988, 2022. 1, 3 [36] Dingwen Zhang, Junwei Han, Chao Li, and Jingdong Wang. Co-saliency detection via looking deep and wide. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 2994–3002, 2015. 6 [37] Dingwen Zhang, Junwei Han, Chao Li, Jingdong Wang, and Xuelong Li. Detection of co-salient objects by looking deep and wide. Int. J. Comput. Vis. , 120:215–232, 2016. 1 [38] Kaihua Zhang, Tengpeng Li, Bo Liu, and Qingshan Liu. Co-saliency detection via mask-guided fully convolutional net-works with multi-scale label smoothing. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 3095–3104, 2019. 7 [39] Kaihua Zhang, Yang Wu, Mingliang Dong, Bo Liu, Dong Liu, and Qingshan Liu. Deep object co-segmentation and co-saliency detection via high-order spatial-semantic network modulation. IEEE Trans. Multimedia , 25:5733–5746, 2022. 1[40] Ni Zhang, Junwei Han, Nian Liu, and Ling Shao. Summarize and search: Learning consensus-aware dynamic convolution for co-saliency detection. In Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 4167–4176, 2021. 1, 3, 6, 7 [41] Ni Zhang, Nian Liu, Fang Nan, and Junwei Han. Cadc++: Advanced consensus-aware dynamic convolution for co-salient object detection. IEEE Trans. Pattern Anal. Mach. Intell. , 46(5):2741–2757, 2023. 2, 3, 7 [42] Zhao Zhang, Wenda Jin, Jun Xu, and Ming-Ming Cheng. Gradient-induced co-saliency detection. In Proc. Eur. Conf. Comput. Vision , pages 455–472. Springer, 2020. 1, 2, 3, 6 [43] Peng Zheng, Huazhu Fu, Deng-Ping Fan, Qi Fan, Jie Qin, Yu-Wing Tai, Chi-Keung Tang, and Luc Van Gool. Gconet+: A stronger group collaborative co-salient object detector. IEEE Trans. Pattern Anal. Mach. Intell. , 45(9): 10929–10946, 2023. 2, 3, 7 [44] Peng Zheng, Jie Qin, Shuo Wang, Tian-Zhu Xiang, and Huan Xiong. Memory-aided contrastive consensus learning for co-salient object detection. In Proc. AAAI Conf. Artif. Intell. ,pages 3687–3695, 2023. 1, 2, 3, 6, 7 [45] Jiawen Zhu, Simiao Lai, Xin Chen, Dong Wang, and Huchuan Lu. Visual prompt multi-modal tracking. In 
+
+Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , pages 9516–9526, 2023. 2, 3 [46] Ziyue Zhu, Zhao Zhang, Zheng Lin, Xing Sun, and Ming-Ming Cheng. Co-salient object detection with co-representation purification. IEEE Trans. Pattern Anal. Mach. Intell. , 45(7):8193–8205, 2023. 1, 2, 3, 4, 6, 7 9600

@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 872,
+      "height": 282,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 780,
+      "height": 343,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-zhao-sp3d-boosting-sparsely-supervised-3d-object-detection-via-accurate-cross-modal-semantic-cvpr-2025-paper/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1790,
+      "height": 903,
+      "label": "Figure"
+    }
+  ]
+}

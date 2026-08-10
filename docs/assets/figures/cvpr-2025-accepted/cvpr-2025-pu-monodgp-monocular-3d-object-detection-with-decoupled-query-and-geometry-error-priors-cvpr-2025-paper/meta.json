@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 850,
+      "height": 882,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1430,
+      "height": 830,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1374,
+      "height": 728,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 1732,
+      "height": 542,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 847,
+      "height": 568,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/cvpr-2025-accepted/cvpr-2025-pu-monodgp-monocular-3d-object-detection-with-decoupled-query-and-geometry-error-priors-cvpr-2025-paper/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 818,
+      "height": 480,
+      "label": "Figure"
+    }
+  ]
+}

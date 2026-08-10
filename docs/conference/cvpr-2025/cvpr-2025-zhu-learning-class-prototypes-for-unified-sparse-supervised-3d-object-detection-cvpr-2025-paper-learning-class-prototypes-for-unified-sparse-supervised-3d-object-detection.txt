@@ -1,0 +1,421 @@
+Title: Learning Class Prototypes for Unified Sparse-Supervised 3D Object Detection
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhu_Learning_Class_Prototypes_for_Unified_Sparse-Supervised_3D_Object_Detection_CVPR_2025_paper.pdf
+
+Published Time: Sun, 18 May 2025 23:19:53 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Learning Class Prototypes for Unified Sparse-Supervised 3D Object Detection 
+
+# Yun Zhu 1, Le Hui 2, Hang Yang 1, Jianjun Qian 1, Jin Xie 3,4* , Jian Yang 11PCA Lab, Nanjing University of Science and Technology, Nanjing, China 
+
+> 2
+
+# School of Electronics and Information, Northwestern Polytechnical University, Xi’an, China 
+
+> 3
+
+# State Key Laboratory for Novel Software Technology, Nanjing University, Nanjing, China 
+
+> 4
+
+# School of Intelligence Science and Technology, Nanjing University, Suzhou, China      
+
+> {zhu.yun, hangyang, csjqian, csjyang }@njust.edu.cn; csjxie@nju.edu.cn; huile@nwpu.edu.cn
+
+# Abstract 
+
+Both indoor and outdoor scene perceptions are essential for embodied intelligence. However, current sparse supervised 3D object detection methods focus solely on outdoor scenes without considering indoor settings. To this end, we propose a unified sparse supervised 3D object detection method for both indoor and outdoor scenes through learn-ing class prototypes to effectively utilize unlabeled objects. Specifically, we first propose a prototype-based object min-ing module that converts the unlabeled object mining into a matching problem between class prototypes and unlabeled features. By using optimal transport matching results, we assign prototype labels to high-confidence features, thereby achieving the mining of unlabeled objects. We then present a multi-label cooperative refinement module to effectively recover missed detections through pseudo label quality control and prototype label cooperation. Experiments show that our method achieves state-of-the-art performance under the one object per scene sparse supervised setting across indoor and outdoor datasets. With only one labeled object per scene, our method achieves about 78%, 90%, and 96% performance compared to the fully supervised detector on ScanNet V2, SUN RGB-D, and KITTI, respectively, high-lighting the scalability of our method. Code is available at 
+
+https://github.com/zyrant/CPDet3D .
+
+# 1. Introduction 
+
+3D object detection attracts more and more attention, as it is crucial for the vision tasks such as autonomous driving and emboddied robotics [15, 41, 50]. Conventional 3D object detection [25, 29, 35, 45, 55] relies on a large number of precise annotations, which are labor-intensive and time-consuming. How to achieve efficient and accurate 3D object detection under limited annotations has become an              
+
+> *Corresponding author full category coverage limited category coverage outdoor scene indoor scene (a) previous methods
+> full category coverage outdoor scene (b) ours
+> Limited solution for
+> outdoor scenes Unified solution for
+> indoor and outdoor scenes
+> Figure 1. Comparison of sparse supervised 3D object detection methods. Previous methods rely on the premise of full category coverage within each scene, achieved through a GT sampling strategy, as represented in (a). This approach encounters limitations in indoor scenes, which have scene-specific categories. In contrast, we propose a unified sparse 3D object detection scheme (b) applicable to both indoor and outdoor scenes, utilizing nearest prototype retrieval for effective object mining.
+
+important research topic in the field of 3D object detection. Current 3D object detection methods designed for lim-ited annotations can be roughly categorized into weakly supervised [24, 44], semi supervised [7, 9, 34, 51], and sparse supervised methods [20, 42]. Weakly supervised methods use weaker supervision than box annotations as constraints, such as point-level annotations ( i.e. , box cen-ters). However, point-level annotations cannot provide precise box attributes. These works require a small number of precise annotations [24] or synthetic 3D shapes [44]. Semi supervised 3D object detection naturally involves precise annotations in some scenes of the datasets, while the rest remain unlabeled. These types of works achieve better performance than point supervision. Nonetheless, semi supervision faces two drawbacks. First, there is a domain gap between labeled and unlabeled scenes, which makes information transfer ineffective when the gap is large. Second, annotating an entire scene is hindered by its complexity and density, making the process labor-intensive. This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 9911 Box Annoation Missing Annoation Sparse Label Indoor GT Sampling door toilet Figure 2. Visualization of GT sampling on indoor dataset ScanNet V2. Unlike outdoor autonomous driving scenes, indoor objects have specific classes, making the use of GT sampling impractical. As shown in the image, placing a bathroom-specific “toilet” in the living room is unreasonable. 
+
+To reduce domain gap and labor cost, sparse supervised 3D object detection annotates a limited number of anno-tations within each scene. However, sparse supervised 3D object detection still faces the challenge of a large number of missing annotations within scenes. Current sparse supervised 3D object detection methods [20, 42] are specifically designed for outdoor scenes and use a GT Sampling strategy [45] to ensure all categories ( i.e. , car, pedestrian, and bicycle) are present in a single scene, as shown in Fig. 1. With such a strategy, they can mine the unlabeled objects of all categories from an individual scene. In contrast, indoor scenes contain scene-specific categories and it would be unreasonable to place a bathroom specific “toilet” in the living room, as shown in Fig. 2. Therefore, existing methods are primarily applied to outdoor scenarios and face limitations when handling indoor environments, which restricts their applicability. In this paper, we propose a sparse supervised 3D object detection method that can achieve impressive results in both indoor and outdoor environments through learning class prototypes to effectively leverage the unlabeled objects. Specifically, the method contains two modules: a prototype-based object mining module and a multi-label cooperative refinement module. The first module formulates the object mining problem as an optimal transport matching task between clustered class prototypes and unlabeled features. Initially, we generate class-aware prototypes that repre-sent the class aware feature representations by clustering the features of labeled objects across scenes. Then, by applying optimal transport for matching, we establish a correspondence between these prototypes and unlabeled features beyond a single scene. Based on the matching results, we assign category labels (prototype labels) to high-confidence features, enabling the mining of unlabeled objects. The second module includes iterative pseudo labeling and prototype label cooperating. The iterative pseudo labeling generates high-quality pseudo labels by filtering out inaccurate predictions, while the prototype label cooperating builds on the above process to fill in missed detections by assigning prototype labels to unde-tected objects. Our contributions are listed as follows: • We propose a unified solution for sparse supervised 3D object detection, effective across both indoor and outdoor environments. • We develop a prototype-based object mining module that assigns prototype labels to unlabeled objects beyond scene limitations and a multi-label refinement module that recovers missed detections with pseudo and proto-type labels in a self-training approach. • Extensive results show that our method achieves 78% and 90% performance compared to the fully supervised detector with only 7% and 26% annotations on ScanNet V2 [4] and SUN RGB-D [30]. Besides, experiments on outdoor KITTI show that our method achieves up to 96% of fully supervised performance under sparse supervision. 
+
+# 2. Related Work 
+
+3D Object Detection with Full Supervision. For point-based methods, VoteNet [25] adopts deep hough voting to group features and generate proposals. As a follow-up work, RBGNet [36] introduces a ray-based feature grouping module to capture points on the object surface features. For voxel-based methods [5, 16, 27–29, 35, 45, 47, 56], CenterPoint [47] proposes a center-based head for single-stage detection. PillarNet [29] proposes an efficient method for gathering features on pillars. FCAF3D [27] introduces the anchor-free style into 3D indoor object detection. Based on this, TR3D [28] further improves the results of with a simpler structure. SPGroup3D [56] introduces the superpoints to express instance consistency. Although these methods have achieved high performance, they rely on intensive labeling, highlighting the need for more efficient alternatives to reduce manual annotations. 
+
+3D Object Detection with Limited Supervision. Sim-ilar to the 2D counterpart [26, 38], limited supervision in 3D area [31] is gaining growing attention. Weakly3D [24] uses partially precise box annotations and BacktoReal [44] adopts synthetic datasets. SESS [51] introduces the first semi supervised 3D object detection using the mean-teacher framework [32]. 3DIoUMatch [34] adds IoU estimation for pseudo-label filtering, while DQS3D [7] adopts a dense match strategy [1, 17, 53]. DPKE [9] proposes the dual-perspective knowledge enrichment. For sparse supervised settings, SS3D [20] uses GT Sampling to increase object count in sparse scenes, while Xia et al. [42] leveraged BEV features for object mining [18] and further improved its performance with a mix-feature enhancement [43]. How-ever, outdoor GT Sampling does not suit indoor scenes, as objects like “toilet” can’t be copied into living room. In this paper, we introduce the first attempt to addresses sparse supervised 3D object detection across indoor and outdoor environments. 9912 Point Cloud Pseudo Labels Boxes Prototypes 
+
+Multi-label Cooperative Refinement (Sec.3.2) 
+
+Latest Prototypes 
+
+Labeled Features prototype warm-up 
+
+Updated Prototypes Unlabeled Features 
+
+Clustering Matching 
+
+Prototype-based Object Mining (Sec.3.1) 
+
+Projected Features 
+
+Sparse Label Mined Labels 
+
+h
+
+Cooperating Labeling Features  
+
+> h
+
+Projector Figure 3. The architecture of our method for sparse supervised 3D object detection is as follows. Given a point cloud and a detector, we first project the features from the detector and cluster them into class-aware prototypes. Based on the learned similarity between prototypes and features, we assign pseudo labels to unlabeled objects. Next, we introduce an effective refinement module that cooperatively utilizes sparse, pseudo, and prototype labels to reduce missed detections during iterative training. 
+
+Prototype-based Learning. Cluster based methods [13, 14], particularly in 2D semantic segmentation [21–23, 39, 40, 48, 54], prototypes help to cluster distinctive features. ContrastiveSeg [39] enhances global pixel relationships, while ProtoSeg [54] optimizes pixel-prototype correspon-dence. In 3D detection, Prototypical VoteNet [52] applies prototypes for few-shot learning. Unlike the methods men-tioned above that use prototypes during both training and testing, our method uses prototypes only during training, thereby not impacting the testing phase. 
+
+# 3. Method 
+
+In this section, we introduce our method in three parts. First, in Sec. 3.1, we introduce the prototype-based object mining module, which is designed to identify unlabeled objects across diverse scenes using class-aware prototypes. Then, in Sec. 3.2, we describe the multi-label cooperative refine-ment module, which integrates pseudo labels with prototype labels to reduce missed detections and improve detection accuracy. Finally, we describe the training strategy for our framework in Sec. 3.3. An overview of our method is shown in Fig. 3. 
+
+## 3.1. Prototype-based Object Mining 
+
+Due to the rich geometric information in point clouds, only a small amount of precise bounding boxes are required to achieve satisfactory performance compared to category labels [46]. In the sparse 3D object detection, some precise bounding box annotations are already provided. Therefore, we focus on mining category labels to further improve detection performance. In indoor scenes, it is difficult to acquire the features of all categories using a single scene under one object per scene sparse supervised setting. To address this, we propose a prototype-based object mining module to identify unlabeled objects. This includes class-aware prototype clustering to learn class-specific prototypes across scenes and prototype label matching to assign labels based on these prototypes. 
+
+Class-aware Prototype Clustering. In order to acquire the features of all categories in datasets, we introduce the class-aware prototype clustering to explore cross-scene semantic feature distributions. Given a point cloud, it is fed into the detector to obtain proposal features. Define the proposal features from the detector as X ∈ RN ×C , where N and C represent the number of proposals and the feature dimension, respec-tively. We first use a projector consisting of several multi-layer perceptrons (MLPs) to obtain the projected features 
+
+F ∈ RN ×C and enhance the feature diversity. After that, based on the projected features F , we leverage the labeled features to build class-aware prototypes. Suppose there are 
+
+K categories and take the k-th category as an example, we obtain the semantic features Fk ∈ RM ×C (M << N ) corresponding to k-th category through the class-aware mask Mk ∈ RN ×1. This process can be formulated as 9913 Algorithm 1 Class-aware Prototype Clustering.  
+
+> 1:
+
+Input: Proposal features X ∈ RN ×C , initial class-aware prototypes P ∈ RK×O×C ; 
+
+> 2:
+
+Output: Updated prototypes P ′ ∈ RK×O×C . 
+
+> 3:
+
+// Projector with MLPs  
+
+> 4:
+
+F = Projector (X) 
+
+> 5:
+
+// Class-aware cluster and prototype update  
+
+> 6:
+
+for k ← 0 to K do  
+
+> 7:
+
+if k is valid class ( Mk!= 0) then  
+
+> 8:
+
+// Obtain class features and prototypes  
+
+> 9:
+
+Fk = F ∗ Mk, Index Pk 
+
+> 10:
+
+// Compute mapping by Sinkhorn-Knopp  
+
+> 11:
+
+Lk = diag (u) exp   P ⊤ 
+
+> kFk
+> κ
+
+diag (v) 
+
+> 12:
+
+for i ← 0 to O do  
+
+> 13:
+
+// Update the prototypes with μ 
+
+> 14:
+
+p′ 
+
+> k,i
+
+← μpk,i + (1 − μ) 1
+
+> Nk
+
+PNk
+
+> i=1
+
+Fk,i  
+
+> 15:
+
+else  
+
+> 16:
+
+Continue  
+
+> 17:
+
+Return P ′
+
+follows: 
+
+Fk = F ∗ Mk (1) 
+
+Mk is a boolean mask to select the true positive pro-jected features. Suppose the prototypes of the k-th category are Pk ∈ RO×C , where O > 1 ensures the feature diversity of the same category. Next, we need to obtain the matching matrix between M semantic features and O prototypes so that we can update the prototypes. We model the matching between prototypes and features as an optimal transport problem and choose the Sinkhorn-Knopp iteration [3, 39] to obtain the feature-to-prototype matching matrix Lk ∈
+
+RM ×O . The solver can be given as follows: 
+
+Lk = diag (u) exp   P ⊤ 
+
+> k
+
+Fk
+
+κ
+
+diag (v) (2) where u ∈ RM and v ∈ RO are renormalization vectors, computed by a few steps of Sinkhorn-Knopp iteration. 
+
+P ⊤ 
+
+> k
+
+Fk ∈ [0 , 1] represents the cosine similarity between prototypes and semantic features. Based on the matching matrix Lk ∈ RM ×O , we update each prototype with momentum toward the mean of the clustered embeddings. Hence, the i-th prototype of class k is updated as: 
+
+p′ 
+
+> k,i
+
+← μpk,i + (1 − μ) 1
+
+NkNkX
+
+> i=1
+
+Fk,i (3) where Fk,i represents one of the l2-normalized projected features being mapped to the i-th prototype of class k.
+
+μ ∈ [0 , 1] is a momentum coefficient. In each iteration, the updated p′ is assigned as the new p for the following iter-ation. Finally, we introduce a prototype-feature contrastive warm-up (a) init prototypes (b) updated prototypes 
+
+> Figure 4. t-SNE results of class-aware prototypes before and after warm-up on ScanNet V2.
+
+loss [10] as the specific objective function for this module. This loss forces features belonging to the same prototypes to be closer while pushing features with different prototypes away. Algorithm 1 summarizes our class-aware prototype clustering. 
+
+Prototype Label Matching. After obtaining the class-aware prototypes, we propose a prototype label object matching module for unlabeled objects label matching. However, as shown in Fig. 4, the initial prototypes are initialized using a truncated normal distribution, making them indistinguishable across classes. If we use such prototypes for label matching, this will lead to the confusion of network learning. Therefore, we set warm-up iterations before label matching. After the warm-up, we obtain the distinguishable class-aware prototypes P ∈ RK×O×C and projected features 
+
+F ∈ RN ×C of the j-th scene. For the j-th scene, we attain an affinity matrix A = F ⊤P ∈ RN ×K×O of projected fea-tures and class-aware prototypes via a dot-product operation and assume that its classification scores from the detector are S ∈ RN ×K . To realize label propagation for unlabeled objects, we use the S and A′ ∈ RN ×K to compute the propagation probability W ∈ RN ×K for the j-th scene, which is formulated as: 
+
+W = S ⊙ A′,
+
+where A′ = argmax 
+
+> i=1 ,...,O
+
+(A) (4) where ⊙ is the Hadamard product and W indicates the probability of features belonging to a certain kind of cat-egory. A′ represents the affinity matrix obtained by as-signing each feature to one of the prototypes in each category based on the highest probability. In this module, we consider both the semantic information and feature similarities simultaneously. Based on W , we derive the category labels Cf ∈ RN ×1 for features by: 
+
+Cf = argmax 
+
+> i=1 ,...,K
+
+(W ) (5) In Eq. (5), each feature in the j-th scene is assigned a category based on the highest probability in each row of 9914 (a) (b) 
+
+> (c)
+> cabinet door garbage bin chair table
+> (d) Figure 5. Visualization of real mined prototype labels. The colors in detailed views denote the object categories including chair, table, door, garbage bin, and cabinet. To highlight the labels, we sparsify the point clouds and visualize different types of labels separately. The first column (a) and (c) represent the labeled one object per scene. The second column (b) and (d) represent the real mined prototype labels during training.
+
+W . Because these category labels are generated by the class-aware prototypes, we call them prototype labels for short to distinguish the categories of the true sparse labels. After we obtain the Cf , it is essential to filter out three special regions including background regions, regions with true sparse labels, and regions outside of the input point cloud range, as they may affect the detection accuracy. Specifically, we derive the foreground boolean mask Mf ∈
+
+RN ×1 using a score threshold αpro based on classification score, the true label boolean mask Ms ∈ RN ×1 based on sparse labels, and the range boolean mask Mr ∈ RN ×1
+
+computed based on the specified point cloud input range. Therefore, the remaining prototype labels are obtained by: 
+
+C′ 
+
+> p
+
+= Cp ∗ Mf ∗ Ms ∗ Mr (6) where C′ 
+
+> p
+
+∈ RE×1 (E << N ) denotes the remaining pro-totype labels and we set a prototype classification loss in this module to take advantage of them. The real mined prototype labels during training are shown in Fig. 5. It is evident that our module can identify the unlabeled objects in the scenes, even if these categories are not labeled in the scenes. 
+
+## 3.2. Multi-label Cooperative Refinement 
+
+Iterative training improves the performance in limited an-notation settings by relying on pseudo labels. Generally speaking, high thresholds ensure the quality of pseudo labels, but also lead to missed detections. Existing methods solve this problem by dynamically adjusting the threshold in complex ways [37] to achieve a balance. Here, we propose an effective solution to address this problem by integrating sparse, pseudo, and prototype labels. 
+
+Iterative Pseudo Labeling. The first thing is to generate high-quality pseudo labels. This process involves the following steps. Suppose the one stage detector generates the predictions yj of the j-th input point cloud scene. We establish a classification score threshold, αcls , to eliminate predictions from yj that are likely contain incorrect results. Then, to avoid assigning multiple pseudo labels to the same object [12]. We set an IoU filter, which eliminates out the one with the lower score among the paired bounding boxes with an IoU threshold αiou . Finally, it is important to con-sider objects that have both true and pseudo labels. We build a collision filter to select true sparse labels. Specifically, we filter out the pseudo labels that have a collision exceeding the threshold αcol with the true annotations. The above steps can be described as the following formula: 
+
+y′ 
+
+> j
+
+= Score Filter( yj , α cls ) (7) 
+
+y′ 
+
+> j
+
+= IoU Filter( y′ 
+
+> j
+
+, α iou ) (8) 
+
+y′ 
+
+> j
+
+= Collision Filter( y′ 
+
+> j
+
+, α col ) (9) where y′ 
+
+> j
+
+is the subset of predictions after these steps. In our setting, we set a high threshold to ensure the quality of the pseudo labels. 
+
+Prototype Label Cooperating. After previous steps, there may still be some positive objects that are considered negative samples due to missing detections. To address this, we develop a practical pipeline with these steps: (1) Foreground / background separation via classification scores; (2) Identification of labeled regions (sparse la-bels and pseudo labels); (3) Prototype-based labeling of residual foreground areas as missed objects. Compared with MixSup [46] and WS3D [24], which also use multi-label cooperation (3D bounding boxes + BEV labels), our method reduces annotation requirements by utilizing only partial 3D bounding box annotations. This approach not only alleviates the burden of data annotation but also makes our approach more scalable while maintaining good detection performance. 
+
+## 3.3. Training Strategy 
+
+Our method follows the standard two-stage training paradigm for limited annotations. First, we train an initial detector using sparse annotations. During this process, we introduce a prototype-based mining module. The loss function for the first stage is as follows: 
+
+Lstage 1 = Ldet + Lpcon + Lpcls (10) where Ldet is the same as the detection loss in [28], and 
+
+Lpcls is the Focal loss [19]. Lpcon is an Info-NCE loss [10]. After obtaining the initial detection model, we use it to generate pseudo-labels for unlabeled data. In this stage, we introduce two modules: prototype-based mining and multi-label cooperative refinement. The total loss of this stage is written as: 
+
+Lstage 2 = Lstage 1 + Lref (11) where Lref is the detection loss [28], which is computed using the pseudo labels. 9915 Table 1. Comparison with state-of-the-art methods on indoor datasets under the sparse setting. All methods are based on TR3D.                                           
+
+> Methods Present at Paradigm ScanNet V2 SUN RGB-D mAP@0.25 mAP@0.5 mAP@0.25 mAP@0.5 FCAF3D [27] ECCV Fully Supervised 70.7 56.0 63.8 48.2 TR3D [28] ICIP 72.0 57.4 66.3 49.6 TR3D [28] ICIP Sparse Supervised 37.6 21.8 53.9 36.3 Co-mining [38] AAAI 43.3 26.4 55.9 39.0 SparseDet [26] ICCV 46.0 28.2 56.7 38.8 CoIn [42] ICCV 38.3 23.8 54.8 37.1 CPDet3D (ours) -56.1 40.8 60.2 43.3
+> Table 2. Comparison with state-of-the-art methods on outdoor dataset under the sparse setting. All methods are based on Voxel-RCNN. * indicates results with R11 and 3% limited cost.
+
+Methods Present at Paradigm Car-3D AP (R40) Car-BEV AP (R40) Easy Moderate Hard Easy Moderate Hard CenterPoint [47] CVPR Fully Supervised 89.0 80.5 76.5 92.9 89.0 87.5 Voxel-RCNN [5] AAAI 92.3 85.2 82.8 95.5 91.2 88.9 Voxel-RCNN [5] AAAI Sparse Supervised 72.5 54.9 44.8 83.6 71.4 57.7 SS3D* [20] CVPR 88.8 78.5 76.9 - - -CoIn [42] ICCV 84.5 68.4 58.0 92.3 81.0 70.2 CoIn++ [42] ICCV 92.0 79.5 71.5 96.1 88.8 82.5 CPDet3D (ours) - 94.1 82.2 72.6 96.2 91.8 83.9                               
+
+> Table 3. Comparison with state-of-the-art semi supervised methods on the validation of ScanNet V2.
+> Methods Present at mAP@0.25 mAP@0.5 SESS [51] CVPR 32.0 14.4 IoUMatch [34] CVPR 40.0 22.5 DKPE [9] AAAI 44.0 27.0 Diff-SS3D [11] NeurIPS 43.5 27.9 Diff3DETR [6] ECCV 45.1 29.2 DQS3D [7] ICCV 49.2 35.0 CPDet3D (ours) -54.6 36.6
+
+# 4. Experiments 
+
+## 4.1. Datasets and Evaluation Metrics 
+
+We evaluate our method on two indoor datasets and one outdoor dataset: ScanNet V2 [4], SUN RGB-D [30], and KITTI [8]. For indoor datasets, we use mean average precision (mAP) with IoU thresholds of 0.25 and 0.5 as the metrics. For the outdoor dataset, we use 3D Average Precision (AP) at 40 recall thresholds (R40). ScanNet V2 
+
+includes annotations for 18 object categories, with 1,201 training samples and 312 validation samples. Following the 2D method [49], we randomly retain one annotated object in each scene. SUN RGB-D is another indoor dataset for 3D object detection, with around 5,000 samples each for training and validation. We use one annotated object per scene for sparse supervised 3D object detection. KITTI 
+
+is widely recognized for outdoor 3D object detection. We divide the 7,481 scenes into 3,712 for training and 3,769 for validation, using the same sparse supervised setting as [42] with 2% labeled cost. 
+
+## 4.2. Implementation Details 
+
+We use TR3D [28] for indoor scenes and Voxel-RCNN [5] with Centerhead [47] for outdoor scenes as the base de-tectors for our experiments. All experiments are imple-mented using the mmdetection3d [2] and OpenPCDet [33] frameworks, respectively. In terms of class-aware prototype clustering, the step number and κ are set to 3 and 0.05. The momentum update coefficient and the prototype number for each class are set to 0.9 and 10, based on experimental results. For prototype label matching, we set the warm-up iterations and αpro to 1000 and 0.2, respectively. In multi-label cooperative refinement module, we set αcls , αiou , and 
+
+αcol to 0.2, 0.5, and 0.2. 
+
+## 4.3. Comparisons with State-of-the-art Methods 
+
+Comparison with sparse supervised methods. For indoor setting, Tab. 1 reports the quantitative results on the ScanNet V2 [4] and SUN RGB-D [30] validation sets under one object per scene setting. From Tab. 1, we can see that the performance of detectors trained on one object per sparse supervised setting decreases . For our 9916 37.4 39.1 39.3 37.6 25.9 26.1 26.5 24.4 15 20 25 30 35 40 45 1 5 10 20 37.8 39.3 38.2 39.1 24.9 26.5 25.3 25.5 15 20 25 30 35 40 45 500 1000 2000 3000 37.8 39.3 39.1 37.4 26.0 26.5 25.0 25.3 15 20 25 30 35 40 45 0.8 0.9 0.99 0.999                
+
+> mAP@0.25 mAP@0.5 mAP@0.25 mAP@0.5 mAP@0.25 mAP@0.5
+> 1510 20
+> (a) prototype numbers 500 1000 2000 3000 0.8 0.9 0.99 0.999
+> (c) momentum coefficients (b) warm-up iterations Figure 6. Results for different numbers of prototypes, warm-up iterations, and momentum coefficients. Table 4. Statistical results regarding the recall of labels.
+
+Number Sparse Label Prototype Labels Pseudo Labels mAR 1 ✓ 8.3 2 ✓ ✓ 47.8 3 ✓ ✓ 33.4 4 ✓ ✓ ✓ 67.1 
+
+method, we achieve average improvements of 11.3 and 4.0 compared to the SparseDet [26] on ScanNet V2 and SUN RGB-D, respectively. In addition, compared to fully supervised methods, our method achieves 78% and 90% of fully supervised performance with just one annotation per scene on the ScanNet V2 and SUN RGB-D. For outdoor scenes, we present the results in Tab. 2. As shown in Tab. 2, we observe a similar trend where our method outperforms CoIn++ at the moderate level, achieving a 2.7 improvement in Car-3D AP (82.2 v.s. 79.5) and a 3.0 improvement in Car-BEV AP (91.8 v.s. 88.8). We present the qualitative results in Fig. 7, which clearly prove the effectiveness of our approach. These results demonstrate our method is robust to point cloud scanning technologies as it extracts representations of object cate-gories from a global perspective and enables our method to perform well across various datasets. 
+
+Comparison with semi supervised methods. Semi supervision is another common setting for label efficient 3D object detection. To benchmark our sparse supervised method against semi supervised methods, we use the Scan-Net V2 [4]. In this dataset of 1201 training scenes with around 20 object in each scene [4, 9], a 5% scene label rate in the semi-supervised setting (e.g., DQS3D) and one object per scene in our sparse supervised setting both yield about 1200 labeled objects, enabling a fair comparison. As shown in Tab. 3, our model achieves an advantage over the SOTA semi supervised method DQS3D on ScanNet V2, i.e. , 5.4 on mAP@0.25 and 1.6 on mAP@0.5. 
+
+## 4.4. Label Statistical Analysis 
+
+The quality of mined labels determines the upper bound of detection performance. Therefore, we analyzed the quality 
+
+> Table 5. Ablation study of key components including PLM, CPC, and MCR.
+
+Number PLM CPC MCR mAP@0.25 mAP@0.5 1 37.6 21.8 2 ✓ 38.0 23.5 3 ✓ ✓ 39.3 26.5 4 ✓ 51.9 32.3 5 ✓ ✓ 54.2 38.3 6 ✓ ✓ ✓ 56.1 40.8 
+
+of mined labels on the ScanNet V2 training set in terms of both precision and recall. In terms of precision, pseudo labels defined by overlap with ground truth have a precision of 95.5, ensuring that most contribute positively to model performance. Prototype labels, defined within the ground truth bounding box, have a precision of about 71.1. During inference, Non-Maximum Suppression (NMS) filters low-quality predictions, reducing the impact of errors. In terms of recall, we use mean average recall (mAR) as the metric. From Tab. 4, we can see that only sparse labels are used, and the mAR is 8.3. Using sparse and prototype labels results in an mAR of 47.8, which is a slight improvement. In contrast, using sparse and pseudo labels alone increases the mAR significantly to 33.4. When all labels are combined, the mAR further increases to 67.1, confirming that the complementarity between these two types of labels provides more useful labels. 
+
+## 4.5. Ablation Study 
+
+We conduct extensive ablation studies on the one object per scene setting of ScanNet V2. 
+
+Effect of Different Components. We first ablate the effects of different components of our model in Tab. 5. The base model is TR3D [28] under the one object per scene setting. Introducing prototype label matching (“PLM”) in experiment 2 and just using the classification score for label matching slightly improves mAP@0.25 from 37.6 to 38.0. This result shows that label assignment based solely on the classification score is suboptimal in a sparse supervised setting. Next, comparing experiment 2 and experiment 3, 9917 CPDet3D (ours) Ground Truth Figure 7. Visualization results of our method on the ScanNet V2, SUN RGB-D, and KITTI validation sets trained under one object per scene sparse supervised setting. Table 6. αpro and αcls at different thresholds for mAP@0.5.                      
+
+> Threshold 0.01 0.1 0.2 0.3 0.4 0.5 0.6
+> αpro 17.3 24.4 26.5 24.1 21.8 21.8 21.8
+> αcls 33.7 39.5 40.8 38.1 36.7 33.0 32.3
+
+adding the class-aware prototype clustering (“CPC”) boosts mAP@0.25 from 38.0 to 39.3 and mAP@0.5 from 23.6 to 26.5. This variant proves that simultaneously considering the classification score and feature similarity can provide more accurate prototype labels. Finally, with the multi-label cooperative refinement module (“MCR”) in experiment 6 achieves the best results, highlighting its benefits. We also evaluate additional component combinations, including MCR alone and the combination of PLM and MCR in Tab. 5. CPC alone is not evaluated, as it does not directly impact performance. For MCR alone, we remove prototype labels and use only sparse and pseudo labels. Comparing experiment 1 and experiment 4 shows significant improvement, confirming the effectiveness of iterative training. Adding PLM in experiment 5 further boosts mAP@0.25 and mAP@0.5 from 51.9 to 54.2 and from 32.3 to 38.3, proving that prototype labels help recover missed detections in iterative training. 
+
+Choices in Prototype-based Object Mining. In this section, we study the impact of the number of prototypes, the iterations of warm-up, and the momentum coefficient. Fig. 6 (a) suggests that using 10 prototypes for each class is most effective for representing the differences among objects in the same category. The different choices of warm-up iterations and momentum coefficients are shown 39.9 39.8 40.0 40.3 40.8 40.5 39.6 39.5 39.5 39.6 40.1 40.8 40.3 40.5 40.0 39.9 39.5 37.5 38.5 39.5 40.5 41.5 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 mAP@0.5          
+
+> 39.9 39.8 40.0 40.3 40.8 40.5 39.6 39.5 39.5 39.6 40.1 40.8 40.3 40.5 40.0 39.9 39.5 39.0 39.5 40.0 40.5 41.0 41.5 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 mAP@0.5
+
+αiou 
+
+αcol 
+
+𝐀 𝐀𝐀𝐀 
+
+𝐀 𝐀𝐀𝐀 
+
+𝐀 𝐀𝐀𝐀 
+
+𝐀 𝐀𝐀𝐀    
+
+> Figure 8. Ablation study of αiou and αcol .
+
+in Fig. 6 (b) and (c), which indicate that with an iteration of 1000 and a coefficient of 0.9, our method achieves the best performance. This is because a suitable warm-up iteration and momentum coefficient can make the generated proto-type labels more stable, thus improving the performance. Besides, we conduct experiments to compare performance at different αpro score thresholds in Tab. 6. Since αpro =0.2 yields the best result, we use this value as the default. 
+
+Impact of Multi-label Cooperative Refinement. In this section, we study the impact of hyper-parameters selection of multi-label cooperative refinement module. The hyper-parameters include classification score threshold 
+
+αcls , IoU threshold αiou , and collision threshold αcol . We adjust the αcls from 0.01 to 0.6 to conduct ablation studies. As shown in Tab. 6, the accuracy at αcls = 0.2 is much better than the other choices, thus we choose αcls = 0.2. From Fig. 8, the optimal results for the parameters αiou 
+
+and αcol are observed at αiou = 0.5 and αcol = 0.2, where the mAP@0.5 reaches its highest point. The figure also demonstrates that variations in these parameters result in only minor fluctuations in performance. 
+
+# 5. Conclusion 
+
+In this paper, we proposed a unified sparse supervised 3D object detection method for indoor and outdoor envi-ronments. We presented a prototype-based object mining module with class-aware prototype clustering to learn class prototypes from limited labeled objects and prototype label matching to assign labels to unlabeled objects based on learned similarity. Additionally, a multi-label cooperative refinement module is designed to integrate high-quality pseudo labels with prototype labels, avoiding complex it-erative design. Experiments show that our method achieves 78%, 90%, and 96% of the performance of the fully super-vised detector in the one object per scene sparse supervised setting on ScanNet V2, SUN RGB-D, and KITTI. 
+
+Acknowledgments. This work was supported by the National Key R&D Program of China No. 2024YFC3015801, National Science Fund of China (Grant Nos. 62361166670, 62276144, U24A20330, 62306238 and 62176124) and the Fundamental Research Funds for the Central Universities. 9918 References 
+
+[1] Binghui Chen, Pengyu Li, Xiang Chen, Biao Wang, Lei Zhang, and Xian-Sheng Hua. Dense Learning based Semi-Supervised Object Detection. In CVPR , 2022. [2] MMDetection3D Contributors. MMDetection3D: Open-MMLab next-generation platform for general 3D object detection. https://github.com/open- mmlab/ mmdetection3d , 2020. [3] Marco Cuturi. Sinkhorn Distances: Lightspeed Computation of Optimal Transport. In NeurIPS , 2013. [4] Angela Dai, Angel X. Chang, Manolis Savva, Maciej Halber, Thomas Funkhouser, and Matthias Nießner. ScanNet: Richly-Annotated 3D Reconstructions of Indoor Scenes. In 
+
+CVPR , 2017. [5] Jiajun Deng, Shaoshuai Shi, Peiwei Li, Wengang Zhou, Yanyong Zhang, and Houqiang Li. Voxel R-CNN: Towards High Performance Voxel-based 3D Object Detection. In 
+
+AAAI , 2021. [6] Jiacheng Deng, Jiahao Lu, and Tianzhu Zhang. Diff3DETR: Agent-based Diffusion Model for Semi-supervised 3D Object Detection. In ECCV , 2024. [7] Huan-ang Gao, Beiwen Tian, Pengfei Li, Hao Zhao, and Guyue Zhou. DQS3D: Densely-matched Quantization-aware Semi-supervised 3D Detection. In ICCV , 2023. [8] Andreas Geiger, Philip Lenz, and Raquel Urtasun. Are we ready for autonomous driving? The KITTI vision benchmark suite. In CVPR , 2012. [9] Yucheng Han, Na Zhao, Weiling Chen, Keng Teck Ma, and Hanwang Zhang. Dual-Perspective Knowledge Enrichment for Semi-Supervised 3D Object Detection. In AAAI , 2024. [10] Kaiming He, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick. Momentum Contrast for Unsupervised Visual Representation Learning. In CVPR , 2020. [11] Cheng-Ju Ho, Chen-Hsuan Tai, Yen-Yu Lin, Ming-Hsuan Yang, and Yi-Hsuan Tsai. Diffusion-SS3D: Diffusion Model for Semi-supervised 3D Object Detection. In NeurIPS ,2024. [12] J. Hosang, R. Benenson, and B. Schiele. Learning Non-Maximum Suppression. In CVPR , 2017. [13] Le Hui, Jia Yuan, Mingmei Cheng, Jin Xie, Xiaoya Zhang, and Jian Yang. Superpoint Network for Point Cloud Oversegmentation. In ICCV , 2021. [14] Le Hui, Linghua Tang, Yaqi Shen, Jin Xie, and Jian Yang. Learning Superpoint Graph Cut for 3D Instance Segmentation. In NeurIPS , 2022. [15] Le Hui, Lingpeng Wang, Linghua Tang, Kaihao Lan, Jin Xie, and Jian Yang. 3D Siamese Transformer Network for Single Object Tracking on Point Clouds. In ECCV , 2022. [16] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. PointPillars: Fast Encoders for Object Detection from Point Clouds. In CVPR , 2019. [17] Gang Li, Xiang Li, Yujie Wang, Wu Yichao, Ding Liang, and Shanshan Zhang. DTG-SSOD: Dense Teacher Guidance for Semi-Supervised Object Detection. In NeurIPS , 2022. [18] Hanjun Li, Xingjia Pan, Ke Yan, Fan Tang, and Wei-Shi Zheng. SIOD: Single Instance Annotated Per Category Per Image for Object Detection. In CVPR , 2022. [19] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Doll´ ar. Focal Loss for Dense Object Detection. In 
+
+ICCV , 2017. [20] Chuandong Liu, Chenqiang Gao, Fangcen Liu, Jiang Liu, Deyu Meng, and Xinbo Gao. SS3D: Sparsely-Supervised 3D Object Detection from Point Cloud. In CVPR , 2022. [21] Jinfu Liu, Hong Liu, Xia Li, Jiale Ren, and Xinhua Xu. MiLNet: Multiplex Interactive Learning Network for RGB-T Semantic Segmentation. TIP , 2025. [22] Ying Lv, Zhi Liu, and Gongyang Li. Context-Aware Interaction Network for RGB-T Semantic Segmentation. 
+
+TMM , pages 6348–6360, 2024. [23] Ying Lv, Zhi Liu, Gongyang Li, and Xiaojun Chang. Noise-Aware Intermediary Fusion Network For Off-Road Freespace Detection. TIV , 2024. [24] Qinghao Meng, Wenguan Wang, Tianfei Zhou, Jianbing Shen, Luc Van Gool, and Dengxin Dai. Weakly Supervised 3D Object Detection from Lidar Point Cloud. In ECCV ,2020. [25] Charles R Qi, Or Litany, Kaiming He, and Leonidas J Guibas. Deep Hough Voting for 3D Object Detection in Point Clouds. In ICCV , 2019. [26] Sai Saketh Rambhatla, Saksham Suri, Rama Chellappa, and Abhinav Shrivastava. SparseDet: Improving Sparsely Annotated Object Detection with Pseudo-positive Mining. In 
+
+ICCV , 2023. [27] Anna Rukhovich, Anna Vorontsova, and Anton Konushin. FCAF3D: Fully Convolutional Anchor-Free 3D Object Detection. In ECCV , 2022. [28] Danila Rukhovich, Anna Vorontsova, and Anton Konushin. TR3D: Towards Real-Time Indoor 3D Object Detection. In 
+
+ICIP , 2023. [29] Guangsheng Shi, Ruifeng Li, and Chao Ma. PillarNet: Real-Time and High-Performance Pillar-based 3D Object Detection. In ECCV , 2022. [30] Shuran Song, Samuel P. Lichtenberg, and Jianxiong Xiao. SUN RGB-D: A RGB-D Scene Understanding Benchmark Suite. In CVPR , 2015. [31] Linghua Tang, Le Hui, and Jin Xie. Learning Inter-Superpoint Affinity for Weakly Supervised 3D Instance Segmentation. In ACCV , 2022. [32] Antti Tarvainen and Harri Valpola. Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results. In NeurIPS , 2017. [33] OpenPCDet Development Team. Openpcdet: An open-source toolbox for 3d object detection from point clouds. 
+
+https://github.com/open-mmlab/OpenPCDet ,2020. [34] He Wang, Yezhen Cong, Or Litany, Yue Gao, and Leonidas J Guibas. 3DIoUMatch: Leveraging IoU Prediction for Semi-Supervised 3D Object Detection. In CVPR , 2021. [35] Haiyang Wang, Shaocong Dong, Shaoshuai Shi, Aoxue Li, Jianan Li, Zhenguo Li, Liwei Wang, et al. CAGroup3D: Class-Aware Grouping for 3D Object Detection on Point Clouds. In NeurIPS , 2022. [36] Haiyang Wang, Shaoshuai Shi, Ze Yang, Rongyao Fang, Qi Qian, Hongsheng Li, Bernt Schiele, and Liwei Wang. 9919 RBGNet: Ray-Based Grouping for 3D Object Detection. In 
+
+CVPR , 2022. [37] Haohan Wang, Liang Liu, Boshen Zhang, Jiangning Zhang, Wuhao Zhang, Zhenye Gan, Yabiao Wang, Chengjie Wang, and Haoqian Wang. Calibrated Teacher for Sparsely Annotated Object Detection. In AAAI , 2023. [38] Tiancai Wang, Tong Yang, Jiale Cao, and Xiangyu Zhang. Co-mining: Self-Supervised Learning for Sparsely Annotated Object Detection. In AAAI , 2021. [39] Wenguan Wang, Tianfei Zhou, Fisher Yu, Jifeng Dai, Ender Konukoglu, and Luc Van Gool. Exploring Cross-Image Pixel Contrast for Semantic Segmentation. In ICCV , 2021. [40] Wenguan Wang, Cheng Han, Tianfei Zhou, and Dongfang Liu. Visual Recognition with Deep Nearest Centroids. arXiv preprint arXiv:2209.07383 , 2022. [41] Yang Wu, Kaihua Zhang, Jianjun Qian, Jin Xie, and Jian Yang. Text2lidar: Text-Guided Lidar Point Cloud Generation via Equirectangular Transformer. In ECCV ,2024. [42] Qiming Xia, Jinhao Deng, Chenglu Wen, Hai Wu, Shaoshuai Shi, Xin Li, and Cheng Wang. CoIn: Contrastive Instance Feature Mining for Outdoor 3D Object Detection with Very Limited Annotations. In ICCV , 2023. [43] Qiming Xia, Wei Ye, Hai Wu, Shijia Zhao, Leyuan Xing, Xun Huang, Jinhao Deng, Xin Li, Chenglu Wen, and Cheng Wang. HINTED: Hard Instance Enhanced Detector with Mixed-Density Feature Fusion for Sparsely-Supervised 3D Object Detection. In CVPR , 2024. [44] Xiuwei Xu, Yifan Wang, Yu Zheng, Yongming Rao, Jie Zhou, and Jiwen Lu. Back to Reality: Weakly-supervised 3D Object Detection with Shape-guided Label Enhancement. In 
+
+CVPR , 2022. [45] Yan Yan, Yuxing Mao, and Bo Li. SECOND: Sparsely Embedded Convolutional Detection. Sensors , 18(10):3337, 2018. [46] Yuxue Yang, Lue Fan, and Zhaoxiang Zhang. Mixsup: Mixed-grained supervision for label-efficient lidar-based 3d object detection. arXiv preprint arXiv:2401.16305 , 2024. [47] Tianwei Yin, Xingyi Zhou, and Philipp Krahenbuhl. Center-based 3D Object Detection and Tracking. In CVPR , 2021. [48] Fei Zhang, Tianfei Zhou, Boyang Li, Hao He, Chaofan Ma, Tianjiao Zhang, Jiangchao Yao, Ya Zhang, and Yanfeng Wang. Uncovering Prototypical Knowledge for Weakly Open-Vocabulary Semantic Segmentation. In NeurIPS ,2024. [49] Han Zhang, Fangyi Chen, Zhiqiang Shen, Qiqi Hao, Chenchen Zhu, and Marios Savvides. Solving Missing-Annotation Object Detection with Background Recalibration Loss. In ICASSP , 2020. [50] Liyuan Zhang, Le Hui, Bo Li, and Yuchao Dai. 3D Focusing-and-Matching Network for Multi-Instance Point Cloud Registration. In NeurIPS , 2024. [51] Na Zhao, Tat-Seng Chua, and Gim Hee Lee. SESS: Self-Ensembling Semi-Supervised 3D Object Detection. In 
+
+CVPR , 2020. [52] Shizhen Zhao and Xiaojuan Qi. Prototypical VoteNet for Few-Shot 3D Point Cloud Object Detection. In NeurIPS ,2022. [53] Hongyu Zhou, Zheng Ge, Songtao Liu, Weixin Mao, Zeming Li, Haiyan Yu, and Jian Sun. Dense Teacher: Dense Pseudo-Labels for Semi-supervised Object Detection. In ECCV ,2022. [54] Tianfei Zhou, Wenguan Wang, Ender Konukoglu, and Luc Van Gool. Rethinking Semantic Segmentation: A Prototype View. In CVPR , 2022. [55] Yin Zhou and Oncel Tuzel. VoxelNet: End-to-End Learning for Point Cloud Based 3D Object Detection. In CVPR , 2018. [56] Yun Zhu, Le Hui, Yaqi Shen, and Jin Xie. SPGroup3D: Superpoint Grouping Network for Indoor 3D Object Detection. In AAAI , 2024. 9920

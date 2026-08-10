@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1531,
+      "height": 596,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1798,
+      "height": 875,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 864,
+      "height": 188,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/cvpr-2025-accepted/cvpr-2025-xue-corrbev-multi-view-3d-object-detection-by-correlation-learning-with-multi-modal-cvpr-2025-paper/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 862,
+      "height": 180,
+      "label": "Table"
+    }
+  ]
+}

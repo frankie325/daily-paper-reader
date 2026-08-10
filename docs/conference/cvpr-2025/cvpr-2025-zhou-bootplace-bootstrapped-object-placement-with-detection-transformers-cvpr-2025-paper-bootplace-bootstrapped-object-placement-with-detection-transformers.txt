@@ -1,0 +1,200 @@
+Title: BOOTPLACE: Bootstrapped Object Placement with Detection Transformers
+
+URL Source: https://openaccess.thecvf.com/content/CVPR2025/papers/Zhou_BOOTPLACE_Bootstrapped_Object_Placement_with_Detection_Transformers_CVPR_2025_paper.pdf
+
+Published Time: Mon, 02 Jun 2025 01:55:42 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# BOOTPLACE: Bootstrapped Object Placement with Detection Transformers 
+
+# Hang Zhou 1 Xinxin Zuo 2 Rui Ma 3† Li Cheng 11University of Alberta 2Concordia University 3Jilin University 
+
+# Abstract 
+
+In this paper, we tackle the copy-paste image-to-image composition problem with a focus on object placement learning. Prior methods have leveraged generative mod-els to reduce the reliance for dense supervision. However, this often limits their capacity to model complex data distri-butions. Alternatively, transformer networks with a sparse contrastive loss have been explored, but their over-relaxed regularization often leads to imprecise object placement. We introduce BOOTPLACE , a novel paradigm that formu-lates object placement as a placement-by-detection prob-lem. Our approach begins by identifying suitable regions of interest for object placement. This is achieved by training a specialized detection transformer on object-subtracted backgrounds, enhanced with multi-object supervisions. It then semantically associates each target compositing ob-ject with detected regions based on their complementary characteristics. Through a boostrapped training approach applied to randomly object-subtracted images, our model enforces meaningful placements through extensive paired data augmentation. Experimental results on established benchmarks demonstrate BOOTPLACE ’s superior perfor-mance in object repositioning, markedly surpassing state-of-the-art baselines on Cityscapes and OPA datasets with notable improvements in IOU scores. Additional ablation studies further showcase the compositionality and general-izability of our approach, supported by user study evalu-ations. Code is available at https://github.com/ RyanHangZhou/BOOTPLACE 
+
+# 1. Introduction 
+
+Compositional modeling is an emerging research area in both computer vision and computer graphics, focusing on constructing visual scenes by assembling components, ob-jects, or elements with precise placement and interaction. Task-agnostic approaches, such as image-to-image [22, 51], 3D-object-to-image [18, 47], and 3D-object-to-3D-object [33, 48] composition, have gained wide-ranging     
+
+> †Corresponding author.
+> Figure 1. Our approach, BOOTPLACE, detects regions of interest (represented as bounding boxes) for object composition and as-signs each target object to its best-matched detected region. Each object is connected to each detected region with weighted connec-tions, with the bold arrow indicating the strongest link.
+
+applications in content creation [55] and data augmenta-tion [1, 12, 38]. The evolution of image-to-image composition as a stan-dardized input-output interface has enabled precise image editing and enhanced downstream tasks such as seman-tic segmentation and object detection [13, 53]. Another promising direction involves image-guided composition us-ing diffusion models [8, 17, 29, 40], which excels in blend-ing performance but often struggles to preserve the appear-ance and orientation of the composed objects. A key challenge in precise placement learning lies in the difficulty of training models to accurately place objects due to sparse supervision of ground-truth location labels. Early approaches addressed this by employing generative models [2, 22, 51, 53] conditioned on joint embeddings of scene images and object patches. These models generated placements using 2D spatial transformations of the object or its bounding box coordinates, bypassing the need for explicit and dense supervision through compositionality-aware saliency maps. Alternatively, transformer-based ap-proaches [55] have been used to regress bounding box placements by directly learning an object-to-background as-sociation. This introduces relaxed constraints to mitigate the scarcity of labels. A more recent study [54] increases label availability by manually annotating positive and nega-tive composite pairs, enabling the network to learn to avoid suboptimal object placements. However, the reliance on human-annotation is labor-intensive and prone to inaccura-cies, limiting scalability for large-scale applications. This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore. 19294 In this paper, we present BOOTPLACE, a versatile frame-work designed to detect optimal object placement guided by object queries, and associate target compositing object with their best-matched detected region. The detection module is trained on object-subtracted images to identify regions of interest. Region codes learned from this module are independently decoded into bounding-box coordinates and class labels via a feedforward network, resulting in multi-ple placement predictions. Moreover, to associate the com-positing object with its best-matched detected region, we develop a dedicated association network guided by local-ized semantic complementarity. To address the challenge of label sparsity, we propose a boostrapped training strategy using randomly object-subtracted images, which enhances data diversification and enables precise object placement. Our contributions are summarized as follows: 
+
+Placement-by-detection framework: We introduce anovel approach for precise object placement by employing detection constraints to identify regions of interest. 
+
+Object-to-region association loss: We establish visual correspondences between object queries and local re-gions of interests in object-subtracted images through an object-to-region associating loss mechanism. 
+
+Multi-object placement pipeline: We implement a multi-object placement pipeline, supervised by multi-labels of intact objects, as well as a bootstrapped training strategy to enhance data diversification and improve placement accuracy. 
+
+# 2. Related works Image composition. Apart from classic methods, includ-ing alpha matting [39] and Poisson image editing [34], which seamlessly blend two images, recent works [10, 44] have focused on harmonizing the composited region by ad-justing its color to better match the background. More re-cently, there has been a trend towards guided inpainting with visual prompts [8, 30, 40] as a means to achieve more realistic composites. Despite the capabilities of various models to merge two images naturally, these methods all re-quire a bounding box to indicate the target location for the paste. Canet et al. [5] proposed unconstrained compositing by jointly learning object placement and composition. In contrast, our model aims to generate an optimal placement applicable to a variety of composition models. 
+
+Object placement. The recent literature has seen signifi-cant advancement in the field of learning object placement for copy-paste object compositing, as evidenced by mul-tiple notable works [2, 7, 21, 22, 25, 32, 49, 49, 51, 53– 55]. ST-GAN [22] employed an iterative spatial transfor-mation network to generate a 2D transformation for ob-ject placement via adversarial training against a natural im-age manifold. GCC-GAN [7] incorporated geometric and color consistency in its approach for object placement. Li et al. [21] represented human poses and placement as af-fordance modeled by variational autoencoders (VAEs). SF-GAN [49] fused geometric and appearance realism within its generator network. Compositional-GAN [2] devel-oped a self-consistent composition-by-decomposition net-work with a viewpoint-aware appearance flow network to enhance placement. PlaceNet [51] introduced spatial diver-sity loss for multi-object placement to achieve greater im-age realism. GracoNet [54] treated object placement as a graph completion problem and employed adversarial train-ing with annotated positive and negative composite pairs. SAC-GAN [53] proposed conditional VAE-GAN for struc-tural coherence via adversarial training against the semantic manifold. TopNet [55] designed a transformer [45] network for object-background correlation with a sparse contrastive loss on placement. DiffPop [25] proposed a plausibility-guided denoising diffusion model to learn the scale and spa-tial relations among multiple objects and the corresponding scene image. Copy-paste composition also advocates data augmentation for enhancing downstream tasks such as ob-ject detection and semantic segmentation [13, 43, 51, 53]. In contrast, our approach learns to detect potential locations for object placement and then associates the compositing object with the best-matched region, demonstrating supe-rior ability to model complex scenes. 
+
+Object detection. Modern object detection can be broadly classified into two: two-stage [4, 14, 15, 24, 36] 
+
+vs single-stage detectors [27, 35, 42]. Typically, these de-tectors involve heuristic steps such as proposal detection, thresholding, and non-maximum suppression. A significant progress was introduced by DETRs [3, 6, 19, 20, 46, 50], which explored end-to-end object detection using trans-formers. They treated detection as a set-to-set predic-tion problem and removed the need for heuristics. In our method, we propose a placement-by-detection paradigm and leverage the detection transformer to enhance the de-tection ability of the regions of interest. 
+
+# 3. Approach 
+
+Our placement-by-detection method achieves precise ob-ject placement for compositing objects of arbitrary classes. As shown in Figure 2, our approach is structured in two modules: (1) Learning a regions-of-interest detection net-work for identifying and localizing keyzones suitable for object placement (see Section 3.1), and (2) Leveraging the detected keyzones, learning an object-to-region associating network (see Section 3.2). 19295 Composed image Image Transformer encoder-decoder CNN Backbone Objects queries       
+
+> FFN Detections Object-to-Region Association Final predictions
+> Object locations
+> Object encoder Association network Region-of-Interest Detection Link Location Encoder Figure 2. Network inference. Given a target image, several object queries (e.g., two cars and a pedestrian) and scene object locations, BOOTPLACE detects a set of candidate region of interest and associates each object with the best-fitting region, which are used to produce the composite image. ⌦is feature concatenation and 5is region-wise product.
+
+3.1. Regions-of-interest detection 
+
+Let I be an image. The goal of regions-of-interest detec-tion is to identify and localize attentive keyzones. Object detection is its special case where each region of interest is occupied by an individual object. A detector [6, 36, 42] takes the image I as input and produces N region of interest 
+
+{pi} with locations {bi}, bi 2 R4 and a classification score 
+
+si 2 RC from a set of predefined classes C as its output. In the first stage, BOOTPLACE detects a fixed set of regions of interest from an object-subtracted image I. Acting as the 
+
+occluded context behind objects, these regions are the in-painted version by removing objects from the source image. To initiate the object-centric image decomposition process, we perform a series of automated post-processing steps to decompose the source image into an object-subtracted im-age and a collection of intact object patches: 1) Identify objects with instance segmentation models. 2) Remove ob-jects using dilated masks with image inpainting models. 3) Smooth the image with Gaussian filter to eliminate inpaint-ing artifacts. This image decomposition process is visual-ized in Figure 3 and detailed in supplementary. Our detection model is built upon detection transform-ers, consisting of a CNN backbone for generating a lower-resolution image embedding, a multi-layer Transformer en-coder to produce a compact image embedding, a multi-layer Transformer decoder that applies multi-headed self- and encoder-decoder attention using a set of learnable queries to generate output embeddings, and multiple prediction heads. To prevent compositing objects from being placed over ex-isting scene objects, the locations of these scene objects are encoded into the network to guide placement. Specifically, scene object locations are encoded by an MLP-based loca-tion encoder, then concatenated with image features to form location-aware image features. 
+
+3.2. Object-to-region associating network 
+
+In addition to the detection objective, we aim to equip our detector with the ability to understand the relations between regions of interest and compositing objects. In the second stage, BOOTPLACE learns an object-to-region associating network using the detected keyzones and corresponding ob-ject patches from the first stage. Our associating network associates regions of interest with object patches in a probabilistic and differentiable manner. Formally, each object query qk links region of interest pi, and produces an object association score vec-tor g 2 RN over a collection of region of interest. This association score vector then yields an association ↵k 2
+
+{;, 1, 2, ..., N } where N is the number of detected regions of interest in the image I. The association then links ground-truth location ⌧k to current detected regions of in-terest pi, and is given by: 
+
+⌧k =
+
+⇢ ;, if ↵ = ;
+
+b↵k , otherwise (1) where ↵ = ; indicates no association. Notably, the associa-tion step is differentiable and can be jointly trained with the underlying detector network. The association score is elaborated as follows. Let 
+
+p1, ..., p N be a set of high-confidence regions of interest for image I. Let B = {b1, ..., b N } be their correspond-ing bounding boxes. Let fi 2 RD be the D-dimensional features extracted from each region of interest. For con-venience let F = {f1, ..., f N } be the set of all detection features of image I. The associating network takes object features F and an image I, and produces an object-specific association score g(qk, F ) 2 RN . Let gi(qk, F ) 2 R be the score of the i-th region of interest in the image. A special 19296 Randomly-object-subtracted image Random decomposition Source image Object queries 
+
+> Object locations
+> Ground-truth locations CNN Backbone FFN Detections Region-of-Interest Detection Location Encoder Object encoder Association network Object-to-Region Association Detection losses
+> Detections
+> Final predictions Link Association loss
+> Object queries Transformer encoder-decoder
+
+Figure 3. Network architecture and training. We prepare training data by first decomposing a source image into a randomly-object-subtracted image I and a set of object queries. During training, image I and scene object locations are both fed into a detection transformer for region-of-interest detection. The object queries are fed into an association network for object-to-region matching, where the generated association links each object query with the detected region of interest. Losses comprises of detection loss and association loss. At the high level, we visualize the relations among object queries, detected regions of interest and ground-truth locations on the right side, where the best-matched association arrow is highlighted in bold. output token g;(qk, F ) = 0 indicates no association. The associating network then outputs a distribution of associa-tions over all regions of interest in the image for each object patch qk. We model this by softmax activation: 
+
+PA(↵ = i|F ) = exp ( gi(qk, F )) 
+
+P  
+
+> j2{;,1,2,...,N }
+
+exp ( gi(qk, F )) . (2) Instead of just a dot-product association score between the object query and region-of-interest feature gi(qk, F ), to avoid the association with scene objects, we propose in-corporating negative correlations rather than positive cor-relations for semantic complementary , providing the model with a nuanced understanding and enhancing its ability to recognize optimal placement regions within the scene. 
+
+gi(qk, F ) =  qk · Fi/μ, (3) where μ is a temperature parameter. During training, we maximize the log -likelihood of the ground-truth object-to-region association. During inference, we use the likelihood to find the best-matched object-to-region association. 
+
+Network structure. The object-to-region association comprises a CNN-based object encoder network for ex-tracting object embeddings, and an association module that takes a stack of region-of-interest features F 2 RN ⇥D and a matrix of object query features Q 2 RT ⇥D as two inputs and produces an association matrix G 2 RT ⇥N between queries and regions of interest with cosine similarity. 
+
+3.3. Training 
+
+Given ground-truth bounding box locations ⌧1, ⌧2, ..., ⌧T
+
+where ⌧k 2 R4 [ ; and corresponding classes c1, c 2, ..., c T ,the goal is to learn an associating network that estimates 
+
+PA. The associating network and the detection transformer are jointly trained, with the association network function-ing as a region-of-interest head, similar to two-stage detec-tors [36]. During each training iteration, high-confidence regions of interest b1, ..., b N along with their corresponding features F and class prediction s1, s 2, ..., s N are first ob-tained. For each sample, PA(↵|F ) is then maximized. Following DETR [6], both the class prediction and the similarity of predicted and ground-truth boxes are taken into account for the assignment rule. Specifically, each element 
+
+k of the ground-truth set can be seen as a (ck, ⌧k) where ck
+
+is the target class label (which may be ;). For the prediction with index (association) ↵k, the probability of class ck is defined as P↵k (ck) and the predicted box as b↵k .With these notations, the association cost between the ground truth and the prediction with index ↵k is defined as 
+
+Lcost (⌧k, c k, P ↵k (ck), b ↵k ) =   ck6 =;P↵k (ck)+ ck6 =;Lbox (⌧k, b ↵k ). (4) To find a one-to-one bipartite matching between pre-dicted boxes and ground-truth boxes, a permutation of T
+
+elements with the lowest cost is searched: 
+
+ˆ↵ = arg max 
+
+> ↵
+> T
+
+X
+
+> k
+
+Lcost (⌧k, c k, P ↵k (ck), b ↵k ). (5) 19297 This optimal assignment ˆ↵ could be computed efficiently with the Hungarian algorithm, and is used to both train the bounding box regression of the underlying two-stage detec-tor, and our assignment likelihood PA.
+
+Boostrapped training strategy. To enhance the diversity of training data, a bootstrapped strategy is employed for augmenting training data, as shown in Figure 3. Specifi-cally, having T intact objects subtracted from an image, a subset of objects is randomly selected and is recomposed back to the object-subtracted image to create a randomly-object-subtracted image I. The remaining objects are viewed as target compositing objects. Through this pro-cess, we expand the training data from a single scenario to a comprehensive set of combinations, reaching a total of PTi=1 
+
+ Ti
+
+  samples for each scene. This strategy signif-icantly enriches the training dataset, exposing the model to a more extensive variety of scenarios. The overall training losses includes the assignment from Equation (5) and an association loss for all compositing ob-jects. The association loss is defined as the sum of the log-likelihood of the assignments ↵k of each location ⌧k:
+
+Lasso (F, {⌧1, ⌧2, ..., ⌧T }) =  
+
+> T
+
+X
+
+> k=1
+
+log PA(ˆ ↵k|F ). (6) We train Lasso jointly with standard detection losses [6], including classification loss Lcls and bounding-box regres-sion loss Lbox [37]: 
+
+L = Lcls + ↵Lbox +  Lasso . (7) 
+
+# 4. Experiments Datasets. We conducted experiments on Cityscapes [11] and OPA [26] datasets. Cityscapes is a large-scale urban street dataset for semantic segmentation. We use Mask-Former [9] to obtain individual objects with panoptic seg-mentation, and background images by removing objects and their shadows with pretrained LaMa inpainting model [41] and online PhotoKit 1 tool. After data cleaning, we build a multiple-object placement dataset containing 2,953 training images with 22,270 objects and their ground-truth labels, and 372 testing images with 2,713 objects. OPA is a human-annotated composite dataset collected from COCO [23] dataset for object placement. It contains 62,074 training im-ages and 11,396 test images without overlap. We only use positive samples, which consist of 21,350 pairs of images and objects for training and 3,566 pairs for testing. 
+
+Implementation details. We train BOOTPLACE with AdamW [28] optimizer with an initial learning rate of 1https://photokit.com/ 0.0004, the backbones’s to 0.00005 and weight decay to 0.0001. By default, we set ↵ = 5 ,   = 1 , μ = 0 .07 , and Gaussian filter with   = 5 . Training on Cityscapes dataset takes 12 hours on one NVIDIA TITAN RTX GPU, and 8 hours for OPA dataset. 
+
+Evaluation. We quantitatively evaluate object reposition accuracy using top-k intersection-over-union (IOU) on all output bounding boxes and evaluate detection precision with IOU50. For object placement, we measure plausibility 
+
+by a user study involving 20 participants who compare the realism of composite images generated by different meth-ods using the same object patches and backgrounds, and 
+
+diversity via standard deviation of bbox scale, x-center, and y-center with the trial number set to 5. Users were asked to focus on structural consistency instead of factors such as image resolution or color consistency. Unlike previous methods that relied on FID [16] or LPIPS [52], we find these metrics less accurate due to their inability to reflect regional boundary artifacts and resolution variations. 
+
+4.1. Comparisons with previous methods Object reposition. Object reposition refers to object placement where the object patch and background are from the same image. In Table 1, we compare the object repo-sition accuracy with PlaceNet [51], GracoNet [54], SAC-GAN [53] and TopNet [55]. We observe that BOOT-PLACE shows significant performance advantages com-pared to other methods, with a 4% improvement in top-5 IOU over TopNet, the state-of-the-art method. Our BOOT-PLACE is more accurate at repositioning objects back onto backgrounds, in that it leverages the detection transformer’s strong capability for precise localization. The visual results in Figures 4 and 5 also illustrate the enhanced object place-ment performance achieved by our method. We notice that placing objects with distinct orientations, such as a car in a road scene, is more challenging than positioning generic objects as the orientation of the object must align with the semantic cues in the image, such as the direction of the road. It is also worth noting that when training our method on the OPA dataset, we only used single-object labels for super-vision due to the lack of multi-object annotations. Despite this limitation, our method still performs better than others. 
+
+Object placement. We perform object placement experi-ments on composing moving objects (e.g., cars, buses and trucks) into images from Cityscapes. In Table 2, we com-pare qualitative results with PlaceNet, SAC-GAN and Top-Net, observing that our BOOTPLACE significantly outper-forms others. As shown in Figure 6, our method produces diverse and accurate placements, while previous methods often result in object collisions, incorrect placements, or in-consistent scales. GracoNet was excluded from evaluation 19298 Cityscapes OPA IOU50@1 ( ") IOU@1 ( ") IOU50@5 ( ") IOU@5 ( ") IOU50@1 ( ") IOU@1 ( ") IOU50@5 ( ") IOU@5 ( ")PlaceNet (ECCV’20) [51] 0 0.045 0 0.045 2.76 0.116 10.09 0.225 GracoNet (ECCV’22) [54] — — — — 2.49 0.131 16.60 0.248 SAC-GAN (IEEE TVCG’22) [53] 0.806 0.082 1.08 0.085 — — — —TopNet (CVPR’23) [55] 0.807 0.045 1.61 0.070 11.55 0.197 15.95 0.241 BOOTPLACE (ours) 1.74 0.197 6.09 0.281 11.60 0.197 22.41 0.281 
+
+Table 1. Quantitative results of object reposition on Cityscapes and OPA datasets, evaluated by IOU50 (%), top-1 and top-5 IOU. PlaceNet Object-highlighted image SAC-GAN TopNet BOOTPLACE (ours) Inpainted image 
+
+Figure 4. Qualitative results of object reposition on Cityscapes dataset. Zoom in to see visual details. 1st column: original images with highlighted compositing objects; 2nd column: inpainted images after object subtraction. Target image GracoNet Positive composites TopNet BOOTPLACE (ours) Object 
+
+Figure 5. Qualitative results of object reposition on OPA dataset. “Positive composites” are annotated good-quality composites from OPA. SAC-GAN is excluded as it requires semantic maps for training. 19299 PlaceNet Target image Object SAC-GAN TopNet BOOTPLACE (ours) Figure 6. Qualitative results of object placement on Cityscapes dataset. Objects are randomly chosen from Cityscapes testing set. PlaceNet Object TopNet BOOTPLACE (ours) Target image SAC-GAN 
+
+Figure 7. Qualitative results of object placement on Mapillary Vistas dataset. Objects are randomly chosen from Cityscapes testing set. Query ID: 0 Query ID: 3 Query ID: 15 Query ID: 18 Query ID: 43 Person Car Bicycle Truck Bus 
+
+Figure 8. Visualizing decoder attention for every detected region for object placement (images from Cityscapes val set), which part of the image the model was looking at to predict this specific bounding box and class. Best viewed in color. as it requires negative composite images for training, which is unavailable in the Cityscapes dataset. For PlaceNet, we have dropped its diverse loss during training, as it is specif-ically designed for multi-object placement. In addition, we compare the scalability of different models by testing the placement performance on Mapillary Vistas [31] images us-19300 Plausibility Diversity User study ( ") Mean ±std ( ")Cityscapes MV scale x-center y-center PlaceNet [51] 0.183 0.133 0.204 ±0.0008 0.287 ±0.0018 0.465 ±0.0005 SAC-GAN [53] 0.269 0.285 0.156 ±0.0092 0.488 ±0.0405 0.436 ±0.0056 TopNet [55] 0.246 0.260 0.079 ±0.0131 0.372 ±0.0818 0.464 ±0.0138 BOOTPLACE (ours) 0.303 0.323 0.310 ±0.1235 0.255 ±0.1082 0.495 ±0.0328 
+
+Table 2. Quantitative comparisons of car placement on Cityscapes and Mapillary Vistas (MV) datasets. W/o smooth. W/o augment. Pos. contrast. Single label W/o LE Full model IOU50@1 ( ") 0 0.94 1.88 0 0 1.74                   
+
+> IOU@1 ( ")00.056 0.049 0.167 0.069 0.197
+> IOU50@5 ( ")4.23 3.29 4.69 2.61 06.09
+> IOU@5 ( ")0.082 0.121 0.125 0.239 0.086 0.281
+
+Table 3. Ablation study of object reposition on Cityscapes [11] dataset, evaluated by IOU50 (%), top-1 and top-5 IOU. LE stands for location encoder. ing models trained on the Cityscapes dataset; see Table 2 and Figure 7. Our BOOTPLACE exhibits superior scalabil-ity than other methods. 
+
+4.2. Overfitting to inpainting artifact? 
+
+Figure 9. Overfitting rate vs IOU. Although we have ap-plied Gaussian blur and multi-region inpainting to reduce the impact of inpainting artifacts on object placement, our model potentially over-fits to the regions. In Figure 9, we show the overfitting rate across IOU thresh-olds for different top-k predictions. At IOU50, the rate re-mains below 0.05, confirming our method exhibits minimal overfitting to artifacts. 
+
+4.3. Ablation study 
+
+In Table 3, we compare our method with several variations: a) no Gaussian smoothing; b) no bootstrapped data augmen-tation; c) using positive correlations; d) single-object su-pervision; (e) no location encoder; (f) full model. The results support our design choices for individual modules. Gaussian smoothing is crucial in preventing overfitting to inpainting artifacts and pixel variations. Data augmenta-tion leads to a 0.17 improvement in IOU@5. Negative cor-relations help our network avoid placing compositing ob-jects over existing objects in the scene, thereby preventing unwanted occlusions. The full multiple-object supervision outperforms the single-object supervision, with IOU@5 in-creased by 0.042. The explicit location input significantly improves reposition accuracy by constraining the detection space, with IOU@5 increased by 0.195. 
+
+Bounding box distribution. We visualize bbox distribu-tions in Figure 10 for object placement in Cityscapes im-ages and observe that our method identifies more diverse 
+
+Figure 10. Bbox distribution. Color intensity reflects bbox scales. 
+
+Figure 11. Failure cases. Composed objects are rendered in blue. ROIs than TopNet. Our method sufficiently covers a wide range of reasonable locations, therefore cases of reasonable placements being missed are less likely to occur. 
+
+Decoder attention visualization. In Figure 8, we visu-alize the decoder attention of our trained model, reveal-ing that the model attends to different regions for detect-ing objects of different categories. We observe that the de-coder’s attention tends to focus on local extremities. The attention visualization aligns with our expectations: differ-ent queries detect different locations, such as vehicles being placed near the roadside or other vehicles, pedestrians being placed along the sidewalk, and bicycles either riding on the road or parked at the street side. 
+
+# 5. Discussions, limitations and future work 
+
+We have introduced BOOTPLACE, a placement-by-detection paradigm based on detection transformers and as-sociation networks. By leveraging multi-object supervision to detect regions of interest, our approach significantly en-hances object placement performance. The proposed as-sociation network enables the differentiable association be-tween compositing objects and the detected regions. Addi-tionally, we introduce a bootstrapped training strategy that increases data diversity. Similar to most object detection methods, our approach detects locations in parallel , limiting its suitability for se-quential object placement. As shown in Figure 11, this leads to undesirable occlusions, such as a car colliding with a curb (left) and overlapping cars (right). Additionally, most ob-ject placement methods lack out-of-plane rotation and per-spective transformation modeling, resulting in less realistic compositions. To overcome these challenges, we intend to develop autoregressive models to better handle the sequen-tial object placement problem. 19301 Acknowledgments 
+
+This work was partly supported by NSERC Discovery, CFI-JELF, NSERC Alliance, Alberta Innovates and PrairiesCan grants. Part of this work was conducted at the Simon Fraser University and we thank Prof. Hao Zhang for insightful discussions. 
+
+# References 
+
+[1] Antreas Antoniou, Amos Storkey, and Harrison Edwards. Data augmentation generative adversarial networks. arXiv preprint arXiv:1711.04340 , 2017. 1 [2] Samaneh Azadi, Deepak Pathak, Sayna Ebrahimi, and Trevor Darrell. Compositional GAN: Learning image-conditional binary composition. IJCV , 2020. 1, 2 [3] Quentin Bouniot, Romaric Audigier, Ang´ elique Loesch, and Amaury Habrard. Proposal-contrastive pretraining for object detection from fewer data. In ICLR , 2023. 2 [4] Zhaowei Cai and Nuno Vasconcelos. Cascade R-CNN: Delv-ing into high quality object detection. In CVPR , 2018. 2 [5] Gemma Canet Tarr´ es, Zhe Lin, Zhifei Zhang, Jianming Zhang, Yizhi Song, Dan Ruta, Andrew Gilbert, John Col-lomosse, and Soo Ye Kim. Thinking Outside the BBox: Un-constrained generative object compositing. In ECCV , 2024. 2[6] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In ECCV , 2020. 2, 3, 4, 5 [7] Bor-Chun Chen and Andrew Kae. Toward realistic image compositing with adversarial learning. In CVPR , 2019. 2 [8] Xi Chen, Lianghua Huang, Yu Liu, Yujun Shen, Deli Zhao, and Hengshuang Zhao. AnyDoor: Zero-shot object-level im-age customization. In CVPR , 2024. 1, 2 [9] Bowen Cheng, Alex Schwing, and Alexander Kirillov. Per-pixel classification is not all you need for semantic segmen-tation. NeurIPS , 2021. 5, 1 [10] Wenyan Cong, Jianfu Zhang, Li Niu, Liu Liu, Zhixin Ling, Weiyuan Li, and Liqing Zhang. DoveNet: Deep image har-monization via domain verification. In CVPR , 2020. 2 [11] Marius Cordts, Mohamed Omran, Sebastian Ramos, Timo Rehfeld, Markus Enzweiler, Rodrigo Benenson, Uwe Franke, Stefan Roth, and Bernt Schiele. The Cityscapes dataset for semantic urban scene understanding. In CVPR ,2016. 5, 8, 1 [12] Debidatta Dwibedi, Ishan Misra, and Martial Hebert. Cut, paste and learn: Surprisingly easy synthesis for instance de-tection. In ICCV , 2017. 1 [13] Golnaz Ghiasi, Yin Cui, Aravind Srinivas, Rui Qian, Tsung-Yi Lin, Ekin D Cubuk, Quoc V Le, and Barret Zoph. Simple copy-paste is a strong data augmentation method for instance segmentation. In CVPR , 2021. 1, 2 [14] Ross Girshick. Fast R-CNN. In ICCV , 2015. 2 [15] Ross Girshick, Jeff Donahue, Trevor Darrell, and Jitendra Malik. Rich feature hierarchies for accurate object detection and semantic segmentation. In CVPR , 2014. 2 [16] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter. GANs trained by a two time-scale update rule converge to a local Nash equi-librium. NeurIPS , 2017. 5 [17] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffu-sion probabilistic models. NeurIPS , 2020. 1 [18] Yannick Hold-Geoffroy, Akshaya Athawale, and Jean-Franc ¸ois Lalonde. Deep sky modeling for single image out-door lighting estimation. In CVPR , 2019. 1 [19] Aishwarya Kamath, Mannat Singh, Yann LeCun, Gabriel Synnaeve, Ishan Misra, and Nicolas Carion. MDETR-modulated detection for end-to-end multi-modal understand-ing. In ICCV , 2021. 2 [20] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jian-wei Yang, Chunyuan Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, et al. Grounded language-image pre-training. In CVPR , 2022. 2 [21] Xueting Li, Sifei Liu, Kihwan Kim, Xiaolong Wang, Ming-Hsuan Yang, and Jan Kautz. Putting humans in a scene: Learning affordance in 3D indoor environments. In CVPR ,2019. 2 [22] Chen-Hsuan Lin, Ersin Yumer, Oliver Wang, Eli Shechtman, and Simon Lucey. ST-GAN: Spatial transformer generative adversarial networks for image compositing. In CVPR , 2018. 1, 2 [23] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C Lawrence Zitnick. Microsoft COCO: Common objects in context. In 
+
+ECCV , 2014. 5 [24] Tsung-Yi Lin, Piotr Doll´ ar, Ross Girshick, Kaiming He, Bharath Hariharan, and Serge Belongie. Feature pyramid networks for object detection. In CVPR , 2017. 2 [25] Jiacheng Liu, Hang Zhou, Shida Wei, and Rui Ma. Diff-Pop: Plausibility-guided object placement diffusion for im-age composition. Computer Graphics Forum , 2024. 2 [26] Liu Liu, Zhenchen Liu, Bo Zhang, Jiangtong Li, Li Niu, Qingyang Liu, and Liqing Zhang. OPA: Object placement assessment dataset. arXiv preprint arXiv:2107.01889 , 2021. 5[27] Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, and Alexander C Berg. SSD: Single shot multibox detector. In ECCV , 2016. 2[28] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. In ICLR , 2018. 5 [29] Shilin Lu, Yanzhu Liu, and Adams Wai-Kin Kong. TF-ICON: Diffusion-based training-free cross-domain image composition. In ICCV , 2023. 1 [30] Chenlin Meng, Yutong He, Yang Song, Jiaming Song, Jia-jun Wu, Jun-Yan Zhu, and Stefano Ermon. SDEdit: Guided image synthesis and editing with stochastic differential equa-tions. In ICLR , 2021. 2 [31] Gerhard Neuhold, Tobias Ollmann, Samuel Rota Bulo, and Peter Kontschieder. The Mapillary Vistas Dataset for seman-tic understanding of street scenes. In ICCV , 2017. 7 [32] Li Niu, Qingyang Liu, Zhenchen Liu, and Jiangtong Li. Fast object placement assessment. arXiv preprint arXiv:2205.14280 , 2022. 2 19302 [33] Wamiq Reyaz Para, Paul Guerrero, Niloy Mitra, and Peter Wonka. COFS: Controllable furniture layout synthesis. In 
+
+SIGGRAPH , 2023. 1 [34] Patrick P´ erez, Michel Gangnet, and Andrew Blake. Poisson image editing. In SIGGRAPH , 2003. 2 [35] Joseph Redmon, Santosh Divvala, Ross Girshick, and Ali Farhadi. You Only Look Once: Unified, real-time object detection. In CVPR , 2016. 2 [36] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster R-CNN: Towards real-time object detection with re-gion proposal networks. NeurIPS , 2015. 2, 3, 4 [37] Hamid Rezatofighi, Nathan Tsoi, JunYoung Gwak, Amir Sadeghian, Ian Reid, and Silvio Savarese. Generalized in-tersection over union: A metric and a loss for bounding box regression. In CVPR , 2019. 5 [38] Connor Shorten and Taghi M Khoshgoftaar. A survey on image data augmentation for deep learning. Journal of Big Data , 2019. 1 [39] Alvy Ray Smith and James F Blinn. Blue screen matting. In 
+
+SIGGRAPH , 1996. 2 [40] Yizhi Song, Zhifei Zhang, Zhe Lin, Scott Cohen, Brian Price, Jianming Zhang, Soo Ye Kim, and Daniel Aliaga. Object-Stitch: Object compositing with diffusion model. In CVPR ,2023. 1, 2, 3 [41] Roman Suvorov, Elizaveta Logacheva, Anton Mashikhin, Anastasia Remizova, Arsenii Ashukha, Aleksei Silvestrov, Naejin Kong, Harshith Goka, Kiwoong Park, and Victor Lempitsky. Resolution-robust large mask inpainting with fourier convolutions. In WACV , 2022. 5, 1 [42] Zhi Tian, Chunhua Shen, Hao Chen, and Tong He. FCOS: Fully convolutional one-stage object detection. In ICCV ,2019. 2, 3 [43] Shashank Tripathi, Siddhartha Chandra, Amit Agrawal, Am-brish Tyagi, James M Rehg, and Visesh Chari. Learning to generate synthetic data via compositing. In CVPR , 2019. 2 [44] Yi-Hsuan Tsai, Xiaohui Shen, Zhe Lin, Kalyan Sunkavalli, Xin Lu, and Ming-Hsuan Yang. Deep image harmonization. In CVPR , 2017. 2 [45] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. NeurIPS , 2017. 2 [46] Pei Wang, Zhaowei Cai, Hao Yang, Gurumurthy Swami-nathan, Nuno Vasconcelos, Bernt Schiele, and Stefano Soatto. Omni-DETR: Omni-supervised object detection with transformers. In CVPR , 2022. 2 [47] Zian Wang, Wenzheng Chen, David Acuna, Jan Kautz, and Sanja Fidler. Neural light field estimation for street scenes with differentiable virtual object insertion. In ECCV , 2022. 1[48] Qiuhong Anna Wei, Sijie Ding, Jeong Joon Park, Rahul Sajnani, Adrien Poulenard, Srinath Sridhar, and Leonidas Guibas. LEGO-Net: Learning regular rearrangements of ob-jects in rooms. In CVPR , 2023. 1 [49] Fangneng Zhan, Hongyuan Zhu, and Shijian Lu. Spatial fu-sion GAN for image synthesis. In CVPR , 2019. 2 [50] Hao Zhang, Feng Li, Shilong Liu, Lei Zhang, Hang Su, Jun Zhu, Lionel M Ni, and Heung-Yeung Shum. DINO: DETR with improved denoising anchor boxes for end-to-end object detection. In ICLR , 2023. 2 [51] Lingzhi Zhang, Tarmily Wen, Jie Min, Jiancong Wang, David Han, and Jianbo Shi. Learning object placement by inpainting for compositional data augmentation. In ECCV ,2020. 1, 2, 5, 6, 8, 3 [52] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. The unreasonable effectiveness of deep features as a perceptual metric. In CVPR , 2018. 5 [53] Hang Zhou, Rui Ma, Ling-Xiao Zhang, Lin Gao, Ali Mahdavi-Amiri, and Hao Zhang. SAC-GAN: Structure-aware image composition. IEEE TVCG , 2022. 1, 2, 5, 6, 8, 3 [54] Siyuan Zhou, Liu Liu, Li Niu, and Liqing Zhang. Learning object placement via dual-path graph completion. In ECCV ,2022. 1, 2, 5, 6 [55] Sijie Zhu, Zhe Lin, Scott Cohen, Jason Kuen, Zhifei Zhang, and Chen Chen. TopNet: Transformer-based object place-ment network for image compositing. In CVPR , 2023. 1, 2, 5, 6, 8, 3 19303
