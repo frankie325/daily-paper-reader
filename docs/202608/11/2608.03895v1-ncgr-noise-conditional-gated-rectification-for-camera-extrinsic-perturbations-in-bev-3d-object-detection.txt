@@ -1,0 +1,909 @@
+Title: NCGR: Noise-Conditional Gated Rectification for Camera Extrinsic Perturbations in BEV 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.03895v1
+
+Published Time: Wed, 05 Aug 2026 01:20:02 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# NCGR: Noise-Conditional Gated Rectification for Camera Extrinsic Perturbations in BEV 3D Object Detection 
+
+# Wenbin Pan ∗, Wanhao Liu ∗, Liwei Luo, Panshuo Li †, Yong Xu, Renquan Lu 
+
+Guangdong University of Technology, Guangzhou, China 
+
+Abstract 
+
+Camera-based bird’s-eye-view (BEV) 3D detection typically assumes accurate and fixed camera extrinsics. In detectors us-ing spatial cross-attention (SCA), extrinsic perturbations dis-place the image-plane projections of BEV reference points, causing queries to sample features from incorrect regions and degrading detection performance. To address this failure mode, Noise-Conditional Gated Rectification (NCGR) is pro-posed to compensate for projection errors without explicitly estimating a full six-degree-of-freedom extrinsic correction. For each query–camera pair, a 2D rectification offset is pre-dicted and modulated by a camera-level gate to rectify the base projection before native deformable sampling. During training, the perturbation-derived quantities used to construct the condition and gate are gradually replaced through sched-uled interpolation by counterparts generated from an auxil-iary scalar predicted from camera features. This transition enables blind inference without perturbation metadata. Dur-ing training, a weight-shared clean-teacher/perturbed-student pair is used, and the rectification module is supervised by a BEV-consistency objective between the two branches. NCGR is evaluated on nuScenes with simulated dynamic and static extrinsic perturbations. In a five-camera dynamic stress test, NCGR achieves 39 .69% NDS, compared with 28 .00% for BEVFormer and 33 .23% for CAPE. Under clean extrinsics, NCGR maintains performance comparable to that of BEV-Former. 
+
+# Introduction 
+
+In multi-camera 3D object detection, a bird’s-eye-view (BEV) representation is commonly constructed through ei-ther depth-based lifting (Philion and Fidler 2020; Huang et al. 2021; Li et al. 2023) or attention-based interaction between 3D/BEV queries and image features (Wang et al. 2022; Liu et al. 2022; Li et al. 2022). Because depth-based lifting depends on estimated depth distributions, errors in these distributions can be propagated into BEV construction. Attention-based methods instead support geometry-guided multi-view aggregation without explicitly predicting dense per-pixel depth. A representative design is BEVFormer’s spatial cross-attention (SCA), which establishes image–BEV correspondence by explicitly projecting 3D reference points 
+
+> †
+
+Corresponding author. 
+
+> ∗
+
+These authors contributed equally. 
+
+into camera views. Its sampling locations are therefore di-rectly dependent on camera extrinsics. This geometric dependence creates a specific failure mode under extrinsic perturbations. Perturbed extrinsics displace the base projection of each reference point, causing the corre-sponding BEV query to aggregate features from mismatched image regions, as illustrated in Fig. 1. Native multi-scale de-formable attention is not designed to explicitly correct this anchor displacement. The module uses its learned offsets to sample locally around the projected anchor, which remains misaligned under extrinsic drift (Zhu et al. 2021; Li et al. 2022). Existing approaches address calibration errors differ-ently. Explicit recovery methods estimate corrected camera– LiDAR transformations, but generally require cross-modal observations or a separate calibration stage (Iyer et al. 2018; Lv et al. 2021; Xiao et al. 2024; Yuan et al. 2025). Detector-side methods improve tolerance through augmentation, posi-tional encoding, view transformation, or enlarged sampling neighborhoods (Philion and Fidler 2020; Li et al. 2022; Liu et al. 2023; Yang et al. 2024a,b), while calibration-free or camera-local representations reduce reliance on precise ex-trinsics (Jiang et al. 2022; Fan et al. 2023; Xiong et al. 2023; Song et al. 2024). Explicit recovery operates outside the de-tector. Tolerance-oriented methods generally do not explic-itly update the displaced projection anchor. Calibration-free and camera-local designs instead alter how explicit geometry is incorporated. Directly rectifying the perturbed base pro-jection inside SCA while retaining SCA geometry remains underexplored. To address the projection displacement caused by ex-trinsic perturbations, Noise-Conditional Gated Rectification (NCGR) is proposed. NCGR applies a gated, query–camera-specific 2D residual offset to each displaced base projection before native deformable sampling. Unlike explicit recovery, NCGR retains the original geometric projection as the refer-ence and applies a residual correction without explicitly esti-mating a full six-degree-of-freedom extrinsic correction. In a five-camera dynamic stress test on nuScenes, NCGR achieves 
+
+39 .69% NDS, compared with 28 .00% for BEVFormer and 
+
+33 .23% for CAPE, while maintaining comparable accuracy under clean extrinsics. The main contributions are: 
+
+• The analysis distinguishes the displacement of SCA arXiv:2608.03895v1 [cs.CV] 4 Aug 2026 Figure 1: Motivation and problem illustration. Camera ex-trinsic perturbations shift the image-plane projections of BEV reference points, causing spatial cross-attention to sam-ple misaligned image features and degrading BEV detection. base projections from the local offsets used by native deformable attention. 
+
+• NCGR introduces gated residual rectification inside SCA, retains the explicit projection as the geometric ref-erence, and transitions from perturbation-derived con-trols to a learned camera-level signal for inference. 
+
+• Experiments demonstrate improved robustness over BEVFormer and CAPE under severe multi-camera per-turbations, with comparable performance maintained under clean extrinsics. 
+
+# Related Work 
+
+Explicit Extrinsic Recovery 
+
+Explicit extrinsic-recovery methods estimate the rigid trans-formation between cameras and LiDAR from cross-modal observations. RegNet, CalibNet, and LCCNet estimate six-degree-of-freedom extrinsic corrections through deep cross-modal registration, geometric and photometric consis-tency, and cost-volume-based iterative refinement, respec-tively (Schneider et al. 2017; Iyer et al. 2018; Lv et al. 2021). SemAlign optimizes extrinsics through annotation-free se-mantic alignment (Liu et al. 2021), while CalibFormer and LCCRAFT improve calibration accuracy using multi-head cross-modal correlation modeling and recurrent updates over all-pairs correlations, respectively (Xiao et al. 2024; Lee and Chen 2024). For downstream perception, the recalibration method of Song et al. predicts extrinsic deviations through image–point-cloud semantic alignment, whereas BEVCalib decodes global extrinsic corrections from shared BEV fea-tures (Song et al. 2025; Yuan et al. 2025). These methods directly optimize sensor-level rigid transformations and re-turn corrected extrinsics to downstream modules. However, they generally depend on LiDAR or other cross-modal ob-servations and act as a calibration stage separate from detec-tion: the recovered extrinsics are fed back into the projection pipeline rather than being used to correct feature sampling inside the detector. Any remaining error in the recovered extrinsics can therefore limit downstream detection perfor-mance. 
+
+Detector-Side Robustness to Extrinsic Perturbations 
+
+One family of detector-side methods retains the calibrated projection while making the detector more tolerant to ex-trinsic errors through training augmentation, architectural design, or BEV denoising (Dong et al. 2023; Klinghoffer et al. 2023; Xie et al. 2025; Ye et al. 2025; Zhuo et al. 2026). Lift-Splat-Shoot applies extrinsic perturbations and camera dropout during training (Philion and Fidler 2020), and BEVFormer uses spatial cross-attention and temporal self-attention to aggregate multi-view image features and historical BEV information, respectively (Li et al. 2022). PETRv2 improves robustness through its positional encod-ing design (Liu et al. 2023). WidthFormer evaluates extrin-sic robustness in the context of its view-transformation de-sign (Yang et al. 2024a). GARKT enlarges the sampling ker-nels around coarse projection locations to address displace-ment in tire-blow-out scenarios. The kernel size is selected according to predefined impact levels (Yang et al. 2024b). These methods improve tolerance through the training dis-tribution, positional representations, or enlarged sampling neighborhoods, but they do not explicitly update the dis-placed base projection. Approaches that adjust the sampling range may additionally rely on predefined perturbation levels. Another family of detector-side methods reduces reliance on precise calibration by changing how camera geometry is incorporated into representation construction and feature fusion (Zhou et al. 2021). CFT and the roadside-oriented CBR avoid camera calibration parameters and learn image-to-BEV mappings implicitly (Jiang et al. 2022; Fan et al. 2023), whereas CAPE and SpatialDETR organize cross-view interaction with camera-local coordinate representa-tions and camera-ray encodings, respectively (Xiong et al. 2023; Doll et al. 2022). In multimodal perception, TransFu-sion relaxes hard projection correspondences through soft attention-based association, and GraphBEV aligns features during depth projection and BEV fusion (Bai et al. 2022; Chen et al. 2022, 2023; Song et al. 2024). These designs reduce sensitivity to calibration errors. However, they either use geometric representations other than the explicit projec-tion employed by SCA or focus on roadside and multimodal settings rather than the dynamic per-camera extrinsic drift considered here. Existing approaches recover extrinsics, improve tolerance without updating displaced projection anchors, or alter how explicit geometry is incorporated. Directly rectifying dis-placed base projections inside SCA remains underexplored, especially when perturbation metadata are unavailable at in-ference. NCGR addresses this gap by retaining the original geometric projection as the reference and applying a residual correction. 
+
+# Method 
+
+Problem formulation. In SCA, a 3D reference point p
+
+is projected into the image plane of camera i by the cali-brated LiDAR-to-image projection matrix T(i)l2i , yielding the base location πi(p). Let T(i)l2c denote the LiDAR-to-camera extrinsic transformation of camera i. During training, each Figure 2: Overall framework of NCGR. The student branch uses perturbed extrinsics and gated reference-point rectification, while the teacher branch provides clean BEV targets. During training, synthetic perturbations provide the signals used to form the correction condition and gate according to the interpolation schedule. These perturbation-derived targets are used only for training. During inference, a learned camera-level scalar provides a bounded, metadata-free control signal for the correction condition and gate. selected camera is assigned a synthetic rigid perturbation 
+
+∆Ti, whose rotation is parameterized by the Euler-angle vector αi = [ ϕi, ϑ i, ψ i]⊤ and whose translation is ∆ti. The perturbed extrinsic transformation and the resulting image-plane displacement are 
+
+eT(i)l2c = ∆ TiT(i)l2c ,
+
+∆πi(p) = eπi(p) − πi(p), (1) where eπi(p) is obtained by combining the perturbed extrin-sic transformation with the camera intrinsics. This displace-ment moves the SCA base projection to an incorrect image location, causing the corresponding BEV query to sample misaligned image features. NCGR therefore rectifies the dis-placed base projection before native deformable sampling. The complete matrix formulation, coordinate convention, and perturbation protocol are provided in the supplementary material. 
+
+Method Overview 
+
+As illustrated in Fig. 2, NCGR constructs clean–perturbed training pairs. The framework contains two main compo-nents: 1. Gated reference-point rectification in spatial cross-attention , which applies gated 2D residual offsets to the projected reference points inside SCA to mitigate sampling misalignment caused by perturbed extrinsics; 2. BEV consistency between the clean teacher and per-turbed student branches , which constrains the per-turbed student BEV representation using the corre-sponding clean teacher representation, thereby stabiliz-ing training under extrinsic perturbations and preserv-ing performance under clean extrinsics. The BEV-consistency objective is implemented through two forward passes with shared weights during training: 
+
+• Student path : uses the perturbed LiDAR-to-image pro-jection matrices and enables the rectification modules; 
+
+• Teacher path : uses the unperturbed projection matri-ces, disables the rectification modules, and is run with-out gradient computation. For inference, an auxiliary camera-level head maps each camera feature to a bounded scalar that controls both the correction condition and the multiplicative gate. Scheduled interpolation replaces perturbation-derived training controls with this learned signal. The perturbation-derived targets are used only during training. Because perturbations modify pro-jection metadata rather than image appearance, the scalar provides a bounded operating point shaped by the training distribution, while the query–camera offset network predicts the spatial adjustment. Training also uses camera-level con-trol supervision, BEV-level auxiliary supervision, and a low-weight temporal-consistency regularizer. 
+
+Gated Reference-Point Rectification in Spatial Cross-Attention 
+
+Training-time control construction and scheduling. For each camera i, the synthetic perturbation is summarized by 
+
+ni = nrot  
+
+> i
+
+, n trans 
+
+> i
+
+⊤ = [ ∥αi∥2, ∥∆ti∥2]⊤ ∈ R2, (2) where nrot  
+
+> i
+
+and ntrans  
+
+> i
+
+denote the rotation and translation perturbation magnitudes, respectively, and ni = 02 for an unperturbed camera. After normalization by the per-axis ro-tation and translation bounds σr and σt, respectively, one obtains 
+
+¯nrot  
+
+> i
+
+= clip 
+
+ nrot 
+
+> i
+
+√3 σr
+
+, 0, 2
+
+
+
+,
+
+¯ntrans  
+
+> i
+
+= clip 
+
+ ntrans 
+
+> i
+
+√3 σt
+
+, 0, 2
+
+
+
+,
+
+¯ni = ¯nrot  
+
+> i
+
+, ¯ntrans 
+
+> i
+
+⊤ .
+
+(3) Since |ϕi|, |ϑi|, |ψi| ≤ σr , the rotation magnitude satis-fies ∥αi∥2 = pϕ2 
+
+> i
+
++ ϑ2 
+
+> i
+
++ ψ2 
+
+> i
+
+≤ p3σ2 
+
+> r
+
+= √3σr . The same reasoning gives the translation upper bound ∥∆ti∥2 ≤√3σt.An auxiliary camera-level control head H applies global spatial pooling followed by a two-layer multilayer percep-tron (MLP) with a sigmoid output. For camera i, it pre-dicts bqi = H(Fi) ∈ [0 , 1] , where Fi is the top-level fea-ture of camera i. During training, the normalized rotation and translation perturbation magnitudes are combined to de-fine ggt  
+
+> i
+
+= clip(max(¯ nrot  
+
+> i
+
+, ¯ntrans  
+
+> i
+
+) , 0, 1) , and q⋆i = 1 − ggt  
+
+> i
+
+.
+
+Here, ggt  
+
+> i
+
+denotes the perturbation-derived gate target, while its complement q⋆i denotes the camera-health target, which equals one for an unperturbed camera and decreases as the perturbation magnitude increases. The learned scalar is con-verted to the camera-level control ρi = 1 − sg( bqi), where 
+
+sg( ·) denotes stop-gradient. The camera-level control head is supervised by 
+
+Lcam health = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+(bqi − q⋆i )2 , (4) where N is the number of cameras. The loss is averaged over all camera instances in the mini-batch. The scalar ρi
+
+is used to construct both the correction condition and the multiplicative gate. During training, they are scheduled as 
+
+ci = (1 − α)¯ ni + αρ i12,gi = (1 − α)ggt  
+
+> i
+
++ αρ i, gi ∈ [0 , 1] , (5) where 12 = [1 , 1] ⊤. Let s = e/E denote the training progress, where e is the current epoch and E is the total number of epochs. The scheduling coefficient is 
+
+α = clip 
+
+ s − 0.30.4 , 0, 1
+
+
+
+. (6) At inference, α is fixed at its terminal value of 1. Thus, ci =
+
+ρi[1 , 1] ⊤, g i = ρi, and both quantities are derived solely from the learned camera-level signal without perturbation metadata. 
+
+Gated reference-point rectification. Let Nb denote the mini-batch size. The symbols Nq and N denote the num-bers of BEV queries and cameras, respectively. The encoder contains L SCA layers, and each BEV reference point has D
+
+height anchors. The index j ∈ { 1, . . . , N q } identifies a BEV query, and i ∈{1, . . . , N } identifies a camera. The index d ∈ { 1, . . . , D }
+
+identifies a height anchor; the current implementation uses 
+
+D = 4 .For clarity, Eqs. (7)–(10) describe one sample and one SCA layer. The mini-batch index b ∈ { 1, . . . , N b} and SCA-layer index ℓ ∈ { 1, . . . , L } are omitted. With these indices restored, δj,i is δℓ,b,j,i , while ci and gi are cb,i and gb,i ,respectively. For the j-th BEV query and the i-th camera, let G(i)(·) ∈
+
+R2 denote the i-th 2D output slice of the shared correction network G. The bounded image-plane offset is 
+
+δj,i = sδ tanh 
+
+
+
+G(i)([ Qj ; ci]) 
+
+
+
+, δj,i ∈ R2, (7) where Qj ∈ R256 denotes the j-th BEV query, ci is the camera-level condition for camera i, and sδ denotes the max-imum absolute rectification offset in the normalized image-plane coordinates used by SCA. In each SCA layer, G consists of a 258 -to-128 linear layer, a ReLU activation, and a 128 -to-
+
+12 output linear layer. The output G([ Qj ; ci]) ∈ R2N packs one 2D offset for each camera; with N = 6 , its dimension is 12. The slice G(i)([ Qj ; ci]) provides the residual sampling offset for query j and camera i. The same G is shared across all BEV queries and cameras within one SCA layer, while the six encoder layers use separate correction networks. The off-set is expressed in the normalized image-plane coordinates used by SCA. The scaled hyperbolic tangent function bounds each offset component to [−sδ , s δ ]. The first linear layer of 
+
+G uses Xavier-uniform weight initialization with zero bias, while its output linear layer is initialized to zero. The six cor-rection networks introduce approximately 0.208 M parame-ters. Practical runtime and memory overheads are reported in the supplementary material. The effective offset is 
+
+δ⋆j,i = giδj,i . (8) Let rj,i,d ∈ R2 denote the normalized image-plane reference point of the d-th height anchor associated with query j in camera i. Spatial cross-attention uses the rectified location 
+
+rrect  
+
+> j,i,d
+
+= rj,i,d + δ⋆j,i , (9) where the same query–camera offset is applied to all height anchors of the projected BEV reference point. The native deformable-attention module remains unchanged and pre-dicts local sampling offsets from the query, which are applied around each rectified anchor. Let ∆rnat  
+
+> j,i,d,h,m
+
+∈ R2 denote the native sampling offset after normalization by the spatial size of the associated feature map, where h and m index the attention head and sampling point, respectively. The final sampling location is 
+
+sj,i,d,h,m = rrect  
+
+> j,i,d
+
++ ∆ rnat 
+
+> j,i,d,h,m
+
+. (10) NCGR first shifts the geometrically projected base reference point by δ⋆j,i . The native deformable-attention module then uses ∆rnat  
+
+> j,i,d,h,m
+
+to sample local, content-adaptive features around the rectified location. Equations (5)–(10) define the complete rectification pro-cess. The detection and BEV-consistency losses update G
+
+through the rectified student BEV. The stop-gradient opera-tion blocks these losses from updating H. The camera-level control head H is trained only with Lcam health in Eq. (4). Fig-ure 3 compares clean and perturbed BEV features together with their difference maps. Relative to BEVFormer, NCGR retains a spatial response pattern closer to its clean coun-terpart and exhibits weaker perturbation-induced discrep-ancies, suggesting that reference-point rectification reduces BEV feature distortion under extrinsic perturbations. 
+
+Teacher–Student Consistency and Auxiliary Supervision 
+
+Let T = {T(i)l2i }Ni=1 and eT = { eT(i)l2i }Ni=1 denote the sets of unperturbed and perturbed LiDAR-to-image projection matrices, respectively. Using the rectified reference points in Eq. (9), the perturbed student branch produces 
+
+Bs = E
+
+
+
+F, eT ; Rrect 
+
+, (11) Figure 3: Qualitative comparison of clean and perturbed BEV features from BEVFormer and NCGR, together with the cor-responding difference maps. where E is the BEV encoder with NCGR enabled, and F con-tains the multi-view image features shared by both branches. The sets Rrect = {rrect 
+
+> j,i,d
+
+} and R = {rj,i,d } contain the rec-tified and original reference points, respectively. The clean teacher branch uses shared weights, accurate extrinsics, no rectification, and the original reference points: 
+
+Bt = sg[ E(F, T ; R)] . (12) The student and teacher tensors satisfy Bs, Bt ∈
+
+RNb×| Ω|× C , where Ω is the set of BEV cells, C is the fea-ture dimension, and Bs
+
+> b,x
+
+, Bt 
+
+> b,x
+
+∈ RC denote the student and teacher feature vectors at BEV cell x ∈ Ω of sample 
+
+b ∈ { 1, . . . , N b}, respectively. 
+
+Vanilla BEV distillation. Let Mb,x ∈ { 0, 1} denote the foreground mask rendered from the ground-truth 3D boxes at BEV cell x of sample b. The normalized foreground weight is 
+
+wb,x = Mb,x + β
+
+> 1
+> |Ω|
+
+P
+
+> y∈Ω
+
+(Mb,y + β) , β = 0 .1. (13) The foreground-weighted student–teacher alignment loss is 
+
+Lalign = 1
+
+Nb|Ω|
+
+> Nb
+
+X
+
+> b=1
+
+X
+
+> x∈Ω
+
+wb,x 
+
+1 − cos  Bs
+
+> b,x
+
+, Bt
+
+> b,x
+
+ ,
+
+(14) where cos( ·, ·) denotes cosine similarity. Foreground weight-ing reduces the influence of the static background, which occupies most of the BEV map. Let C denote the set of fully unperturbed samples in the current mini-batch. The whole-map consistency loss for these samples is 
+
+Lclean =
+
+P
+
+> b∈C
+
+P
+
+> x∈Ω
+
+1 − cos  Bs
+
+> b,x
+
+, Bt
+
+> b,x
+
+ 
+
+|C|| Ω| , |C| > 0,
+
+0, |C| = 0 .
+
+(15) 
+
+The identity term also penalizes pre-gate offsets on unper-turbed cameras. In Eq. (16), the previously omitted sample and layer indices are restored. Let Iclean denote the camera instances that remain unperturbed in the current mini-batch, including those from samples in which other cameras are perturbed. The identity regularizer is 
+
+Lid =
+
+PLℓ=1 
+
+P
+
+> (b,i )∈I clean
+
+PNq 
+
+> j=1
+
+∥δℓ,b,j,i ∥22
+
+LN q |I clean | , |I clean | > 0,
+
+0, |I clean | = 0 .
+
+(16) 
+
+The Vanilla BEV distillation loss is therefore 
+
+Lvanilla = Lalign + λclean Lclean + λid Lid , (17) where λclean and λid are the corresponding loss weights. Equations (14) and (15) align the student BEV with the teacher after rectified SCA sampling. Equation (16) directly penalizes correction offsets on clean cameras. 
+
+Auxiliary camera-level control and BEV-quality supervi-sion. The auxiliary supervision combines the camera-level control loss Lcam health in Eq. (4) with a training-only BEV-quality loss. For each BEV cell, the student–teacher cosine similarity is mapped to [0 , 1] and cubed to sharpen the target. The BEV-quality target q⋆, bev  
+
+> b,x
+
+is defined using stop-gradient as 
+
+q⋆, bev  
+
+> b,x
+
+= sg 
+
+ 1 + cos( Bs
+
+> b,x
+
+, Bt
+
+> b,x
+
+)2
+
+!3 . (18) The BEV-quality prediction is bqbev  
+
+> b,x
+
+= σ(Hbev (Bs)b,x ),where Hbev is a BEV-level auxiliary head and σ(·) is the sigmoid function. The BEV-quality loss Lbev health is defined as 
+
+Lbev health = 1
+
+Nb|Ω|
+
+> Nb
+
+X
+
+> b=1
+
+X
+
+> x∈Ω
+
+bqbev  
+
+> b,x
+
+− q⋆, bev 
+
+> b,x
+
+2
+
+. (19) Gradients through the prediction branch update the BEV-quality head and the student representation. The auxiliary-supervision loss Lhealth combines the camera-level control and BEV-quality losses as 
+
+Lhealth = Lbev health + λcam Lcam health , (20) where λcam weights the camera-level control loss. The BEV-level branch is used only during training. 
+
+Auxiliary temporal-consistency regularization. The gated reference-point rectification in Eqs. (7)–(9) addresses the sampling misalignment caused by extrinsic perturbations. A separate training-only loss Ljudge , defined in Eq. (24), en-forces consistency among historical student BEV features. For sample b, Kb is the set of valid historical candidates; unavailable entries and the current frame are excluded. His-torical student BEV features are aligned to the current coor-dinate frame using the corresponding pose transformations. For each k ∈ K b, Wb,k (Bs
+
+> b,k
+
+) denotes the aligned histori-cal student BEV. B0 
+
+> b
+
+denotes the most recent valid historical student BEV after the same alignment. The head Hbev also predicts a quality map for each historical candidate. The same pose transformation used for the corresponding histor-ical BEV feature is applied to this map. The spatial mean of the aligned quality map is denoted by ¯qb,k . The scorer input is xb,k =  GAP( Wb,k (Bs
+
+> b,k
+
+)); GAP( B0 
+
+> b
+
+); GAP( |W b,k (Bs
+
+> b,k
+
+) − B0 
+
+> b
+
+|); ¯ qb,k 
+
+, (21) where xb,k ∈ R3C+1 and GAP denotes global average pooling. Let J denote the temporal candidate scorer, im-plemented as a two-layer MLP with dimensions (3 C + 1) →
+
+128 → 1. It produces the candidate logit ab,k as 
+
+ab,k = J (xb,k ). (22) The current clean teacher BEV constructs the soft target, whereas J receives the scorer input xb,k . The target and predicted candidate distributions are 
+
+ω⋆b,k = exp( zγb,k /τ )
+
+P 
+
+> m∈K b
+
+exp( zγb,m /τ ) , with 
+
+zb,k = clip  cos  vec  Wb,k (Bs
+
+> b,k
+
+) , vec( Bt
+
+> b
+
+) , 0, 1 ,ωb,k = exp( ab,k )
+
+P 
+
+> m∈K b
+
+exp( ab,m ) , k ∈ K b,
+
+(23) where zb,k denotes the clipped cosine-similarity score be-tween the aligned historical student BEV and the current clean teacher BEV, vec( ·) flattens a BEV map, γ > 0 con-trols target sharpening, and τ > 0 is the temperature param-eter. We use γ = 3 and τ = 0 .1 in all experiments. Let Bvalid 
+
+contain samples with at least one valid historical candidate. The auxiliary loss is 
+
+Ljudge = 1
+
+|B valid |
+
+X
+
+> b∈B valid
+
+KL( ω⋆b ∥ ωb) , (24) where KL( · ∥ · ) is the Kullback–Leibler divergence. The vectors ω⋆b and ωb collect the corresponding candidate dis-tributions. If no sample contains a valid historical candidate, 
+
+Ljudge is set to zero. This loss encourages temporal consis-tency without changing the reference-point rectification path or adding a selection module at inference. 
+
+Training Objective 
+
+NCGR is trained end-to-end with 
+
+Ltotal = Ldet + λvLvanilla + λhLhealth + λjLjudge , (25) where Ldet is the original BEVFormer detection loss, and the coefficients λv, λh, and λj weight the Vanilla BEV distilla-tion, auxiliary-supervision, and temporal-consistency terms, respectively. The term Lvanilla aligns the perturbed student BEV with the clean teacher BEV and suppresses offsets on unperturbed cameras; Lhealth supervises the camera-level control head and the training-only BEV-quality head; and 
+
+Ljudge encourages consistency among historical BEV fea-tures. 
+
+# Experiments 
+
+Experimental Setup 
+
+During NCGR training, synthetic extrinsic perturbations are applied with a probability of 0.7 to a randomly selected subset of 1–6 cameras. For each selected camera, the Euler-angle and translation components defining ∆Ti in Eq. (1) are sampled independently from bounded uniform distributions. Robustness is evaluated under clean, dynamic, and static settings. Clean evaluation uses the original extrinsics. In dy-namic evaluation, a fixed subset of cameras is used for the entire validation set, and synthetic rigid perturbations are applied to their extrinsic transformations. For each valida-tion sample, the Euler-angle and translation components are independently resampled from the same bounded uniform distributions. All methods use the same nuScenes validation split (Caesar et al. 2020) and perturbations generated with the same random seed. None of the methods has access to perturbation metadata. Static evaluation is reported in the supplementary material. BEVFormer serves as the native SCA baseline, while CAPE is selected as a representative method that reduces reliance on precise extrinsic calibration through camera-local position embeddings. All methods follow their respec-tive standard configurations. NCGR uses BEVFormer-base with a ResNet-101 backbone (He et al. 2016) enhanced by DCNv2 (Zhu et al. 2019). A feature pyramid network (FPN) (Lin et al. 2017) produces the multi-scale image fea-tures. The model is trained for 24 epochs. We use sδ = 0 .1 in all experiments. An inference-time sensitivity analysis over 
+
+sδ ∈ { 0.05 , 0.10 , 0.15 , 0.20 } is reported in the supplemen-tary material. Further implementation details are provided in the supplementary material. We report the nuScenes detection score (NDS), mean average precision (mAP), mean average translation error (mATE), mean average scale error (mASE), mean! aver-age orientation error (mAOE), mean average velocity error (mAVE), and mean average attribute error (mAAE) (Caesar et al. 2020). 
+
+Efficiency. Efficiency is measured for BEVFormer and NCGR on an NVIDIA A800 under identical settings with a batch size of 1. NCGR has 69.740M parameters, 1.02% 
+
+more than the official BEVFormer’s 69.035M. Mean latency rises from 205.40 to 217.14 ms/frame ( +5 .72% ). 
+
+Main Results 
+
+Table 1 reports results for clean extrinsics and severe dynamic perturbations with per-axis rotation and translation bounds of 15 ◦ and 0.1 m , respectively. CAPE (Xiong et al. 2023) achieves the highest NDS and mAP under clean extrinsics. Under perturbations, NCGR achieves the highest NDS and mAP for each listed fixed camera subset. The largest margins occur when 3–5 cameras are perturbed. NCGR also achieves the lowest mAVE for every perturbed subset. When three or more cameras are perturbed, NCGR achieves its largest margins over the baselines at higher perturbation severities. Additional quantitative results and qualitative detection vi-sualizations are provided in the supplementary material. 
+
+Ablation Studies 
+
+We examine the two core mechanisms of NCGR through a controlled inference-time intervention on reference-point rectification and an ablation of teacher–student BEV consis-tency. 
+
+Controlled intervention on reference-point rectification. 
+
+To isolate the effect of reference-point rectification, we set the learned effective rectification offset δ⋆j,i = giδj,i in Eq. (8) to zero at inference while keeping all model parameters fixed. The same validation samples and perturbation realizations #Cam Method NDS ↑ mAP ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓                                                                                                                 
+
+> Clean BEVF. 0.518 0.417 0.673 0.273 0.371 0.393 0.198 CAPE 0.543 0.447 0.643 0.263 0.387 0.327 0.185
+> NCGR 0.520 0.415 0.697 0.270 0.366 0.346 0.199 1BEVF. 0.462 0.314 0.678 0.279 0.379 0.424 0.194 CAPE 0.464 0.349 0.693 0.266 0.403 0.551 0.193
+> NCGR 0.482 0.353 0.735 0.272 0.381 0.357 0.201 2BEVF. 0.437 0.298 0.723 0.283 0.434 0.473 0.209 CAPE 0.466 0.346 0.750 0.267 0.419 0.432 0.198
+> NCGR 0.479 0.361 0.747 0.276 0.419 0.368 0.203 #Cam Method NDS ↑mAP ↑mATE ↓mASE ↓mAOE ↓mAVE ↓mAAE ↓
+> 3BEVF. 0.362 0.195 0.821 0.290 0.460 0.577 0.206 CAPE 0.391 0.259 0.847 0.268 0.441 0.632 0.201 NCGR 0.451 0.320 0.796 0.278 0.426 0.398 0.194
+> 4BEVF. 0.355 0.197 0.844 0.294 0.508 0.558 0.236 CAPE 0.405 0.272 0.865 0.272 0.444 0.512 0.221 NCGR 0.437 0.308 0.849 0.282 0.445 0.388 0.209
+> 5BEVF. 0.280 0.113 0.980 0.301 0.566 0.667 0.253 CAPE 0.332 0.202 0.978 0.272 0.478 0.730 0.227 NCGR 0.397 0.256 0.920 0.285 0.488 0.423 0.195
+> Each #Cam row corresponds to one fixed camera subset rather than an average over all subsets of that size; the exact index-to-camera mapping is provided in the supplementary material.
+
+Table 1: Main comparison under clean conditions and severe dynamic perturbations. 
+
+Figure 4: Teacher–student BEV-consistency ablation. The full model lowers mASE in all settings and mAVE for clean extrinsics and eight of ten perturbed settings, indicating reduced object-scale and velocity errors.          
+
+> Method NDS ↑mAP ↑mAVE ↓
+> NCGR 0.3969 0.2559 0.4229 NCGR, offset disabled 0.3434 0.1892 0.4834
+
+Table 2: Controlled inference-time intervention on reference-point rectification under the same five-camera dynamic per-turbation setting. are used, while the native deformable-attention module and all other computations remain unchanged. As shown in Ta-ble 2, disabling the effective offset reduces NDS from 0.3969 to 0.3434 and mAP from 0.2559 to 0.1892, while increas-ing mAVE from 0.4229 to 0.4834 under five-camera dy-namic perturbations. This performance drop demonstrates that reference-point rectification contributes substantially un-der severe five-camera dynamic perturbations. 
+
+Independent gate-endpoint check. At inference ( α = 1 ), we also set bqi = 1 , yielding ρi = gi = 0 and δ⋆j,i = 0. A seed-0 evaluation on all 6,019 samples under the same five-camera dynamic setting yielded 0.3445 NDS, 0.1891 mAP, and 0.5042 mAVE. This independent test confirms that the gate-closed endpoint disables the effective rectification path, consistent with the direct offset intervention. 
+
+Effect of teacher–student BEV consistency. We remove the core teacher–student BEV-consistency objective Lvanilla 
+
+and train the resulting variant using the same training con-figuration. This variant removes foreground-weighted BEV alignment, clean-sample consistency, and identity regular-ization, while all other model components and training set-tings remain unchanged. We report mASE and mAVE to quantify object-scale and velocity errors, respectively. As shown in Fig. 4, the full model achieves lower mASE than the model trained without teacher–student BEV consistency across all clean, dynamic, and static settings. It also achieves lower mAVE under clean extrinsics and across eight of the ten perturbed settings. 
+
+# Conclusion 
+
+In this work, NCGR is proposed to improve the robustness of BEVFormer’s spatial cross-attention to camera extrinsic perturbations, which displace the image-plane projections of SCA reference points. NCGR addresses these projection shifts through gated reference-point rectification and BEV consistency between the clean teacher and perturbed stu-dent branches. At inference, the perturbation-derived training controls are replaced by a learned camera-level control signal provided by the auxiliary scalar, without requiring perturba-tion metadata. Experiments on nuScenes under dynamic and static extrinsic perturbations demonstrate improved robust-ness over BEVFormer and CAPE, with comparable perfor-mance maintained under clean extrinsics. References 
+
+Bai, X.; Hu, Z.; Zhu, X.; Huang, Q.; Chen, Y.; Fu, H.; and Tai, C.-L. 2022. TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 1090–1099. Caesar, H.; Bankiti, V.; Lang, A. H.; Vora, S.; Liong, V. E.; Xu, Q.; Krishnan, A.; Pan, Y.; Baldan, G.; and Beijbom, O. 2020. nuScenes: A Multimodal Dataset for Autonomous Driving. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 11621–11631. Chen, Z.; Li, Z.; Zhang, S.; Fang, L.; Jiang, Q.; and Zhao, F. 2023. BEVDistill: Cross-Modal BEV Distillation for Multi-View 3D Object Detection. In International Conference on Learning Representations .Chen, Z.; Li, Z.; Zhang, S.; Fang, L.; Jiang, Q.; Zhao, F.; Zhou, B.; and Zhao, H. 2022. AutoAlign: Pixel-Instance Feature Aggregation for Multi-Modal 3D Object Detection. In Proceedings of the Thirty-First International Joint Con-ference on Artificial Intelligence , 827–833. Doll, S.; Schulz, R.; Schneider, L.; Benzin, V.; Enzweiler, M.; and Lensch, H. P. A. 2022. SpatialDETR: Robust Scalable Transformer-Based 3D Object Detection from Multi-View Camera Images with Global Cross-Sensor Attention. In Eu-ropean Conference on Computer Vision , 230–245. Springer. Dong, Y.; Kang, C.; Zhang, J.; Zhu, Z.; Wang, Y.; Yang, X.; Su, H.; Wei, X.; and Zhu, J. 2023. Benchmarking Ro-bustness of 3D Object Detection to Common Corruptions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 1022–1032. Fan, S.; Wang, Z.; Huo, X.; Wang, Y.; and Liu, J. 2023. Calibration-Free BEV Representation for Infrastructure Per-ception. In 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 9008–9013. He, K.; Zhang, X.; Ren, S.; and Sun, J. 2016. Deep Residual Learning for Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition ,770–778. Huang, J.; Huang, G.; Zhu, Z.; Ye, Y.; and Du, D. 2021. BEVDet: High-Performance Multi-Camera 3D Object De-tection in Bird-Eye-View. arXiv:2112.11790. Iyer, G.; Ram, R. K.; Murthy, J. K.; and Krishna, K. M. 2018. CalibNet: Geometrically Supervised Extrinsic Calibration Using 3D Spatial Transformer Networks. In 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 1110–1117. Jiang, H.; Meng, W.; Zhu, H.; Zhang, Q.; and Yin, J. 2022. Multi-Camera Calibration Free BEV Representation for 3D Object Detection. arXiv:2210.17252. Klinghoffer, T.; Philion, J.; Chen, W.; Litany, O.; Gojcic, Z.; Joo, J.; Raskar, R.; Fidler, S.; and Alvarez, J. M. 2023. Towards Viewpoint Robustness in Bird’s Eye View Segmen-tation. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , 8515–8524. Lee, Y.-C.; and Chen, K.-W. 2024. LCCRAFT: LiDAR and Camera Calibration Using Recurrent All-Pairs Field Trans-forms Without Precise Initial Guess. In 2024 IEEE Inter-national Conference on Robotics and Automation (ICRA) ,16669–16675. Li, Y.; Ge, Z.; Yu, G.; Yang, J.; Wang, Z.; Shi, Y.; Sun, J.; and Li, Z. 2023. BEVDepth: Acquisition of Reliable Depth for Multi-View 3D Object Detection. Proceedings of the AAAI Conference on Artificial Intelligence , 37(2): 1477–1485. Li, Z.; Wang, W.; Li, H.; Xie, E.; Sima, C.; Lu, T.; Qiao, Y.; and Dai, J. 2022. BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotem-poral Transformers. In European Conference on Computer Vision , 1–18. Springer. Lin, T.-Y.; Dollár, P.; Girshick, R.; He, K.; Hariharan, B.; and Belongie, S. 2017. Feature Pyramid Networks for Ob-ject Detection. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 2117–2125. Liu, Y.; Wang, T.; Zhang, X.; and Sun, J. 2022. PETR: Po-sition Embedding Transformation for Multi-View 3D Object Detection. In European Conference on Computer Vision ,531–548. Springer. Liu, Y.; Yan, J.; Jia, F.; Li, S.; Gao, A.; Wang, T.; and Zhang, X. 2023. PETRv2: A Unified Framework for 3D Percep-tion from Multi-Camera Images. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,3262–3272. Liu, Z.; Tang, H.; Zhu, S.; and Han, S. 2021. SemAlign: Annotation-Free Camera-LiDAR Calibration with Semantic Alignment Loss. In 2021 IEEE/RSJ International Confer-ence on Intelligent Robots and Systems (IROS) , 8845–8851. Lv, X.; Wang, B.; Dou, Z.; Ye, D.; and Wang, S. 2021. LC-CNet: LiDAR and Camera Self-Calibration Using Cost Vol-ume Network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops ,2894–2901. Philion, J.; and Fidler, S. 2020. Lift, Splat, Shoot: Encoding Images from Arbitrary Camera Rigs by Implicitly Unpro-jecting to 3D. In European Conference on Computer Vision ,194–210. Springer. Schneider, N.; Piewak, F.; Stiller, C.; and Franke, U. 2017. RegNet: Multimodal Sensor Registration Using Deep Neural Networks. In 2017 IEEE Intelligent Vehicles Symposium (IV) , 1803–1810. Song, Z.; Yang, L.; Xu, S.; Liu, L.; Xu, D.; Jia, C.; Jia, F.; and Wang, L. 2024. GraphBEV: Towards Robust BEV Feature Alignment for Multi-Modal 3D Object Detection. In Euro-pean Conference on Computer Vision , 347–366. Springer. Song, Z.; Yao, D.; Ming, R.; Peng, L.; Yao, D.; and Zhang, Y. 2025. A Re-Calibration Method for Object Detection with Multimodal Alignment Bias in Autonomous Driving. In 2025 IEEE International Conference on Imaging Systems and Techniques (IST) , 1–6. Wang, Y.; Guizilini, V. C.; Zhang, T.; Wang, Y.; Zhao, H.; and Solomon, J. 2022. DETR3D: 3D Object Detection from Multi-View Images via 3D-to-2D Queries. In Conference on Robot Learning , 180–191. PMLR. Xiao, Y.; Li, Y.; Meng, C.; Li, X.; Ji, J.; and Zhang, Y. 2024. CalibFormer: A Transformer-Based Automatic LiDAR-Camera Calibration Network. In 2024 IEEE Inter-national Conference on Robotics and Automation (ICRA) ,16714–16720. Xie, S.; Kong, L.; Zhang, W.; Ren, J.; Pan, L.; Chen, K.; and Liu, Z. 2025. Benchmarking and Improving Bird’s Eye View Perception Robustness in Autonomous Driving. IEEE Transactions on Pattern Analysis and Machine Intelligence ,47(5): 3878–3894. Xiong, K.; Gong, S.; Ye, X.; Tan, X.; Wan, J.; Ding, E.; Wang, J.; and Bai, X. 2023. CAPE: Camera View Position Embedding for Multi-View 3D Object Detection. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 21570–21579. Yang, C.; Lin, T.; Huang, L.; and Crowley, E. J. 2024a. Width-Former: Toward Efficient Transformer-Based BEV View Transformation. In 2024 IEEE/RSJ International Confer-ence on Intelligent Robots and Systems (IROS) , 8457–8464. Yang, D.; Fan, X.; Dong, W.; Huang, C.; and Li, J. 2024b. Robust BEV 3D Object Detection for Vehicles with Tire Blow-Out. Sensors , 24(14): 4446. Ye, X.; Yaman, B.; Cheng, S.; Tao, F.; Mallik, A.; and Ren, L. 2025. BEVDiffuser: Plug-and-Play Diffusion Model for BEV Denoising with Ground-Truth Guidance. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 1495–1504. Yuan, W.; Li, J.; Yue, J.; Shah, D.; Karydis, K.; and Qiu, H. 2025. BEVCalib: LiDAR-Camera Calibration via Geometry-Guided Bird’s-Eye View Representations. arXiv:2506.02587. Zhou, Y.; He, Y.; Zhu, H.; Wang, C.; Li, H.; and Jiang, Q. 2021. Monocular 3D Object Detection: An Extrinsic Parameter Free Approach. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,7556–7566. Zhu, X.; Hu, H.; Lin, S.; and Dai, J. 2019. Deformable ConvNets V2: More Deformable, Better Results. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 9308–9316. Zhu, X.; Su, W.; Lu, L.; Li, B.; Wang, X.; and Dai, J. 2021. Deformable DETR: Deformable Transformers for End-to-End Object Detection. In International Conference on Learn-ing Representations .Zhuo, L.; Jin, K.; Liu, Z.; and Wang, H. 2026. RESBev: Making BEV Perception More Robust. arXiv:2603.09529. Supplementary Material 
+
+This supplementary material is organized around four complementary forms of evidence. Section A specifies the NCGR execution path and the complete extrinsic-perturbation protocol. Section B documents the implementation, evaluation, efficiency-benchmarking, and sensitivity-analysis settings required to reproduce the reported results. Section C provides the complete robustness tables and a class-wise breakdown under the strongest matched perturbation setting. Section D isolates the rectification path through controlled interventions, provides qualitative evidence at the detection and sampling levels, and quantifies whether the camera- and layer-conditioned corrections reduce projection error relative to clean references. 
+
+# A Additional Method and Control Details 
+
+A.1 NCGR Execution Path inside Spatial Cross-Attention 
+
+NCGR changes the geometric anchor used by spatial cross-attention (SCA) while preserving the native multi-scale deformable sampling operation. For BEV query j, camera i, and height anchor d, we follow the notation defined in the main paper: rj,i,d is the normalized image-plane reference point, ci is the camera-level condition, and gi is the rectification gate. The i-th 2D output slice of the shared correction network predicts the bounded offset, and NCGR rectifies the reference point as 
+
+δj,i = sδ tanh 
+
+
+
+G(i)([ Qj ; ci]) 
+
+
+
+,
+
+δ⋆j,i = giδj,i ,
+
+rrect  
+
+> j,i,d
+
+= rj,i,d + δ⋆j,i .
+
+(A.1) The scheduled construction of ci and gi is unchanged from the main paper. At inference, α = 1 , so that ci = ρi12, gi = ρi, and 
+
+ρi = 1 − sg( bqi). All quantities in Eq. (A.1) are expressed in the normalized image-plane coordinates used by SCA. The same effective offset δ⋆j,i is applied to all height anchors associated with the same query–camera pair. The rectified reference point is then passed to the unchanged deformable-attention sampler, which adds its native head-, level-, and point-specific offsets around that point. Thus, NCGR first compensates for the projection-anchor displacement and then retains the local feature search of the original SCA implementation.           
+
+> Stage Operation
+> Base projection Project each BEV reference point using the extrinsics available to the detector. Camera control Construct ciand giusing the scheduled camera-level controls; at inference both are determined by bqi.Anchor rectification Predict and gate one bounded 2D residual for each query–camera pair. Native sampling Apply the original multi-scale deformable offsets around the rectified anchor.
+
+Table A.1: Execution order of NCGR inside SCA. The first three stages determine the rectified geometric anchor; native deformable sampling is retained as the final stage. 
+
+A.2 Extrinsic Perturbation Protocol 
+
+This section provides the complete projection and perturbation formulation summarized in the main paper. For a 3D reference point p = [ px, p y , p z ]⊤, the calibrated projection into the image plane of camera i is 
+
+ui = T(i)l2i 
+
+p
+
+1
+
+
+
+,
+
+πi(p) = 
+
+ ui,x 
+
+ui,z 
+
+, ui,y 
+
+ui,z 
+
+
+
+∈ R2,
+
+T(i)l2i = Ki[ Ri | ti ],
+
+(A.2) where T(i)l2i ∈ R3×4 is the LiDAR-to-image projection matrix, ui = [ ui,x , u i,y , u i,z ]⊤ ∈ R3, Ki ∈ R3×3 is the camera intrinsic matrix, and Ri ∈ SO(3) and ti ∈ R3 are the rotation and translation of the calibrated LiDAR-to-camera transformation. The homogeneous LiDAR-to-camera transformation and the synthetic rigid perturbation are 
+
+T(i)l2c =
+
+Ri ti
+
+0⊤ 1
+
+
+
+, ∆Ti =
+
+∆Ri ∆ti
+
+0⊤ 1
+
+
+
+∈ SE(3) . (A.3) Here, ∆Ri ∈ SO(3) and ∆ti ∈ R3 denote the rotational and translational components of the synthetic perturbation, respectively. A perturbation is applied by left multiplication: 
+
+eT(i)l2c = ∆ TiT(i)l2c . (A.4) Under the column-vector convention, the perturbed rotation and translation are 
+
+eRi = ∆ RiRi, eti = ∆ Riti + ∆ ti.
+
+The rotational perturbation uses the roll, pitch, and yaw parameterization 
+
+αi = [ ϕi, ϑ i, ψ i]⊤, ∆Ri = Rz (ψi)Ry (ϑi)Rx(ϕi),
+
+where ϕi, ϑi, and ψi denote the roll, pitch, and yaw angles, respectively, and Rx, Ry , and Rz denote rotations about the corresponding camera axes. We use the standard camera-axis convention, in which the x-, y-, and z-axes point right, down, and forward, respectively. The axis-rotation matrices are 
+
+Rx(ϕ) = 
+
+"1 0 00 cos ϕ − sin ϕ
+
+0 sin ϕ cos ϕ
+
+#
+
+,
+
+Ry (ϑ) = 
+
+" cos ϑ 0 sin ϑ
+
+0 1 0
+
+− sin ϑ 0 cos ϑ
+
+#
+
+,
+
+Rz (ψ) = 
+
+"cos ψ − sin ψ 0sin ψ cos ψ 00 0 1
+
+#
+
+.
+
+Combining eT(i)l2c with Ki gives the perturbed LiDAR-to-image projection and the image-plane location eπi(p). The resulting displacement is 
+
+∆πi(p) = eπi(p) − πi(p), ∆πi(p) ∈ R2. (A.5) This displacement moves the SCA base projection to a perturbed image-plane location. The reference-point rectification branch compensates for this projection error before native deformable sampling. During NCGR training, the roll, pitch, and yaw angles are sampled independently from U(−15 ◦, 15 ◦), while the three trans-lation components are sampled independently from U(−0.1, 0.1) m , where U(a, b ) denotes the continuous uniform distribution on [a, b ]. In Fig. A.1, {l} and {c} denote the LiDAR (ego) and camera coordinate frames, respectively, and the camera index i is suppressed; ∆tx, ∆ty , and ∆tz denote the three components of ∆ti. During the severity sweep, the translation bound remains 
+
+0.1 m and the rotation bound is set to 3◦, 6◦, 9◦, 12 ◦, or 15 ◦. The synthetic perturbations are used to construct clean–perturbed training pairs and auxiliary training signals, but are not provided during inference. Figure A.1 summarizes the process. The dynamic and static resampling rules and the information withheld during blind inference are specified in the next subsection. Figure A.1: Extrinsic-perturbation protocol. A left-multiplied rigid perturbation is applied to the LiDAR-to-camera transforma-tion, and the resulting extrinsics are combined with the camera intrinsics to obtain the perturbed LiDAR-to-image projection used by SCA. 
+
+A.3 Blind Evaluation Protocol 
+
+Table A.2 summarizes the evaluation protocol. Dynamic perturbations are resampled for every validation sample. In the static setting, each selected camera receives one fixed maximum-magnitude perturbation: the sign of each rotational and translational component is sampled once and held fixed throughout validation. The same realization is reused across methods. Training perturbation metadata is used only to construct the condition and gate and to supervise the auxiliary camera-level scalar. At inference, the indices of the perturbed cameras and the perturbation magnitudes are unavailable; the condition and gate are generated from the learned scalar. 
+
+Item Setting 
+
+Perturbed geometry Left-multiplied LiDAR-to-camera perturbation: eT(i)l2c = ∆ TiT(i)l2c .Rotation Independent roll, pitch, and yaw perturbations with per-axis bounds of 3◦, 6◦, 9◦, 12 ◦,or 15 ◦.Translation Independent x, y, and z perturbations with a per-axis bound of 0.1 m. Dynamic setting Resampled for each validation sample. Static setting One maximum-magnitude realization is sampled once, shared across methods, and fixed throughout validation. Camera settings For each camera-count setting, one predefined camera subset of the corresponding size is used. Training-time signals Synthetic perturbations are used to construct the condition and gate and to supervise the auxiliary camera-level scalar. Inference The identities of the perturbed cameras and the perturbation magnitudes are unavail-able; blind inference uses the learned scalar. 
+
+Table A.2: Summary of the extrinsic perturbation and blind evaluation protocol. A.4 Fixed Camera Subsets 
+
+Table A.3 lists the fixed camera subset used for each camera-count setting throughout the robustness evaluation.              
+
+> Setting nuScenes cameras
+> 1 cam CAM_FRONT
+> 2 cam CAM_FRONT_RIGHT ,CAM_FRONT_LEFT
+> 3 cam CAM_FRONT_RIGHT ,CAM_FRONT_LEFT ,CAM_BACK
+> 4 cam CAM_FRONT_RIGHT ,CAM_FRONT_LEFT ,CAM_BACK_LEFT ,CAM_BACK_RIGHT
+> 5 cam All cameras except CAM_FRONT
+
+Table A.3: Fixed camera-count settings used in the robustness tables. 
+
+A.5 Paired Evaluation and Evaluation Seeds 
+
+All methods use the same nuScenes validation split, predefined camera subsets, and matched perturbations; the static realization is also shared across methods. The main comparison tables use evaluation seed 0. Section B.4 evaluates the same NCGR checkpoint using seed 0 and three additional evaluation-time seeds under the predefined five-camera stress test with per-axis rotation and translation bounds of 15 ◦ and 0.1 m, respectively. 
+
+# B Implementation and Reproducibility 
+
+B.1 Implementation and Training Configuration 
+
+The comparison methods follow their respective standard configurations. NCGR uses a ResNet-101 backbone with deformable convolutions and an FPN image encoder. The BEV representation contains a 200 × 200 grid, 900 queries, six SCA encoder layers, and four height anchors per BEV reference point. The rectification scale is sδ = 0 .10 in the main configuration. Training uses AdamW for 24 epochs with an initial learning rate of 2 × 10 −4, weight decay 0.01 , and a backbone learning-rate multiplier of 0.1. Gradients are clipped to a maximum norm of 35. The cosine learning-rate schedule uses 500 linear warm-up iterations with a warm-up ratio of 1/3 and a minimum learning-rate ratio of 10 −3. The training seed is fixed to 0 and deterministic execution is enabled. Training starts from the ResNet-101-DCNv2 FCOS3D initialization used by the corresponding BEVFormer configuration. The extrinsic simulator is applied with probability 0.7. When activated, it selects between one and six cameras and samples independent roll, pitch, and yaw perturbations from U(−15 ◦, 15 ◦) and translation components from U(−0.1, 0.1) m . The loss weights are λv = 0 .2, λclean = 0 .25 , λid = 0 .5, λh = 0 .15 , λcam = 1 .0, and λj = 0 .1. Thus, the effective weights of Lalign ,
+
+Lclean , and Lid are 0.2, 0.05, and 0.1, respectively.                     
+
+> Item Setting
+> Backbone ResNet-101-DCNv2 with FPN BEV grid / queries 200 ×200 / 900 SCA layers / height anchors 6 / 4 Optimizer AdamW; learning rate 2×10 −4; weight decay 0.01
+> Schedule Cosine, 500-iteration linear warm-up Training length 24 epochs Gradient clipping Maximum norm 35 Training seed 0, deterministic execution Perturbation probability 0.7 Perturbed cameras per sample Between 1 and 6 when activated Main offset scale sδ= 0 .10
+
+Table B.1: Principal implementation and training settings for NCGR. 
+
+B.2 Runtime and Memory Efficiency 
+
+Official BEVFormer, a runtime-disabled NCGR control, and the full NCGR model are benchmarked on an NVIDIA A800 80 GB PCIe GPU with batch size 1. All methods use 32-bit floating-point (FP32) execution with TensorFloat-32 (TF32) enabled consistently. The input tensor has shape [1 , 6, 3, 928 , 1600] , ordered as batch size, number of cameras, channels, image height, and image width; the detector uses a 200 × 200 BEV grid and 900 queries. For each method, 50 warm-up frames are discarded and 500 frames are measured in each of three independent processes, giving 1,500 measured frames in total. Reported latency includes CPU-to-GPU scatter, detector forward propagation, and bounding-box decoding; data loading and image preprocessing are excluded. P50 and P95 denote the 50th- and 95th-percentile latency, respectively, and FPS denotes throughput in frames per second. Method Parameters (million) Mean latency (ms) P50 (ms) P95 (ms) FPS Peak allocated memory (GiB) Official BEVFormer 69.035 205 .399 ± 1.024 205 .110 ± 0.913 207 .555 ± 1.585 4 .8686 ± 0.0242 2.125 NCGR runtime-disabled control 69.740 204 .303 ± 0.210 204 .127 ± 0.189 205 .451 ± 0.497 4 .8947 ± 0.0050 2.127 Full NCGR 69.740 217 .140 ± 0.748 216 .969 ± 0.738 218 .952 ± 1.015 4 .6053 ± 0.0159 2.141 
+
+Table B.2: Runtime and memory efficiency on an NVIDIA A800. Latency and FPS are reported as the mean ± standard deviation across three processes.               
+
+> Metric Absolute change Relative change Mean latency +11 .741 ms/frame +5 .72%
+> FPS −0.2633 FPS −5.41%
+> Peak allocated memory +16 .0MiB +0 .74%
+> Parameters +0 .705 million +1 .02%
+
+Table B.3: Full NCGR overhead relative to official BEVFormer. The full NCGR model runs at 217.14 ms/frame (4.605 FPS) and uses 2.141 GiB of peak allocated GPU memory, compared with 205.40 ms/frame (4.869 FPS) and 2.125 GiB for official BEVFormer. The latency difference between the full NCGR model and the runtime-disabled control is 12.837 ms/frame (6.28%). This control is used only to isolate the runtime cost of executing the auxiliary camera-level head and correction network within the same NCGR implementation. 
+
+B.3 Inference-Time Sensitivity to the Offset Scale 
+
+To assess sensitivity to the maximum rectification offset, we vary sδ only at inference while keeping the trained NCGR checkpoint and all other evaluation settings fixed. Here, sδ bounds each component of the learned offset in the normalized image-plane coordinates used by SCA. We evaluate sδ ∈ { 0.05 , 0.10 , 0.15 , 0.20 } under clean extrinsics and the predefined five-camera dynamic stress test with per-axis rotation and translation bounds of 15 ◦ and 0.1 m, respectively.                      
+
+> Clean Dynamic, 5 cam
+> sδNDS ↑mAP ↑NDS ↑mAP ↑
+> 0.05 0.4996 0.3908 0.3784 0.2331 0.10 0.5199 0.4154 0.3969 0.2559
+> 0.15 0.4817 0.3604 0.3828 0.2436 0.20 0.3658 0.1982 0.3352 0.1708
+
+Table B.4: Inference-time sensitivity of NCGR to the rectification-offset scale sδ . The same trained checkpoint is used in all rows, and the best result in each column is shown in bold. Within the evaluated range, sδ = 0 .10 achieves the highest NDS and mAP under both clean and perturbed conditions. Smaller or larger values yield lower performance, with a pronounced degradation at sδ = 0 .20 . These results support sδ = 0 .10 as the operating point used in the main experiments. 
+
+B.4 Evaluation-Seed Sensitivity 
+
+The main comparison tables use evaluation seed 0. To assess sensitivity to evaluation-time perturbation realizations, the same epoch-24 NCGR checkpoint is evaluated using seed 0 and three additional seeds: 3407, 104729, and 20260715. For every run, both the evaluation seed and PYTHONHASHSEED are fixed. The experiment uses per-axis rotation and translation bounds of 15 ◦
+
+and 0.1 m, respectively, in the predefined five-camera setting. Dynamic and static perturbations follow the protocol in Section A. Seed Dynamic NDS Dynamic mAP 0 (main tables) 0.39690 0.25590 3407 0.39725 0.25360 104729 0.39912 0.25887 20260715 0.39674 0.25549 Mean ± sample std. 0.39750 ± 0.00110 0.25597 ± 0.00218                   
+
+> Seed Static NDS Static mAP 0 (main tables) 0.33730 0.15870 3407 0.33639 0.15751 104729 0.33156 0.15886 20260715 0.33038 0.15938 Mean ±sample std. 0.33391 ±0.00345 0.15861 ±0.00079
+
+Table B.5: Evaluation-seed sensitivity of NCGR under the predefined five-camera 15 ◦/0.1 m stress test. Seed 0 is used in the main comparison tables. The final row reports the mean and sample standard deviation over all four evaluation seeds. Across the four seeds, the ranges of Dynamic NDS, Dynamic mAP, Static NDS, and Static mAP are 0.00238, 0.00527, 0.00692, and 0.00187, respectively. The small variation among the four runs indicates stable performance over the tested perturbation realizations in the predefined five-camera setting with per-axis rotation and translation bounds of 15 ◦ and 0.1 m, respectively. 
+
+# C Complete Robustness Results 
+
+Additional robustness results are reported below. The translation bound is fixed at 0.1 m. Dynamic results cover per-axis rotation bounds from 3◦ to 12 ◦, while static results additionally include 15 ◦. The clean reference and the 15 ◦ dynamic setting are already reported in the main paper and are therefore omitted here. Dynamic and static results use the fixed camera subsets in Table A.3. 
+
+C.1 Summary of Robustness Trends 
+
+The full results reveal severity-dependent trends. NCGR improves NDS and mAP over official BEVFormer across all evaluated fixed camera subsets and perturbation levels. NCGR’s advantage over CAPE becomes more pronounced as the perturbation severity and the number of affected cameras increase, particularly at rotation bounds of 9◦–15 ◦ when at least three cameras are perturbed. NCGR also achieves substantially lower mAVE in many severe perturbation settings. Its gains are most pronounced under moderate-to-severe perturbations. Bound #Cam Method NDS ↑ mAP ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓
+
+3◦/0.1 m 1 cam BEVFormer 0.4994 0.3953 0.7072 0.2746 0.3814 0.4228 0.1966 CAPE 0.5250 0.4292 0.6835 0.2636 0.3894 0.3740 0.1857 NCGR 0.5062 0.3960 0.7305 0.2701 0.3671 0.3515 0.1995 2 cam BEVFormer 0.5018 0.3975 0.7037 0.2745 0.3714 0.4209 0.1996 CAPE 0.5252 0.4276 0.6893 0.2639 0.3941 0.3522 0.1871 NCGR 0.5091 0.4017 0.7175 0.2724 0.3749 0.3527 0.2001 3 cam BEVFormer 0.4876 0.3837 0.7378 0.2752 0.3746 0.4510 0.2033 CAPE 0.5097 0.4120 0.7238 0.2637 0.3938 0.3880 0.1936 NCGR 0.5001 0.3912 0.7405 0.2721 0.3792 0.3650 0.1986 4 cam BEVFormer 0.4882 0.3820 0.7404 0.2759 0.3783 0.4305 0.2031 CAPE 0.5122 0.4120 0.7250 0.2634 0.3962 0.3617 0.1914 NCGR 0.4996 0.3895 0.7411 0.2736 0.3817 0.3542 0.2015 5 cam BEVFormer 0.4715 0.3675 0.7835 0.2769 0.3931 0.4648 0.2048 CAPE 0.4970 0.3976 0.7632 0.2641 0.3982 0.3962 0.1965 NCGR 0.4896 0.3772 0.7710 0.2737 0.3770 0.3676 0.2006 
+
+6◦/0.1 m 1 cam BEVFormer 0.4797 0.3642 0.7144 0.2767 0.3811 0.4507 0.2013 CAPE 0.5026 0.4022 0.7027 0.2638 0.3939 0.4352 0.1893 NCGR 0.4914 0.3711 0.7408 0.2719 0.3756 0.3540 0.1988 2 cam BEVFormer 0.4774 0.3645 0.7319 0.2775 0.3995 0.4363 0.2037 CAPE 0.5035 0.4007 0.7294 0.2650 0.4032 0.3771 0.1934 NCGR 0.4937 0.3812 0.7467 0.2747 0.3860 0.3572 0.2037 3 cam BEVFormer 0.4385 0.3223 0.8100 0.2800 0.4140 0.5116 0.2108 CAPE 0.4664 0.3612 0.8012 0.2644 0.4018 0.4735 0.2007 
+
+NCGR 0.4729 0.3528 0.7934 0.2755 0.3924 0.3740 0.1995 
+
+4 cam BEVFormer 0.4414 0.3232 0.8135 0.2805 0.4184 0.4748 0.2147 CAPE 0.4749 0.3648 0.7997 0.2651 0.4046 0.4029 0.2026 NCGR 0.4684 0.3516 0.8040 0.2775 0.4186 0.3681 0.2056 5 cam BEVFormer 0.4006 0.2800 0.9054 0.2837 0.4380 0.5498 0.2170 CAPE 0.4362 0.3293 0.8791 0.2653 0.4212 0.5065 0.2124 
+
+NCGR 0.4458 0.3226 0.8653 0.2791 0.4333 0.3815 0.1956 
+
+9◦/0.1 m 1 cam BEVFormer 0.4705 0.3399 0.6987 0.2772 0.3773 0.4431 0.1982 CAPE 0.4851 0.3793 0.7039 0.2643 0.3990 0.4862 0.1919 NCGR 0.4855 0.3615 0.7363 0.2723 0.3803 0.3612 0.2020 2 cam BEVFormer 0.4583 0.3363 0.7339 0.2808 0.4169 0.4578 0.2093 CAPE 0.4876 0.3777 0.7428 0.2659 0.4096 0.3973 0.1975 NCGR 0.4866 0.3703 0.7551 0.2751 0.3890 0.3628 0.2033 3 cam BEVFormer 0.4037 0.2671 0.8396 0.2833 0.4371 0.5282 0.2103 CAPE 0.4331 0.3186 0.8324 0.2653 0.4160 0.5451 0.2025 
+
+NCGR 0.4633 0.3366 0.7930 0.2766 0.4080 0.3813 0.1912 
+
+4 cam BEVFormer 0.4010 0.2683 0.8389 0.2868 0.4592 0.5214 0.2255 CAPE 0.4449 0.3264 0.8354 0.2678 0.4166 0.4484 0.2150 
+
+NCGR 0.4539 0.3296 0.8299 0.2796 0.4227 0.3739 0.2030 
+
+5 cam BEVFormer 0.3412 0.2047 0.9703 0.2910 0.4988 0.6216 0.2297 CAPE 0.3912 0.2757 0.9356 0.2672 0.4433 0.5979 0.2220 
+
+NCGR 0.4236 0.2899 0.8806 0.2807 0.4521 0.4032 0.1969 
+
+12 ◦/0.1 m 1 cam BEVFormer 0.4648 0.3243 0.6871 0.2777 0.3866 0.4275 0.1951 CAPE 0.4730 0.3623 0.6997 0.2649 0.4032 0.5217 0.1917 NCGR 0.4857 0.3593 0.7332 0.2711 0.3781 0.3559 0.2010 2 cam BEVFormer 0.4442 0.3119 0.7297 0.2823 0.4339 0.4613 0.2107 CAPE 0.4754 0.3601 0.7493 0.2666 0.4124 0.4192 0.1995 NCGR 0.4823 0.3657 0.7548 0.2759 0.4050 0.3676 0.2021 3 cam BEVFormer 0.3757 0.2244 0.8370 0.2864 0.4631 0.5702 0.2080 CAPE 0.4093 0.2843 0.8421 0.2667 0.4252 0.5886 0.2055 
+
+NCGR 0.4553 0.3286 0.7989 0.2782 0.4284 0.3924 0.1915 
+
+4 cam BEVFormer 0.3735 0.2263 0.8387 0.2913 0.4833 0.5426 0.2402 CAPE 0.4217 0.2966 0.8575 0.2698 0.4278 0.4911 0.2194 
+
+NCGR 0.4411 0.3151 0.8349 0.2801 0.4583 0.3859 0.2049 
+
+5 cam BEVFormer 0.3016 0.1491 0.9857 0.2994 0.5344 0.6646 0.2450 CAPE 0.3564 0.2337 0.9674 0.2697 0.4581 0.6798 0.2292 
+
+NCGR 0.4092 0.2711 0.9072 0.2844 0.4570 0.4126 0.2025 
+
+Table C.1: Dynamic perturbation results across rotation bounds with a fixed translation bound of 0.1 m. Bound #Cam Method NDS ↑ mAP ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓
+
+3◦/0.1 m 1 cam BEVFormer 0.4809 0.3640 0.7468 0.2767 0.3743 0.4147 0.1982 CAPE 0.5026 0.3889 0.7448 0.2642 0.3965 0.3286 0.1845 NCGR 0.4886 0.3688 0.7517 0.2721 0.3803 0.3490 0.2044 2 cam BEVFormer 0.4812 0.3675 0.7446 0.2785 0.3781 0.4181 0.2057 CAPE 0.5057 0.3973 0.7504 0.2636 0.4004 0.3331 0.1820 NCGR 0.4890 0.3739 0.7504 0.2756 0.3937 0.3563 0.2038 3 cam BEVFormer 0.4480 0.3238 0.8560 0.2789 0.3790 0.4219 0.2035 CAPE 0.4763 0.3596 0.8519 0.2621 0.4031 0.3350 0.1825 NCGR 0.4662 0.3419 0.8176 0.2765 0.3927 0.3572 0.2034 4 cam BEVFormer 0.4450 0.3252 0.8677 0.2820 0.3896 0.4260 0.2104 CAPE 0.4854 0.3716 0.8227 0.2635 0.3980 0.3359 0.1833 NCGR 0.4604 0.3390 0.8370 0.2774 0.4084 0.3628 0.2054 5 cam BEVFormer 0.4177 0.2924 0.9874 0.2820 0.3862 0.4237 0.2060 CAPE 0.4574 0.3382 0.9206 0.2630 0.4027 0.3463 0.1848 NCGR 0.4364 0.3082 0.9266 0.2792 0.4045 0.3615 0.2051 
+
+6◦/0.1 m 1 cam BEVFormer 0.4584 0.3087 0.6770 0.2804 0.3852 0.4173 0.2000 CAPE 0.4733 0.3313 0.7103 0.2642 0.4020 0.3575 0.1894 NCGR 0.4775 0.3498 0.7431 0.2740 0.3932 0.3615 0.2023 2 cam BEVFormer 0.4456 0.3117 0.7436 0.2809 0.4231 0.4464 0.2083 CAPE 0.4687 0.3384 0.7747 0.2665 0.4129 0.3615 0.1895 NCGR 0.4791 0.3600 0.7420 0.2747 0.4206 0.3683 0.2040 3 cam BEVFormer 0.3810 0.2217 0.8787 0.2838 0.4490 0.4792 0.2076 CAPE 0.4187 0.2689 0.9072 0.2649 0.4330 0.3746 0.1782 NCGR 0.4464 0.3109 0.7924 0.2776 0.4369 0.3893 0.1947 4 cam BEVFormer 0.3757 0.2244 0.9024 0.2908 0.4621 0.4794 0.2300 CAPE 0.4279 0.2889 0.9010 0.2699 0.4266 0.3700 0.1986 NCGR 0.4321 0.3007 0.8437 0.2805 0.4615 0.3876 0.2089 5 cam BEVFormer 0.3283 0.1626 1.0580 0.2937 0.4936 0.5124 0.2301 CAPE 0.3821 0.2279 1.0370 0.2697 0.4565 0.3988 0.1935 NCGR 0.3918 0.2470 0.9309 0.2849 0.4916 0.4103 0.1988 
+
+9◦/0.1 m 1 cam BEVFormer 0.4516 0.2900 0.6616 0.2800 0.3878 0.4056 0.1994 CAPE 0.4570 0.2989 0.6791 0.2654 0.4020 0.3873 0.1913 NCGR 0.4760 0.3488 0.7347 0.2751 0.4006 0.3676 0.2059 2 cam BEVFormer 0.4257 0.2766 0.7234 0.2852 0.4362 0.4678 0.2137 CAPE 0.4458 0.3010 0.7673 0.2675 0.4322 0.3867 0.1936 NCGR 0.4795 0.3616 0.7433 0.2741 0.4202 0.3681 0.2073 3 cam BEVFormer 0.3452 0.1548 0.8250 0.2901 0.4671 0.5249 0.2148 CAPE 0.3814 0.2105 0.8929 0.2672 0.4693 0.4236 0.1855 NCGR 0.4464 0.3104 0.7848 0.2774 0.4356 0.3971 0.1926 4 cam BEVFormer 0.3408 0.1674 0.8363 0.2955 0.5061 0.5440 0.2468 CAPE 0.3925 0.2348 0.8971 0.2743 0.4643 0.4025 0.2109 
+
+NCGR 0.4220 0.2876 0.8534 0.2806 0.4809 0.3940 0.2086 
+
+5 cam BEVFormer 0.2536 0.0767 0.9682 0.3488 0.4986 0.7070 0.3244 CAPE 0.3361 0.1604 1.0616 0.2745 0.5023 0.4545 0.2090 
+
+NCGR 0.3749 0.2218 0.9357 0.2853 0.5093 0.4351 0.1951 
+
+12 ◦/0.1 m 1 cam BEVFormer 0.4479 0.2815 0.6606 0.2829 0.3851 0.4006 0.1990 CAPE 0.4492 0.2820 0.6597 0.2658 0.3988 0.4019 0.1915 NCGR 0.4727 0.3439 0.7374 0.2751 0.3959 0.3792 0.2041 2 cam BEVFormer 0.4135 0.2557 0.7169 0.2879 0.4420 0.4789 0.2173 CAPE 0.4319 0.2775 0.7565 0.2676 0.4445 0.4029 0.1965 NCGR 0.4752 0.3552 0.7421 0.2762 0.4233 0.3739 0.2087 3 cam BEVFormer 0.3215 0.1180 0.8106 0.2970 0.4880 0.5598 0.2199 CAPE 0.3591 0.1753 0.8759 0.2690 0.4951 0.4578 0.1879 NCGR 0.4355 0.2949 0.7857 0.2797 0.4541 0.4031 0.1964 4 cam BEVFormer 0.3231 0.1409 0.8129 0.2962 0.5094 0.5899 0.2653 CAPE 0.3713 0.2021 0.8910 0.2747 0.4887 0.4261 0.2176 
+
+NCGR 0.4040 0.2621 0.8592 0.2819 0.5102 0.4043 0.2153 
+
+5 cam BEVFormer 0.2296 0.0423 0.9313 0.3529 0.5292 0.7697 0.3322 CAPE 0.3051 0.1191 1.0559 0.2811 0.5533 0.4925 0.2182 
+
+NCGR 0.3540 0.1934 0.9547 0.2858 0.5347 0.4442 0.2078 
+
+Table C.2: Static perturbation results across rotation bounds with a fixed translation bound of 0.1 m. Bound #Cam Method NDS ↑ mAP ↑ mATE ↓ mASE ↓ mAOE ↓ mAVE ↓ mAAE ↓
+
+15 ◦/0.1 m 1 cam BEVFormer 0.4459 0.2752 0.6599 0.2827 0.3778 0.3988 0.1979 CAPE 0.4456 0.2766 0.6542 0.2665 0.3999 0.4159 0.1906 NCGR 0.4666 0.3325 0.7331 0.2733 0.4029 0.3849 0.2026 2 cam BEVFormer 0.4042 0.2386 0.7187 0.2900 0.4412 0.4853 0.2155 CAPE 0.4226 0.2626 0.7443 0.2688 0.4586 0.4183 0.1966 NCGR 0.4681 0.3417 0.7485 0.2770 0.4240 0.3712 0.2073 3 cam BEVFormer 0.3075 0.0953 0.8160 0.3023 0.4884 0.5785 0.2159 CAPE 0.3439 0.1537 0.8569 0.2709 0.5207 0.4938 0.1869 NCGR 0.4208 0.2669 0.7983 0.2805 0.4568 0.4003 0.1903 4 cam BEVFormer 0.3162 0.1247 0.8181 0.3011 0.5023 0.5906 0.2492 CAPE 0.3569 0.1818 0.8800 0.2762 0.5252 0.4394 0.2186 NCGR 0.3860 0.2309 0.8545 0.2815 0.5251 0.4076 0.2258 5 cam BEVFormer 0.2412 0.0314 0.9399 0.3256 0.5364 0.6884 0.2545 CAPE 0.2868 0.0942 1.0457 0.2850 0.5944 0.5061 0.2169 
+
+NCGR 0.3373 0.1587 0.9576 0.2846 0.5386 0.4394 0.2005 
+
+Table C.2: Static perturbation results across rotation bounds with a fixed translation bound of 0.1 m. (continued) 
+
+C.2 Class-Wise Robustness under Five-Camera Perturbations 
+
+Table C.3 reports class-wise mean distance AP for the predefined five-camera setting at 15 ◦/0.1 m. NCGR attains the highest value for each of the ten nuScenes classes under both dynamic and static perturbations. The class-wise breakdown shows that the aggregate gains in NDS and mAP are distributed across object categories rather than being driven by a small subset of classes. 
+
+Dynamic, 5 cam Static, 5 cam Class BEVFormer CAPE NCGR BEVFormer CAPE NCGR Car 0.1557 0.2390 0.3482 0.0550 0.1057 0.1959 
+
+Truck 0.0666 0.1299 0.1847 0.0131 0.0373 0.0954 
+
+Bus 0.1507 0.2083 0.2793 0.0887 0.1128 0.1855 
+
+Trailer 0.0056 0.1115 0.1133 0.0000 0.0379 0.0413 
+
+Construction vehicle 0.0049 0.0392 0.0488 0.0000 0.0058 0.0172 
+
+Pedestrian 0.1444 0.2410 0.3127 0.0270 0.0901 0.1790 
+
+Motorcycle 0.1277 0.2210 0.2743 0.0402 0.1089 0.1784 
+
+Bicycle 0.0746 0.1703 0.2285 0.0087 0.0587 0.1102 
+
+Traffic cone 0.1895 0.3355 0.3847 0.0283 0.1920 0.2750 
+
+Barrier 0.2141 0.3195 0.3848 0.0531 0.1923 0.3096 
+
+Table C.3: Class-wise mean distance AP under the predefined five-camera 15 ◦/0.1 m perturbation setting. Dynamic perturbations are resampled per validation sample, whereas the static realization is fixed throughout validation. The best result in each setting and class is shown in bold. 
+
+# D Mechanism and Rectification Evidence 
+
+D.1 Controlled Rectification-Path Intervention 
+
+We isolate the inference-time contribution of the rectification path using the same trained checkpoint and the predefined five-camera dynamic setting at 15 ◦/0.1 m. In the offset-disabled intervention, the effective offset δ⋆j,i in Eq. (A.1) is set to zero while all remaining model components are unchanged. An independent gate-closed intervention sets the rectification gate to its closed endpoint. Both interventions produce closely matched reductions in NDS and mAP, linking the full-model gain to the execution of the gated reference-point correction. 
+
+Variant NDS ↑ mAP ↑ mAVE ↓
+
+Full NCGR 0.3969 0.2559 0.4229 
+
+Offset disabled 0.3434 0.1892 0.4834 Gate closed 0.3445 0.1891 0.5042 
+
+Table D.1: Controlled inference-time interventions under the five-camera dynamic 15 ◦/0.1 m perturbation setting. All rows use the same trained NCGR checkpoint. D.2 Qualitative 3D Detection Results 
+
+Figure D.1: Qualitative 3D detection results under multi-camera extrinsic perturbations for BEVFormer, CAPE, and NCGR. 
+
+D.3 Reference-Point Rectification Visualization 
+
+Figure D.2: Visualization of reference-point rectification. Clean, perturbed, and rectified image-plane projections are shown for representative BEV reference points. Extrinsic perturbations displace the original projection anchors, whereas NCGR shifts them toward the corresponding clean locations before native deformable sampling. Panels a–c display the same deterministic subset of 1,200 valid full-image reference points for visual clarity. Panel d enlarges the yellow-boxed region of interest (ROI), which is a local image area around the target object. For readability, it displays deterministic subsets of 320 points for each projection state and 140 rectification arrows. Its title and inset statistics are computed over all 1,412 valid displaced reference points inside the ROI. The median Euclidean image-plane distance to the corresponding clean projection decreases from 45.3 to 24.8 pixels, and all 1,412 points move closer to their clean projections. In the inset, GT denotes ground truth. 
+
+D.4 Query- and Camera-Conditioned Rectification Fields 
+
+To determine whether NCGR predicts different corrections for different cameras and spatial locations, Fig. D.3 visualizes all six camera streams from the same validation scene at SCA Layer 6. CAM_FRONT remains clean, whereas the other five cameras receive extrinsic perturbations. The arrows indicate the predicted image-plane rectification directions, with their lengths scaled for relative visual comparison. The background color quantifies the corresponding effective offset magnitude in padded-image pixels. Gray regions indicate BEV queries without valid projections in the corresponding camera. The scale annotation “0.038 norm.” marks a reference arrow whose Euclidean magnitude is 0.038 in the normalized image-plane coordinates used by SCA. Figure D.3: Query–camera-specific effective rectification fields at SCA Layer 6. The six panels show the same validation frame for CAM_FRONT , CAM_FRONT_RIGHT , CAM_FRONT_LEFT , CAM_BACK , CAM_BACK_LEFT , and CAM_BACK_RIGHT ,respectively. CAM_FRONT is clean, and the remaining cameras are perturbed. Arrows are anchored at BEV-query locations but represent image-plane offsets. Their directions and relative lengths encode offset direction and magnitude. Background color gives the corresponding magnitude in padded-image pixels, and gray regions contain no valid query–camera projection. The six cameras exhibit different offset directions and spatial structures. This shows that the model does not apply the same translation to all cameras and spatial locations. Although CAM_FRONT is unperturbed, its Layer 6 BEV queries already contain multi-camera information aggregated by the preceding layers. In jointly visible regions, these queries may carry inconsistencies introduced by adjacent perturbed cameras. Therefore, nonzero corrections in the clean camera can arise from the shared multi-view context and should not be interpreted as evidence that the clean camera has been classified as perturbed. 
+
+D.5 Layer-Wise Projection-Error Analysis 
+
+Figure D.4 examines which SCA layer predicts offsets that move perturbed projections closer to their clean references. For every valid projection, we measure the distance to its clean location before and after applying the effective offset from each layer. We denote these pre- and post-rectification distances by epert and erect , respectively. Although BEV features are propagated sequentially through the encoder, each layer-specific offset is evaluated separately on the same original perturbed projection and is not accumulated with offsets from the preceding layers. The analysis uses 600 validation frames under the five-camera dynamic 15 ◦/0.1 m perturbation setting. Figure D.4: Layer-wise projection distance to the clean reference under five-camera dynamic perturbations, with each SCA layer evaluated independently. Orange open circles show the error before rectification, and blue squares show the error after applying that layer’s effective offset; lower values are closer to the clean references. Panel a reports the mean, and Panel b reports P95, the 95th-percentile error. In each frame, the metric is computed separately for the five perturbed cameras and then averaged across them. The plotted values average these summaries over 600 validation frames; error bars show 95% bootstrap confidence intervals over the validation frames. Layers 1–5 yield little reduction in projection error, and several layers produce small increases. Layer 6 is the only layer that clearly reduces both statistics. The mean error decreases from 254.6 to 243.8 pixels, corresponding to a 4.3% reduction. The P95 error decreases from 328.0 to 318.6 pixels, corresponding to a 2.8% reduction. Under this experimental setting, Layer 6 predicts the most geometrically effective rectification. Figure D.5 shows how the projection points change within a selected dynamic training frame. 
+
+Figure D.5: Projection-error distributions before and after Layer 6 rectification in a selected dynamic training frame. Panel a shows the empirical cumulative distribution functions (CDFs) of valid errors pooled across the five perturbed cameras. At a fixed threshold, a blue curve above the orange curve means that more points fall below that threshold after rectification; the displayed range covers 99.5% of the pooled projections. Panel b reports the per-camera fraction satisfying erect < e pert ; the dotted line marks 0.5. The blue curve lies above the orange curve through most of the displayed range, showing that more projection points fall below the same error thresholds after rectification. The mean error pooled across the five perturbed cameras decreases from 260.2 to 231.8 pixels, and 96.4% of valid projection points move closer to their clean references. Panel b reports the fraction of improved points for each perturbed camera. The five fractions are 96.8%, 100.0%, 99.5%, 86.1%, and 100.0%, respectively.

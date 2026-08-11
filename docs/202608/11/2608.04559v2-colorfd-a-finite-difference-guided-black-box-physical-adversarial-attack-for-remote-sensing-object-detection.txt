@@ -1,0 +1,821 @@
+Title: ColorFD: A Finite-Difference Guided Black-Box Physical Adversarial Attack for Remote Sensing Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.04559v2
+
+Published Time: Tue, 11 Aug 2026 02:11:48 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 1
+
+# ColorFD: A Finite-Difference Guided Black-Box Physical Adversarial Attack for Remote Sensing Object Detection 
+
+Tiannuo Guo, Guhang Qiu, Yuzhen Xie, Rui Feng, Ligang Li, and Deliang Xiang, Member, IEEE 
+
+Abstract —Although deep neural network-based remote sens-ing object detectors have achieved strong performance, they remain vulnerable to adversarial perturbations. Existing studies mainly focus on digital or white-box settings, whereas black-box physical attacks remain underexplored. These attacks are often constrained by limited physical feasibility and inefficient optimization in high-dimensional search spaces. To address these challenges, this paper proposes ColorFD, a black-box physical attack based on multiple pure-color patches. The patch positions and color parameters are jointly optimized using Differential Evolution (DE). A target-wise fitness and selection mechanism evaluates the attack state of each target and preserves target-specific improvements during evolution. Two guidance strategies further constrain the patch search space. Key-region localization identifies sensitive regions through finite-difference color probing. Common-feature extraction provides category-level spatial priors and avoids repeated localization. Although evaluated on aircraft, the formulation is not inherently restricted to this category. Experiments on YOLOv3u, YOLOv5u, and Faster R-CNN show that ColorFD outperforms the tested black-box patch method across all evaluated detectors and remains competitive with strong white-box baselines. Physical-world experiments further demonstrate that the optimized pure-color patches can be trans-ferred from the digital domain to real imaging conditions. 
+
+Index Terms —Adversarial patch, black-box attack, finite dif-ference, physical adversarial attack. 
+
+I. I NTRODUCTION 
+
+# DEEP neural networks (DNNs) have achieved remarkable success in various vision tasks, including autonomous driving, intelligent surveillance, and remote sensing image understanding. Despite these advancements, such models ex-hibit an inherent sensitivity to adversarial examples [1], [2]. Carefully crafted and often imperceptible perturbations can induce incorrect predictions. This vulnerability raises security concerns in real-world scenarios. Specifically, remote sensing object detection [3], [4] is increasingly utilized in critical applications such as land monitoring and national defense. Consequently, research on adversarial attacks against remote sensing object detectors is particularly important. Adversarial attacks can be categorized into digital and physical domains based on the space in which perturbations are applied. Digital attacks directly manipulate input images. Physical attacks involve placing perturbations within real-world scenes followed by image re-acquisition for evaluation.             
+
+> The authors are with the College of Information Science and Technology, Beijing University of Chemical Technology, Beijing 100029, China (e-mail: mingzhixin2002@gmail.com; 2024200847@buct.edu.cn; 2024400282@buct.edu.cn; 2025400282@buct.edu.cn; liligang@buct.edu.cn; xiangdeliang@buct.edu.cn). Corresponding author: Deliang Xiang (e-mail: xiangdeliang@buct.edu.cn). This work was supported by the National Natural Science Foundation of China under Grant No. 62171015.
+
+Compared with digital attacks, physical attacks are more consistent with real-world deployment. Nevertheless, ensuring both attack effectiveness and physical feasibility remains a significant challenge. Physical adversarial attacks are further divided into contact-based and contactless categories. Contact-based attacks apply perturbations directly to the target surface. These perturbations are relatively easy to deploy but visually conspicuous. Within this category, patch-based attacks [5]–[7] mislead DNNs by attaching adversarial patches, while camouflage-based attacks [8]–[10] alter the overall appearance of the target. Compared with patch-based attacks, camouflage-based methods often achieve more stable performance under multiple viewpoints and complex observation conditions. Contactless attacks in-terfere with the model perception process through optical de-vices, offering superior concealment. However, they are more sensitive to environmental conditions and often less stable in practice. Therefore, achieving strong attack performance while maintaining physical feasibility and concealment remains a key challenge in physical adversarial attack research. Adversarial attacks are generally classified into white-box and black-box categories based on model accessibility. In white-box attacks, full access to the model architecture and parameters is assumed. It allows adversarial perturbations to be optimized directly through backpropagation. Nevertheless, such an assumption is often difficult to satisfy in practical applications. By contrast, black-box attacks are conducted with access only to model outputs through queries [11]. Under this constraint, perturbations have to be optimized by estimating the model response from repeated interactions. While the unavailability of internal model information complicates the optimization process, black-box attacks are more consistent with real deployment conditions and possess greater practical importance. Although black-box adversarial attacks have been exten-sively studied, existing research remains primarily concen-trated on image classification. By comparison, black-box attacks against object detectors have received significantly less attention. Furthermore, existing physical attack methods are evaluated predominantly in the digital domain, leaving validation in real physical environments insufficient. This limitation is more pronounced in remote sensing scenarios due to substantial scale variations and complex imaging conditions. Consequently, black-box physical adversarial attacks against remote sensing object detectors deserve further investigation. Motivated by prior studies on black-box attacks for image classification [12], [13], this paper proposes ColorFD, a black-box physical patch attack against remote sensing object de-tectors. Compared with pixel-wise patch-texture optimization, arXiv:2608.04559v2 [cs.CV] 10 Aug 2026 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 2
+
+ColorFD models adversarial perturbations as multiple small pure-color square patches. This representation reduces the number of decision variables and facilitates printing and phys-ical deployment. The positions and color parameters of these patches are jointly optimized using Differential Evolution (DE). The most closely related DE-based black-box patch attack, Bbox-Att [14], mainly focuses on patch-texture dimen-sionality reduction and detector-level fitness design. However, a single overall fitness value provides limited optimization guidance when multiple targets are attacked simultaneously. To address this limitation, ColorFD introduces a target-wise fitness and selection mechanism. This mechanism preserves target-specific advantageous variables through partial compo-nent exchange. Regarding access to the target model, ColorFD requires only the returned detection results. It does not require model gradients or intermediate features. Therefore, ColorFD provides a practical robustness-evaluation approach for optical remote sensing detection systems under restricted model ac-cess. The main contributions of this paper are summarized as follows. (1) A physically realizable adversarial design based on mul-tiple small pure-color square patches is proposed. These patches are easy to fabricate and deploy in real-world en-vironments while maintaining strong attack effectiveness. (2) A target-wise fitness and selection mechanism is de-veloped for multi-target black-box attacks. The target-level fitness evaluates the attack state of each target separately. The selection mechanism preserves target-level improvements and alleviates optimization conflicts across targets. (3) Two guidance strategies are introduced to constrain the patch search space. The key-region strategy uses finite-difference color probing to identify instance-specific sen-sitive regions. The common-feature strategy constructs a category-level prior that reduces repeated key-region localization while maintaining competitive attack perfor-mance. II. R ELATED WORK 
+
+Black-Box Attack. In a black-box attack, the attacker can-not access the internal architecture, parameters, or gradients of the target model. The attacker can only obtain outputs by querying the model. Under this setting, attack generation is typically formulated as a query-based optimization problem. Existing methods are broadly categorized into transfer-based attacks [15] and query-based attacks [16]. Transfer-based attacks typically involve training a surrogate model to approximate the target model. Adversarial examples are then generated via white-box attacks on the surrogate and transferred to the target. While this design avoids frequent queries, its performance is strongly contingent upon the simi-larity between the surrogate and the target models. In contrast, query-based attacks interact directly with the target model to optimize perturbations based on model outputs. Certain methods rely on finite-difference strategies [17], while others adopt evolutionary algorithms such as Genetic Algorithms [18] and Particle Swarm Optimization (PSO) [19]. Beyond evolutionary algorithms, reinforcement learning [20] has also been explored for query-based black-box patch attacks. Al-though these methods are flexible and broadly applicable, they typically require a large number of model queries. Such a requirement limits their efficiency in practical applications. 
+
+Patch Attack. Pixel-level perturbations utilized in digital attacks are difficult to preserve under physical transformations. Adversarial patches are regarded as a more practical alterna-tive. These patches usually take the form of localized patterns attached to target objects to mislead the model. To date, patch-based attacks have been extensively explored across various vision tasks. In face recognition, it was demonstrated by Sharif et al. [21], [22] that adversarial eyeglasses could deceive recognition sys-tems. Similarly, facial stickers were designed by Wei et al. [23] to attack FaceNet [24]. In pedestrian detection, Thys et al. [5] extended AdvPatch [6] to attack YOLOv2 [25]. Furthermore, naturalistic T-shirt patterns were proposed by Xu et al. [26], with their efficacy validated in physical environments. In traffic sign recognition, Chen et al. [27] introduced Shapeshifter to attack Faster R-CNN [28]. By sampling diverse physical con-ditions, this method generated robust adversarial patches under varying viewpoints and distances. Despite their effectiveness, adversarial patches are often visually conspicuous. This high visibility limits their practical applicability. To alleviate this issue, Generative Adversarial Networks (GANs) [29] were introduced to synthesize more natural-looking patches [30]. Additionally, visual realism was improved through techniques such as knowledge distillation [31] and style transfer [32]. Such efforts significantly enhanced both the stealthiness and usability of adversarial patches. 
+
+Adversarial Attacks in Remote Sensing. Adversarial at-tacks on remote sensing images have attracted increasing at-tention in recent years. Within the digital domain, Wasserstein GAN [33] was utilized by Burnel et al. [34] to generate visually natural adversarial examples. This method achieved promising results on multiple classification models. Similarly, a black-box attack was proposed by Xu et al. [35]. It utilized shallow features of surrogate models to identify common vul-nerabilities, thereby enabling the discovery of cross-network weaknesses. Its effectiveness has been further validated in both scene classification and semantic segmentation tasks. In the physical domain, a deployable multi-patch adversarial attack was introduced by Huang et al. [36] for remote sensing image classification. Regarding object detection, adversarial patches for multi-scale objects were developed by Zhang et al. [37]. Furthermore, an adaptive patch attack for aircraft detection was proposed by Lian et al. [38]. This method demonstrated strong robustness when patches were deployed both inside and outside target objects. Sun et al. [39] proposed TPA, which employs first-order difference masking to select attacked sub-patches and uses a bounding-box drifting objective. Despite these advancements, balancing attack effectiveness with phys-ical feasibility remains a primary challenge in the field of remote sensing adversarial research. IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 3
+
+III. P RELIMINARIES 
+
+A. Problem Definition 
+
+Given an input image x, an object detector outputs a set of detections: 
+
+D(x) = {dt}Tt=1 = {(bt, p t)}Tt=1 , (1) where dt represents the detection indexed by t. Specifically, 
+
+bt denotes the corresponding bounding box, pt denotes the associated class probability distribution, and T signifies the total number of detections. The primary objective of an adversarial attack involves transforming x into an adversarial example xadv to induce incorrect detection results. In this paper, a patch-based adversarial attack is considered. Multiple patches are applied to each selected target to achieve object-level disappearance. The adversarial patch set is defined as 
+
+P = {Pt}Tt=1 , Pt = {Pt,n }Nt
+
+> n=1
+
+, (2) where Pt represents the patch set associated with the target indexed by t, and Pt,n denotes the patch indexed by n within this set. The variable Nt signifies the total number of patches applied to that target. Each patch Pt,n is parameterized by a patch parameter vector zt,n and a size parameter st specific to the target indexed by t. The adversarial example is constructed as follows: 
+
+xadv = x ⊙ (1 − M ) + 
+
+> T
+
+X
+
+> t=1
+> Nt
+
+X
+
+> n=1
+
+Mt,n ⊙ Pt,n , (3) where Mt,n denotes the binary mask corresponding to patch 
+
+Pt,n , and M denotes the binary mask covering all applied patches. In this formulation, ⊙ represents the element-wise multiplication operator. Object disappearance is adopted as the attack success cri-terion. For the target indexed by t, the attack is considered successful if no valid prediction of the same class is produced. It is also successful when all predicted bounding boxes of that class have the Intersection over Union (IoU) with ground-truth box below a predefined threshold. Formally, the success indicator is defined as: 
+
+St =
+
+
+
+1, Bt = ∅ or max  
+
+> bj∈B t
+
+IoU( bj , b gt t ) < τ, 
+
+0, otherwise ,
+
+(4) where Bt represents the set of predicted bounding boxes with the same class as the target indexed by t, bgt t denotes the ground-truth bounding box, and τ signifies the IoU threshold. Under this definition, the attack is regarded as successful when 
+
+St = 1. The patch set P is optimized to suppress valid detections of the selected targets. This objective is formulated as the following optimization problem: 
+
+P∗ = arg min  
+
+> P
+
+F(xadv ), (5) where F(·) represents the fitness function evaluated on the detector outputs. This formulation allows the optimal patch parameters to be determined by minimizing the response of the target detector. 
+
+B. Differential Evolution 
+
+DE is a population-based optimization algorithm designed to iteratively update a set of candidate solutions toward the global optimum. Since DE operates without the requirement for gradient information, it is well suited for black-box opti-mization scenarios. Let the population be denoted by 
+
+X g = {xgi }Np 
+
+> i=1
+
+, (6) where xgi represents the individual indexed by i, and g
+
+signifies the generation index. The variable Np denotes the total population size. Within this framework, each individual 
+
+xgi corresponds to a candidate adversarial patch set Pgi .In the mutation step, the rand-to-best/1 strategy is adopted: 
+
+vgi = xgr1 + F · (xgbest − xgi ) + F · (xgr2 − xgr3), (7) where vgi represents the mutant vector associated with the individual indexed by i, and F signifies the scaling factor. In this context, xgbest denotes the optimal individual within the current population. xgr1 and xgr2 represent two randomly selected individuals used to incorporate stochastic perturba-tions. After mutation, crossover is performed to generate a trial vector: 
+
+ugi,j =
+
+(
+
+vgi,j , if rj ≤ CR or j = jrand ,xgi,j , otherwise , (8) where ugi,j represents the component of the trial vector ugi
+
+indexed by j. The parameter CR signifies the crossover rate, and rj is sampled from a uniform distribution over (0 , 1) . In addition, the index jrand ensures that at least one dimension is inherited from the mutated vector. Following the crossover, the trial vector is evaluated. Between ugi and xgi , the individual exhibiting superior fitness is selected for the next generation. When applying DE to adversarial patch generation for object detection, two primary challenges arise. First, the attack on multiple targets complicates individual evaluation. A single evaluation metric often fails to provide optimization informa-tion across diverse target states. Second, defining the search space over entire bounding boxes leads to high dimensionality. This excessive search space significantly reduces optimization efficiency. To address multi-target evaluation, a tailored fitness function and a target-wise selection mechanism are designed. Optimization efficiency is further improved by introducing key-region and common-feature guidance to constrain the search space. Detailed descriptions of these components are provided in Section IV. IV. M ETHOD 
+
+This section details the proposed ColorFD attack through two dimensions: the evolutionary mechanism and search space reduction. The overall pipeline is illustrated in Fig. 1. 
+
+A. Fitness Function 
+
+Within the proposed attack framework, each individual encodes patch parameters for multiple targets simultaneously. IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 4a
+
+> a
+
+Search Space Reduction 
+
+> Input Image
+> Finite-Difference Guidance
+> Reduced Search Space
+
+ℎ1 , 𝑤𝑤1 , … , ( ℎ𝑛𝑛 , 𝑤𝑤𝑛𝑛 )
+
+> Key-region
+> Search Bounds
+> Common-feature
+
+Adversarial Patch Optimization(DE) 
+
+> Patch Definition
+> Population
+
+𝑥𝑥1 , … , 𝑥𝑥𝑖𝑖 , …  
+
+> Crossover Mutation
+> Target-wise Selection
+> Compute Fitness
+
+Attack Generation 
+
+> Best Patch Parameter
+> Minimize Fitness
+
+ℎ1 , 𝑤𝑤1 , 𝑟𝑟1 , 𝑔𝑔1 , 𝑏𝑏1 ℎ2 , 𝑤𝑤2 , 𝑟𝑟2 , 𝑔𝑔2 , 𝑏𝑏2 ℎ𝑛𝑛 , 𝑤𝑤𝑛𝑛 , 𝑟𝑟 𝑛𝑛 , 𝑔𝑔𝑛𝑛 , 𝑏𝑏𝑛𝑛 
+
+ℎ, 𝑤𝑤 , 𝑟𝑟 , 𝑔𝑔 , 𝑏𝑏 𝑛𝑛    
+
+> Detection
+> 𝑢𝑢𝑖𝑖
+> 𝑥𝑥𝑖𝑖
+> 𝑓𝑓 1𝑢𝑢 , … , 𝑓𝑓 𝑡𝑡 𝑢𝑢
+> Compare
+> 𝑓𝑓 1𝑏𝑏𝑏𝑏𝑏𝑏 𝑡𝑡 , … , 𝑓𝑓 𝑡𝑡 𝑏𝑏𝑏𝑏𝑏𝑏 𝑡𝑡
+> Exchange better components
+> Update 𝑥𝑥𝑖𝑖 𝐹𝐹 𝑥𝑥𝑏𝑏𝑏𝑏𝑏𝑏 𝑡𝑡
+
+𝑥𝑥1 , … , 𝑥𝑥𝑖𝑖 , …  𝑎𝑎 𝑟𝑟𝑔𝑔 𝑎𝑎𝑎𝑎𝑎𝑎 𝐹𝐹 𝑥𝑥𝑖𝑖  𝑥𝑥𝑏𝑏𝑏𝑏𝑏𝑏 𝑡𝑡   
+
+> Disappearance Attack
+> 𝐹𝐹 𝑢𝑢𝑖𝑖 Compare 𝐹𝐹 𝑥𝑥𝑖𝑖
+> Without Attack
+> Update 𝑥𝑥𝑖𝑖 𝐹𝐹 𝑥𝑥𝑏𝑏𝑏𝑏𝑏𝑏 𝑡𝑡
+
+Fig. 1. Overview of the proposed ColorFD framework. The method first localizes key regions through finite-difference analysis to constrain the search space, and then optimizes patch parameters using differential evolution with the proposed fitness and selection strategies. 
+
+Optimization guided solely by the overall fitness of an indi-vidual fails to provide optimization state for all targets. This limitation reduces search efficiency and increases the risk of converging to local optima. In response to this deficiency, a fitness function incorporating target-level evaluation is in-troduced into the DE process. This design allows both the attack state of each target and the individual as a whole to be evaluated. Consequently, a more informative optimization signal is provided for multi-target attacks. For the target indexed by t, the target-level fitness of individual xgi is defined as: 
+
+ft(xgi ) = max   
+
+> dj∈D (xgi)
+
+S(dj ), (9) where D(xgi ) represents the set of detections obtained from the adversarial example generated by xgi . The scoring function 
+
+S(·) is formulated as: 
+
+S(dj ) = 
+
+(
+
+sj , if cj = cgt t and IoU( bj , b gt t ) ≥ τ, 
+
+0, otherwise , (10) where cj and sj signify the predicted class label and con-fidence score of detection dj , respectively. The variable cgt t
+
+denotes the ground-truth class label of the target indexed by 
+
+t. The overall fitness of individual xgi is then defined as: 
+
+F(xgi ) = 
+
+> T
+
+X
+
+> t=1
+
+ft(xgi ). (11) The optimization process minimizes the fitness value, where a lower value signifies a weaker detector response to the target objects. This reduction directly corresponds to a stronger dis-appearance effect. By suppressing the maximum valid detec-tion confidence for each target, this fitness design encourages the simultaneous disappearance of all selected targets. 
+
+B. Target-wise Selection Mechanism 
+
+To exploit target-level fitness, a target-wise selection mech-anism is introduced. During evolution, each offspring is first compared with its parent based on their overall fitness. If the offspring achieves a lower overall fitness, it directly replaces the parent. Otherwise, a target-wise comparison is performed to identify specific targets where the offspring yields no higher target-level fitness. For these targets, the corresponding decision variables in the parent are partially replaced to form an exchanged individual. This new individual is then evaluated, and the update is accepted only if its fitness is no higher than that of the original parent. This process is applied sequentially to all targets. It pre-serves target-level improvements while maintaining the overall fitness of the individual. By jointly considering global and target-level fitness information, the proposed mechanism alle-viates optimization conflicts across targets and supports more efficient multi-target optimization. The detailed procedure is outlined in Algorithm 1. 
+
+C. Key-Region Localization 
+
+As the number of patch variables increases, the search space grows rapidly, making DE optimization computationally ex-pensive. Since each patch is jointly determined by its position and color, direct optimization over the entire bounding box results in high dimensionality. To mitigate this, a finite-difference-based key-region lo-calization method is proposed to identify sensitive regions IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 5Final key-region 
+
+Input 
+
+Greedy iterative key region localization (Finite-Difference)   
+
+> Select key-region (k=1,…K)
+> Target1
+> Color
+> Multi-color perturbation
+> Sliding
+> window Compute
+> △confidence
+> Difference heatmap
+> Update
+> Apply to all targets
+> Key-region Applied Image
+> Argmax response
+> Apply
+> Color candidates
+> Target Image
+
+ℎ1 , 𝑤𝑤1 , … , ( ℎ𝑛𝑛 , 𝑤𝑤𝑛𝑛 )
+
+> Fig. 2. Pipeline of the proposed key-region localization process based on greedy finite-difference guidance. Key regions are iteratively identified by evaluating confidence variations via multi-color perturbations and sliding windows. This localization procedure is applied to all instances within the image sequentially.
+
+Algorithm 1 Target-wise Selection Mechanism 
+
+Input: Parent individual xgi , offspring ugi , target-level fitness 
+
+{ft(·)}Tt=1 , overall fitness F(·)
+
+Output: Updated individual xg+1  
+
+> i
+> 1:
+
+if F(ugi ) < F(xgi ) then  
+
+> 2:
+
+xg+1  
+
+> i
+
+← ugi 
+
+> 3:
+
+else  
+
+> 4:
+
+xg+1  
+
+> i
+
+← xgi 
+
+> 5:
+
+for t = 1 to T do  
+
+> 6:
+
+if ft(ugi ) ≤ ft(xg+1  
+
+> i
+
+) then  
+
+> 7:
+
+Construct ˆxgi by replacing the variables of target t
+
+in xg+1  
+
+> i
+
+with those from ugi 
+
+> 8:
+
+if F(ˆ xgi ) ≤ F (xg+1  
+
+> i
+
+) then  
+
+> 9:
+
+xg+1  
+
+> i
+
+← ˆxgi 
+
+> 10:
+
+end if  
+
+> 11:
+
+end if  
+
+> 12:
+
+end for  
+
+> 13:
+
+end if  
+
+> 14:
+
+return xg+1 
+
+> i
+
+and constrain the search space. Specifically, the ground-truth bounding box serves as the initial search area. Within this region, a sliding window traverses candidate locations to apply pure-color perturbations from a predefined set. The resulting detector response is recorded as a finite-difference signal to generate a response map. Based on this map, the method identifies areas with strong responses and selects the most prominent connected component as a key region. Once the cor-responding region-color pair is applied, the search continues on the updated image. This greedy process sequentially identi-fies multiple key regions, thereby progressively restricting the search space for subsequent optimization. Such a constrained approach ensures that the evolutionary search is concentrated on high-impact areas rather than the entire bounding box. The overall procedure is illustrated in Fig. 2 and Algorithm 2. 
+
+Algorithm 2 Key-Region Localization via Finite-Difference Color Probing 
+
+Input: Input image x, target box bt, detector D(·), color set 
+
+C, number of key regions K
+
+Output: Key region set R 
+
+> 1:
+
+R ← ∅ , ˜x ← x 
+
+> 2:
+
+for k = 1 to K do  
+
+> 3:
+
+Initialize response map M 
+
+> 4:
+
+for each sliding-window position w ∈ bt do  
+
+> 5:
+
+for each color c ∈ C do  
+
+> 6:
+
+Generate perturbed image ˆx by applying color c at position w on ˜x 
+
+> 7:
+
+Compute finite-difference response ∆( w, c ) from the confidence change before and after perturbation  
+
+> 8:
+
+Update M with ∆( w, c ) 
+
+> 9:
+
+end for  
+
+> 10:
+
+end for  
+
+> 11:
+
+Select the next key region rk and color ck according to 
+
+M 
+
+> 12:
+
+R ← R ∪ { rk} 
+
+> 13:
+
+Update ˜x by applying (rk, c k) 
+
+> 14:
+
+end for  
+
+> 15:
+
+return R
+
+D. Common-Feature Extraction 
+
+Although key-region localization improves search effi-ciency, the exhaustive traversal of candidate regions remains computationally expensive. Targets belonging to the same category often exhibit consistent spatial patterns within their key regions. Motivated by this observation, a common-feature extraction method is proposed to aggregate key-region distri-butions across instances of the same category. This approach allows redundant computations to be minimized by leveraging category-level prior information. Specifically, target regions are first cropped and normalized into a unified coordinate sys-tem. Pose-based alignment, scale normalization, and padding IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 6
+
+are then applied to project targets from diverse samples into a common reference space. Following this alignment, the localized key regions are converted into binary masks and smoothed through Gaussian filtering to produce continuous response distributions. For each individual target, the masks of all localized regions are aggregated to form a target-level heatmap. The method then accumulates and normalizes these heatmaps across all instances of the same category to generate a class-level common-feature heatmap. Based on this heatmap, the K most prominent connected components characterized by strong responses are extracted as common-feature regions. These regions directly guide the search space of DE-based patch optimization. Unlike key-region localization, the pro-posed method operates at the category level. This design sig-nificantly reduces computational cost while providing robust prior guidance for the subsequent optimization process. The procedure of this mechanism is presented in Algorithm 3. 
+
+Algorithm 3 Common-Feature Extraction 
+
+Input: Target set T of the same category, target boxes B, key regions {R t}, pose angles Θ, number of common regions 
+
+K
+
+Output: Common-Feature region set Rc 
+
+> 1:
+
+Initialize common-feature heatmap H ← 0 
+
+> 2:
+
+for each target t ∈ T do  
+
+> 3:
+
+Crop target region according to bt ∈ B  
+
+> 4:
+
+Normalize coordinates of key regions Rt 
+
+> 5:
+
+Align target and key regions using θt ∈ Θ 
+
+> 6:
+
+Resize and pad the aligned target to a unified canvas  
+
+> 7:
+
+Initialize target heatmap Ht ← 0 
+
+> 8:
+
+for each key region r ∈ R t do  
+
+> 9:
+
+Convert r into a binary mask Mr 
+
+> 10:
+
+Apply Gaussian smoothing to Mr 
+
+> 11:
+
+Ht ← H t + Mr 
+
+> 12:
+
+end for  
+
+> 13:
+
+H ← H + MinMaxNorm( Ht) 
+
+> 14:
+
+end for  
+
+> 15:
+
+H ← MinMaxNorm( H) 
+
+> 16:
+
+Extract the top-K most prominent connected components from H as Rc 
+
+> 17:
+
+return Rc
+
+V. E XPERIMENTS 
+
+A. Experimental Settings 
+
+Dataset. Experiments are conducted on the DIOR remote sensing object detection dataset [40]. The proposed method is applicable to multiple target categories rather than being re-stricted to aircraft. Aircraft are selected for evaluation because they are representative targets in remote sensing imagery and commonly exhibit substantial variations in scale, orientation and appearance. Their distinctive structures also allow the attack effects to be assessed clearly and reliably in both quantitative and qualitative analyses. Accordingly, an aircraft subset is constructed from DIOR for the experiments. The subset contains 100 images and 407 aircraft instances. It includes several aircraft types, such as jet, turboprop, and piston-engine aircraft. The object sizes range from approxi-mately 30 × 30 to 300 × 300 pixels. The aircraft instances also exhibit diverse orientations and poses. These variations provide a suitable basis for evaluating the proposed method under complex remote sensing conditions. 
+
+Evaluation Metrics. Object disappearance is adopted as the attack objective. Attack Success Rate (ASR) is used as the primary metric for target-level attack evaluation. AP@0.5 (AP 50 ) is further introduced to assess the overall degradation of detection performance. Together, ASR and AP 50 provide a more comprehensive evaluation of attack effectiveness. 
+
+Implementation Details. The proposed method is evaluated on YOLOv3u, YOLOv5u, and Faster R-CNN. YOLOv3u and YOLOv5u are implemented based on the Ultralytics framework, while Faster R-CNN is implemented using the MMDetection framework. All models are initialized with pretrained weights and fine-tuned on the DIOR dataset for 50, 50, and 36 epochs, respectively. The best checkpoints are selected for subsequent evaluation. During inference, all models use a unified input resolution of 800 × 800 and a confidence threshold of 0.3. The same settings are used for both detection and evaluation. For the DE algorithm, the population is initialized randomly. The main hyperparameters are set as follows: the population size multiplier is 3, the maximum number of iterations is 100, and the patch ratio is 0.15. Each target is assigned four pure-color patches for optimization. The IoU matching threshold and the key-region selection threshold are set to 0.3 and 0.85, respectively. All experiments are conducted on a single NVIDIA GeForce RTX 4090 GPU with 48 GB memory. 
+
+Comparison Methods and Implementation Details. The proposed method is compared against the black-box method Bbox-Att and white-box baselines AP-PA and BADEI [41]. All methods are implemented using their official codebases. To ensure a fair comparison, key perturbation parameters are standardized across all methods to maintain comparable per-turbation magnitudes. Specifically, in Bbox-Att, the sub-patch size and patch dimension are set to 10 and 40, respectively. In AP-PA and BADEI, the patch ratios are set to 0.5 and 0.11, respectively. All methods are evaluated under identical settings. 
+
+B. Digital Adversarial Attack 1) Effectiveness of Key-Region Guidance: The key-region guidance strategy is employed to mitigate the challenges associated with DE in high-dimensional search spaces. The corresponding effectiveness is examined through evaluations in the digital domain. Fig. 3 and Table I provide quantitative comparisons across various detectors. As illustrated in Fig. 3 and Table I, all detectors maintain robust performance on clean images. These models exhibit low ASR and high AP 50 under normal conditions. While random and key-region noise cause only marginal performance degradation, ColorFD leads to a substantial increase in ASR. Concurrently, a significant reduction in AP 50 is observed across the models. Regarding YOLOv3u and YOLOv5u, the unguided version of ColorFD achieves strong attack performance. The integra-IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 7
+
+TABLE I COMPARISON OF DIGITAL -SPACE ATTACK RESULTS OBTAINED USING DIFFERENT METHODS ON THREE OBJECT DETECTORS . H IGHER ASR AND LOWER 
+
+AP 50 INDICATE STRONGER ATTACK PERFORMANCE . B OLD VALUES INDICATE THE BEST RESULT FOR EACH DETECTOR AND METRIC .Method YOLOv3u YOLOv5u Faster R-CNN ASR (%) AP 50 ASR (%) AP 50 ASR (%) AP 50 
+
+Clean 4.67 0.9529 1.47 0.9816 3.93 0.9599 Noise 7.13 0.9282 2.95 0.9688 11.30 0.8860 Noise (key-region) 6.39 0.9314 2.70 0.9482 5.41 0.9448 ColorFD (unguided) 71.50 0.2562 70.76 0.2150 95.09 0.0169 
+
+ColorFD (key-region) 78.87 0.1888 79.61 0.1453 88.21 0.0974 71.5  70.76         
+
+> 95.09
+> 78.87 79.61 88.21
+> 1
+> 10
+> 100
+> YOLOv3u YOLOv5u Faster R-CNN
+> ASR (%)
+> Clean Noise Noise(key-region) ColorFD(unguided) ColorFD(key-region)
+
+(a) 0.2562  0.215         
+
+> 0.0169
+> 0.1888 0.1453 0.0974
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> YOLOv3u YOLOv5u Faster R-CNN
+> AP50
+> Clean Noise Noise(key-region) ColorFD(unguided) ColorFD(key-region)
+
+(b) 
+
+Fig. 3. Performance comparison of unguided and key-region-guided ColorFD against noise-based baselines across three object detectors. (a) ASR compar-ison. (b) AP 50 comparison. 
+
+tion of key-region guidance further enhances both metrics. Such results indicate that the strategy successfully concentrates perturbations on regions critical for detection. On Faster R-CNN, however, the unguided ColorFD already reaches a high ASR. The introduction of key-region guidance does not yield further improvement and instead causes a minor performance drop. This phenomenon is likely attributed to the two-stage architecture of Faster R-CNN. In a black-box setting, this structure restricts access to intermediate information from the Region Proposal Network (RPN). Consequently, the finite-difference signals derived from final detection scores may provide less reliable guidance for localizing target-sensitive regions. The quantitative results further substantiate these obser-vations. For YOLOv3u and YOLOv5u, key-region guidance improves ASR by 7.37 and 8.85 percentage points, respec-tively. Meanwhile, AP 50 is reduced by 0.0674 and 0.0697 .These findings demonstrate that key-region guidance achieves superior performance compared to the unguided variant on one-stage detectors under an identical patch budget. In con-clusion, key-region-guided ColorFD consistently outperforms both the unguided variant and noise-based baselines on one-stage detectors. Although its advantage is less pronounced on the two-stage detector, the overall effectiveness remains robust across all evaluated models. 
+
+2) Effectiveness of Common-Feature Guidance: To evaluate the guiding capability of common-feature priors, experiments are conducted on a subcategory of dual-engine wing-mounted jet aircraft. A total of 306 instances are cropped, aligned, and normalized. Subsequently, a common-feature heatmap is constructed by aggregating the key-region distributions of these instances. The corresponding visualization results are presented in Fig. 4. YOLOv3u  YOLOv5u  Faster R-CNN 
+
+> Heatmap
+> Overlay
+> (Sample1)
+> Overlay (Sample2)
+
+Fig. 4. Common-Feature heatmaps and overlay visualizations across different object detectors. The heatmaps illustrate the frequency of key regions across various locations of the aircraft, primarily concentrated on the fuselage and the wings. 
+
+As illustrated in Fig. 4, the common-feature regions ex-tracted by various detectors exhibit high spatial consistency. These regions are predominantly located around the wings and the front-central fuselage. This observation suggests that such areas not only play a critical role within individual models but also represent consistent cross-model semantic features. It further indicates that detectors generally depend on these structural components for object recognition. Based IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 8                                                      
+
+> TABLE II COMPARISON OF DIGITAL -SPACE ATTACK RESULTS OBTAINED USING DIFFERENT GUIDANCE STRATEGIES ON DUAL -ENGINE WING -MOUNTED JET AIRCRAFT ACROSS THREE OBJECT DETECTORS . H IGHER ASR AND LOWER AP 50 INDICATE STRONGER ATTACK PERFORMANCE . B OLD VALUES INDICATE THE BEST RESULT FOR EACH DETECTOR AND METRIC .Method YOLOv3u YOLOv5u Faster R-CNN ASR (%) AP 50 ASR (%) AP 50 ASR (%) AP 50
+> Clean 5.56 0.9438 1.96 0.9755 4.90 0.9498 Noise 7.84 0.9208 2.94 0.9683 13.73 0.8613 Noise (key-region) 6.86 0.9262 2.61 0.9578 6.54 0.9329 Noise (common-feature) 6.86 0.9304 2.61 0.9676 19.28 0.7944 ColorFD (unguided) 72.22 0.2411 71.57 0.2037 97.39 0.0045 ColorFD (common-feature) 77.12 0.1912 75.16 0.1658 99.35 0.0003
+> ColorFD (key-region) 78.10 0.1949 80.39 0.1459 87.91 0.0840
+
+on these findings, the extracted common-feature regions are incorporated as prior information to guide the ColorFD search process. Specifically, three patches are constrained to search within the identified common-feature regions. To maintain consistency with the unguided setting, the fourth patch is allowed to search freely within the bounding box. The quantitative results are summarized in Table II. Com-pared with the unguided ColorFD, the common-feature guided variant achieves higher ASR and lower AP 50 across all three detectors. This performance demonstrates that the strategy provides effective spatial priors for enhancing attack effec-tiveness. On YOLOv3u and YOLOv5u, the performance of this variant is slightly inferior to key-region guidance but remains substantially better than the unguided baseline. No-tably, on Faster R-CNN, common-feature guidance achieves superior performance, with ASR reaching 99 .35% and AP 50 
+
+approaching zero. This outcome effectively compensates for the limitations of key-region guidance when applied to two-stage detectors.  
+
+> Fig. 5. ASR versus average total query per image under different guidance strategies. Higher ASR and lower average total query per image under the same model indicate stronger attack performance.
+
+Further analysis of query efficiency, as presented in Fig. 5, reveals distinct trade-offs between attack effectiveness and query cost under different guidance strategies. Key-region guidance exhibits strong attack performance. However, it requires a substantial number of queries. This is due to the necessity of performing finite-difference localization for each target individually. In contrast, common-feature guidance leverages precomputed class-level priors, thereby avoiding repeated per-target localization. Consequently, this approach attains competitive ASR with significantly fewer queries than key-region guidance while still outperforming the unguided method. These results substantiate that common-feature guid-ance offers a more favorable trade-off between attack effec-tiveness and query efficiency. To further elucidate the efficiency discrepancy, Fig. 6 visu-alizes the search space distributions under different guidance strategies. It is observed that the search space under common-feature guidance is more extensive than that under key-region localization. Nevertheless, this space remains substantially more constrained compared to the unguided configuration. Such a distribution demonstrates that common-feature guid-ance effectively restricts the search space. Moreover, these constrained regions align well with the semantic structure of the targets. This alignment suggests that the proposed method exploits cross-model semantic features to reduce the search space, thereby enhancing overall optimization efficiency. unguided  key-region  common-feature 
+
+(a) YOLOv3u  YOLOv5u  Faster R-CNN 
+
+> wing
+> wing fuselage
+
+(b)  
+
+> Fig. 6. Visualization of search space distributions under different guidance strategies. (a) Search regions under different guidance strategies. (b) Consis-tent semantic regions under the common-feature strategy.
+
+In summary, although common-feature guidance is slightly less effective than key-region localization on one-stage de-tectors, it substantially reduces computational costs. The ex-IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 9
+
+tracted semantic regions demonstrate that this method captures consistent discriminative features at the category level. This provides generalizable priors for black-box adversarial attacks. 
+
+3) Comparison with Existing Methods: To further validate the effectiveness of the proposed method, a comparative analy-sis is performed against Bbox-Att, AP-PA and BADEI. Under consistent perturbation budgets and experimental settings, the quantitative results are presented in Fig. 7 and Table III. As illustrated in Fig. 7, marked discrepancies in attack ef-fectiveness are observed across the evaluated methods. Bbox-Att exhibits a relatively low ASR, indicating limited potency in compromising the detectors. Conversely, ColorFD yields a substantial increase in ASR while concurrently leading to a significant reduction in AP 50 . Compared with white-box methods, ColorFD achieves higher ASR and lower AP 50 on YOLOv5u and Faster R-CNN. Meanwhile, it maintains com-parable performance on YOLOv3u. Such results demonstrate that the proposed method possesses robust attack capabilities even within a black-box setting. 95.09        
+
+> 78.87 79.61
+> 88.21
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> YOLOv3u YOLOv5u Faster R-CNN
+> ASR (%)
+> Bbox-Att AP-PA BADEI ColorFD(unguided) ColorFD(key-region)
+
+(a) 0.0169         
+
+> 0.1888 0.1453 0.0974
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> YOLOv3u YOLOv5u Faster R-CNN
+> AP50
+> Bbox-Att AP-PA BADEI ColorFD(unguided) ColorFD(key-region)
+
+(b)   
+
+> Fig. 7. Performance comparison of ColorFD and other attack methods on three object detectors. (a) ASR comparison. (b) AP 50 comparison.
+
+The quantitative results in Table III substantiate these observations. Specifically, ColorFD achieves superior ASR and lower AP 50 compared to Bbox-Att across all detectors, markedly outperforming the tested black-box patch method. On YOLOv5u, key-region-guided ColorFD yields an ASR of 
+
+79 .61% , exceeding BADEI and AP-PA by 1.97 and 20 .64 
+
+percentage points, respectively. Concurrently, it reduces AP 50 
+
+to 0.1453 , substantially lower than the values reported for BADEI ( 0.2182 ) and AP-PA ( 0.3172 ). Regarding Faster R-CNN, the unguided ColorFD reduces AP 50 to 0.0169 . This performance surpasses both BADEI (0.0499 ) and AP-PA (0.0878 ), indicating that the proposed method matches or even exceeds the efficacy of white-box attacks on specific models. Additional evaluations on the dual-engine aircraft subcate-gory are detailed in Table IV. On Faster R-CNN, common-feature guidance achieves an ASR of 99 .35% , which is superior to BADEI ( 98 .69% ). Furthermore, it reduces AP 50 
+
+to 0.0003 , representing the most effective result among all tested methods. On YOLOv5u, this strategy attains an ASR of 75 .16% , which is significantly higher than that of AP-PA ( 61 .11% ) and competitive with BADEI ( 79 .09% ). These findings suggest that the incorporation of common-feature guidance enables effective cross-instance knowledge transfer. This characteristic is particularly beneficial for enhancing attack performance on two-stage detectors. Representative qualitative examples are presented in Fig. 8. ColorFD effectively suppresses detection results across all models. Conversely, Bbox-Att and AP-PA still produce resid-ual detections with non-negligible confidence in complex scenarios. These visual observations align with the quantitative data and further validate the effectiveness of the proposed approach. Overall, ColorFD consistently outperforms the tested black-box attack method. It achieves performance levels comparable to, or exceeding, state-of-the-art white-box attacks. Such re-sults highlight the potency of the proposed method in black-box scenarios. They further demonstrate that the introduced guidance strategies provide substantial improvements in both optimization effectiveness and query efficiency. 
+
+C. Physical-World Adversarial Attack 
+
+Adversarial attack experiments are conducted within a phys-ical environment to validate the feasibility of the proposed method in a controlled imaging setup. By utilizing a fixed camera position and viewing angle, the setup captures images of four alloy aircraft models. The inclusion of diverse aircraft, such as B777 and A380 variants, ensures the evaluation encompasses various aircraft categories and scales. Ultimately, this configuration serves to verify the cross-domain consis-tency of adversarial effectiveness. In an effort to approximate the digital pure-color patch de-sign, physical patches are fabricated using colored paper sheets with 75 predefined colors. These patches are subsequently attached to target surfaces based on the optimized locations identified in the digital domain. YOLOv5u is employed as a representative detector to evaluate the resulting attack perfor-mance. Fig. 9 illustrates the comparative results before and after the adversarial deployment. As illustrated in Fig. 9, the colors of the physical patches deviate slightly from their digital counterparts due to material properties and varying imaging conditions. Furthermore, minor positional offsets occur because of target surface curvature and manual attachment inaccuracies. Despite these deviations, ColorFD effectively suppresses YOLOv5u detections for all evaluated aircraft targets under the tested imaging conditions. IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 10 
+
+TABLE III COMPARISON OF DIGITAL -SPACE ATTACK RESULTS OBTAINED USING COLOR FD AND OTHER ATTACK METHODS ON THREE OBJECT DETECTORS . H IGHER 
+
+ASR AND LOWER AP 50 INDICATE STRONGER ATTACK PERFORMANCE . B OLD VALUES INDICATE THE BEST RESULT FOR EACH DETECTOR AND METRIC .Method YOLOv3u YOLOv5u Faster R-CNN ASR (%) AP 50 ASR (%) AP 50 ASR (%) AP 50 
+
+Bbox-Att 43.49 0.5621 42.51 0.5482 49.63 0.4967 AP-PA 69.53 0.1722 58.97 0.3172 89.43 0.0878 BADEI 77.15 0.2249 77.64 0.2182 94.84 0.0499 ColorFD (unguided) 71.50 0.2562 70.76 0.2150 95.09 0.0169 
+
+ColorFD (key-region) 78.87 0.1888 79.61 0.1453 88.21 0.0974 TABLE IV COMPARISON OF DIGITAL -SPACE ATTACK RESULTS OBTAINED USING COLOR FD AND OTHER ATTACK METHODS ON DUAL -ENGINE WING -MOUNTED JET AIRCRAFT ACROSS THREE OBJECT DETECTORS . H IGHER ASR AND LOWER AP 50 INDICATE STRONGER ATTACK PERFORMANCE . B OLD VALUES INDICATE THE BEST RESULT FOR EACH DETECTOR AND METRIC .Method YOLOv3u YOLOv5u Faster R-CNN ASR (%) AP 50 ASR (%) AP 50 ASR (%) AP 50 
+
+Bbox-Att 43.13 0.5655 42.81 0.5505 50.98 0.4833 AP-PA 70.26 0.1458 61.11 0.2864 93.14 0.0383 BADEI 80.39 0.1950 79.09 0.2024 98.69 0.0118 ColorFD (unguided) 72.22 0.2411 71.57 0.2037 97.39 0.0045 ColorFD (common-feature) 77.12 0.1912 75.16 0.1658 99.35 0.0003 
+
+ColorFD (key-region) 78.10 0.1949 80.39 0.1459 87.91 0.0840 Clean  ColorFD 
+
+(unguided) 
+
+ColorFD 
+
+(key-region) 
+
+(a) 
+
+(b) 
+
+(c) 
+
+ColorFD 
+
+(common-feature) 
+
+Bbox-Att  AP-PA  BADEI 
+
+Fig. 8. Detection results of different attack methods on three object detectors. ColorFD outperforms the tested black-box method and is comparable to white-box methods. Visual comparison of detection performance: (a) YOLOv3u; (b) YOLOv5u; (c) Faster R-CNN. 
+
+The physical results are consistent with the corresponding digi-tal results, demonstrating the digital-to-physical transferability of the pure-color patches under the current controlled setup. VI. D ISCUSSION 
+
+A. Hyperparameter Sensitivity Analysis 
+
+The performance of ColorFD is influenced by key hyper-parameters related to the Differential Evolution (DE) opti-mization process and patch configuration. Sensitivity analyses are conducted on the number of iterations, the population size multiplier (popmul), and the patch ratio to justify the selected configurations. These evaluations are performed on YOLOv5u and Faster R-CNN under the key-region guided setting, utilizing ASR and AP 50 as primary metrics. 
+
+Iteration. The iteration determines the total number of population updates, thereby directly affecting the optimiza-tion depth of perturbations. Fig. 10 illustrates the attack performance across different iteration settings (50, 100, and 150). A substantial improvement in ASR and a corresponding decline in AP 50 are observed on both detectors as the iteration increases from 50 to 100. This trend suggests that higher iterations facilitate the discovery of more potent adversarial IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 11 Attack    
+
+> (Physical)
+> Detection
+> (Physical)
+> Detection
+> (Digital)
+> Attack
+> (Digital)
+> Target 1 Target 2 Target 3 Target 4
+> Detection (Clean)
+
+Fig. 9. Comparison of digital and physical adversarial attack results for ColorFD. Each column corresponds to a different target aircraft, with the adversarial patch applied only to the designated aircraft. The patched aircraft is consistently missed by the detector in both digital and physical settings. 
+
+perturbations. However, further increasing the count to 150 yields only marginal gains, indicating that the optimization process is approaching convergence. To balance attack effec-tiveness with computational cost, 100 iterations are adopted as a suitable trade-off. 
+
+Population Size Multiplier. The population size determines the number of candidate solutions explored per generation, which dictates the exploration capability of the search process. Fig. 11 presents the results under various popmul settings (2, 3, and 5). Elevating popmul from 2 to 3 leads to enhanced ASR and reduced AP 50 on both detectors. Nevertheless, further in-crements to 5 result in diminishing returns, with only minimal performance gains observed. Consequently, the population size multiplier is set to 3. 
+
+Patch Ratio. The patch ratio denotes the relative size of each pure-color patch with respect to the target bounding box. A smaller patch ratio results in less conspicuous perturbations. Fig. 12 presents the results under various patch ratio settings (0.12, 0.14, 0.15, 0.16, and 0.18). For both YOLOv5u and Faster R-CNN, ASR increases as the patch ratio increases. However, the improvement from 0.15 to 0.18 is considerably smaller than that from 0.12 to 0.15, indicating limited marginal gains beyond 0.15. A similar trend is observed for AP 50 ,whose reduction becomes less pronounced when the patch ratio exceeds 0.15. To maintain strong attack performance while minimizing perturbation visibility, the patch ratio is set to 0.15. 
+
+B. Limitations 
+
+Despite achieving strong performance in both digital and physical domains, the proposed method presents several limi-tations. First, the stochastic nature of the DE-based black-box 73.22%      
+
+> 79.61% 80.59%
+> 86.00%
+> 88.21% 88.45%
+> 70%
+> 75%
+> 80%
+> 85%
+> 90%
+> 95%
+> 50 100 150
+> ASR (%)
+> iterations
+> YOLOv5u Faster R-CNN
+
+(a) 0.2107      
+
+> 0.1453 0.1365
+> 0.1274
+> 0.0974 0.0928
+> 0.05
+> 0.1
+> 0.15
+> 0.2
+> 0.25
+> 50 100 150
+> AP50
+> iterations
+> YOLOv5u Faster R-CNN
+
+(b) 
+
+Fig. 10. Impact of the DE iteration number on attack performance. Both ASR and AP 50 show marked improvements from 50 to 100 iterations, whereas gains from 100 to 150 iterations are marginal. (a) ASR comparison. (b) AP 50 
+
+comparison. 73.96%      
+
+> 79.61% 80.10%
+> 86.00%
+> 88.21% 88.21%
+> 70%
+> 75%
+> 80%
+> 85%
+> 90%
+> 235
+> ASR (%)
+> popmul
+> YOLOv5u Faster R-CNN
+
+(a) 0.2014      
+
+> 0.1453 0.1362
+> 0.1124
+> 0.0974 0.0966
+> 0.05
+> 0.1
+> 0.15
+> 0.2
+> 0.25
+> 235
+> AP50
+> popmul
+> YOLOv5u Faster R-CNN
+
+(b) 
+
+Fig. 11. Impact of the DE popmul value on attack performance. Notable improvements are observed from 2 to 3 population multipliers, while the gains from 3 to 5 remain marginal. (a) ASR comparison. (b) AP 50 comparison. 
+
+optimization leads to performance variability across different runs. For certain samples, multiple optimization attempts are required to achieve satisfactory results. Second, the effec-IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 12 47.42%          
+
+> 69.53%
+> 79.61% 82.31%
+> 89.19%
+> 75.18%
+> 84.52% 88.21% 88.45% 91.89%
+> 40%
+> 50%
+> 60%
+> 70%
+> 80%
+> 90%
+> 100%
+> 0.12 0.14 0.15 0.16 0.18
+> ASR (%)
+> patch ratio
+> YOLOv5u Faster R-CNN
+
+(a) 0.4766        
+
+> 0.2420
+> 0.1453 0.1240
+> 0.0579
+> 0.2087
+> 0.1374
+> 0.0974 0.0938
+> 0.0611 0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.12 0.14 0.15 0.16 0.18
+> AP50
+> patch ratio
+> YOLOv5u Faster R-CNN
+
+(b) 
+
+Fig. 12. Impact of the patch ratio value on attack performance. Notable improvements are observed from 0.12 to 0.15 patch ratio, while the gains from 0.15 to 0.18 remain marginal. (a) ASR comparison. (b) AP 50 comparison. 
+
+tiveness of the key-region localization strategy is contingent upon the underlying detection framework. While successful on one-stage detectors, a reduced efficacy is noted on two-stage models such as Faster R-CNN. This discrepancy is primarily attributed to the inaccessibility of intermediate RPN infor-mation in black-box settings. Consequently, the key-region localization strategy struggles to capture accurate region-specific responses. Finally, the pure-color patch design remains sensitive to environmental variations. Attack performance is highly dependent on stable imaging conditions. Significant shifts in viewpoint, scale, or camera position can disrupt the alignment between patches and critical target regions, thereby degrading attack performance. VII. C ONCLUSION 
+
+This paper presents ColorFD, a black-box physical attack based on multiple pure-color patches for remote sensing object detectors. To address the black-box settings, the patch positions and color parameters are jointly optimized using DE with access only to the detection results returned by the target detector. A target-wise fitness and selection mechanism is in-troduced to improve multi-target optimization. The target-level fitness evaluates the attack state of each target separately. The selection mechanism preserves target-specific improvements while maintaining the overall fitness. Furthermore, key-region guidance identifies instance-specific sensitive regions through finite-difference color probing. Common-feature guidance fur-ther provides category-level spatial priors and reduces repeated localization. Experiments on the DIOR-based aircraft subset demonstrate that ColorFD effectively degrades the detection performance of YOLOv3u, YOLOv5u, and Faster R-CNN. Compared with Bbox-Att, ColorFD achieves substantial improvements in both ASR and AP 50 . Its attack performance remains comparable to strong white-box baselines like AP-PA and BADEI. Physical-world experiments further validate the feasibility of digital-to-physical transfer under the tested imaging conditions. These results demonstrate the effectiveness of the pure-color patch design, target-wise optimization, and finite-difference guided constraint strategies. Nevertheless, the stochastic nature of DE, architectural constraints of the detectors, and environmental variations remain limitations. Future work will focus on im-proving optimization stability and the visual stealthiness of adversarial patches. REFERENCES [1] C. Szegedy, W. Zaremba, I. Sutskever, J. Bruna, D. Erhan, I. Good-fellow, and R. Fergus, “Intriguing properties of neural networks,” in 
+
+International Conference on Learning Representations (ICLR) , 2014. [2] I. J. Goodfellow, J. Shlens, and C. Szegedy, “Explaining and harnessing adversarial examples,” in International Conference on Learning Repre-sentations (ICLR) , 2015. [3] L. Wang, J. Li, J. Zhang, L. Zhuo, and Q. Tian, “Position guided dynamic receptive field network: A small object detection friendly to optical and sar images,” IEEE Trans. Circuits Syst. Video Technol. , vol. 35, no. 8, pp. 8265–8282, 2025. [4] S. Wang, K. Liu, J. Huang, and X. Li, “Fldet: Faster and lighter aerial object detector,” IEEE Trans. Circuits Syst. Video Technol. , vol. 35, no. 5, pp. 4450–4463, 2025. [5] S. Thys, W. Van Ranst, and T. Goedeme, “Fooling automated surveil-lance cameras: Adversarial patches to attack person detection,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops , June 2019. [6] T. B. Brown, D. Man´ e, A. Roy, M. Abadi, and J. Gilmer, “Adversarial patch,” arXiv preprint arXiv:1712.09665 , 2018. [7] J. Wang, F. Li, and L. He, “A unified framework for adversarial patch attacks against visual 3d object detection in autonomous driving,” IEEE Trans. Circuits Syst. Video Technol. , vol. 35, no. 5, pp. 4949–4962, 2025. [8] J. Wang, A. Liu, Z. Yin, S. Liu, S. Tang, and X. Liu, “Dual attention suppression attack: Generate adversarial camouflage in physical world,” in IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021, pp. 8565–8574. [9] D. Wang, T. Jiang, J. Sun, W. Zhou, Z. Gong, X. Zhang, W. Yao, and X. Chen, “Fca: Learning a 3d full-coverage vehicle camouflage for multi-view physical adversarial attack,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 36, 2022, pp. 2414–2422. [10] Z. Liu, Z. Yan, Q. Ning, Y. Lu, Z. Wang, and H. Wang, “Naturalistic physical adversarial camouflage for object detection via differentiable rendering and style learning,” Pattern Recognit. , vol. 172, p. 112621, 2026. [11] N. Papernot, P. McDaniel, I. Goodfellow, S. Jha, Z. B. Celik, and A. Swami, “Practical black-box attacks against machine learning,” in 
+
+Proceedings of the 2017 ACM on Asia Conference on Computer and Communications Security , 2017, pp. 506–519. [12] J. Su, D. V. Vargas, and K. Sakurai, “One pixel attack for fooling deep neural networks,” IEEE Trans. Evol. Comput. , vol. 23, no. 5, pp. 828– 841, 2019. [13] D. Wang, W. Yao, T. Jiang, C. Li, and X. Chen, “Rfla: A stealthy reflected light adversarial attack in the physical world,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) ,October 2023, pp. 4455–4465. [14] G. Tang, W. Yao, C. Li, T. Jiang, and S. Yang, “Black-box adversarial patch attacks using differential evolution against aerial imagery object detectors,” Eng. Appl. Artif. Intell. , vol. 137, p. 109141, 2024. [15] Y. Gan, C. Wu, D. Ouyang, S. Tang, M. Ye, and T. Xiang, “Lesep: Boosting adversarial transferability via latent encoding and semantic embedding perturbations,” IEEE Trans. Circuits Syst. Video Technol. ,vol. 35, no. 4, pp. 3368–3382, 2025. [16] Y. Bai, Y. Wang, Y. Zeng, Y. Jiang, and S.-T. Xia, “Query efficient black-box adversarial attack on deep neural networks,” Pattern Recognit. , vol. 133, p. 109037, 2023. IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY 13 
+
+[17] P.-Y. Chen, H. Zhang, Y. Sharma, J. Yi, and C.-J. Hsieh, “Zoo: Zeroth order optimization based black-box attacks to deep neural networks without training substitute models,” in Proceedings of the 10th ACM Workshop on Artificial Intelligence and Security , 2017, pp. 15–26. [18] M. Alzantot, Y. Sharma, S. Chakraborty, H. Zhang, C.-J. Hsieh, and M. B. Srivastava, “Genattack: practical black-box attacks with gradient-free optimization,” in Proceedings of the Genetic and Evolutionary Computation Conference , 2019, pp. 1111–1119. [19] H. Ma, X. Jiang, K. Xu, and T. Sun, “Pso-based closed box adversarial patch attack against face recognition,” IEEE Trans. Circuits Syst. Video Technol. , vol. 36, no. 6, pp. 8833–8844, 2026. [20] X. Wei, Y. Guo, J. Yu, and B. Zhang, “Simultaneously optimizing perturbations and positions for black-box adversarial patch attacks,” 
+
+IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 7, pp. 9041–9054, 2023. [21] M. Sharif, S. Bhagavatula, L. Bauer, and M. K. Reiter, “Accessorize to a crime: Real and stealthy attacks on state-of-the-art face recognition,” in Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security , 2016, pp. 1528–1540. [22] ——, “A general framework for adversarial examples with objectives,” 
+
+ACM Trans. Priv. Secur. , vol. 22, no. 3, pp. 1–30, 2019. [23] X. Wei, Y. Guo, and J. Yu, “Adversarial sticker: A stealthy attack method in the physical world,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 3, pp. 2711–2725, 2023. [24] F. Schroff, D. Kalenichenko, and J. Philbin, “Facenet: A unified embed-ding for face recognition and clustering,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , June 2015, pp. 815–823. [25] J. Redmon and A. Farhadi, “Yolo9000: Better, faster, stronger,” in 
+
+Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , July 2017, pp. 7263–7271. [26] K. Xu, G. Zhang, S. Liu, Q. Fan, M. Sun, H. Chen, P.-Y. Chen, Y. Wang, and X. Lin, “Adversarial t-shirt! evading person detectors in a physical world,” in Computer Vision – ECCV 2020 . Springer, 2020, pp. 665–681. [27] S.-T. Chen, C. Cornelius, J. Martin, and D. H. Chau, “Shapeshifter: Robust physical adversarial attack on faster r-cnn object detector,” in 
+
+Machine Learning and Knowledge Discovery in Databases . Springer, 2018, pp. 52–68. [28] S. Ren, K. He, R. Girshick, and J. Sun, “Faster r-cnn: Towards real-time object detection with region proposal networks,” in Advances in Neural Information Processing Systems , vol. 28, 2015. [29] I. J. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio, “Generative adversarial nets,” in 
+
+Advances in Neural Information Processing Systems , vol. 27, 2014. [30] B. G. Doan, M. Xue, S. Ma, E. Abbasnejad, and D. C. Ranasinghe, “Tnt attacks! universal naturalistic adversarial patches against deep neural network systems,” IEEE Trans. Inf. Forensics Secur. , vol. 17, pp. 3816– 3830, 2022. [31] W. Liu, Y. Wu, C. Li, Z. Liu, and H. Yan, “Distillation-enhanced physical adversarial attacks,” arXiv preprint arXiv:2501.02232 , 2025. [32] R. Duan, X. Ma, Y. Wang, J. Bailey, A. K. Qin, and Y. Yang, “Adversarial camouflage: Hiding physical-world attacks with natural styles,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2020. [33] M. Arjovsky, S. Chintala, and L. Bottou, “Wasserstein generative adver-sarial networks,” in Proceedings of the 34th International Conference on Machine Learning , vol. 70, 2017, pp. 214–223. [34] J.-C. Burnel, K. Fatras, R. Flamary, and N. Courty, “Generating natural adversarial remote sensing images,” IEEE Trans. Geosci. Remote Sens. ,vol. 60, pp. 1–14, 2022. [35] Y. Xu and P. Ghamisi, “Universal adversarial examples in remote sensing: Methodology and benchmark,” IEEE Trans. Geosci. Remote Sens. , vol. 60, pp. 1–15, 2022. [36] J.-J. Huang, Z. Wang, T. Liu, W. Luo, Z. Chen, W. Zhao, and M. Wang, “Dempaa: Deployable multi-mini-patch adversarial attack for remote sensing image classification,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–13, 2024. [37] Y. Zhang, Y. Zhang, J. Qi, K. Bin, H. Wen, X. Tong, and P. Zhong, “Adversarial patch attack on multi-scale object detection for uav remote sensing images,” Remote Sens. , vol. 14, no. 21, p. 5298, 2022. [38] J. Lian, S. Mei, S. Zhang, and M. Ma, “Benchmarking adversarial patch against aerial detection,” IEEE Trans. Geosci. Remote Sens. , vol. 60, pp. 1–16, 2022. [39] X. Sun, G. Cheng, L. Pei, H. Li, and J. Han, “Threatening patch attacks on object detection in optical remote sensing images,” IEEE Trans. Geosci. Remote Sens. , vol. 61, pp. 1–10, 2023. [40] K. Li, G. Wan, G. Cheng, L. Meng, and J. Han, “Object detection in optical remote sensing images: A survey and a new benchmark,” ISPRS J. Photogramm. Remote Sens. , vol. 159, pp. 296–307, 2020. [41] X. Wang, S. Mei, J. Lian, and Y. Lu, “Fooling aerial detectors by background attack via dual-adversarial-induced error identification,” 
+
+IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–16, 2024. 
+
+Tiannuo Guo received the B.S. degree in computer science and technology from China University of Mining and Technology in 2024. He is currently pursuing the M.S. degree with the College of Infor-mation Science and Technology, Beijing University of Chemical Technology, Beijing, China. His research interests include computer vision, adversarial attacks, and generative models. 
+
+Guhang Qiu received the B.S. degree in artificial intelligence from Beijing University of Chemical Technology in 2024. He is currently pursuing the M.S. degree with the College of Information Science and Technology, Beijing University of Chemical Technology, Beijing, China. His research interests include remote sensing im-age processing, deep learning, machine learning and computer vision applications. 
+
+Yuzhen Xie received the M.S. degree in information science and technology in 2023 from the School of Information Science and Technology, Beijing University of Chemical Technology, Beijing, China, where he is currently working toward the Ph.D. degree in control science and engineering with the School of Information Science and Technology. His major research interests include target recog-nition in synthetic aperture radar (SAR) and polari-metric SAR imagery, deep learning, and its applica-tions in remote sensing image analysis. 
+
+Rui Feng received the M.Eng. degree from Beijing University of Chemical Technology, Beijing, China, in 2025, where he is currently pursuing the Ph.D. degree with the College of Information Science and Technology. His research interests include SAR target image generation, PolSAR change detection, and related intelligent interpretation methods. 
+
+Ligang Li received the Ph.D. degree in optical engineering from the Chinese Academy of Sciences, Beijing, China, in 2006. He is currently a Professor with Beijing University of Chemical Technology, Beijing, China. His research interests include optical imaging simulation system technology, spatial information processing, and other research topics. 
+
+Deliang Xiang (Member, IEEE) received the B.S. degree in remote sensing science and technology from Wuhan University, Wuhan, China, in 2010, the M.S. degree in photogrammetry and remote sensing from the National University of Defense Technology, Changsha, China, in 2012, and the Ph.D. degree in geoinformatics from the KTH Royal Institute of Technology, Stockholm, Sweden, in 2016. Since 2020, he has been a Full Professor with the College of Information Science and Technology, Beijing University of Chemical Technology, Beijing, China. His research interests include urban remote sensing, synthetic aperture radar (SAR)/polarimetric SAR image processing, artificial intelligence, and pattern recognition.

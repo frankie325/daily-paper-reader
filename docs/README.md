@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-10</span>
+      <span class="dpr-home-dashboard-kicker">2026-08-11</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 17 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>16</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-08-10 20:16:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-08-11 20:50:22 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,9 +62,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读16篇论文，聚焦目标检测的前沿突破，其中两篇满分工作分别来自跨域少样本和小目标检测。</p>
-<p>跨域少样本检测利用Prompt驱动特征扰动实现模拟增强，而小目标检测通过动态频率抑制与标签消歧突破精度瓶颈。</p>
-<p>建议关注频率域特征优化与跨域特征对齐策略在真实场景中的迁移潜力。</p>
+<p>今日精读两篇满分论文：NCGR修复BEV 3D检测中的相机外参干扰，RefineAny3D用语义对齐精修单目深度。</p>
+<p>最值得关注：通过噪声条件门控矫正外参抖动，以及将深度细化重构为语义对齐，两篇均直击3D检测鲁棒性提升的核心。</p>
+<p>建议开发者优先将NCGR的矫正思路融入多传感器融合管线，普通读者可关注“语义对齐”如何让单目深度更可靠。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -73,12 +73,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">16 篇</strong>
+    <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Prompt-Driven Simulation with Feature Perturbation for Cross-Domain Few-Shot Object Detection">Prompt-Driven Simulation with Feature Perturbation for Cross-Domain Few-Shot Object Detection</span></li><li><span class="dpr-home-dashboard-paper-title" title="DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation">DyFrDet: Towards Accurate Small Object Detection via Dynamic Frequency Suppression with Label Disambiguation</span></li><li><span class="dpr-home-dashboard-paper-title" title="RegisterBridgeMM: A Register-Centric Framework for RGB-Infrared Object Detection">RegisterBridgeMM: A Register-Centric Framework for RGB-Infrared Object Detection</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NCGR: Noise-Conditional Gated Rectification for Camera Extrinsic Perturbations in BEV 3D Object Detection">NCGR: Noise-Conditional Gated Rectification for Camera Extrinsic Perturbations in BEV 3D Object Detection</span></li><li><span class="dpr-home-dashboard-paper-title" title="RefineAny3D: Depth Refinement as Semantic Alignment for Monocular 3D Detection">RefineAny3D: Depth Refinement as Semantic Alignment for Monocular 3D Detection</span></li><li><span class="dpr-home-dashboard-paper-title" title="ColorFD: A Finite-Difference Guided Black-Box Physical Adversarial Attack for Remote Sensing Object Detection">ColorFD: A Finite-Difference Guided Black-Box Physical Adversarial Attack for Remote Sensing Object Detection</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>16</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>6</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -86,12 +86,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Radar4D-VLM: Proposal-Grounded Temporal 4D Radar Reasoning Across Frozen Language Models">Radar4D-VLM: Proposal-Grounded Temporal 4D Radar Reasoning Across Frozen Language Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LoDA: A Level of Detection Aware Method and a Multimodal Sensing Benchmark for Object Level Change Detection">LoDA: A Level of Detection Aware Method and a Multimodal Sensing Benchmark for Object Level Change Detection</span></li><li><span class="dpr-home-dashboard-paper-title" title="HSMLA: Hierarchical Softmax Multi-scale Linear Attention for Efficient Vision Transformers">HSMLA: Hierarchical Softmax Multi-scale Linear Attention for Efficient Vision Transformers</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>2</strong></span></div>
 </section>
 </div>
 
