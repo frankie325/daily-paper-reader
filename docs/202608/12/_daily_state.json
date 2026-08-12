@@ -1,0 +1,105 @@
+{
+  "date": "20260812",
+  "date_label": "",
+  "generated_at": "2026-08-12 20:51:36 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.10680v1",
+      "route": "202608/12/2608.10680v1-bridging-severe-cross-modal-misalignment-end-to-end-visible-infrared-object-detection-via-explicit-feature-domain-affine-registration",
+      "title": "Bridging Severe Cross-Modal Misalignment: End-to-End Visible-Infrared Object Detection via Explicit Feature-Domain Affine Registration",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于跨模态仿射配准的可见光-红外目标检测",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    },
+    {
+      "paper_id": "2608.10724v1",
+      "route": "202608/12/2608.10724v1-interpruner-interactive-structured-pruning-via-taylor-implicit-criterion-and-language-prior-modulator-for-multimodal-object-detection",
+      "title": "InterPruner: Interactive Structured Pruning via Taylor-Implicit Criterion and Language-Prior Modulator for Multimodal Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多模态目标检测的交互式结构化剪枝",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    },
+    {
+      "paper_id": "2608.10989v1",
+      "route": "202608/12/2608.10989v1-putting-registers-to-work-task-registers-for-token-pruning-in-vision-transformers",
+      "title": "Putting Registers to Work: Task Registers for Token Pruning in Vision Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "分析视觉Transformer令牌剪枝在分类、分割和目标检测间的迁移",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    },
+    {
+      "paper_id": "2608.11135v1",
+      "route": "202608/12/2608.11135v1-is-there-really-a-camouflaged-object-towards-realistic-camouflaged-object-detection",
+      "title": "Is There Really a Camouflaged Object? Towards Realistic Camouflaged Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "包含纯背景和非伪装目标的真实伪装目标检测基准OPC16K",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    },
+    {
+      "paper_id": "2608.04190v1",
+      "route": "202608/12/2608.04190v1-adversarially-robust-abductive-fusion-of-pre-trained-transformer-based-perception-models",
+      "title": "Adversarially Robust Abductive Fusion of Pre-trained Transformer-based Perception Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "融合预训练Transformer感知模型",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    },
+    {
+      "paper_id": "2608.10590v1",
+      "route": "202608/12/2608.10590v1-rethinking-data-efficiency-in-industrial-dense-prediction-pretraining-coherence-not-inductive-bias-determines-vits-low-data-advantage",
+      "title": "Rethinking Data Efficiency in Industrial Dense Prediction: Pretraining Coherence, Not Inductive Bias, Determines ViTs Low-Data Advantage",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "研究视觉Transformer骨干用于包括目标检测在内的密集预测",
+      "first_seen_at": "2026-08-12 20:51:36 UTC",
+      "updated_at": "2026-08-12 20:51:36 UTC"
+    }
+  ]
+}

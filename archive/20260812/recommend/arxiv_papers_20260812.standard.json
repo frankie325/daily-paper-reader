@@ -1,0 +1,258 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-12T20:44:44.059988+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 4,
+    "deep_cap": 6,
+    "deep_selected": 4,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2608.10680v1",
+      "source": "arxiv",
+      "title": "Bridging Severe Cross-Modal Misalignment: End-to-End Visible-Infrared Object Detection via Explicit Feature-Domain Affine Registration",
+      "abstract": "Visible-infrared object detection relies on complementary RGB and thermal cues, but its performance is often degraded by cross-modal spatial misalignment. Most existing methods rely on implicit feature adaptation to handle weakly misaligned scenarios, while large-offset geometric discrepancies remain insufficiently addressed. In this paper, we propose a Joint Feature-domain Registration and Detection network (JFRDet), an end-to-end visible-infrared oriented object detector tailored for severely cross-modal geometric discrepancies. JFRDet introduces a Cross-Modal Affine Alignment (CMAA) module to estimate an image-level affine transformation for explicit multi-level feature alignment. Note that illumination changes directly affect the reliability of RGB cues, an Illumination-Guided Complementary Fusion (IGCF) module adaptively exploits modality reliability under varying illumination conditions for cross-modal fusion. Then, an Alignment Quality-Consistency Gating (AQCG) strategy stabilizes joint optimization by modulating detection supervision according to alignment reliability and gradient consistency. We further construct DroneVehicle Misaligned (DVMA), a benchmark for evaluating visible-infrared oriented object detection under severe cross-modal geometric misalignment. The proposed JFRDet achieves 69.7\\% $\\mathrm{mAP}_{50}$ on DVMA, which represents state-of-the-art (SOTA) performance. The code and dataset will be available on GitHub.",
+      "authors": [
+        "Qi Ming",
+        "Yuyang Wang",
+        "Mingjing Zhao",
+        "Yifan Xiao",
+        "Zhixin Guo",
+        "Zhiqiang Zhou",
+        "Peng Sun",
+        "Juan Fang",
+        "Fuqiang Yang",
+        "Xudong Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T09:02:37+00:00",
+      "link": "https://arxiv.org/pdf/2608.10680v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Visible-infrared object detection with cross-modal affine registration",
+      "llm_evidence_cn": "基于跨模态仿射配准的可见光-红外目标检测",
+      "llm_evidence": "基于跨模态仿射配准的可见光-红外目标检测",
+      "canonical_evidence": "基于跨模态仿射配准的可见光-红外目标检测",
+      "llm_tldr_en": "Proposes JFRDet, an end-to-end visible-infrared oriented object detector with a Cross-Modal Affine Alignment module to explicitly register features across modalities and handle severe cross-modal misalignment.",
+      "llm_tldr_cn": "针对可见光-红外目标检测中严重跨模态空间失配导致性能下降的问题，本文提出JFRDet端到端检测器，引入跨模态仿射对齐（CMAA）模块估计图像级仿射变换，实现多级特征显式配准。实验表明该方法在大偏移几何差异下仍能有效融合RGB和热红外信息，显著提升检测精度。该工作为跨模态目标检测中的空间对齐问题提供了显式解决方案。",
+      "llm_tldr": "针对可见光-红外目标检测中严重跨模态空间失配导致性能下降的问题，本文提出JFRDet端到端检测器，引入跨模态仿射对齐（CMAA）模块估计图像级仿射变换，实现多级特征显式配准。实验表明该方法在大偏移几何差异下仍能有效融合RGB和热红外信息，显著提升检测精度。该工作为跨模态目标检测中的空间对齐问题提供了显式解决方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.10724v1",
+      "source": "arxiv",
+      "title": "InterPruner: Interactive Structured Pruning via Taylor-Implicit Criterion and Language-Prior Modulator for Multimodal Object Detection",
+      "abstract": "Multimodal object detection proves effective in remote sensing, especially the RGB-Infrared paradigm. The parallel feature extractors provide rich multimodal information for robust detection, yet introduce substantial channel redundancy and computational overhead. Existing pruning methods can reduce channel redundancy, but they are designed for unimodal backbones, overlooking cross-modal interactions and dynamic scene-wise redundancy. In this paper, we propose InterPruner, the first interactive structured channel pruning framework for RGB-infrared object detectors. Specifically, we first derive a Taylor-Implicit Criterion(TIC) to quantify channel importance via high-order Taylor expansion and the implicit function theorem. Then, a Modality Interaction Redundancy Analyzer (MIRA) identifies redundant channels via mutual compensability assessment. Finally, a Scene-Prior Channel Anchor (SPCA) uses language priors as semantic anchors to measure channel-scene relevance for dynamic channel importance estimation. Cross-modality channel pruning for RGB-Infrared detection is yet unexplored. Extensive experiments on RGB-infrared object detection dataset demonstrate that InterPruner maintains high performance with negligible degradation. Specifically, it even achieves a 0.6% mAP increase on the FLIR dataset when pruning 50% of the channels. Code will be available on GitHub to facilitate future work.",
+      "authors": [
+        "Qi Ming",
+        "Zihan Yang",
+        "Shaoguang Huang",
+        "Si Sun",
+        "Hanqing Zhang",
+        "Nanqing Liu",
+        "Jiahui Lv",
+        "Juan Fang",
+        "Aleksandra Pizurica"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T09:42:23+00:00",
+      "link": "https://arxiv.org/pdf/2608.10724v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "interactive structured pruning for multimodal object detection",
+      "llm_evidence_cn": "多模态目标检测的交互式结构化剪枝",
+      "llm_evidence": "多模态目标检测的交互式结构化剪枝",
+      "canonical_evidence": "多模态目标检测的交互式结构化剪枝",
+      "llm_tldr_en": "Proposes InterPruner, the first interactive structured channel pruning framework for RGB-infrared object detectors, using a Taylor-Implicit criterion and language-prior modulator to identify redundant channels while preserving cross-modal detection accuracy in remote sensing.",
+      "llm_tldr_cn": "针对RGB-红外多模态目标检测中通道冗余和计算开销大，且现有剪枝方法忽略跨模态交互的问题，提出InterPruner框架。通过高阶Taylor展开的Taylor-Implicit准则量化通道重要性，并引入语言先验调制器处理动态场景冗余。实验表明该框架在遥感检测任务上实现显著剪枝同时保持检测精度。",
+      "llm_tldr": "针对RGB-红外多模态目标检测中通道冗余和计算开销大，且现有剪枝方法忽略跨模态交互的问题，提出InterPruner框架。通过高阶Taylor展开的Taylor-Implicit准则量化通道重要性，并引入语言先验调制器处理动态场景冗余。实验表明该框架在遥感检测任务上实现显著剪枝同时保持检测精度。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.10989v1",
+      "source": "arxiv",
+      "title": "Putting Registers to Work: Task Registers for Token Pruning in Vision Transformers",
+      "abstract": "Token-pruning policies are usually designed for a single recognition pipeline, but pretrained Vision Transformers are reused across tasks with different spatial demands. We ask which parts of a pruning policy transfer across image classification, semantic segmentation, and object detection. For each pipeline, controlled probes freeze the no-pruning checkpoint and apply a series of parameter-free reduction criteria at one eligible layer at a time without retraining. The probes reveal three differences: segmentation and detection rank the criteria differently, classification is especially sensitive to attention-based pruning in the earliest layers, and the dense tasks prefer opposite recovery endpoints. These findings motivate Task-Adaptive Pruning (TAP). Existing register tokens serve as task-agnostic storage for feature artifacts. TAP instead introduces one task register per task and activates only the current one. Its evolving state ranks tokens, distributes an exact removal budget over depth, and sets the recovery scale for dense features. At a final keep rate of $ρ=0.5$, our jointly adapted model, TAP-J, reaches $47.0$ mIoU at $1.30\\times$ encoder throughput on ADE20K and $53.7$ box AP at $1.32\\times$ encoder throughput on COCO while remaining competitive on ImageNet-1K.",
+      "authors": [
+        "Hongsen Cao",
+        "Mona Jaber",
+        "Shanxin Yuan",
+        "Ahmed Sayed"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-08-11T14:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2608.10989v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analyzes token pruning transfer for ViT across classification, segmentation, and object detection",
+      "llm_evidence_cn": "分析视觉Transformer令牌剪枝在分类、分割和目标检测间的迁移",
+      "llm_evidence": "分析视觉Transformer令牌剪枝在分类、分割和目标检测间的迁移",
+      "canonical_evidence": "分析视觉Transformer令牌剪枝在分类、分割和目标检测间的迁移",
+      "llm_tldr_en": "Probes show pruning policies transfer differently across ViT tasks, with object detection preferring distinct criteria and recovery endpoints, motivating Task-Adaptive Pruning.",
+      "llm_tldr_cn": "该文针对预训练视觉Transformer在多任务间复用时的令牌剪枝策略迁移问题展开研究。作者在冻结无剪枝检查点上应用多种无参数削减准则，探究分类、分割与目标检测的差异。实验揭示检测与分割对准则排序不同，密集任务偏好相反的恢复终点。据此提出任务自适应剪枝方法，为目标检测等密集预测中的高效ViT推理提供了依据。",
+      "llm_tldr": "该文针对预训练视觉Transformer在多任务间复用时的令牌剪枝策略迁移问题展开研究。作者在冻结无剪枝检查点上应用多种无参数削减准则，探究分类、分割与目标检测的差异。实验揭示检测与分割对准则排序不同，密集任务偏好相反的恢复终点。据此提出任务自适应剪枝方法，为目标检测等密集预测中的高效ViT推理提供了依据。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.11135v1",
+      "source": "arxiv",
+      "title": "Is There Really a Camouflaged Object? Towards Realistic Camouflaged Object Detection",
+      "abstract": "Camouflaged object detection (COD) aims to segment objects that are visually concealed in their surroundings and has attracted increasing attention in recent years. However, most existing COD methods are developed under a closed-world assumption, where each input image is assumed to contain a camouflaged object. This assumption ignores realistic scenarios with pure backgrounds or non-camouflaged objects, causing existing models to produce severe false positives when deployed in open-world environments. To address this limitation, we propose OPC16K, a large-scale benchmark for realistic COD. OPC16K contains 16,245 images from 14 sources and is carefully organized into camouflaged-object images, pure background images, and non-camouflaged-object images, enabling comprehensive evaluation of both segmentation quality and negative-sample rejection. Based on this benchmark, we further propose OPCNet, a presence-aware camouflage network that reformulates COD from a pure segmentation task into a joint problem of object localization and camouflage existence reasoning. Specifically, OPCNet introduces hierarchical existence reasoning to distinguish CO, BG, and NOCOD scenarios, similarity-aware camouflage relation modeling to capture foreground-background camouflage cues, and existence-aware feature refinement to regulate segmentation features with existence predictions. Extensive experiments on OPC16K demonstrate that OPCNet achieves superior performance under the proposed realistic COD evaluation protocol, significantly reducing false positives on negative samples while maintaining accurate camouflaged-object segmentation. Code and dataset will be released at https://github.com/2231122/OPCOD.",
+      "authors": [
+        "Huafeng Chen",
+        "Yueming Lyu",
+        "Chenyang Si",
+        "Wende Tan",
+        "Liucheng Guo",
+        "Caifeng Shan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T16:57:40+00:00",
+      "link": "https://arxiv.org/pdf/2608.11135v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "realistic camouflaged object detection benchmark OPC16K with pure backgrounds and non-camouflaged objects",
+      "llm_evidence_cn": "包含纯背景和非伪装目标的真实伪装目标检测基准OPC16K",
+      "llm_evidence": "包含纯背景和非伪装目标的真实伪装目标检测基准OPC16K",
+      "canonical_evidence": "包含纯背景和非伪装目标的真实伪装目标检测基准OPC16K",
+      "llm_tldr_en": "Proposes OPC16K, a large-scale benchmark for realistic camouflaged object detection that includes pure backgrounds and non-camouflaged objects, addressing false positives in open-world scenarios.",
+      "llm_tldr_cn": "现有伪装目标检测方法通常假设每张图像都含伪装目标，忽略了纯背景或非伪装对象场景，导致开放世界中严重误报。论文提出OPC16K大规模基准，包含16245张来自14个来源的图像，分为伪装目标图像、纯背景图像和非伪装目标图像。该基准揭示了闭世界假设的局限，为开发真实环境下的伪装目标检测模型提供了更具挑战性和实用性的评估平台，推动该领域向开放世界场景发展。",
+      "llm_tldr": "现有伪装目标检测方法通常假设每张图像都含伪装目标，忽略了纯背景或非伪装对象场景，导致开放世界中严重误报。论文提出OPC16K大规模基准，包含16245张来自14个来源的图像，分为伪装目标图像、纯背景图像和非伪装目标图像。该基准揭示了闭世界假设的局限，为开发真实环境下的伪装目标检测模型提供了更具挑战性和实用性的评估平台，推动该领域向开放世界场景发展。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.04190v1",
+      "source": "arxiv",
+      "title": "Adversarially Robust Abductive Fusion of Pre-trained Transformer-based Perception Models",
+      "abstract": "Deploying pre-trained perception models in novel environments degrades their accuracy under distributional shift, and assembling them alone does not recover it: combiners such as majority voting trade recall for precision and are brittle to coordinated failures. Prior metacognitive methods learn logical rules that flag a model's errors, but rely on hand-authored domain-knowledge cues (object-size priors, segmentation masks) that do not transfer to genuinely novel scenes. We show that this metacognitive layer can be learned without any domain knowledge by exploiting vector-space geometry: per-model Label Vector Pools (LVP), built from each model's own training embeddings, yield error-detection rules from the geometry of detections relative to training-determined prototypes, reaching parity with domain-knowledge rules to within $0.002$ every F1 on test set. Because the approach remains neurosymbolic, these geometric rules share a single logical framework and can still be complemented by domain knowledge when available. We frame the fusion of multiple imperfect ViT-based detectors as a consistency-based abduction problem solved at test time by an exact Integer Program (IP) and a polynomial-time heuristic. On an aerial-imagery benchmark of 15 weather-shifted test sets and six ViT detectors, our domain-knowledge-free layer matches the strongest majority-vote variant on clean data (within $0.005$ F1) and, unlike every majority-vote baseline, retains its performance under a coordinated label-flipping attack: at a $90\\%$ flip rate it averages $0.42$ F1 versus $0.35$ for MV-Plurality (a $22\\%$ relative gain) and attains the highest F1 on \\emph{every} test set once the flip rate exceeds $0.4$",
+      "authors": [
+        "Mario Leiva",
+        "Yue Ma",
+        "Qinru Qiu",
+        "Gerardo Simari",
+        "Paulo Shakarian"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV",
+        "cs.LG",
+        "cs.LO"
+      ],
+      "published": "2026-08-04T19:46:57+00:00",
+      "link": "https://arxiv.org/pdf/2608.04190v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Fusion of pre-trained transformer-based perception models",
+      "llm_evidence_cn": "融合预训练Transformer感知模型",
+      "llm_evidence": "融合预训练Transformer感知模型",
+      "canonical_evidence": "融合预训练Transformer感知模型",
+      "llm_tldr_en": "Proposes learning metacognitive error-detection rules without domain knowledge by exploiting vector-space geometry of per-model Label Vector Pools, improving robustness of transformer-based perception model ensembles under distribution shift.",
+      "llm_tldr_cn": "针对预训练感知模型在新环境中精度下降以及简单集成方法脆弱的问题，本文提出利用向量空间几何学习元认知错误检测规则，通过为每个模型构建标签向量池（LVP）从检测几何中生成规则，无需手工领域知识。实验表明该方法在分布偏移场景下能有效识别模型错误，提升融合鲁棒性。该方法可应用于目标检测等感知任务，为多模型协同提供新的错误检测机制，增强系统在未知场景中的可靠性。",
+      "llm_tldr": "针对预训练感知模型在新环境中精度下降以及简单集成方法脆弱的问题，本文提出利用向量空间几何学习元认知错误检测规则，通过为每个模型构建标签向量池（LVP）从检测几何中生成规则，无需手工领域知识。实验表明该方法在分布偏移场景下能有效识别模型错误，提升融合鲁棒性。该方法可应用于目标检测等感知任务，为多模型协同提供新的错误检测机制，增强系统在未知场景中的可靠性。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.10590v1",
+      "source": "arxiv",
+      "title": "Rethinking Data Efficiency in Industrial Dense Prediction: Pretraining Coherence, Not Inductive Bias, Determines ViTs Low-Data Advantage",
+      "abstract": "Vision Transformers (ViTs) are widely believed to require more labeled data than CNNs for industrial dense prediction. Through controlled experiments on four industrial datasets, we show that the data-efficiency gap stems from pretraining incoherence, which refers to the statistical mismatch between ImageNet-pretrained ViT backbones and COCO-pretrained CNN necks, rather than from inherent self-attention deficits. We characterize the cross-architecture feature gap and propose a lightweight AlignBlock family for pyramid-level feature recalibration. Our core finding empirically identifies a data-efficiency frontier: for domain-proximal scenes with >= 200 samples, Swin-Graft surpasses YOLOv11x (terminal 703-shot: 0.973 vs 0.956 mAP@50); for domain-distant scenes, CNNs retain advantage (hook 141-shot: 0.900 vs 0.600 mAP@50). Grafted neck weights yield up to 2.5x the mAP of a randomly initialized neck.",
+      "authors": [
+        "Haoran Sui",
+        "Yaoyuan Jia"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T07:17:59+00:00",
+      "link": "https://arxiv.org/pdf/2608.10590v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Studies ViT backbones for dense prediction including object detection, compares with CNNs and YOLO",
+      "llm_evidence_cn": "研究视觉Transformer骨干用于包括目标检测在内的密集预测",
+      "llm_evidence": "研究视觉Transformer骨干用于包括目标检测在内的密集预测",
+      "canonical_evidence": "研究视觉Transformer骨干用于包括目标检测在内的密集预测",
+      "llm_tldr_en": "Controlled experiments show ViT data-efficiency gap in industrial dense prediction stems from pretraining incoherence rather than self-attention; AlignBlock recalibration narrows the gap, with Swin-Graft surpassing YOLO beyond 200 samples.",
+      "llm_tldr_cn": "该文针对工业密集预测中视觉Transformer（ViT）相较于CNN的数据效率差距展开研究。通过四个工业数据集的对照实验，作者发现差距并非源于自注意力缺陷，而是ImageNet预训练的ViT骨干与COCO预训练的CNN颈部之间的统计不匹配。为此提出轻量级AlignBlock系列进行金字塔级特征重校准。实验表明在领域相近场景且样本量≥200时，Swin-Graft超越YOLO检测器，为ViT在低数据目标检测中的部署提供了实证依据。",
+      "llm_tldr": "该文针对工业密集预测中视觉Transformer（ViT）相较于CNN的数据效率差距展开研究。通过四个工业数据集的对照实验，作者发现差距并非源于自注意力缺陷，而是ImageNet预训练的ViT骨干与COCO预训练的CNN颈部之间的统计不匹配。为此提出轻量级AlignBlock系列进行金字塔级特征重校准。实验表明在领域相近场景且样本量≥200时，Swin-Graft超越YOLO检测器，为ViT在低数据目标检测中的部署提供了实证依据。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

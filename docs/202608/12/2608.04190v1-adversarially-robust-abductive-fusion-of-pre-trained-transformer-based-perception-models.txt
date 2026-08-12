@@ -1,0 +1,617 @@
+Title: Adversarially Robust Abductive Fusion of Pre-trained Transformer-based Perception Models
+
+URL Source: https://arxiv.org/pdf/2608.04190v1
+
+Published Time: Thu, 06 Aug 2026 00:12:37 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Adversarially Robust Abductive Fusion of Pre-trained Transformer-based Perception Models 
+
+Mario Leiva 1, Yue Ma 2, Qinru Qiu 2, Gerardo Simari 1, and Paulo Shakarian 2
+
+> 1
+
+DCIC, Universidad Nacional del Sur (UNS) & ICIC (UNS-CONICET), Bahía Blanca, Argentina 
+
+> 2
+
+Syracuse University, Syracuse, NY USA mario.leiva@cs.uns.edu.ar, yma183@syr.edu, qiqiu@syr.edu, gis@cs.uns.edu.ar, pashakar@syr.edu 
+
+Abstract 
+
+Deploying pre-trained perception models in novel environ-ments degrades their accuracy under distributional shift, and assembling them alone does not recover it: combiners such as majority voting trade recall for precision and are brittle to coordinated failures. Prior metacognitive methods learn logical rules that flag a model’s errors, but rely on hand-authored domain-knowledge cues (object-size priors, segmen-tation masks) that do not transfer to genuinely novel scenes. We show that this metacognitive layer can be learned without any domain knowledge by exploiting vector-space geometry: per-model Label Vector Pools (LVP), built from each model’s own training embeddings, yield error-detection rules from the geometry of detections relative to training-determined proto-types, reaching parity with domain-knowledge rules to within 
+
+0.002 every F1 on test set. Because the approach remains neurosymbolic, these geometric rules share a single logical framework and can still be complemented by domain knowl-edge when available. We frame the fusion of multiple im-perfect ViT-based detectors as a consistency-based abduction 
+
+problem solved at test time by an exact Integer Program (IP) and a polynomial-time heuristic. On an aerial-imagery bench-mark of 15 weather-shifted test sets and six ViT detectors, our domain-knowledge-free layer matches the strongest majority-vote variant on clean data (within 0.005 F1) and, unlike every majority-vote baseline, retains its performance under a coor-dinated label-flipping attack: at a 90% flip rate it averages 
+
+0.42 F1 versus 0.35 for MV-Plurality (a 22% relative gain) and attains the highest F1 on every test set once the flip rate exceeds 0.4.
+
+Introduction 
+
+Pre-trained perception models are now the default for classi-fication and detection in images and video (Han et al. 2021; Radford et al. 2021), and in practice they are deployed on the distribution they were trained on. We focus on the deploy-ment in novel environments setting: the operating conditions differ from training and no labeled data from target distribu-tion is available. Emergency response after a disaster, or an aid mission to a remote region for which no representative imagery exists, are concrete examples—the scene is novel 
+
+relative to anything the models have seen. 
+
+Copyright © 2027, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+Recent work (Leiva et al. 2026) has combined ideas from abducitve learning (Dai et al. 2019) and metacognitive error detection rules (Kricheli et al. 2024) for test-time ensembling of vision models in a novel environment. However, this ap-proach requires the establishment of candidate metacognitive cues that the learner uses to derive rules. This means that the system designer must have some a-priori domain knowledge on potential causes of error, which may lead to bespoke sys-tems that to not generalize. Further, while that work showed significant improvement over the baselines, it did not exam-ine the case where some of the perceptual models may be subject to adversarial perturbations. Here we extend the work of (Leiva et al. 2026) by removing its two key limitations. The working hypothesis is the same: deploying more than one model and reasoning over their joint (in)consistency can recover the recall that single-model error filtering throws away. We extend that line in two ways that we argue are necessary for novel and adversarial deployment. 
+
+Contribution 1: A domain-knowledge-free metacognitive layer. We replace hand-authored domain cues with a learned signal that uses nothing but each model’s own embeddings. Borrowing the Label Vector Pool idea from continual learn-ing with CLIP (Ma et al. 2025), we represent each (model, class) by a small pool of prototype vectors obtained from the model’s training detections, and train a light error de-tector on the distances of a new detection to these pools. The resulting “LVP error probability” is the only condition our error-detection rules use—no masks, no size priors, no scene semantics. This makes the entire metacognitive stack transferable to any new model or scene. 
+
+Contribution 2: Robustness to attacks on majority voting. 
+
+Majority voting is the canonical way to combine models, yet it is fragile since an adversary who can coordinate a minority of models can flip the vote. We study a coordinated label-flip 
+
+attack designed precisely to defeat plurality voting, and show that our abductive formulation degrades far more gracefully than any majority-vote variant because it accepts predictions based on cross-model consistency rather than raw counts. As summarized in Figure 1, η models perceive a novel scene; their predictions, together with LVP-derived metacog-nitive rules learned independently per model, are encoded in a logical program. We then abduce a subset of accepted predictions that maximizes coverage while keeping logical inconsistency below a budget. We derive an exact Integer arXiv:2608.04190v1 [cs.AI] 4 Aug 2026 Offline training time  – per -model metacognitive layer, learned without domain knowledge  by  𝜂 , models per (model, class)         
+
+> Training detections
+> of 𝒇 𝒊
+> (ViT embeddings)
+> Label Vector Pool –k-means k=3 ( ⋆= centroid 𝜇 )
+> ped veh constr nat
+> e
+
+⋆ ⋆
+
+⋆ ⋆ ⋆
+
+⋆
+
+⋆ ⋆
+
+⋆ ⋆ ⋆
+
+⋆                
+
+> e − 𝜇
+> LVP error detector
+> 𝜙 𝑒 =dist. To all centroids ∈ ℝ 𝟛𝕞 = 12
+> Random Fores → 𝑠 ∈ 0,1
+> Error -detection rule
+> 𝑒𝑟𝑟𝑜𝑟 𝑖, 𝑐, 𝜔 ←𝑓 𝑖 𝜔 = 𝑐 ∧𝑠 ≥ 𝜏
+> per -model program 𝚷 𝒊
+> EDR rule learner
+> strictness 𝜖
+
+Online  – test time (novel scene) Novel scene  𝜼  ViT detectors            
+
+> Predictions
+> Coordinated
+> label -flip attack
+> Logical program 𝚷
+> Predictions + rules 𝜋 𝑖
+> Consistency-based abduction
+> Maximize coverage Pred(H) s.t. Inc(H) ≤ 𝛿 , consistent
+> Exact
+> IP
+> Heuristic
+> HS
+> Accepted, consistent predictions
+> Consistency -driven →robust under attack
+> MDS -A_1 UM_1
+> MM_1 AM_1
+> Dust Fog Maple Leaf
+> Rain Snow Normal
+> Weather conditions
+> R = Rain, S = Snow, M = Maple Leaf, D = Dust, F = Fog
+
+Figure 1: Overview. (Top) Offline, each of the η pre-trained models builds a Label Vector Pool by clustering its training-detection embeddings with k-means into per-class prototype pools Pi,c = {μ1
+
+> i,c
+
+, μ 2
+
+> i,c
+
+, μ 3
+
+> i,c
+
+} (⋆ = centroids). A new detection with embedding e is mapped to ϕ(e) ∈ R3m and a per-(model, class) Random Forest yields an error probability s ∈ [0 , 1] ;thresholding s ≥ τ via the EDR rule learner (strictness ϵ) produces the error-detection program Πi—using no domain knowledge and no target-distribution data. (Bottom) At test time the η models perceive a novel scene; their predictions, together with the per-model programs Πi, form a logical program Π. Consistency-based abduction selects an accepted set maximizing coverage 
+
+Pred (H) subject to Inc (H) ≤ δ, solved by an exact Integer Program (IP) or a polynomial-time Heuristic Search (HS), each with an optional tie-breaker (TB). Rules are learned independently per model from training data only, so there is no test-time leakage. Unlike majority voting, the combiner degrades gracefully under coordinated label-flip attacks because acceptance is consistency-driven, not count-driven. Program (IP) and a scalable Heuristic Search (HS), each with an optional tie-breaker (TB). The rules are learned only from each model’s training data, so there is no test-time leakage and no assumption about how models perform together. 
+
+Related Work 
+
+Error detection and correction rules. Prior work on error detection rules (EDR) relies on the assumption that there is prior knowledge on the potential causes of error - an as-sumption relaxed in this paper (Xi et al. 2024; Kricheli et al. 2024). A recent use of EDR (Leiva et al. 2026) leverages this in an abductive framework for test-time ensembling, which we use as a baseline in this paper. We differ in two ways: we operate over multiple models, and our rule condi-tions are derived from a learned LVP error detector rather than domain-specific predicates. We use only error detection 
+
+rules here, though correction rules fit the same framework. 
+
+Abductive learning. ABL (Dai et al. 2019) also uses ab-duction with domain knowledge, but to improve a model at training time and under the assumption that the test environ-ment is not fully novel; the follow-up on new concepts (Cai et al. 2021) extends the label scheme similarly to EDCR. We instead use abduction only at test time and change the data distribution rather than the concept scheme. Classic consistency-based diagnosis (Reiter 1987; Poole 1989) and the complexity of logic-based abduction (Eiter and Gottlob 1995) inspire our formulation; to the best of our knowledge this machinery has not been applied to test-time perception over model ensembles. 
+
+Label Vector Pool and prototypes. LVP-CLIP (Ma et al. 2025) keeps, per class/task, a pool of label vectors rather than a single text embedding, enabling continual learning with-out forgetting. This is conceptually related to prototypical networks (Snell, Swersky, and Zemel 2017). We repurpose the pool idea not for classification but for error detection :distances to per-class prototype pools are the features of a metacognitive classifier. 
+
+Test-time training and adaptation. TTT (Sun et al. 2020) adapts the network itself at test time via self-supervision. This is complementary: a TTT-adapted model is just another pre-trained model in our framework, and several TTT variants could be combined through our abduction layer. 
+
+Adversarial robustness of ensembles. Adversarial exam-ples and poisoning are well studied (Goodfellow, Shlens, and Szegedy 2014; Madry et al. 2017; Biggio, Nelson, and Laskov 2012; Biggio and Roli 2018; Ming et al. 2024), and ensembles are not automatically robust (Tramèr et al. 2017). We study a threat aimed specifically at the combiner : a coor-dinated minority of models is made to agree on a wrong label, defeating plurality voting. Our consistency-based acceptance method is shown to be more resistant to this attack. 
+
+Consistency-based Abduction 
+
+We summarize the framework we build on; though the formu-lation follows (Leiva et al. 2026), we keep it self-contained. 
+
+Preliminaries. We consider object identification over per-ception data Ω with η models F = {f1, . . . , f η } predicting over m classes C = {c1, . . . , c m}. Under the unique-name assumption 1, each object ω ∈ Ω detected by a model yields a fact fi(ω) = cj ; the set of such facts (“observations”) is O.Because models disagree and make mistakes, we introduce 
+
+accept (i, c ), which is true when we choose to trust model 
+
+fi’s outputs of class c. The set of all acceptance atoms is H;a subset H ⊆ H is a hypothesis .Each model fi carries a logic program Πi of metacognitive rules of the form: 
+
+error (i, c, ω ) ← (fi(ω) = c) ∧ cond (ω).
+
+I.e., if cue cond fires for ω and fi labeled it c, an error is suspected. The novelty here is that cond is the single LVP-derived predicate LVP _Error _Probability _GE τ , learned without domain knowledge. Helper program Πhelper contains 
+
+assign (c, ω ) ← ¬ error (i, c, ω ) ∧ (fi(ω) = c) ∧ accept (i, c )
+
+and a domain program Πdom contains integrity constraints 
+
+¬assign (c′, ω ) ← assign (c, ω ) forbidding conflicting la-bels on one object. This integrity constraint is the only 
+
+domain knowledge used to judge consistency, and it is inherent to the task (the mutual exclusivity of class la-bels) rather than environment-specific expertise: it needs no segmentation masks, size priors, or other scene arti-facts, and holds unchanged in any novel domain. All dis-criminative, scene-specific knowledge instead lives in the learned error-detection rules Πi; keeping the consistency layer minimal is deliberate, and is what lets the same ab-duction machinery transfer across domains. We write Π = Πdom ∪ Πhelper ∪ (S 
+
+> i
+
+Πi); stratification and limited negation, in addition to the instance size, make inference tractable and monotonic, realized in PyReason (Aditya et al. 2023). 
+
+Abduction problem. Following consistency-based abduc-tion (Eiter and Gottlob 1995; Peng and Reggia 1990), we seek H ⊆ H such that H ∪ O ∪ Π is consistent. We al-low a small, controlled amount of inconsistency: Inc (H) is the normalized number of ground rules in Πdom not entailed 
+
+> 1
+
+Implementation details for the unique-name assumption are in the supplementary material (Sec. A). 
+
+Algorithm 1: Heuristic Search (HS) 1: Input: Praw (raw prediction tuples); δ (budget); Eset (ϵ thresh-olds) 2: Output: Sfinal (accepted predictions) 3: Sfinal ← ∅ 
+
+4: for each model f ∈ F , class c ∈ C do 
+
+5: Pbest ← ∅ ; nmax ← | Sfinal |
+
+6: for each ϵ ∈ Eset do 
+
+7: Pnew ← GetFilteredPreds (f, c, ϵ, P raw )
+
+8: Scand ← Sfinal ∪ Pnew 
+
+9: if CalcIncon (Scand ) ≤ δ and |Scand | > n max then 
+
+10: Pbest ← Pnew ; nmax ← | Scand |
+
+11: end if 
+
+12: end for 
+
+13: if Pbest ̸ = ∅ then 
+
+14: Sfinal ← Sfinal ∪ Pbest 
+
+15: end if 
+
+16: end for 
+
+17: return Sfinal 
+
+by (H ∪ O ∪ Π) \ Πdom , and δ ∈ [0 , 1] bounds it. Among consistent hypotheses we prefer the most informative one: 
+
+Pred (H) counts the assign (c, ω ) atoms entailed by the min-imal model of (H ∪O∪Π) \Πdom . We maximize Pred (H) be-cause (i) more assignments means fewer suspected errors on well-trained models, (ii) we want high recall, and (iii) Πhelper 
+
+already guards against over-assignment. The problem is 
+
+max  
+
+> H⊆H
+
+Pred (H) s.t. Inc (H) ≤ δ, (H ∪O ∪Π) \Πdom consist .
+
+The rule-learner exposes a hyperparameter ϵ interpretable as the expected recall reduction from discarding flagged pre-dictions; we sweep it and also set it heuristically. 
+
+Integer Program (IP). With binary Ac,ω (object ω assigned class c), Con ω, (c,c ′) (conflict indicator), Elim f,c (exclude model f ’s class-c output; Elim f,c = 0 ⇔ accept (f, c ) ∈ H), 
+
+Xω,f,c (consider (ω, f, c )), and constant pred f,c,ω , we solve 
+
+max X
+
+> ω
+
+X
+
+> c
+
+Ac,ω 
+
+subject to Xω,f,c ≤ 1 − Elim f,c ; Xω,f,c · pred f,c,ω ≤
+
+Ac,ω ; Ac,ω ≤ P 
+
+> f
+
+Xω,f,c · pred f,c,ω ; Ac,ω + Ac′,ω − 1 ≤
+
+Con ω, (c,c ′) for (c, c ′) ∈ IC ; P 
+
+> c
+
+Ac,ω ≥ 1; and the global budget P
+
+> ω
+
+P 
+
+> (c,c ′)
+
+Con ω, (c,c ′) ≤ δ · P 
+
+> i,ω
+
+Ai,ω . The model has O(N · |F| · |C| ) variables and constraints ( N = |Ω|). It is NP-hard in general, but the locality of the conflict and consideration constraints makes the instances at our scale solvable in seconds. 
+
+Heuristic Search (HS). Algorithm 1 greedly decides 
+
+accept (f, c ) per (model,class) pair: for each pair it picks the ϵ whose filtered predcition set most increases cover-age while keeping global inconsistency ≤ δ. HS runs in 
+
+O(|F| · |C| · | Eset |), polynomial in the input. 
+
+Tie-Breaker (TB). Abduction can leave several admissible labels for an object. TB makes the output deterministic: for an object ω with multiple admisible labels it keeps the pair 
+
+(ω, c ) from the model with the highest confidence, yielding the IP+TB and HS+TB variants. Learning the Metacognitive Layer without Domain Knowledge 
+
+Here, we describe how each model’s error-detection program 
+
+Πi is learned from a Label Vector Pool (LVP) instead of hand-authored domain predicates. 
+
+Why no domain knowledge. The domain-knowledge (DK) conditions used by prior work are predicates such as “the pedestrian box center lies on the street segmentation mask” or “the box area is far from the average class area in training.” These require artifacts that a novel environment does not provide (a segmentation map of the new scene, reliable size priors) and they are model-agnostic, so they cannot capture 
+
+which model is unreliable where . We want a condition that (i) needs only the model’s own training data and (ii) is specific to each (model, class). 
+
+Label Vector Pool per (model, class). Each detection produced by a ViT-backbone detector comes with a d-dimensional embedding ( d = 1024 ). For a model fi and class c, we take the embeddings of fi’s training detections of class c and cluster them with k-means ( k = 3 ), obtaining a pool Pi,c = {μ1
+
+> i,c
+
+, μ 2
+
+> i,c
+
+, μ 3
+
+> i,c
+
+} of prototype vectors. The col-lection {P i,c }c∈C is model fi’s Label Vector Pool: a compact, multi-modal summary of how each class looks to that model under its own training condition . Sub-clustering ( k > 1)matters because a class is rarely unimodal in embedding space (e.g., vehicles seen from different angles). 
+
+LVP error detector. For a new detection with embedding e,we form the feature vector of Euclidean distances to every prototype of every class, 
+
+ϕ(e) =  ∥e − μri,c ∥2
+
+ 
+
+> c∈C , r ∈{ 1,2,3}
+
+∈ R3m,
+
+i.e. 3 × 4 = 12 features in our setting. A per-(model, class) Random Forest maps ϕ(e) to the probability that the detection is an error ,
+
+si,c (e) = Pr[ error | ϕ(e)] ∈ [0 , 1] ,
+
+where a training detection is labeled an error if it does not match a ground-truth object of the same class at IoU ≥ 0.5.Intuitively, a detection far from its predicted class’s pool (or close to another class’s pool) is suspicious. Score si,c is what we call the LVP error probability ; it is the only component of our metacognitive conditions and uses no domain semantics. 
+
+From scores to rules. We threshold the score into a family of monotone conditions cond τ (ω) ≡  si,c (eω ) ≥ τ  for a grid of τ , and feed them to the EDCR rule learner (Xi et al. 2024; Kricheli et al. 2024). For each (model, class) and each strict-ness level ϵ, the learner selects the condition(s) that yield error-detection rules meeting its precision criterion; ϵ is in-terpretable as the expected recall reduction. The output is the program Πi introduced in the Consistency-based Abduction section, where the suspected-error predicate is fired when the learned LVP threshold is exceeded. Because pools and detectors are built independently per model on each model’s own training data, there is no test-time leakage and no cross-model coupling assumed a priori. Empirically, ϵ acts as a monotone control: as it increases, the learner selects a lower effective threshold on the LVP error probability, flagging more detections and trading retained recall for higher per-model precision. This ϵ to threshold mapping differs across detectors, each reflecting its own error-score distribution, so a single ϵ induces model-specific operating points without any domain-specific tuning (a per-model curve is given in the supplementary material, Sec. C). 
+
+Putting it together. The full test-time pipeline is: (1) each ViT detector emits boxes, labels, and embeddings (also a confidence score) on the novel scene; (2) the LVP detector assigns each detection an error probability; (3) the learner rules fire suspected errors; (4) IP or HS abduces an accepted set under the inconsistency budget δ; (5) TB resolves residual ties. Steps 1–3 are the contribution of this section; steps 4–5 are the abduction machinery introduced earlier under Consistency-based Abduction. 
+
+Experimental Setup 
+
+Dataset. We use the Multiple Distribution Shift – Aerial (MDS-A) dataset (Ngu et al. 2025), generated with Air-Sim (Shah et al. 2017), in the 15-test-set extension intro-duced in (Leiva et al. 2026). Images are captured in a city environment under varying weather, with bounding boxes in four classes: pedestrian , vehicle , construction , nature . Six training conditions ( rain, snow, fog, maple leaves, dust , and a no-weather normal ) and a test suite of 15 sets spanning increasingly complex mixed-weather shifts are used: ids en-code how many conditions share an intensity level: UM (uni-modal), BM (bimodal), MM (most modes), AM (all modes), HUM (high unimodal). Figure 1 shows the conditions of the training sets for the 6 detectors and 4 of the 15 test sets (Figure 1 in the supp. material illustrates all conditions). 
+
+Detection models. The six detectors use a plain Vision Transformer (ViT) backbone (Dosovitskiy et al. 2020) in the ViTDet configuration (Li et al. 2022), initialized from MAE self-supervised pretraining (He et al. 2022) and paired with a Faster R-CNN (Ren et al. 2015) detection head; all are fine-tuned with Detectron2 (Wu et al. 2019). Each model is specialized to a single weather condition and trained in iso-lation, so that the mixed-weather test sets induce a genuine distributional shift. The embedding we use is a feature from each detector’s own detection head, and each model is fine-tuned end-to-end per weather condition, backbone and head together, with no frozen shared backbone and no adapters. Each model therefore has its own feature space, so the pro-totype pools Pi,c are model-specific and not directly compa-rable across models, which is why the metacognitive layer is built per model. Since each model specializes in one condi-tion, the index i denotes both the model fi and the weather domain it is trained for. All six share the same four output classes, and for every detection we take the 1024 -dimensional feature produced by the detection head’s penultimate fully-connected layer as the embedding consumed by the LVP error detectors. Full training hyperparameters per-model are reported in the supplementary material (Sec. B). 
+
+Multimodal test set. Beyond MDS-A, we evaluate on VisDrone-DroneVehicle (Sun et al. 2022), a multimodal aerial dataset of paired RGB and infrared (IR) images (see Fig. 12 for a sample pair). This probes a different use of the Figure 2: DroneVehicle sample scene from the same physi-cal location in RGB (left) and IR (right), with ground-truth bounding boxes color-coded by class. framework: the ensemble is two modality-specialized detec-tors (one RGB, one IR) rather than six weather specialized ones. We evaluate on a mixed test set of 250 RGB and 250 IR scenes drawn from disjoint location, so each detector sees both in- and out-of-domain inputs; with van and freight_car too rare to learn, the pipeline runs on three effective classes (car, truck, bus). Preprocessing and sampling details are in the supplement (Sec. H). 
+
+Baselines. We compare against per-model references— 
+
+MacroAVG (mean over models) and Best Model (best single model)—and against all majority-vote (MV) variants: MV-Plurality (plurality among active detectors), MV-Plurality-NoTB (plurality without the confidence tie-break), MV-Quorum (requires ⌊N/ 2⌋+1 active detectors), and MV-Strict 
+
+(plurality across all models, treating “no detection” as a vote). Our methods are IP, IP+TB, HS and HS+TB. Also, as a first step after the model detections, ghost detections (detections that did not match any object in the ground truth) were elim-inated, in order to work only with the true FPs: detections with incorrect labels. 
+
+Hardware and software. The detectors were fine-tuned on a single NVIDIA T4 GPU (Google Colab); every other stage— detection inference, LVP error detection, EDR rule firing, and the IP/HS abduction—runs on CPU only. We use a single-socket server with an AMD EPYC 9755 running Ubuntu 24.04 and Python 3.12, with no GPU. Test scenarios are processed in parallel across cores via multiprocessing. Log-ical deduction is implemented in PyReason (Aditya et al. 2023), and the integer program is solved with the CBC solver through the PuLP modeling library. 
+
+Results 
+
+Clean-data performance. Table 1 reports F1 and Accu-racy on a representative subset of the test sets under clean (unattacked) conditions and the average over all 15 test sets. On these scenarios, our IP+TB and HS+TB are sta-tistically on par with the strongest ensemble baseline, MV-Plurality, while outperforming the per-model references and the precision-biased MV variants. However, we note that our method reaches parity with the best baselines but does not rely on voting, which is susceptible to correlation-based attacks (as described later). 
+
+Ceiling analysis. For each test set we compute two ceilings Table 1: F1 / Accuracy on a representative subset of test sets for best individual model, MV-Plurality (MV-P) and our approach using the abductive framework of (Leiva et al. 2026). The Average row is over all 15 datasets. Accuracy is the detection Jaccard index, Acc = F 1/(2 − F 1) . The full 15-scenario table appears in the supplement (Sec. D).                                                            
+
+> Test Set Best MV-P IP+TB HS+TB
+> F1 Acc F1 Acc F1 Acc F1 Acc MDS-A_1 0.70 0.54 0.76 0.61 0.75 0.60 0.75 0.60 UM_1 0.64 0.47 0.72 0.56 0.72 0.56 0.72 0.56
+> MM_1 0.64 0.47 0.73 0.58 0.73 0.58 0.73 0.58
+> AM_1 0.30 0.17 0.34 0.21 0.34 0.21 0.34 0.21
+> Avg. (15 tests) 0.55 0.38 0.64 0.47 0.63 0.46 0.64 0.47
+> DroneVehicle 0.68 0.51 0.67 0.50 0.67 0.50 0.67 0.50
+
+Figure 3: F1 of each method per test set with the oracle-recall ceiling drawn above each group. Methods that select among existing predictions cannot exceed the dashed line; IP+TB sits closest to it. over methods that only select among existing predictions: the 
+
+detection coverage (fraction of ground-truth objects seen by at least one model) and the oracle recall (fraction seen with the correct class by at least one model), with corresponding oracle F1. Figure 3 plots each method against these ceilings on the same representative subset used in Table 1 (AM_1, BM_1, MDS-A_1, MM_1, UM_1); the remaining 10 test sets are variations of the same five families (AM_2/3, BM_2/3, MDS-A_2/3, MM_2/3, UM_2/3, HUM_1) and behave qual-itatively the same. The gap between the precision-based MV variants (MV-Quorum, MV-Strict) and the oracle is large, whereas MV-Plurality and our methods approach the oracle. 
+
+LVP vs. domain-knowledge rules. We compare the LVP-based rules against the domain-knowledge (DK) rules used by prior work, holding the abduction stage fixed. The head-line results are in Table 2: the two reach essentially the same downstream F1 —the largest absolute difference across the five test sets is |∆| = 0 .0018 (i.e., below 0.002 F1)—yet the LVP variant requires no scene artifacts: no segmenta-tion masks, no class-specific size priors, only each model’s own training embeddings. This method reaches parity with a domain-knowledge baseline without using any domain knowledge—the metacognitive layer can be made portable Table 2: Downstream F1 with LVP vs. DK conditions (ab-duction fixed). LVP requires no domain artifacts and reaches the same downstream F1 as DK (larges gap < 0.002 ).                 
+
+> Test Set IP+TB (DK) IP+TB (LVP) ∆(×10 −4)
+> MDS-A_1 0.7534 0.7538 +4 UM_1 0.7206 0.7214 +8 MM_1 0.7314 0.7307 -7 AM_1 0.3438 0.3420 -18
+
+Figure 4: Detections where the LVP and DK rules disagree. 
+
+Top: errors the DK rules miss but the LVP rules catch, typ-ically model-specific embedding-space anomalies that no hand-authored cue captures; Bottom: the converse, errors the LVP rules miss but the DK rules catch. Although LVP needs no domain knowledge and matches DK on downstream F1, the per-detection view shows the two flag different failures. to genuinely novel scenes at no measurable cost in down-stream accuracy. The per-detection disagreement analysis in Figure 4 adds a finer view: although the aggregate F1 is identical, the two signals catch different failures—LVP flags model-specific embedding-space anomalies that no hand au-thored cue captures (top), while DK catches geometric/con-textual mistakes that the embedding alone does not (bottom). The two are complementary, and combining them is a natural direction for future work. 
+
+Robustness to coordinated attacks. We assume an attacker who can perturb predictions to defeat the combiner but can-not retrain detectors. With probability p per ground-truth ob-ject, the attacker samples three models and one wrong class and forces those three models to output that class for the object. The flips are coordinated : three models agree on the same wrong label, impacting voting-based techniques that have a latent independence assumption among the models. 
+
+Multimodal test. On clean data the multimodal ensemble is the hardest case for abduction: RGB and IR were trained on paired scenes and rarely disagree (inter-detector incon-sistency ≈ 0.0002 ), so IP+TB and HS+TB reduce to the majority-vote solution and tie MV-Plurality at F1 = 0 .672 ,just below the best single detector (IR, F1 = 0 .68 ). Under the coordinated label-flip attack, this regime becomes the best case: IP+TB and HS+TB stay above every baseline for all p ≥ 0.1, reaching F1 = 0 .395 and 0.410 at p = 0 .9
+
+against 0.376 for MV-Plurality, while MV-Plurality-NoTB collapses. They also stay closest to the clean-data ceiling across the whole sweep (Figure 5, right); the full F1-vs-p
+
+curves and per-method numbers are in the supplementary material (Sec. H). The disagreements the abduction layer re-solves arise naturally from six weather detectors on MDS-A, but only under attack on the two correlated modality de-tectors; the same mechanism yields clean-data wins on one dataset and adversarial wins on the other. 
+
+Results. Table 3 lists F1 across all 15 test sets at five attack rates that span the non-trivial regime ( p ∈{0.2, 0.4, 0.6, 0.8, 0.9}), for the strongest representative of each method family— Best (best per-model baseline, ahead of Macro AVG), MV-Plurality (best majority-vote variant, ahead of MV-Plurality-NoTB, MV-Quorum and MV-Strict), and our IP+TB and HS+TB . Clean-data values ( p = 0 ) are already in Table 1; the full grid with all ten methods and all 
+
+p ∈ { 0.0, . . . , 0.9} is in the supplementary material (Sec. E). The pattern is unambiguous: at p = 0 .2 IP+TB and MV-Plurality are still close (often tied), but from p = 0 .4 onward IP+TB takes the lead on every test set, and by p = 0 .9
+
+MV-Plurality has lost roughly 0.10 –0.15 F1 while IP+TB has barely moved. HS+TB follows the same trend and stays comfortably above the MV baseline. The take-away is that the gap to the count-based combiner grows monotonically with p, which is what we should expect if acceptance is consistency-driven rather than vote-driven. The left panel of Figure 5 shows a complementary view. The figure aggregates over all 15 test sets and plots the gap to the oracle F1 ceiling per method as p grows: this is the headline robustness picture—IP+TB stays closest to the or-acle across the entire attack range, MV-Plurality and MV-Plurality-NoTB lose ground sharply, and the precision-based MV variants pull away from the oracle even faster. Accep-tance based on cross-model consistency (our methods) is therefore far more attack-resistant than acceptance based on raw vote counts (MV). Our methods never fall below the baselines once the attack is non-trivial: for p ≥ 0.4, Table 3 shows IP+TB best or tied on every one of the 15 test sets, so the overlapping bands in Figure 5 reflect how much head-room varies across scenes, rather than cases where a baseline overtakes our methods. 
+
+Runtime. Figure 6 presents the wall-clock cost of IP+TB and HS+TB on the 15 clean test sets ( p = 0 ). HS+TB com-pletes a full scenario in 1.9–19 .7 s, with per-object solve time pinned in a narrow 1.4–3.0 ms band across the entire range of scenario sizes (1.3k–6.7k detected objects), consistent with its O(|F| · |C| · | Eset |) analysis. IP+TB is roughly 30 × slower in absolute terms ( 264 –349 s per scenario) but its per-object cost actually decreases from 0.21 s on the smallest scenario to 0.005 s on the largest, because the fixed CBC overhead amortizes over more objects: at our scale, the IP+TB ap-proach is driven by setup, not by combinatorial growth. Both methods thus remain practical end-to-end—HS+TB for tight latency budgets, IP+TB when the (small) gain in F1 justifies the extra cost in terms of running time. Table 3: F1 across all 15 test sets under the coordinated label-flip attack, at attack rates p ∈ { 0.2, 0.4, 0.6, 0.8, 0.9}. Mean over 3 seeds. Bold : highest F1 within each (test set, p) cell (ties highlighted together). As soon as the attack becomes non-trivial, IP+TB takes the lead on every test set, and the gap to MV-P widens monotonically with p—direct evidence that consistency-based abduction is far more attack-resistant than count-based combiners. Acc derivable as Acc = F 1/(2 − F 1) .
+
+Test Set p = 0 .2 p = 0 .4 p = 0 .6 p = 0 .8 p = 0 .9
+
+Best MV-P IP+TB HS+TB Best MV-P IP+TB HS+TB Best MV-P IP+TB HS+TB Best MV-P IP+TB HS+TB Best MV-P IP+TB HS+TB MDS-A_1 0.63 0.68 0.69 0.68 0.57 0.61 0.63 0.63 0.49 0.53 0.58 0.59 0.43 0.45 0.54 0.50 0.39 0.42 0.52 0.46 MDS-A_2 0.64 0.69 0.69 0.70 0.57 0.61 0.64 0.65 0.50 0.54 0.58 0.59 0.43 0.46 0.54 0.53 0.40 0.42 0.52 0.48 MDS-A_3 0.41 0.51 0.52 0.51 0.37 0.45 0.47 0.45 0.32 0.39 0.43 0.41 0.28 0.34 0.40 0.35 0.26 0.31 0.39 0.33 UM_1 0.57 0.65 0.65 0.65 0.51 0.58 0.59 0.58 0.45 0.51 0.54 0.52 0.39 0.43 0.50 0.44 0.35 0.40 0.48 0.41 UM_2 0.55 0.63 0.63 0.64 0.48 0.56 0.58 0.56 0.42 0.49 0.53 0.51 0.37 0.42 0.49 0.44 0.33 0.38 0.47 0.40 UM_3 0.49 0.58 0.59 0.58 0.43 0.51 0.53 0.52 0.38 0.45 0.49 0.46 0.33 0.39 0.45 0.41 0.30 0.36 0.43 0.38 BM_1 0.52 0.60 0.61 0.60 0.47 0.54 0.55 0.54 0.41 0.47 0.50 0.48 0.35 0.41 0.46 0.43 0.32 0.37 0.44 0.40 BM_2 0.44 0.52 0.52 0.52 0.39 0.46 0.47 0.46 0.34 0.40 0.42 0.41 0.30 0.35 0.39 0.36 0.27 0.31 0.37 0.33 BM_3 0.50 0.58 0.59 0.58 0.44 0.52 0.53 0.53 0.39 0.45 0.48 0.47 0.33 0.39 0.44 0.41 0.30 0.35 0.42 0.38 MM_1 0.57 0.66 0.66 0.66 0.51 0.58 0.60 0.59 0.44 0.50 0.55 0.52 0.38 0.44 0.52 0.46 0.35 0.40 0.50 0.44 MM_2 0.42 0.49 0.49 0.49 0.37 0.43 0.44 0.43 0.33 0.38 0.40 0.39 0.28 0.32 0.36 0.33 0.26 0.29 0.34 0.30 MM_3 0.59 0.66 0.67 0.67 0.53 0.59 0.62 0.60 0.46 0.51 0.56 0.53 0.40 0.44 0.52 0.47 0.36 0.40 0.50 0.43 AM_1 0.27 0.31 0.30 0.31 0.24 0.28 0.28 0.28 0.21 0.24 0.26 0.24 0.18 0.21 0.24 0.21 0.16 0.19 0.22 0.19 AM_2 0.35 0.42 0.42 0.42 0.31 0.37 0.38 0.38 0.27 0.32 0.35 0.33 0.24 0.28 0.33 0.29 0.22 0.26 0.31 0.27 HUM_1 0.51 0.59 0.59 0.59 0.46 0.52 0.55 0.53 0.40 0.46 0.51 0.47 0.34 0.39 0.46 0.40 0.32 0.36 0.45 0.37 0.0 0.2 0.4 0.6 0.8              
+
+> Coordinated-flip probability p
+> 0.0 0.1 0.2 0.3 0.4 0.5
+> Gap to oracle  F1 (headroom)
+> MDS-A (6 detectors, oracle ceiling)
+> 0.0 0.2 0.4 0.6 0.8
+> Coordinated-flip probability p
+> 0.0 0.1 0.2 0.3 0.4 0.5
+> Gap to ceiling F1 ( F1ceiling  F1method ) DroneVehicle (RGB + IR, clean-data ceiling)
+> Macro AVG Best Model MV-Plurality-NoTB MV-Quorum MV-Strict MV-Plurality IP+TB HS+TB
+
+Figure 5: Adversarial coordinated label-flip: gap to the F1 ceiling per method as flip probability p grows (lower is bet-ter); panel titles and y-axes name the ceiling used in each. 
+
+(Left) MDS-A over the 15 test sets, bands ±1 std across test sets. (Right) Multimodal test ( k = 1 ) over 3 adversary seeds, bands ±1 std over seeds; its ceiling is a fixed constant, so the informative signal is the ordering among methods, not the absolute gap. IP+TB and HS+TB stay closest to the ceiling in both; full multimodal curves in the supp. material (Sec. H). 
+
+Conclusions and Future Work 
+
+We showed that the metacognitive layer of a multi-model perception system can be learned without domain knowledge ,using only per-model Label Vector Pools, and that framing model integration as consistency-based abduction yields a combiner that is both competitive on clean data and robust to a coordinated attack that breaks majority voting. Future work includes richer deduction rules for alternative assignment sets, automatic FP-detection without an oracle, finer joint exploration of ϵ and δ, and runtime optimization for real-time deployment. Furthermore, one promising direction for future work is combining the domain knowledge (DK-EDR) and LVP (LVP-EDR) versions of EDR, as they both work in a rule-based framework. In the supplementary material 2000 3000 4000 5000 6000 
+
+Detected objects per scenario (N) 
+
+050 100 150 200 
+
+> Per-object solve time [ms]  IP+TB HS+TB
+
+Figure 6: Wall-clock cost of IP+TB and HS+TB on the 15 clean test sets ( p = 0 ), one point scenario. Per-object solve time: HS+TB is essentially flat at 1.4–3.0 ms regardless of scenario size, matching the polynomial bound. (Sec. G), we report that the two approaches identify different sources of error, making them complementary. However, this complementary nature also has the effect of reducing true positives due to increases in error recall, and we found that combining the approaches did not meaningfully impact F1 (also reported in the supplementary material, Sec. G). 
+
+Acknowledgments 
+
+Funded by ARO grant W911NF-24-1-0007 and experiments were performed with compute resources supported by ARO DURIP and equipment donated by AMD. 
+
+References 
+
+Aditya, D.; Mukherji, K.; Balasubramanian, S.; Chaudhary, A.; and Shakarian, P. 2023. PyReason: Software for Open World Temporal Logic. arXiv preprint arXiv:2302.13482 .Biggio, B.; Nelson, B.; and Laskov, P. 2012. Poisoning attacks against support vector machines. arXiv preprint arXiv:1206.6389 .Biggio, B.; and Roli, F. 2018. Wild patterns: Ten years after the rise of adversarial machine learning. In Proceedings of the 2018 ACM SIGSAC conference on computer and com-munications security , 2154–2156. Cai, L.-W.; Dai, W.-Z.; Huang, Y.-X.; Li, Y.-F.; Muggleton, S.; and Jiang, Y. 2021. Abductive Learning with Ground Knowledge Base. In Zhou, Z.-H., ed., Proceedings of IJCAI ,1815–1821. International Joint Conferences on Artificial In-telligence Organization. Main Track. Dai, W.-Z.; Xu, Q.; Yu, Y.; and Zhou, Z.-H. 2019. Bridg-ing Machine Learning and Logical Reasoning by Abductive Learning. In Advances in Neural Information Processing Systems (NeurIPS) .Dosovitskiy, A.; Beyer, L.; Kolesnikov, A.; Weissenborn, D.; Zhai, X.; Unterthiner, T.; Dehghani, M.; Minderer, M.; Heigold, G.; Gelly, S.; et al. 2020. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929 .Eiter, T.; and Gottlob, G. 1995. The complexity of logic-based abduction. J. ACM , 42(1): 3–42. Goodfellow, I. J.; Shlens, J.; and Szegedy, C. 2014. Explain-ing and harnessing adversarial examples. arXiv preprint arXiv:1412.6572 .Han, X.; Zhang, Z.; Ding, N.; Gu, Y.; Liu, X.; Huo, Y.; Qiu, J.; Yao, Y.; Zhang, A.; Zhang, L.; et al. 2021. Pre-trained models: Past, present and future. AI open , 2: 225–250. He, K.; Chen, X.; Xie, S.; Li, Y.; Dollár, P.; and Girshick, R. 2022. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 16000–16009. Kricheli, J. S.; Vo, K.; Datta, A.; Ozgur, S.; and Shakarian, P. 2024. Error detection and constraint recovery in hierar-chical multi-label classification without prior knowledge. In 
+
+Proceedings CIKM , 3842–3846. Leiva, M. A.; Ngu, N.; Kricheli, J. S.; Taparia, A.; Senanayake, R.; Shakarian, P.; Bastian, N. D.; Corcoran, J.; and Simari, G. I. 2026. Consistency-based Abductive Reasoning over Perceptual Errors of Multiple Pre-trained Models in Novel Environments. In Koenig, S.; Jenkins, C.; and Taylor, M. E., eds., Proceedings of AAAI , 19216–19223. AAAI Press. Li, Y.; Mao, H.; Girshick, R.; and He, K. 2022. Exploring plain vision transformer backbones for object detection. In 
+
+Proceedings of ECCV , 280–296. Springer. Ma, Y.; Ren, H.; Wang, B.; Jin, J.; Velipasalar, S.; and Qiu, Q. 2025. LVP-CLIP: Revisiting CLIP for Continual Learning with Label Vector Pool. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops , 231–240. Madry, A.; Makelov, A.; Schmidt, L.; Tsipras, D.; and Vladu, A. 2017. Towards deep learning models resistant to adver-sarial attacks. arXiv preprint arXiv:1706.06083 .Ming, D.; Ren, P.; Wang, Y.; and Feng, X. 2024. Boosting the Transferability of Adversarial Attack on Vision Transformer with Adaptive Token Tuning. In The Thirty-eighth Annual Conference on Neural Information Processing Systems .Ngu, N.; Taparia, A.; Simari, G. I.; Leiva, M.; Corcoran, J.; Senanayake, R.; Shakarian, P.; and Bastian, N. D. 2025. Multiple Distribution Shift – Aerial (MDS-A): A Dataset for Test-Time Error Detection and Model Adaptation. In AAAI Spring Symposium .Peng, Y.; and Reggia, J. A. 1990. Abductive inference models for diagnostic problem-solving . Springer-Verlag. Poole, D. 1989. Normality and faults in logic-based diagno-sis. In Proceedings of the 11th International Joint Conference on Artificial Intelligence - Volume 2 , IJCAI’89, 1304–1310. San Francisco, CA, USA: Morgan Kaufmann Publishers Inc. Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; et al. 2021. Learning transferable visual models from natural language supervision. In International conference on machine learning , 8748–8763. PmLR. Reiter, R. 1987. A theory of diagnosis from first principles. 
+
+Artificial Intelligence , 32(1): 57–95. Ren, S.; He, K.; Girshick, R.; and Sun, J. 2015. Faster R-CNN: Towards real-time object detection with region pro-posal networks. Advances in neural information processing systems , 28. Shah, S.; Dey, D.; Lovett, C.; and Kapoor, A. 2017. Air-Sim: High-Fidelity Visual and Physical Simulation for Au-tonomous Vehicles. In Field and Service Robotics .Snell, J.; Swersky, K.; and Zemel, R. 2017. Prototypical net-works for few-shot learning. Advances in neural information processing systems , 30. Sun, Y.; Cao, B.; Zhu, P.; and Hu, Q. 2022. Drone-based RGB-Infrared Cross-Modality Vehicle Detection via Uncertainty-Aware Learning. IEEE Transactions on Circuits and Systems for Video Technology , 1–1. Sun, Y.; Wang, X.; Liu, Z.; Miller, J.; Efros, A.; and Hardt, M. 2020. Test-time training with self-supervision for general-ization under distribution shifts. In International conference on machine learning , 9229–9248. PMLR. Tramèr, F.; Kurakin, A.; Papernot, N.; Goodfellow, I.; Boneh, D.; and McDaniel, P. 2017. Ensemble adversarial training: Attacks and defenses. arXiv preprint arXiv:1705.07204 .Wu, Y.; Kirillov, A.; Massa, F.; Lo, W.-Y.; and Girshick, R. 2019. Detectron2. https://github.com/facebookresearch/ detectron2. Xi, B.; Scaria, K.; Bavikadi, D.; and Shakarian, P. 2024. Rule-Based Error Detection and Correction to Operational-ize Movement Trajectory Classification. arXiv:2308.14250. Supplementary Material 
+
+Dataset: The 15-Test-Set MDS-A Benchmark 
+
+We use the Multiple Distribution Shift – Aerial (MDS-A) dataset (Ngu et al. 2025), generated with AirSim (Shah et al. 2017), in the 15-test-set extension introduced by Leiva et al. (Leiva et al. 2026). Images are captured in a city en-vironment under varying weather, with bounding boxes in four classes: pedestrian , vehicle , construction , nature . Six training conditions ( rain,snow,fog,maple leaves, dust , and a no-weather normal ) and a test suite of 15 sets spanning in-creasingly complex mixed-weather shifts are used. Figure 7 illustrates the conditions. 
+
+A. Unique-Name Assumption: Implementation 
+
+We instantiate the unique-name assumption through the ensemble-matching step: a detection is associated with a ground-truth object when their boxes overlap at IoU ≥ 0.5;among multiple candidates from the same model we keep the highest-IoU box regardless of predicted class , so that genuine inter-model disagreements are preserved. Detections that match no ground-truth object are kept as their own object identifiers (FP-detections). 
+
+B. Detection Models: Training Configuration 
+
+The six detectors follow the ViTDet recipe (Li et al. 2022): a plain ViT-Base backbone pretrained with MAE (He et al. 2022) and a Faster R-CNN detection head, fine-tuned per weather condition with Detectron2. Table 4 lists the shared training configuration. Table 4: Detector training configuration.              
+
+> Setting Value
+> Backbone ViT-Base (plain) Detection head Faster R-CNN (ViTDet) Pretraining MAE (ImageNet-1K) Optimizer / base LR AdamW / 10 −4
+> Batch size / iters 1 / 3000 Input resolution 1024 ×1024 (LSJ) Test confidence thr. 0.7 Embedding dim. 1024
+
+C. LVP Error Detector: Training Details 
+
+Per (model, class) Random Forest are trained on the distance features ϕ(e) (3 sub-centroids × 4 classes = 12 dims), with hyperparameters selected by 3-fold cross-validation. Table 5 reports the error-detector Precision, Recall and F1 averaged across the four classes and across the 15 test scenarios, one row per backbone-model condition. 
+
+Hyperparameter Study: Rule-Learner Strictness ( ϵ) We also examine how the strictness hyperparameter ϵ of the rule learner shapes the LVP-derived programs. Recall that ϵ is in-terpretable as the expected recall reduction from discarding flagged predictions. Figure 8 shows the effective threshold on the LVP error probability picked by the learner as a function of ϵ, separately per model: as ϵ grows, the effective thresh-old decreases monotonically. A lower threshold means the Table 5: LVP error-detector metrics per model, averaged across all classes and all test scenarios (mean ± std).                                                                   
+
+> Backbone model Precision Recall F1
+> dust .69 ±.09 .17 ±.03 .28 ±.04 fog .72 ±.07 .24 ±.02 .36 ±.03 maple .85 ±.08 .25 ±.06 .39 ±.07 rain .74 ±.04 .15 ±.02 .25 ±.03 snow .61 ±.05 .13 ±.02 .21 ±.02 normal .88 ±.04 .25 ±.02 .39 ±.03
+> Average .74 ±0.06 0.19 ±0.03 0.31 ±0.04
+
+rule fires on lower error scores, which in turn flags more detections as errors—more aggressive filtering, more down-stream recall reduction, and (on the per-model side) higher precision. The slope and operating range differ across the six models, reflecting how each detector’s error-score dis-tribution responds to its own LVP pool; this is what makes the rule-learning stage model-specific without being domain-specific .
+
+D. Full Per-Scenario Results 
+
+Table 6 gives F1 and Accuracy for every method on all 15 test sets, the full version of Table 1 in the main paper. 
+
+E. Aggregated Adversarial Results (all methods, all 
+
+p)
+
+Table 7 reports F1 averaged across the 15 test sets, for each of the 10 methods at all 10 attack rates p ∈ { 0.0, . . . , 0.9}. This complements Table 3 in the main paper, which shows per-scenario values for the four headline methods at five attack rates: here we trade per-scenario detail for full coverage of the method space (the four MV variants plus the no-TB versions of IP and HS that we omitted from the body) and of the attack-rate grid. Means are computed by first averaging across the 3 seeds per scenario, then across the 15 scenarios; the reported standard deviation is the across-scenario variability. Bold :top mean F1 per column. 
+
+Observations. Four points worth noting on Table 7. 
+
+(i) Effect of TB on MV-Plurality. On clean data MV-P and MV-P-NoTB are indistinguishable ( 0.64 vs. 0.63 ). Under at-tack the gap widens monotonically: at p = 0 .9 MV-P holds at 0.35 F1 while MV-P-NoTB collapse to 0.25 . The 0.10 F1 difference is entirely due to the confidence tie-break, which rescues plurality from the random ties induces by the coor-dinate flips. 
+
+(ii) Effect of TB on our methods. IP and IP+TB are virtually identical at every p (e.g., 0.422 vs. 0.423 at p = 0 .9): the abduction step already leaves almost no residual ambiguity to resolve. HS+TB beats raw HS by ∼ 0.015 F1 at p = 0 .9,because the greedy search admits slightly more ambiguous (model, class) pairs that TB then disambiguates. 
+
+(iii) Where the crossover happens. On clean data MV-Plurality is marginally ahead of IP+TB in the aggregate (0.636 vs. 0.632 ). From p ≥ 0.3 IP+TB takes the lead, and the gap widens monotonically, reaching +0 .07 F1 ( +22% 
+
+relative) at p = 0 .9.Dust              
+
+> Snow
+> Rain
+> Maple Leaf
+> Fog
+> Normal
+> Training Sets Test Sets
+> UM_1 UM_2 UM_3 BM_1 BM_2 BM_3
+> MM_1 MM_2 MM_3 MDS -A_1 MDS -A_2 MDS -A_3
+> AM_1 AM_2 HUM_1
+> Weather conditions
+> R = Rain
+> S = Snow
+> M = Maple Leaf
+> D = Dust
+> F = Fog
+
+Figure 7: Example AirSim views under different weather conditions and the weather-intensity distribution of the corresponding test sets. 
+
+Figure 8: Effective LVP error-probability threshold as a func-tion of the rule-learner strictness ϵ, one curve per detector. Larger ϵ lowers the effective threshold, yielding more error detections and lower retained recall. The per-model curves differ in slope and range, showing that the same ϵ produces different operating points for different detectors. 
+
+(iv) Conservative MV variants and per-model baselines. 
+
+Macro AVG, MV-Quorum and MV-Strict stay below Best Model at every p in the aggregate, and never come within 
+
+0.10 F1 of either MV-Plurality or our methods. Their preci-sion bias offers no robustness advantage under this attack. 2000 3000 4000 5000 6000     
+
+> Detected objects per scenario (N)
+> 10 1
+> 10 2
+> Total solve time [s] (log)
+> (a) Total solve time
+> IP+TB HS+TB
+> 2000 3000 4000 5000 6000
+> Detected objects per scenario (N)
+> 050 100 150 200
+> Per-object solve time [ms]
+> (b) Per-object solve time
+> IP+TB HS+TB
+
+Figure 9: Empirical runtime of IP and HS as a function of the number of objects per images. (left) total solve time and 
+
+(right) per-object solve time 
+
+F. Running-Time Analysis 
+
+Figure 9 shows the empirical runtime of IP and HS as a function of the number of objects per images and the total solver runtime. On the left, we seee the total runtime, demon-strating the advantages of HS+TB, and the right the runtime per object per image, showing the convergence of IP+TB, consistent with the O(N |F||C| ) analysis. 
+
+G. Combining LVP-EDR + DK-EDR 
+
+To explore potential synergies between our EDR rules ap-proaches, we evaluated combining the outputs of LVP-EDR and DK-EDR using Union ( LV P ∪ DK ) and Intersection (LV P ∩ DK ) operations. However, results across the five clean test sets demonstrated that no combination outperforms the individual rules, with either LVP or DK alone achiev-Table 6: F1 / Accuracy across the 15 test sets (clean data). In bold: the strongest baseline (MV-Plurality in every set) and our two methods (IP+TB, HS+TB), i.e. the top-performing cluster—our methods land within ≈ 0.005 F1 of the best baseline on every set. Columns: Avg. (macro average over models), Best (best single model), MV-P (MV-Plurality), MV-P † (MV-Plurality without tie-break), MV-Q (MV-Quorum), MV-S (MV-Strict), IP+TB, HS+TB. Accuracy is the detection Jaccard index, Acc = F 1/(2 − F 1) .
+
+Test Set Avg. Best MV-P MV-P † MV-Q MV-S IP+TB HS+TB 
+
+F1 Acc F1 Acc F1 Acc F1 Acc F1 Acc F1 Acc F1 Acc F1 Acc MDS-A_1 0.61 0.43 0.70 0.54 0.76 0.61 0.75 0.61 0.59 0.42 0.59 0.42 0.75 0.60 0.75 0.60 
+
+MDS-A_2 0.61 0.44 0.72 0.56 0.77 0.62 0.77 0.62 0.59 0.42 0.59 0.42 0.76 0.61 0.77 0.62 
+
+MDS-A_3 0.41 0.25 0.46 0.30 0.56 0.39 0.56 0.39 0.38 0.24 0.38 0.24 0.57 0.40 0.56 0.39 
+
+UM_1 0.57 0.40 0.64 0.47 0.72 0.56 0.72 0.56 0.55 0.38 0.55 0.38 0.72 0.56 0.72 0.56 
+
+UM_2 0.56 0.39 0.61 0.43 0.70 0.54 0.70 0.54 0.54 0.37 0.54 0.37 0.70 0.54 0.70 0.54 
+
+UM_3 0.47 0.31 0.54 0.37 0.65 0.48 0.65 0.48 0.46 0.30 0.46 0.30 0.65 0.48 0.65 0.48 
+
+BM_1 0.50 0.33 0.58 0.41 0.67 0.51 0.67 0.51 0.48 0.32 0.48 0.32 0.67 0.50 0.67 0.51 
+
+BM_2 0.40 0.25 0.49 0.32 0.58 0.41 0.58 0.41 0.38 0.24 0.38 0.24 0.58 0.41 0.58 0.41 
+
+BM_3 0.50 0.33 0.55 0.38 0.65 0.48 0.65 0.48 0.48 0.32 0.48 0.32 0.65 0.48 0.65 0.48 
+
+MM_1 0.59 0.42 0.64 0.47 0.73 0.58 0.73 0.57 0.58 0.41 0.58 0.41 0.73 0.58 0.73 0.58 
+
+MM_2 0.37 0.23 0.47 0.31 0.54 0.37 0.54 0.37 0.35 0.21 0.35 0.21 0.54 0.37 0.54 0.37 
+
+MM_3 0.59 0.42 0.65 0.49 0.74 0.58 0.74 0.58 0.57 0.40 0.57 0.40 0.73 0.58 0.74 0.58 
+
+AM_1 0.21 0.12 0.30 0.17 0.34 0.21 0.34 0.21 0.19 0.10 0.19 0.10 0.34 0.21 0.34 0.21 
+
+AM_2 0.31 0.18 0.39 0.24 0.47 0.31 0.47 0.30 0.28 0.17 0.28 0.16 0.46 0.30 0.47 0.30 
+
+HUM_1 0.50 0.33 0.57 0.40 0.66 0.49 0.65 0.49 0.48 0.31 0.48 0.31 0.65 0.48 0.65 0.49 
+
+ing the highest F1 scores in all evaluated scenarios. For in-stance, in the AM_1 dataset using the IP+TB configuration, the maximum F1 score reached is 0.342 for LVP and 0.344 for DK, whereas the Union reduces performance to 0.330 and the Intersection decreases it to 0.329 (Figure 11). This widespread performance degradation—with drops of up to -0.013 compared to LVP alone—indicates that the down-stream abductive step is already operating at its maximum selection capacity; therefore, forcing additional filters ends up discarding valid predictions instead of improving the final result. The overlap analysis reveals that this failure occurs because both methods identify almost completely disjoint sets of er-rors, operating on fundamentally different principles (LVP focuses on anomalies in the embedding space, while DK re-lies on geometry and masks). The confusion matrices show that, for the MDS-A_1 scenario at ϵ = 0 .5, only 405 detec-tions are simultaneously flagged by both methods, compared to 3347 identified exclusively by LVP and 4921 exclusively by DK, representing a mere 4.7% overlap (Figure 10). Al-though this confirms a strong theoretical complementarity between the approaches, stacking such divergent error sig-nals under the current abductive combiner tightens the filter too aggressively. Given that straightforward logical combina-tions fail to exploit this complementarity without penalizing the F1 score, their evaluation on the remaining test suites and adversarial scenarios was discarded. MDS-A_1 UM_1 BM_1 MM_1 AM_1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8           
+
+> F1
+> 0.754 0.721 0.674 0.731 0.342 0.753 0.721 0.674 0.731 0.344 0.752 0.721 0.673 0.731 0.344 0.752 0.719 0.672 0.729 0.343
+> Best F1 HS+TB
+> LVP-alone DK-alone LVP DK
+> LVP DK
+> MDS-A_1 UM_1 BM_1 MM_1 AM_1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+> F1
+> 0.754 0.721 0.674 0.731 0.342 0.753 0.721 0.674 0.731 0.344 0.747 0.714 0.669 0.731 0.330 0.742 0.710 0.666 0.726 0.329
+> Best F1 IP+TB
+> LVP-alone DK-alone LVP DK
+> LVP DK
+
+Figure 10: Comparison of maximum F1 scores across five clean test sets for individual detection methods (LVP-alone and DK-alone) versus their logical combinations (Union, 
+
+LV P ∪ DK , and Intersection, LV P ∩ DK ). Results are shown for both HS+TB and IP+TB abductive steps. In all evaluated scenarios, the combined filters fail to outperform the best standalone method, indicating a performance degra-dation during the downstream abduction. Table 7: F1 under the coordinated label-flip attack, averaged over the 15 test sets (mean ± across-scenario std; per-scenario values are themselves the mean over 3 seeds). Bold : top mean F1 per column. MV-P-NoTB abbreviates MV-Plurality-NoTB. 
+
+Method p = 0 .0 p = 0 .1 p = 0 .2 p = 0 .3 p = 0 .4 p = 0 .5 p = 0 .6 p = 0 .7 p = 0 .8 p = 0 .9
+
+Macro AVG 0.48 ±.12 0.46 ±.11 0.43 ±.11 0.41 ±.10 0.38 ±.10 0.36 ±.09 0.34 ±.08 0.31 ±.08 0.29 ±.07 0.26 ±.07 Best Model 0.55 ±.12 0.53 ±.11 0.50 ±.10 0.47 ±.10 0.44 ±.09 0.42 ±.09 0.39 ±.08 0.36 ±.08 0.34 ±.07 0.31 ±.06 MV-Plurality 0.64 ±.12 0.60 ±.11 0.57 ±.11 0.54 ±.10 0.51 ±.09 0.48 ±.09 0.44 ±.08 0.41 ±.08 0.38 ±.07 0.35 ±.07 MV-P-NoTB 0.63 ±.12 0.60 ±.11 0.56 ±.10 0.52 ±.10 0.48 ±.09 0.43 ±.08 0.39 ±.07 0.35 ±.06 0.30 ±.05 0.25 ±.04 MV-Quorum 0.46 ±.12 0.44 ±.11 0.41 ±.11 0.39 ±.10 0.37 ±.10 0.34 ±.09 0.32 ±.08 0.30 ±.08 0.28 ±.07 0.25 ±.07 MV-Strict 0.46 ±.12 0.44 ±.11 0.41 ±.11 0.39 ±.10 0.36 ±.10 0.34 ±.09 0.31 ±.08 0.29 ±.08 0.26 ±.07 0.24 ±.07 IP 0.63 ±.12 0.60 ±.11 0.57 ±.11 0.55 ±.10 0.52 ±.10 0.50 ±.10 0.48 ±.09 0.46 ±.09 0.44 ±.09 0.42 ±.08 IP+TB 0.63 ±.12 0.60 ±.11 0.57 ±.11 0.55 ±.10 0.52 ±.10 0.50 ±.10 0.48 ±.09 0.46 ±.09 0.44 ±.09 0.42 ±.08 HS 0.63 ±.12 0.60 ±.11 0.57 ±.11 0.54 ±.10 0.50 ±.09 0.48 ±.09 0.45 ±.08 0.42 ±.08 0.39 ±.07 0.36 ±.07 HS+TB 0.64 ±.12 0.60 ±.11 0.57 ±.11 0.55 ±.10 0.52 ±.10 0.49 ±.10 0.46 ±.09 0.43 ±.09 0.40 ±.08 0.37 ±.08 0.01 0.10 0.30 0.50 0.70 0.90                                                                                      
+
+> MDS-A_1 UM_1 BM_1 MM_1 AM_1
+> 00172 405 520 1500 00136 193 308 943 00135 187 333 1050 00170 264 462 1472 0029 41 65 194
+> Both LVP & DK flag
+> 0.01 0.10 0.30 0.50 0.70 0.90
+> MDS-A_1 UM_1 BM_1 MM_1 AM_1
+> 3752 3752 3580 3347 3239 2289 2232 2232 2096 2039 1925 1311 2109 2109 1974 1922 1779 1082 2852 2852 2682 2588 2393 1404 708 708 679 667 644 525
+> Only LVP flags
+> 0.01 0.10 0.30 0.50 0.70 0.90
+> MDS-A_1 UM_1 BM_1 MM_1 AM_1
+> 011714 4921 6254 10010 01915 3023 3735 5944 01724 2963 3511 5608 041239 4124 5108 8255 02112 533 617 1074
+> Only DK flags
+> 0250 500 750 1000 1250 1500
+> 1000 2000 3000
+> 02000 4000 6000 8000 10000
+
+Figure 11: Detection overlap between LVP-EDR and DK-EDR across varying rule rigor levels ( ϵ) for the five eval-uated test sets. The matrices display the number of errors flagged simultaneously by both methods, solely by LVP, and solely by DK. The identified error sets are nearly disjoint (e.g., yielding only a 4.7% overlap in MDS-A_1 at ϵ = 0 .5), showing that while the methods are fundamentally comple-mentary, combining them creates an overly aggressive filter that hinders the abductive step. 
+
+H. External-Validity Experiment: Multimodal Test 
+
+To assess how the LVP-EDR framework transfers beyond the MDS-A dataset, we ran the full pipeline on VisDrone-DroneVehicle (Sun et al. 2022), a multimodal aerial dataset with paired RGB and infrared modalities. This setup sub-jects the framework to a fundamentally different regime than MDS-A: only two detectors (one per modality) instead of six weather-specific models. We first present the dataset and setup, then the results with clean and adversary data, and conclude with a discussion of when the abduction layer adds value. 
+
+Dataset and Setup. VisDrone-DroneVehicle (Sun et al. 2022) provides 28 ,439 aligned RGB / infrared aerial image pairs of urban and suburban scenes with five vehicle classes: 
+
+car , truck , bus , van , and freight_car . Annotations are ori-ented bounding boxes; for our pipeline we convert them to axis-aligned bounding rectangles, strip the 100 -pixel anno-tation border built into the released files (training resolution becomes 640 × 512 ), and randomly sample 2000 train + 200 
+
+val + 500 test pairs (seed 42 ) to keep compute tractable while retaining full class coverage. To make the ensemble evaluation meaningful, we build a 
+
+mixed test set of 500 images composed of 250 RGB scenes 
+
+Figure 12: DroneVehicle sample scene from the same phys-ical location in RGB (left) and IR (right), with ground-truth bounding boxes color-coded by class. 
+
+Detector AP AP 50 car truck bus van freight RGB 18.8 32.0 48.3 9.2 36.4 0.0 0.0 IR 20.5 31.4 57.6 7.0 37.7 0.0 0.0 
+
+Table 8: DroneVehicle validation AP by class. and 250 IR scenes drawn from disjoint physical locations, so that each detector faces both in-domain and out-of-domain inputs at test time (see Fig. 12 for a sample pair). 
+
+Detection Performance Both detectors reach comparable AP 50 around 32 on their respective validation splits (Table 8). IR is consistently equal or better than RGB on the well-represented classes, with the largest gap on car where the thermal signature of engines gives IR a clear advantage. Van and freight_car collapse to AP = 0 in both modalities: with ∼ 900 training instances and strong visual similarity to trucks in an aerial view, the models rarely commit to these ambiguous shapes. Downstream the pipeline therefore operates on three effective classes (car, truck, bus). 
+
+Baselines and Abduction on Clean Data Table 9 reports the FULL-metric performance on the mixed test set (FP counts include false-positive detections without a match-ing GT). The best single detector is IR at F1 = 0 .680 ; the ensemble baselines cluster around F1 = 0 .67 , with MV-Quorum penalized for enforcing agreement across the mixed Method Precision Recall F1                              
+
+> RGB (single) 0.841 0.514 0.638 IR (single) 0.871 0.558 0.680 Macro AVG 0.856 0.536 0.659 Best Model (= IR) 0.871 0.558 0.680
+> MV-Plurality 0.785 0.588 0.672
+> MV-Plurality-NoTB 0.785 0.588 0.672
+> MV-Quorum 0.962 0.484 0.644 MV-Strict 0.962 0.484 0.644 IP+TB (ours) 0.792 0.584 0.672
+> HS+TB (ours) 0.792 0.584 0.672
+
+Table 9: DroneVehicle mixed-test performance on clean data (FULL metric). Inter-detector inconsistency is 0.0002 ;IP+TB and HS+TB degenerate to MV-Plurality because there are no conflicts to resolve. in-domain/out-of-domain regime. Recall crashes without a proportional precision gain, unlike in MDS-A where MV-Quorum benefits from six independent votes. Our IP+TB and HS+TB tie MV-Plurality at F1 = 0 .672 
+
+because the inter-detector inconsistency on the clean test set is essentially zero ( 0.0002 ). The abductive layer has no conflicts to resolve on clean data: RGB and IR were trained on paired scenes and their predictions on any given object almost always agree at the class level, so the IP/HS optimizers degenerate to the majority-vote solution. This is the worst-case regime for our framework in clean conditions, and yet, as the adversarial results show below, it becomes the best-case regime under attack. 
+
+Adversarial Coordinated Label-Flip We apply the same coordinated label-flip protocol used in the main paper. For each ground-truth object, with probability p, we pick one of the two detectors ( k = 1 : partial compromise) and replace its predicted class with a random wrong class. We sweep 
+
+p ∈ { 0, 0.1, . . . , 0.9} with three adversary seeds and reuse the LVP classifiers and EDR rules learned on clean data (no retraining per attack). Both of our unconstrained methods stay above every base-line for all p ≥ 0.1 (see left in Fig. 13). At p = 0 .9, IP+TB reaches F1 = 0 .395 and HS+TB F1 = 0 .410 , versus MV-Plurality 0.376 , MV-Quorum 0.360 , and Best Model 0.367 ;MV-Plurality-NoTB collapses to F1 = 0 .16 because the adversary-induced ties trigger its abstention policy. The gap to the clean-data ceiling widens for every method as p grows, but stays smallest for IP+TB and HS+TB across the whole sweep (see right in Fig. 13). The coordinated flip introduces the inter-detector inconsistency that the abduction step was designed to resolve. 
+
+Discussion DroneVehicle exercises the LVP-EDR framework in a regime that is strictly harder than MDS-A for the abduc-tive layer to add value on clean data: only two detectors, and both trained on paired scenes with high behavioral correla-tion. Inter-detector inconsistency is essentially zero and no ensemble method, ours included, meaningfully beats the best single detector (IR at F1 = 0 .680 ). The clean-data story is a tie between our methods and MV-Plurality, and a mild loss against Best Model. 
+
+Figure 13: (Left:) Adversarial coordinated label-flip ( k = 1 ): 
+
+F1 vs. attack probability p, averaged over three adversary seeds. Error bars are ±1 std on the three methods (MV-Plurality, IP+TB, HS+TB). IP+TB (red) and HS+TB (blue) are the top two lines for all p ≥ 0.1; MV-Plurality-NoTB collapses. (Right:) Gap to the clean-data ceiling ( F ceiling  
+
+> 1
+
+=0.680 , achieved by the IR detector alone at p = 0 ) as a function of attack probability. IP+TB and HS+TB stay closest to the ceiling across the sweep; MV-Plurality-NoTB grows fastest. The adversarial results reverse this picture. The coordi-nated label-flip attack creates the very inconsistency the ab-ductive layer requires, and the LVP filter, learned from clean data alone, flags the flipped detections. As a result, both IP+TB and HS+TB stay every baseline across the full attack sweep, with a margin that widens with attack strength (up to 
+
+∼ 5 F1 points over MV-Quorum at p = 0 .9). We view this as a complementary corroboration of the paper’s central claim: the LVP metacognitive layer adds most value precisely when the base ensemble faces disagreements it cannot resolve on its own. On MDS-A those disagreements arise naturally from six specialized weather detectors and yield strong clean-data wins; on DroneVehicle they arise only under adversarial pressure and yield strong adversarial wins.

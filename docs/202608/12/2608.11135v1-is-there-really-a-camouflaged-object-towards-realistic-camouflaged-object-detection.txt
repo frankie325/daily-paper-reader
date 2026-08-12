@@ -1,0 +1,363 @@
+Title: Is There Really a Camouflaged Object? Towards Realistic Camouflaged Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.11135v1
+
+Published Time: Wed, 12 Aug 2026 01:24:34 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Is There Really a Camouflaged Object? Towards Realistic Camouflaged Object Detection 
+
+Huafeng Chen 1 Yueming Lyu 1, Chenyang Si 1, Wende Tan 2, Liucheng Guo 2, Caifeng Shan 1
+
+> 1
+
+School of Intelligence Science and Technology, Nanjing University 
+
+> 2
+
+Department of Computing, Imperial College London 
+
+Abstract 
+
+Camouflaged object detection (COD) aims to segment objects that are visually concealed in their surroundings and has at-tracted increasing attention in recent years. However, most existing COD methods are developed under a closed-world assumption, where each input image is assumed to contain a camouflaged object. This assumption ignores realistic sce-narios with pure backgrounds or non-camouflaged objects, causing existing models to produce severe false positives when deployed in open-world environments. To address this limita-tion, we propose OPC16K, a large-scale benchmark for realistic COD. OPC16K contains 16,245 images from 14 sources and is carefully organized into camouflaged-object images, pure background images, and non-camouflaged-object images, en-abling comprehensive evaluation of both segmentation quality and negative-sample rejection. Based on this benchmark, we further propose OPCNet, a presence-aware camouflage net-work that reformulates COD from a pure segmentation task into a joint problem of object localization and camouflage exis-tence reasoning. Specifically, OPCNet introduces hierarchical existence reasoning to distinguish CO, BG, and NOCOD sce-narios, similarity-aware camouflage relation modeling to cap-ture foreground-background camouflage cues, and existence-aware feature refinement to regulate segmentation features with existence predictions. Extensive experiments on OPC16K demonstrate that OPCNet achieves superior performance under the proposed realistic COD evaluation protocol, significantly reducing false positives on negative samples while maintaining accurate camouflaged-object segmentation. Code and dataset will be released at https://github.com/2231122/OPCOD. 
+
+Introduction 
+
+Camouflaged Object Detection (COD) (Fan et al. 2020a, 2021; Pang et al. 2022) aims to identify objects concealed within their surrounding environments, with significant applications in search and rescue (Fan et al. 2021), species discovery, medical image analysis (Fan et al. 2020b), and military recon-naissance. In recent years, deep learning-based COD methods have achieved remarkable progress in segmentation accuracy. However, a fundamental gap exists between current research paradigms and real-world deployment: existing models (He et al. 2025; Liu, Kong, and Chen 2025) are trained and eval-uated under the closed-world assumption that camouflaged objects are always present in the input image, completely neglecting negative-sample scenarios. This assumption in-troduces a severe bias, as in real-world deployment, models Table 1: False positive rates of existing COD methods on the OPC16K test set. BG denotes the proportion of pure background images for which a method incorrectly predicts camouflaged objects, while NOCOD denotes the proportion of non-camouflaged object images for which a method produces false camouflaged-object predictions. AVG reports the average false positive rate over BG and NOCOD.             
+
+> Methods OPC16K BG ↓NOCOD ↓AVG ↓
+> CamoDiff (Sun et al. 2025) 0.953 1.00 0.977 RUN (He et al. 2025) 0.948 1.00 0.974 USCNet (Zhou et al. 2025) 0.202 0.784 0.493
+
+tend to produce excessive false positives when presented with pure background images (BG) or images containing non-camouflaged objects (NOCOD). As shown in Tab.1, state-of-the-art COD methods RUN (He et al. 2025) and USCNet (Zhou et al. 2025) exhibit false positive rates of 97.4% and 49.3%, respectively, on our OPC16K test set. In practice, false positives can severely compromise COD relia-bility in applications such as military reconnaissance, search and rescue, and medical imaging. Unlike SOD where images are intentionally captured with salient targets, realistic COD scenarios contain abundant negative samples, making reliable object-existence reasoning crucial for practical deployment. The most closely related work to ours is USCNet (Zhou et al. 2025), which targets the joint discrimination of salient objects (SO) and camouflaged objects (CO) in unconstrained scenes. However, its primary focus is on jointly modeling the two visually extreme concepts, particularly in scenes where both SO and CO co-exist, and it does not provide a systematic training and evaluation framework specifically designed for COD negative samples. To address these limitations, we pro-pose a comprehensive research framework for realistic COD, spanning three dimensions: dataset construction, method design, and evaluation protocol. On the data side, we construct OPC16K, a large-scale realis-tic COD benchmark comprising over 16,000 images, including approximately 9,000 camouflaged-object samples and 7,000 negative samples (roughly 3,000 pure background images and 4,000 images containing non-camouflaged objects). To reduce potential shortcut learning caused by distribution discrep-ancies, we carefully consider both foreground-category and arXiv:2608.11135v1 [cs.CV] 11 Aug 2026 Table 2: Comparison of existing COD benchmarks. †: images included without mask annotations. NOCOD (Salient) and NOCOD (General) denote salient and general non-camouflaged object images, respectively. Balanced Sampling indicates whether negative samples consider the foreground-category and scene-level distributions of positive samples. Out-of-Domain Negatives denotes NOCOD samples whose categories are outside the camouflaged-object distribution.                                                             
+
+> Benchmark Source Target #Ann. IMG. COD BG NOCOD (Salient) NOCOD (General) Balanced Sampling Out-of-Domain Negatives
+> CAMO (Le et al. 2019) Internet Conventional COD 1,250 1,250 ✗✗✗––CHAMELEON Internet Conventional COD 76 76 ✗✗✗––NC4K (Lv et al. 2021) Internet Conventional COD 4,121 4,121 ✗✗✗––COD10K (Fan et al. 2020a) Internet Conventional COD 7,000 5,066 1,934 3,000 †✗✗✗
+> USC12K (Zhou et al. 2025) Filter & Internet Co-SOD&COD 12,000 3,000 3,000 3,000 ✗✗1,754/3,000
+> OPC16K (Ours) Filter & Internet Realistic COD 16,245 9,000 3,050 1,076 3,119 ✓✗
+
+scene-level distributions during negative-sample collection. This design aims to alleviate dataset biases and encourage models to focus more on camouflage-related visual cues rather than exploiting simple category or domain differences. To our knowledge, OPC16K is the first dataset to systematically address the Realistic COD challenge. On the method side, existing COD approaches (Fan et al. 2021; Pang et al. 2022; He et al. 2025) formulate COD as a segmentation problem that assumes target existence by default. By relying mainly on pixel-wise segmentation supervision, these methods lack an explicit mechanism to distinguish whether the observed objects are truly camouflaged, leading to unreliable responses in BG and NOCOD scenarios. To address this limitation, we propose OPCNet, which refor-mulates COD from a pure segmentation task into a joint framework of object localization and camouflage existence reasoning across three scenarios: COD, NOCOD, and BG. OPCNet introduces explicit existence modeling and integrates three key mechanisms: 1) Hierarchical existence reasoning ,which decomposes the decision process into object presence verification and camouflage existence verification, enabling explicit discrimination among BG, NOCOD, and COD scenar-ios; 2) Existence-aware feature refinement , which leverages hierarchical existence predictions to adaptively modulate segmentation features, bridging object localization and cam-ouflage recognition; 3) Similarity-aware camouflage relation modeling , which constructs foreground-background relational representations through prototype similarity and discrepancy modeling, providing explicit cues for camouflage existence reasoning under high foreground-background similarity. On the evaluation side, existing metrics such as Sm and MAE focus exclusively on segmentation quality for camou-flaged positive samples and are incapable of measuring a model’s holistic capability in realistic COD scenarios: the ability to suppress false positives on BG and NOCOD inputs, and the degree of segmentation degradation under negative-sample interference. To this end, we propose a Realistic COD evaluation protocol that comprehensively assesses models along three dimensions: classification accuracy, negative-sample false positive rate, and segmentation-aware quality. Our contributions are summarized as follows: 
+
+• We construct OPC16K, a large-scale benchmark specifi-cally designed for realistic COD evaluation, with carefully controlled negative-sample distributions to assess reliable COD performance beyond the conventional positive-only assumption. 
+
+• We propose OPCNet, which reformulates COD from a pure segmentation paradigm into a presence-aware discrimi-nation framework through explicit existence modeling. By integrating hierarchical existence reasoning, existence-aware feature refinement, and similarity-aware camouflage relation modeling, OPCNet enables reliable COD under realistic COD scenarios. 
+
+• We establish a comprehensive evaluation protocol for realistic COD evaluation and conduct extensive exper-iments on OPC16K, where OPCNet achieves superior performance across diverse evaluation metrics. 
+
+Related Work 
+
+Camouflaged Object Detection. Early COD methods build upon encoder-decoder architectures to capture multi-scale features (Fan et al. 2021, 2023; Pang et al. 2022; Li et al. 2021) and progressively refine segmentation maps (Fan et al. 2020a; Pang et al. 2022; He et al. 2023b; Guo et al. 2026). Subsequent works introduce auxiliary cues such as edge and texture awareness (He et al. 2023a; Zhang et al. 2024; Ye et al. 2025) as well as multi-source inputs including depth maps and infrared imagery (Wang et al. 2023, 2024; Liu, Kong, and Chen 2025) to provide richer supervision signals. More recently, methods leveraging large foundation models such as SAM have demonstrated strong generalization in segmentation (Chen et al. 2023; Liu, Kong, and Chen 2025; Ren et al. 2025; Chen et al. 2024a,b, 2026). Despite their advances in segmentation accuracy, all these methods are developed and evaluated under the closed-world assumption that every input image is guaranteed to contain a camouflaged object. This fundamentally limits their reliability in real-world deployment, where negative samples are prevalent and false positives carry significant practical costs. 
+
+Salient Object Detection and Joint SOD/COD Methods. 
+
+Salient Object Detection (SOD) aims to identify visually prominent objects that naturally attract human attention (Zhao et al. 2019), standing in conceptual opposition to COD where objects are deliberately concealed. A line of works attempts to jointly train SOD and COD to achieve mutual enhancement, enabling a single model to handle both tasks (Li et al. 2021; Luo et al. 2024; Zhao et al. 2024). However, these methods still operate under the assumption that at least one foreground (a) Source Pools of OPC16K                
+
+> 16,245 images collected from 14 sources COD Datasets Scene Datasets Object-domain Datasets Web Collection
+> Camouflaged-object images with mask annotations •CAMO •COD10K •NC4K Object-free background scenes
+> •SUN2012 •Places365 •ESD •RUIE •UFO120 • … Non-camouflaged object images
+> •ILSVRC •IP102 •SnakeCLEF • Unlabeled2017 • … Supplemental internet images
+> Web search and manual collection
+> Manual curation and filtering
+> (b) Representative OPC16K Samples
+> CO BG NOCOD-Salient NOCOD-General
+> Image GT Image GT Image GT Image GT
+
+Figure 1: Overview of OPC16K. OPC16K is constructed from four source pools, including COD datasets, scene datasets, object-domain datasets, and web collection. Representative image-mask pairs show the four visual scenarios in our benchmark: camouflaged-object images (CO), pure back-ground images (BG), salient non-camouflaged-object images (NOCOD-Salient), and general non-camouflaged-object im-ages (NOCOD-General). object is present in every image. USCNet (Zhou et al. 2025) takes a step further by proposing a unified framework for joint discrimination of salient and camouflaged objects in unconstrained scenes, explicitly allowing both SO and CO to co-exist within a single image. Nevertheless, its primary focus remains on modeling the interplay between SO and CO, rather than systematically addressing the negative-sample challenge in COD. Our work is fundamentally different: we target the realistic COD setting and explicitly model the three-way discrimination among COD, NOCOD, and BG. 
+
+COD Benchmarks and Datasets. Several datasets have been established to advance COD research, including CAMO (Le et al. 2019), COD10K (Fan et al. 2020a), and NC4K (Lv et al. 2021). While these datasets have driven significant method-ological progress, they are primarily constructed around cam-ouflaged positive samples. Although CAMO and COD10K include a limited number of background and non-camouflaged images, these negative samples are scarce, category-wise homogeneous, and lack deliberate distribution alignment with positive samples in terms of foreground categories and background scenes. USC12K (Zhou et al. 2025), proposed alongside USCNet to support research on salient and cam-ouflaged objects in unconstrained scenes, similarly includes SOD and background images as negatives. However, its non-camouflaged samples are limited to salient objects, and the background scene diversity remains constrained. Our pro-posed OPC16K addresses these limitations by incorporating a large and diverse set of negative samples whose scene and category distributions are deliberately matched to the positive samples, preventing models from exploiting domain discrepancies as shortcut solutions. 0 2 4 6 8 10    
+
+> Pipefish Spider Bird Katydid Cat Grasshopper Human Lizard Toad Butterfly Car Apple Cup Bowl Bus CO Top-10 categories OOD Top-5 categories
+> 5.4 5.4 5.2 5.2 4.0 4.0 4.0 3.9 3.9 3.0 3.4 4.0 7.3 1.3 2.4 3.0 1.6 4.3 4.1 2.6 0.0 0.0 6.0 0.0 1.1 0.0 0.8 0.1 1.6 3.0 1.9 1.7 1.6 1.5
+> 20
+> 20.0
+> Normalized frequency (%)
+> Category Distribution Comparison
+> CO (Positive) OPC16K-NOCOD USC12K-NOCOD USC12K OOD Top-5
+
+Figure 2: Foreground-category distribution comparison among CO positives, OPC16K-NOCOD, and USC12K-NOCOD. The upper part shows the top-10 foreground cate-gories ranked by their normalized frequencies in CO samples, while the lower part shows the top-5 out-of-domain categories observed in USC12K-NOCOD. 
+
+The Proposed OPC16K Dataest 
+
+Existing COD datasets, such as COD10K (Fan et al. 2020a), CAMO (Le et al. 2019), and NC4K (Lv et al. 2021), are constructed exclusively around camouflaged positive sam-ples, encoding the positive-only assumption at the data level. Although CAMO and COD10K contain a limited number of background and non-camouflaged images, these negative samples are scarce, category-wise homogeneous, and lack deliberate distribution alignment with positive samples. This data-level bias prevents models from learning to recognize the absence of camouflage, and renders existing benchmarks in-adequate for evaluating real-world COD performance. There-fore, we introduce OPC16K, a large-scale dataset designed to support realistic COD research beyond the conventional positive-only assumption. It includes camouflaged positive samples, pure background images, and non-camouflaged ob-ject images, with scene and category distributions carefully aligned across all three subsets to ensure that the challenge stems from camouflage itself rather than domain discrepan-cies. We describe the details of OPC16K in terms of three key aspects, as follows. 
+
+Dataset Construction 
+
+OPC16K contains 16,245 images collected from 14 sources and is manually curated into three subsets: camouflaged-object images (CO), pure background images (BG), and non-camouflaged-object images (NOCOD), as illustrated in Fig. 1. Specifically, the CO subset consists of 9,000 images collected from existing COD datasets and web sources, with all samples manually screened to ensure genuine camouflage. The BG subset contains 3,050 object-free scene images se-lected from diverse background datasets, while the NOCOD subset contains 4,195 images featuring salient or general non-camouflaged objects. Together, BG and NOCOD serve as negative samples to evaluate false-positive suppression under realistic COD scenarios. Detailed source-wise statis-tics are provided in the supplementary material. To prevent data leakage, exact and near-duplicate images are removed through image hashing and perceptual similarity filtering prior to dataset splitting. For annotation, CO samples retain their original camouflaged-object masks when available. BG images are assigned all-background masks. For NOCOD samples, images filtered from existing COD datasets retain their original object masks after removing camouflaged in-stances, while the remaining samples are first annotated using SAM3 (Carion et al. 2025) and manually refined for quality assurance. OPC16K is split into 8,035 training images and 8,210 test images. The training set contains 3,790 CO, 2,050 BG, and 2,195 NOCOD images, while the test set contains 5,210 CO, 1,000 BG, and 2,000 NOCOD images. The CO split follows established protocols in prior COD works (Fan et al. 2021; Pang et al. 2022), whereas the BG and NOCOD subsets are randomly partitioned from the negative samples. 
+
+Distribution Alignment 
+
+A key distinction of OPC16K is its deliberate considera-tion of foreground-category and scene-level distributions between positive and negative samples, which reduces poten-tial category- and domain-level shortcuts in realistic COD evaluation. For example, some salient-object negatives in USC12K (Zhou et al. 2025) come from categories uncommon in standard COD benchmarks, such as indoor furniture and sports balls. To mitigate such category mismatch, we adopt a two-round collection process guided by the foreground-category distribution of camouflaged positive samples. In the 
+
+first round , we categorize the foreground classes of positive samples and rank them according to their occurrence frequen-cies. For example, categories such as spider and insect appear relatively frequently in camouflaged-object images, whereas categories such as chicken and sheep are less common. Us-ing this distribution as a reference, we perform an initial collection pass for negative samples, aiming to obtain broad category coverage while avoiding a large deviation from the target distribution. In the second round , we compare the col-lected negative-sample distribution with the positive reference distribution and perform targeted supplementation for under-represented categories. Some categories, such as snakes and insects, are difficult to obtain from general-purpose datasets, so we further collect samples from specialized sources, in-cluding SnakeCLEF (Palaniappan et al. 2022) and IP102 (Wu et al. 2019), to reduce the distributional discrepancy. Fig. 2 visualizes the foreground-category frequency distributions of positive and negative samples after this supplementation. Beyond foreground categories, we further analyze scene-level distributions among CO, BG, and NOCOD subsets to examine potential scene-related biases, with detailed results provided in the supplementary material. 
+
+Dataset Statistics and Comparison 
+
+We compare OPC16K with existing COD benchmarks, in-cluding CAMO (Le et al. 2019), COD10K (Fan et al. 2020a), NC4K (Lv et al. 2021), CHAMELEON, and USC12K (Zhou et al. 2025), as summarized in Tab.2. We introduce two properties for comparison: Distribution Alignment (DA) ,indicating whether negative samples are deliberately col-lected according to the foreground-category distribution of positive samples; and Out-of-Domain Negatives (OD) , indi-cating whether the NOCOD subset contains object categories outside the COD domain. Most existing COD datasets, in-cluding CAMO, CHAMELEON, and NC4K, primarily focus on camouflaged positive samples and do not provide neg-ative samples for realistic evaluation. COD10K includes background and non-camouflaged images, but these samples lack corresponding annotations and are therefore excluded from training and evaluation. USC12K introduces negative samples through salient objects; however, its NOCOD subset mainly consists of salient-object categories and does not cover general non-camouflaged objects. Moreover, a considerable proportion of its negative samples come from categories rarely observed in COD benchmarks, leading to category-level dis-tribution mismatch between positive and negative samples. In contrast, OPC16K incorporates both salient and general non-camouflaged objects while maintaining foreground-category consistency with camouflaged positive samples. This design enables a more reliable evaluation of COD models by reduc-ing potential biases introduced by foreground-category and scene-level distribution discrepancies. 
+
+Method 
+
+Overview 
+
+Given an input image x ∈ RH×W ×3, OPCNet aims to iden-tify whether a camouflaged object exists and generate accu-rate masks under realistic COD scenarios. Different from conventional COD methods that assume the existence of camouflaged objects and directly perform binary segmen-tation, we decouple COD into two complementary tasks: 
+
+object localization and camouflage existence reasoning . The former determines where potential objects exist, while the latter identifies whether these objects exhibit camouflage characteristics. As shown in Fig. 3, OPCNet consists of three main components: 1) an object-aware segmentation branch that learns category-agnostic object localization from COD, NOCOD, and BG samples, 2) a hierarchical existence rea-soning branch that progressively determines object presence and camouflage existence, and 3) an existence-aware feature refinement module that calibrates segmentation responses in realistic COD scenarios. 
+
+Object-aware Segmentation Learning 
+
+Unlike conventional COD methods that learn exclusively from camouflaged-object annotations, OPCNet leverages diverse supervision from COD, NOCOD, and BG samples to learn general object localization. Specifically, COD, NOCOD, and BG samples are supervised with camouflage masks, object masks, and all-zero masks, respectively. Given the fused feature representation F, the localization decoder produces: 
+
+ˆMobj = Dseg (F), (1) where ˆMobj represents the predicted object region. This branch focuses on learning where objects exist , while cam-ouflage recognition is handled by the existence reasoning branch. Input Image x PVT FPN Fuse FF1,F 2, F3,F 4 
+
+> F4
+> G
+
+σ  
+
+> Bconv3x3: Conv3x3+BN+ReLU Conv1x1 MLP Pobj
+> Stage1:Object Presence Verification
+
+σ      
+
+> RoughHead Mrough
+> vfg
+> GGvbg
+> SSim (μ sim ,σ 2)sim
+> GMLP
+
+σ 
+
+> Dseg Mobj
+> ^
+
+Object-aware Segmentation Learning   
+
+> Mobj (GT)
+> Lloc
+> ypres
+> Lpres
+> Lobj yobj
+> vbg
+> FSpatialGate
+
+σ Gspatial 
+
+> (1+G joint )Gjoint
+> Mrough
+> CSimCalibrate
+
+σ Scal 
+
+> Fref
+> SSimInject Fout
+
+Existence-Aware Feature Refinement Stage2:Camouflage Existence Verification (SACRM) 
+
+Hierarchical Camouflage Existence Reasoning   
+
+> GGAP
+
+σ Sigmoid Sim Cosine Similarity C Concat Add element-wise Multiplication ||·|| 2
+
+> Mrough
+> FPpres
+> dfg-bg
+> 1-M rough
+
+Figure 3: Framework of OPCNet. OPCNet decouples COD into object localization and camouflage existence reasoning for realistic scenarios. The object-aware segmentation branch predicts category-agnostic object regions, while the hierarchical reasoning branch verifies object presence and camouflage existence via SACRM. The existence-aware refinement module then injects existence and similarity cues to generate the final COD mask. 
+
+Hierarchical Camouflage Existence Reasoning 
+
+To explicitly distinguish COD, NOCOD, and BG scenarios, OPCNet introduces a two-stage existence reasoning branch. 
+
+Stage 1: Object Presence Verification. Given the deepest backbone feature F4, we first predict whether an object exists in the input image. Global average pooling followed by an MLP classifier produces an object presence logit: 
+
+pobj = σ(M LP obj (GAP (F4))) , (2) where σ(·) denotes the sigmoid activation function. This stage separates BG samples from object-containing images. 
+
+Stage 2: Camouflage Existence Verification. For object-containing images, we further determine whether the object exhibits camouflage characteristics. The camouflage existence branch is supervised only on COD and NOCOD samples, since BG inputs are already handled by the object presence verification in Stage 1. To distinguish camouflaged objects from non-camouflaged ones, this stage focuses on foreground-background relation modeling, motivated by the high similar-ity between camouflaged objects and their backgrounds. 
+
+Similarity-Aware Camouflage Relation Module (SACRM). 
+
+As the core component of Stage 2, SACRM models foreground-background relationships to infer camouflage existence. Given the fused feature F, a lightweight rough localization head is applied to generate a soft object prior: 
+
+Mrough = σ(RoughHead( F)) , (3) where RoughHead( ·) denotes a lightweight convolutional prediction head, and Mrough provides a soft localization prior to extract foreground and background prototypes. Based on this prior, foreground and background prototypes are extracted through soft masked average pooling: 
+
+vf g =
+
+P 
+
+> p
+
+FpMrough,p 
+
+P 
+
+> p
+
+Mrough,p + ϵ , (4) 
+
+vbg =
+
+P 
+
+> p
+
+Fp(1 − Mrough,p )
+
+P
+
+> p
+
+(1 − Mrough,p ) + ϵ . (5) where Fp denotes the feature vector at spatial location p, and 
+
+ϵ is a small constant for numerical stability. The similarity between each feature location and the back-ground prototype is computed as: 
+
+Sp = ˆFp · ˆvbg , (6) where both Fp and vbg are ℓ2 normalized. We summarize the similarity distribution within the predicted object region by computing its first- and second-order statistics, denoted as μsim and σ2
+
+> sim
+
+. In addition, the foreground-background discrepancy is calculated as: 
+
+df g -bg =
+
+P 
+
+> p
+
+|| Fp − vbg || 22Mrough,p 
+
+P 
+
+> p
+
+Mrough,p + ϵ . (7) These descriptors jointly characterize foreground represen-tation, foreground-background similarity, and feature discrep-ancy. The camouflage existence probability is obtained from the resulting camouflage-aware relational descriptor: 
+
+ppres = σ  MLP pres ([ vf g ; vbg ; vf g -vbg ; μsim ; σ2
+
+> sim
+
+; df g -bg ])  .
+
+(8) The final three-way prediction is obtained through hierar-chical decision: Table 3: Quantitative comparison on the OPC16K test set. We report three-way classification accuracy, negative-sample FPR, realistic COD segmentation metrics, and category-agnostic localization metrics. Best results are highlighted in bold .Method Backbones Acc co ↑ Acc bg ↑ Acc no ↑ Acc all ↑ FPR bg ↓ FPR no ↓ oMAE ↓ oS m ↑ oE m ↑ oF wβ ↑ coMAE ↓ coS m ↑ coE m ↑ coF wβ ↑                                                                                          
+
+> SINet (Fan et al. 2020a) ResNet50 0.814 0.853 0.798 0.814 0.142 0.196 0.224 0.659 0.674 0.537 0.051 0.785 0.829 0.583 VSCode (Luo et al. 2024) Swin-B 0.856 0.909 0.907 0.875 0.074 0.093 0.186 0.713 0.738 0.596 0.044 0.841 0.862 0.705 RUN (He et al. 2025) PVTv2-B4 0.892 0.918 0.781 0.868 0.076 0.218 0.150 0.758 0.790 0.625 0.045 0.841 0.872 0.687 CamoDiffusion (Sun et al. 2025) PVTv2-B4 0.909 0.903 0.815 0.884 0.084 0.182 0.135 0.780 0.786 0.654 0.042 0.858 0.860 0.715 USCNet (Zhou et al. 2025) SAM-H 0.905 0.809 0.679 0.838 0.179 0.321 0.149 0.758 0.885 0.575 0.055 0.829 0.976 0.620 OPCNet (Ours) PVTv2-B4 0.930 0.949 0.817 0.905 0.050 0.181 0.105 0.818 0.875 0.701 0.038 0.874 0.933 0.745
+
+ˆy =
+
+
+
+BG , pobj ≤ τobj ,
+
+COD , pobj > τ obj , p pres > τ pres ,
+
+NOCOD , pobj > τ obj , p pres ≤ τpres ,
+
+(9) where τobj and τpres denote the decision thresholds for object presence and camouflage existence, respectively. 
+
+Existence-Aware Feature Refinement 
+
+The object localization branch learns general object cues from diverse scenarios but lacks explicit awareness of camouflage existence. To bridge the gap between object localization and camouflage existence reasoning, we introduce an existence-aware feature refinement module, which incorporates the predicted object presence and camouflage existence probabil-ities to adaptively calibrate segmentation features. A spatial gate is first generated from the fused feature representation: 
+
+Gspatial = σ(SpatialGate( F)) , (10) where SpatialGate( ·) denotes a lightweight convolutional attention layer that produces spatially adaptive weights. The spatial gate is further modulated by the hierarchical existence predictions: 
+
+Gjoint = pobj · ppres · Gspatial , (11) where pobj and ppres denote the object presence probability and camouflage existence probability, respectively. For BG samples, the low pobj naturally suppresses Gjoint without requiring additional supervision on ppres , as the hierarchical structure ensures that camouflage reasoning only effectively contributes when an object is detected. The refined feature is obtained through existence-aware feature calibration: 
+
+Fref = F ⊙ (1 + Gjoint )/2. (12) The normalized gate scales feature responses between 0.5 and 1, allowing low-confidence regions to be attenuated while preserving reliable features. Furthermore, the similarity response generated by SACRM is injected into the refined feature representation. Specifically, the similarity map is first calibrated with the rough localization prior: 
+
+Scal = σ(SimCalibrate([ S; Mrough ])) , (13) where SimCalibrate( ·) denotes a lightweight convolutional module that refines the similarity response using the rough localization prior. Then, the calibrated similarity response is integrated into the segmentation feature: 
+
+Fout = Fref + SimInject( Fref ⊙ Scal ), (14) where SimInject( ·) projects the calibrated similarity response into the segmentation feature space. The final segmentation mask is generated from Fout .
+
+Loss Function 
+
+OPCNet is optimized with a multi-task objective: 
+
+L = Lloc + Lobj + Lpres . (15) The localization loss is applied to all samples: 
+
+Lloc = 1
+
+N
+
+X
+
+> i
+
+LBCE ( ˆMi, Mi), (16) where Mi denotes the object localization target. The object presence loss is defined as: 
+
+Lobj = BCE( pobj , y obj ), (17) where yobj = 1 for COD and NOCOD samples and yobj = 0 
+
+for BG samples. The camouflage existence loss is optimized on object-containing samples: 
+
+Lpres = 1
+
+|B| 
+
+X
+
+> i
+
+BCE( ppres,i , y pres,i ), (18) where ypres denotes the camouflage-existence label. 
+
+Experiments 
+
+Experimental Setup 
+
+Dataset. We evaluate all methods on OPC16K. The dataset is split into 8,035 training images (CO: 3,790; BG: 2,050; NOCOD: 2,195) and 8,210 test images (CO: 5,210; BG: 1,000; NOCOD: 2,000). The camouflaged-object split follows the established settings of prior COD works (Fan et al. 2021), while BG and NOCOD samples are randomly partitioned from the collected negative samples. 
+
+Implementation Details. OPCNet is implemented in PyTorch and trained on a single NVIDIA RTX A6000 GPU. The backbone adopts PVTv2-B4 (Wang et al. 2022). All input images are resized to 512 × 512 . We use AdamW as the optimizer, with a backbone learning rate of 1 × 10 −5, a head learning rate of 1 × 10 −4, weight decay of 1 × 10 −4, and a cosine annealing scheduler over 30 epochs. During inference, the object-presence and camouflage-existence thresholds are both set to 0.5 following the default probability decision rule. 
+
+Compared Methods. We compare OPCNet with five COD methods: SINet (Fan et al. 2020a), VSCode (Luo et al. 2024), RUN (He et al. 2025), CamoDiffusion (Sun et al. 2025), and USCNet (Zhou et al. 2025). For fair comparison, all methods are retrained on OPC16K using their official imple-mentations and recommended training settings. Since existing COD methods are originally designed for binary camouflage segmentation, we adapt them to the proposed realistic COD setting by extending their prediction space to three classes: CO, NOCOD, and BG. All baselines are trained with the same pixel-level supervision protocol as OPCNet. Detailed adaptation strategies are provided in the appendix. CO BG NOCOD GT VSCode RUN CamoDiffusion Ours Image USCNet Figure 4: Qualitative comparison on representative CO, BG, and NOCOD samples from OPC16K. 
+
+Evaluation Protocol 
+
+Conventional COD metrics, including MAE, S m (Fan et al. 2017), E m (Fan et al. 2018), and F wβ , are designed for positive-only evaluation where camouflaged objects are assumed to exist. In realistic COD evaluation, however, models should not only segment COD samples but also reject BG and NOCOD inputs. We therefore evaluate models from four aspects. The prefix “o” denotes overall evaluation across all subsets, while “co” denotes evaluation on the CO subset. 
+
+Three-way Classification Accuracy. We report overall and per-category classification accuracies, denoted as Acc all ,
+
+Acc co , Acc bg , and Acc no , for the three scenarios: CO, BG, and NOCOD. Since existing COD methods produce pixel-level masks, we convert their predictions into image-level labels by assigning BG when all pixels are predicted as background and selecting the category with the largest fore-ground area otherwise. These metrics evaluate the capability of recognizing different realistic COD scenarios. 
+
+False Positive Rate on Negative Samples. Since CO is the target class, false alarms on negative samples are particularly harmful. We report the CO false positive rates on BG and NOCOD subsets, denoted as FPR bg and FPR no , respectively. 
+
+Overall COD Segmentation Quality. For COD samples, we introduce overall segmentation metrics, denoted as oMAE, oS m, oE m, and oF wβ . Correctly classified COD samples are evaluated with standard segmentation metrics, while misclas-sified samples are assigned the worst scores, e.g., MAE = 1 and S m = 0. These metrics jointly evaluate COD recognition and segmentation quality under realistic COD scenarios. 
+
+CO Segmentation Quality. To evaluate the segmentation capability on camouflaged objects independently of scene recognition, we compute standard segmentation metrics on CO samples without considering predicted scene labels. The corresponding metrics are denoted as coMAE, coS m, coE m,and coF wβ . Detailed definitions are provided in the appendix. 
+
+Main Results 
+
+Quantitative Comparison. Tab. 3 shows the comprehen-sive comparison on the OPC16K test set. OPCNet achieves the best overall performance under the proposed open-world COD protocol. It obtains the highest three-way classification accuracy and the lowest FPR bg and FPR no , demonstrating the effectiveness of hierarchical existence reasoning in distin-guishing CO, BG, and NOCOD scenarios. Compared with the original models reported in Tab. 1, retraining existing meth-ods on OPC16K improves their negative-sample rejection, but they still underperform OPCNet, indicating the necessity of explicit existence modeling. For segmentation, OPCNet Table 4: Ablation study of key components in OPCNet.                                          
+
+> Base HER SACRM EAFR Acc all ↑FPR bg ↓FPR no ↓oMAE ↓oS m↑coMAE ↓coS m↑
+> ✓0.771 0.083 0.208 0.304 0.616 0.046 0.831
+> ✓✓0.872 0.057 0.189 0.157 0.761 0.045 0.837
+> ✓✓✓0.901 0.053 0.183 0.136 0.784 0.041 0.852
+> ✓✓✓✓0.905 0.050 0.181 0.105 0.818 0.038 0.874
+
+achieves superior open-world COD metrics, including oMAE, oS m, oE m, and oF wβ , while maintaining competitive category-agnostic localization performance. These results indicate that explicit existence modeling improves open-world reliability without compromising object localization quality. 
+
+Qualitative Comparison. Fig. 4 shows visual comparisons across CO, BG, and NOCOD scenarios. Existing methods often activate on background patterns or non-camouflaged objects, producing false COD masks on negative samples. OPCNet effectively rejects these negative cases through hi-erarchical existence reasoning and existence-aware feature refinement. Meanwhile, on true CO samples, OPCNet gen-erates more complete and boundary-preserving masks, indi-cating that explicit existence modeling improves open-world reliability without compromising segmentation quality. 
+
+Ablation Study 
+
+To verify the effectiveness of each component in OPCNet, we conduct ablation studies on the OPC16K test set. The results are reported in Tab. 4. Here, Base denotes the object-aware segmentation branch without explicit existence reasoning. 
+
+Effect of HER. Introducing HER substantially improves 
+
+Acc all and reduces both FPR bg and FPR no , demonstrating the effectiveness of decomposing COD into object presence verification and camouflage existence reasoning. 
+
+Effect of SACRM. Adding the Similarity-Aware Camouflage Relation Module (SACRM) further improves overall COD performance by modeling foreground-background similar-ity and discrepancy, providing explicit relational cues for camouflage existence reasoning. 
+
+Effect of EAFR. EAFR brings additional gains on overall and CO-only segmentation quality by calibrating segmentation features with existence cues. 
+
+Conclusion 
+
+In this paper, we study camouflaged object detection under realistic scenarios, where inputs may contain camouflaged objects, non-camouflaged objects, or pure backgrounds. Dif-ferent from conventional COD settings that assume the exis-tence of camouflaged objects, we highlight the importance of reliable object existence reasoning and false-positive sup-pression. To this end, we construct OPC16K, a large-scale benchmark for realistic COD evaluation, and propose OPCNet, which decouples COD into object localization and camou-flage existence reasoning through hierarchical reasoning and existence-aware feature refinement. Extensive experiments demonstrate that OPCNet achieves superior performance by reducing false positives on negative samples while main-taining accurate segmentation of camouflaged objects. We hope OPC16K and OPCNet can facilitate future research on reliable COD in practical scenarios. References 
+
+Carion, N.; Gustafson, L.; Hu, Y.-T.; Debnath, S.; Hu, R.; Suris, D.; Ryali, C.; Alwala, K. V.; Khedr, H.; Huang, A.; et al. 2025. Sam 3: Segment anything with concepts. arXiv preprint arXiv:2511.16719 .Chen, H.; Shao, D.; Guo, G.; and Gao, S. 2024a. Just a Hint: Point-Supervised Camouflaged Object Detection. In Euro-pean Conference on Computer Vision , 332–348. Springer. Chen, H.; Wei, P.; Guo, G.; and Gao, S. 2024b. SAM-COD: SAM-Guided Unified Framework for Weakly-Supervised Camouflaged Object Detection. In European Conference on Computer Vision , 315–331. Springer. Chen, H.; Zhu, C.; Lyu, Y.; and Shan, C. 2026. Beyond Weak Supervision: MLLMs-Guided Graded Knowledge Distillation for Unsupervised Camouflaged Object Detection. In CVPR ,27547–27557. Chen, T.; Zhu, L.; Deng, C.; Cao, R.; Wang, Y.; Zhang, S.; Li, Z.; Sun, L.; Zang, Y.; and Mao, P. 2023. Sam-adapter: Adapting segment anything in underperformed scenes. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , 3367–3375. Fan, D.-P.; Cheng, M.-M.; Liu, Y.; Li, T.; and Borji, A. 2017. Structure-measure: A new way to evaluate foreground maps. In Proceedings of the IEEE international conference on computer vision , 4548–4557. Fan, D.-P.; Gong, C.; Cao, Y.; Ren, B.; Cheng, M.-M.; and Borji, A. 2018. Enhanced-alignment measure for binary foreground map evaluation. arXiv preprint arXiv:1805.10421 .Fan, D.-P.; Ji, G.-P.; Cheng, M.-M.; and Shao, L. 2021. Concealed object detection. IEEE transactions on pattern analysis and machine intelligence , 44(10): 6024–6042. Fan, D.-P.; Ji, G.-P.; Sun, G.; Cheng, M.-M.; Shen, J.; and Shao, L. 2020a. Camouflaged object detection. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , 2777–2787. Fan, D.-P.; Ji, G.-P.; Xu, P.; Cheng, M.-M.; Sakaridis, C.; and Van Gool, L. 2023. Advances in deep concealed scene understanding. Visual Intelligence , 1(1): 16. Fan, D.-P.; Zhou, T.; Ji, G.-P.; Zhou, Y.; Chen, G.; Fu, H.; Shen, J.; and Shao, L. 2020b. Inf-net: Automatic covid-19 lung infection segmentation from ct images. IEEE transactions on medical imaging , 39(8): 2626–2637. Guo, G.; Chen, P.; Guo, Y.; Chen, H.; Zhang, B.; and Gao, S. 2026. Boosting Segment Anything Model to Generalize Visually Non-Salient Scenarios. IEEE Transactions on Image Processing .He, C.; Li, K.; Zhang, Y.; Tang, L.; Zhang, Y.; Guo, Z.; and Li, X. 2023a. Camouflaged object detection with feature decomposition and edge reconstruction. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 22046–22055. He, C.; Zhang, R.; Xiao, F.; Fang, C.; Tang, L.; Zhang, Y.; Kong, L.; Fan, D.-P.; Li, K.; and Farsiu, S. 2025. Run: Re-versible unfolding network for concealed object segmentation. 
+
+arXiv preprint arXiv:2501.18783 .He, R.; Dong, Q.; Lin, J.; and Lau, R. W. 2023b. Weakly-supervised camouflaged object detection with scribble anno-tations. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 37, 781–789. Le, T.-N.; Nguyen, T. V.; Nie, Z.; Tran, M.-T.; and Sugimoto, A. 2019. Anabranch network for camouflaged object seg-mentation. Computer vision and image understanding , 184: 45–56. Li, A.; Zhang, J.; Lv, Y.; Liu, B.; Zhang, T.; and Dai, Y. 2021. Uncertainty-aware joint salient object and camouflaged object detection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 10071–10081. Liu, J.; Kong, L.; and Chen, G. 2025. Improving SAM for Camouflaged Object Detection via Dual Stream Adapters. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 21906–21916. Luo, Z.; Liu, N.; Zhao, W.; Yang, X.; Zhang, D.; Fan, D.-P.; Khan, F.; and Han, J. 2024. Vscode: General visual salient and camouflaged object detection with 2d prompt learning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 17169–17180. Lv, Y.; Zhang, J.; Dai, Y.; Li, A.; Liu, B.; Barnes, N.; and Fan, D.-P. 2021. Simultaneously localize, segment and rank the camouflaged objects. In Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , 11591– 11601. Palaniappan, M.; Desingu, K.; Bharathi, H.; Chodisetty, E. A.; and Bhaskar, A. 2022. Deep Learning and Gradient Boosting Ensembles for Classification of Snake Species. Conference and Labs of the Evaluation Forum .Pang, Y.; Zhao, X.; Xiang, T.-Z.; Zhang, L.; and Lu, H. 2022. Zoom in and out: A mixed-scale triplet network for camou-flaged object detection. In Proceedings of the IEEE/CVF Conference on computer vision and pattern recognition , 2160– 2170. Ren, G.; Liu, H.; Lazarou, M.; and Stathaki, T. 2025. Multi-modal Segment Anything Model for Camouflaged Scene Segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision , 19882–19892. Sun, K.; Chen, Z.; Lin, X.; Sun, X.; Liu, H.; and Ji, R. 2025. Conditional diffusion models for camouflaged and salient object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence , 47(4): 2833–2848. Wang, L.; Yang, J.; Zhang, Y.; Wang, F.; and Zheng, F. 2024. Depth-aware concealed crop detection in dense agricultural scenes. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 17201–17211. Wang, Q.; Yang, J.; Yu, X.; Wang, F.; Chen, P.; and Zheng, F. 2023. Depth-aided camouflaged object detection. In 
+
+Proceedings of the 31st ACM international conference on multimedia , 3297–3306. Wang, W.; Xie, E.; Li, X.; Fan, D.-P.; Song, K.; Liang, D.; Lu, T.; Luo, P.; and Shao, L. 2022. Pvt v2: Improved baselines with pyramid vision transformer. Computational visual media ,8(3): 415–424. Wu, X.; Zhan, C.; Lai, Y.; Cheng, M.-M.; and Yang, J. 2019. IP102: A Large-Scale Benchmark Dataset for Insect Pest Recognition. In IEEE CVPR , 8787–8796. Ye, S.; Chen, X.; Zhang, Y.; Lin, X.; and Cao, L. 2025. Escnet: Edge-semantic collaborative network for camouflaged object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision , 20053–20063. Zhang, H.; Lyu, Y.; Yu, Q.; Liu, H.; Ma, H.; Yuan, D.; and Yang, Y. 2024. Unlocking attributes’ contribution to successful camouflage: A combined textual and visual analysis strategy. In European Conference on Computer Vision , 315– 331. Springer. Zhao, J.-X.; Liu, J.-J.; Fan, D.-P.; Cao, Y.; Yang, J.; and Cheng, M.-M. 2019. EGNet: Edge guidance network for salient object detection. In Proceedings of the IEEE/CVF international conference on computer vision , 8779–8788. Zhao, X.; Pang, Y.; Ji, W.; Sheng, B.; Zuo, J.; Zhang, L.; and Lu, H. 2024. Spider: a unified framework for context-dependent concept segmentation. In Proceedings of the 41st International Conference on Machine Learning , 60906– 60926. Zhou, Z.; Li, Y.; Zhong, C.; Huang, J.; Pei, J.; Li, H.; and Tang, H. 2025. Rethinking Detecting Salient and Camouflaged Objects in Unconstrained Scenes. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,22372–22382.
