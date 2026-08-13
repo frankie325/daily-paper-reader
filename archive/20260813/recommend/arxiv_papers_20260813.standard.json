@@ -1,0 +1,143 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-13T20:19:28.269141+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 3,
+    "deep_cap": 6,
+    "deep_selected": 3,
+    "quick_candidates": 0,
+    "quick_skim_target": 11,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2608.11595v1",
+      "source": "arxiv",
+      "title": "ProtoHGF-Net: Prototype HyperGraph Fusion with Intra-modal Calibration for RGBT Object Detection",
+      "abstract": "RGB-Thermal (RGBT) object detection enables robust perception in complex scenes by leveraging the complementary strengths of visible textures and thermal cues. However, existing methods mainly rely on dense cross-modal interactions over full-resolution features, which inevitably introduce background interference and hinder the learning of target-relevant representations. In this paper, we propose the Prototype HyperGraph Fusion Network (ProtoHGF-Net), a novel framework that redefines cross-modal fusion as prototype-level semantic interaction rather than the dense cross-modal interaction paradigm. Specifically, we design Prototype HyperGraph Fusion to perform cross-modal interaction in a compact prototype-level semantic space. This design enables more selective fusion among target-relevant prototypes. To support this prototype-level fusion, we propose Teacher-Mask Calibration Distillation, which calibrates modality features before fusion using modality-specific teachers and target-aware masks. This strategy suppresses backgrou- nd-dominant responses and produces more target-focused features. Extensive experiments on DroneVehicle, DVTOD, and FLIR demonstrate that ProtoHGF-Net achieves state-of-the-art performance with 85.9\\% $mAP_{50}$, 88.2\\% $mAP_{50}$, and 79.1\\% $mAP_{50}$, respectively. Our code is available at \\href{https://github.com/ZiMo-Chen/ProtoHGF}{GitHub}.",
+      "authors": [
+        "Xiangqi Chen",
+        "Xiuling Zhang",
+        "Chengzhuan Yang",
+        "Li Zhao",
+        "Dawei Zhang",
+        "Yanchao Wang",
+        "Liyuan Chen",
+        "Hua Wang",
+        "Hao Peng",
+        "Zhonglong Zheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-12T03:08:19+00:00",
+      "link": "https://arxiv.org/pdf/2608.11595v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RGBT object detection with prototype hypergraph fusion",
+      "llm_evidence_cn": "RGBT目标检测的原型超图融合",
+      "llm_evidence": "RGBT目标检测的原型超图融合",
+      "canonical_evidence": "RGBT目标检测的原型超图融合",
+      "llm_tldr_en": "The paper proposes ProtoHGF-Net for RGBT object detection, using prototype-level semantic interaction to reduce background interference and improve target-relevant representation learning.",
+      "llm_tldr_cn": "针对RGBT目标检测中密集跨模态交互引入背景干扰的问题，提出ProtoHGF-Net，将跨模态融合重新定义为原型级语义交互。通过原型超图融合在紧凑语义空间中进行交互，并引入模态内校准。实验表明该方法在复杂场景下提升目标检测鲁棒性，为RGBT检测提供了新范式。",
+      "llm_tldr": "针对RGBT目标检测中密集跨模态交互引入背景干扰的问题，提出ProtoHGF-Net，将跨模态融合重新定义为原型级语义交互。通过原型超图融合在紧凑语义空间中进行交互，并引入模态内校准。实验表明该方法在复杂场景下提升目标检测鲁棒性，为RGBT检测提供了新范式。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.11685v1",
+      "source": "arxiv",
+      "title": "EGM-Det: Entropy-Guided Multimodal Adaptive Fusion for UAV RGB-IR Object Detection",
+      "abstract": "Joint use of RGB and infrared (IR) imagery can improve UAV-view object detection, but most existing methods fuse multimodal features with static or fixed weights and therefore overlook spatially varying modality reliability. We propose EGM-Det, an entropy-guided multimodal adaptive fusion framework for RGB-IR object detection. EGM-Det employs a dual-stream architecture to preserve modality-specific representations and introduces an Entropy Offset Gate Fusion module for adaptive multi-scale fusion. The module derives shallow entropy priors from input intensity, local entropy, and cross-modal discrepancy, and uses them to guide local offset alignment and spatial-channel gated fusion. It therefore selectively aggregates reliable RGB and infrared cues instead of uniformly combining heterogeneous features. We further introduce cross-modal distillation to regularize the learned fusion gates and reduce fusion degradation. Each student branch extracts complementary knowledge from the cross-modality teacher branch matched to the main branch, while entropy-adaptive supervision emphasizes uncertain modality decisions. Experiments on DroneVehicle, LLVIP, and VEDAI demonstrate state-of-the-art performance across all three benchmarks; in particular, EGM-Det outperforms prior approaches by more than 10 percentage points on VEDAI.",
+      "authors": [
+        "Cunzheng Fan",
+        "Dawei Yan",
+        "Guanlin Wang",
+        "Xingshuo Yang",
+        "Yupeng Jia",
+        "Jing Yang",
+        "Haokui Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-12T05:51:48+00:00",
+      "link": "https://arxiv.org/pdf/2608.11685v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RGB-IR object detection framework for UAV imagery",
+      "llm_evidence_cn": "无人机RGB-IR目标检测框架",
+      "llm_evidence": "无人机RGB-IR目标检测框架",
+      "canonical_evidence": "无人机RGB-IR目标检测框架",
+      "llm_tldr_en": "The paper proposes EGM-Det, an entropy-guided adaptive fusion framework for RGB-IR object detection, which selectively aggregates reliable modalities at multiple scales to improve detection robustness in UAV scenes.",
+      "llm_tldr_cn": "针对无人机RGB-IR目标检测中固定权重融合忽视模态可靠性的问题，本文提出熵引导的自适应融合框架EGM-Det。该框架利用浅层熵先验引导局部偏移对齐和空间-通道门控融合，在多尺度上选择性聚合可靠模态。实验表明该方法提升复杂场景下的检测鲁棒性，为多模态目标检测提供了有效方案。",
+      "llm_tldr": "针对无人机RGB-IR目标检测中固定权重融合忽视模态可靠性的问题，本文提出熵引导的自适应融合框架EGM-Det。该框架利用浅层熵先验引导局部偏移对齐和空间-通道门控融合，在多尺度上选择性聚合可靠模态。实验表明该方法提升复杂场景下的检测鲁棒性，为多模态目标检测提供了有效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.12179v1",
+      "source": "arxiv",
+      "title": "Map-Det3D: Metric Feed-Forward 3D Reconstruction Prior for Multi-view 3D Object Detection from Streaming Inputs",
+      "abstract": "Metric 3D object detection is a core capability for embodied agents, yet most reliable systems lean on depth sensors, trading away cost, power, and integration simplicity. This motivates monocular 3D detection, which avoids additional constraints, yet it faces a major obstacle: from a single image, depth, and especially absolute scale, are underconstrained. As a result, the prevailing pattern of detecting in 2D and then predicting 3D attributes is often brittle, since modest range errors can dominate 3D localization, and the learned scale prior can fail when cameras, motion, or environments undergo domain shifts. To address this, we propose Map-Det3D, an online multi-view 3D object detection model that brings detection directly into a 3D space reconstructed from RGB. We map a short temporal window into multiple views and repurpose a feed-forward metric 3D reconstruction model as our geometric backbone while tuning its object-aware capabilities. Building on this representation, Map-Det3D directly predicts boxes in metric 3D space, without the widely used 2D-to-3D lifting. Experiments across different benchmarks show that this design supports strong online performance and robust transfer without adaptation, suggesting that training reconstruction priors for detection is a practical route to stable metric 3D detection from monocular video. Code and models are available at https://royyang0714.github.io/Map-Det3D.",
+      "authors": [
+        "Yung-Hsu Yang",
+        "Luigi Piccinelli",
+        "Samuel Rota Bulò",
+        "Sunghwan Hong",
+        "Denis Rozumny",
+        "Johannes Schönberger",
+        "Zuria Bauer",
+        "Hermann Blum",
+        "Peter Kontschieder",
+        "Marc Pollefeys"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-12T15:33:42+00:00",
+      "link": "https://arxiv.org/pdf/2608.12179v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-view 3D object detection from streaming inputs with metric feed-forward prior",
+      "llm_evidence_cn": "流式输入多视角3D目标检测的度量前馈先验",
+      "llm_evidence": "流式输入多视角3D目标检测的度量前馈先验",
+      "canonical_evidence": "流式输入多视角3D目标检测的度量前馈先验",
+      "llm_tldr_en": "Addresses depth and scale under-constraint in monocular 3D detection; proposes Map-Det3D, an online multi-view 3D object detection model using metric feed-forward 3D reconstruction prior to improve depth and scale robustness under domain shifts.",
+      "llm_tldr_cn": "该文针对单目3D检测中深度与绝对尺度欠约束问题，提出Map-Det3D在线多视角3D目标检测模型，引入度量前馈3D重建先验。该模型利用多视角流式输入强化深度与尺度估计，缓解2D检测后预测3D属性的脆弱性。实验表明其在域偏移下仍能保持可靠3D定位，为具身智能提供无需深度传感器的3D检测方案。",
+      "llm_tldr": "该文针对单目3D检测中深度与绝对尺度欠约束问题，提出Map-Det3D在线多视角3D目标检测模型，引入度量前馈3D重建先验。该模型利用多视角流式输入强化深度与尺度估计，缓解2D检测后预测3D属性的脆弱性。实验表明其在域偏移下仍能保持可靠3D定位，为具身智能提供无需深度传感器的3D检测方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
