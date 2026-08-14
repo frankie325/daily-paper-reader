@@ -1,0 +1,206 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-14T20:27:22.653438+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2608.12698v1",
+      "source": "arxiv",
+      "title": "Class Geometry as Supervision for Sample-Efficient Open-World Detection",
+      "abstract": "Open-world object detection requires models to recognize known categories, reject unfamiliar objects, and incorporate new classes over time. This is especially challenging in scarce-data settings such as biomedical and scientific imaging, where rare categories may have only a few annotated examples and fine-grained classes differ by subtle morphology. Prototype-based detectors are natural for this regime, but they typically learn class prototypes as independent anchors, ignoring relational structure among classes. We propose class-geometry supervision (CGS), a general framework that constrains learned prototype or class-representation spaces to preserve visual or semantic class dissimilarities estimated from training data. CGS introduces a dissimilarity-preserving objective that aligns pairwise distances among learned class representations with a target class-geometry matrix while retaining the standard task loss. We instantiate the same objective across prototype recognition, few-shot biomedical object detection, open-set detection, novel-class insertion, and OWOD adaptation on COCO. Experiments show that CGS improves sample efficiency in recognition and ova detection, substantially strengthens novel-class insertion, and improves unknown recall on COCO while retaining much of the known-class detection performance. Ablations show that meaningful visual geometry provides the most reliable gains, while random geometry can help novel separation but is less consistent for few-shot detection. These results suggest that relational class geometry is an effective supervisory signal for building calibrated and extensible open-world detectors under limited supervision.",
+      "authors": [
+        "Akash Rao",
+        "Zhou Chen",
+        "Revanth Reddy Palem",
+        "Udhav Ramachandran",
+        "Ruth Scimeca",
+        "Sathyanarayanan N. Aakur"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-13T01:20:47+00:00",
+      "link": "https://arxiv.org/pdf/2608.12698v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "open-world object detection with class geometry supervision",
+      "llm_evidence_cn": "利用类几何监督进行开放世界目标检测",
+      "llm_evidence": "利用类几何监督进行开放世界目标检测",
+      "canonical_evidence": "利用类几何监督进行开放世界目标检测",
+      "llm_tldr_en": "The paper addresses open-world object detection in scarce-data settings, proposing class-geometry supervision to constrain prototype spaces with visual/semantic dissimilarities, improving sample efficiency.",
+      "llm_tldr_cn": "开放世界目标检测需要在数据稀缺时识别已知类、拒绝未知类并增量学习新类，但现有原型检测器忽略类间关系。本文提出类几何监督框架CGS，利用训练数据估计的视觉或语义类间不相似性约束原型空间。在生物医学等稀缺数据场景中，CGS提高了样本效率并改善了细粒度类的区分。该方法为开放世界检测提供了通用且有效的关系监督。",
+      "llm_tldr": "开放世界目标检测需要在数据稀缺时识别已知类、拒绝未知类并增量学习新类，但现有原型检测器忽略类间关系。本文提出类几何监督框架CGS，利用训练数据估计的视觉或语义类间不相似性约束原型空间。在生物医学等稀缺数据场景中，CGS提高了样本效率并改善了细粒度类的区分。该方法为开放世界检测提供了通用且有效的关系监督。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.12714v1",
+      "source": "arxiv",
+      "title": "Towards Sparsely Annotated Open-World Object Detection",
+      "abstract": "Real-world object detection operates under ambiguous supervision, where unlabeled regions may correspond to missing annotations of known objects or genuinely unknown categories. These challenges have been addressed separately in Sparsely Annotated Object Detection (SAOD) and Open-World Object Detection (OWOD). In practice, their co-occurrence remains an open problem. To address this problem, we introduce Sparsely Annotated Open-World Object Detection (SA-OWOD), a new task that jointly considers sparse supervision and the presence of unseen categories. We propose Dual-Perspective Object Discovery (DPOD), a unified framework that jointly models unlabeled known and unknown instances via two complementary mechanisms. The Known Target Recovery Module (KTRM) recovers supervision for unlabeled known instances and explicitly regularizes the feature space to separate known and unknown representations. Complementarily, the Dual-Disagreement Target Generator (DDTG) identifies reliable unknown candidates through cross-view semantic inconsistency. By integrating these modules, DPOD resolves contradictory supervision signals caused by ambiguous unlabeled regions. As a result, it prevents misclassification between known and unknown objects and stabilizes the decision boundaries. Experimental results on sparsely annotated open-world benchmarks demonstrate that the proposed method outperforms existing open-world detection methods, particularly in detecting unknown objects.",
+      "authors": [
+        "HeeJu Han",
+        "AJeong Kim",
+        "Jinsun Park"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-13T01:59:00+00:00",
+      "link": "https://arxiv.org/pdf/2608.12714v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "sparsely annotated open-world object detection task and DPOD framework",
+      "llm_evidence_cn": "稀疏标注开放世界目标检测任务与DPOD框架",
+      "llm_evidence": "稀疏标注开放世界目标检测任务与DPOD框架",
+      "canonical_evidence": "稀疏标注开放世界目标检测任务与DPOD框架",
+      "llm_tldr_en": "The paper introduces sparsely annotated open-world object detection (SA-OWOD), combining sparse supervision and unknown categories, and proposes Dual-Perspective Object Discovery to recover known and unknown instances.",
+      "llm_tldr_cn": "该文指出现实目标检测面临稀疏标注与未知类别并存的问题，提出SA-OWOD新任务联合处理两者。方法DPOD通过已知目标恢复模块和未知发现机制双视角建模。实验证明该框架能有效应对模糊监督，提升开放世界下检测的鲁棒性，推动目标检测更贴近实际应用。",
+      "llm_tldr": "该文指出现实目标检测面临稀疏标注与未知类别并存的问题，提出SA-OWOD新任务联合处理两者。方法DPOD通过已知目标恢复模块和未知发现机制双视角建模。实验证明该框架能有效应对模糊监督，提升开放世界下检测的鲁棒性，推动目标检测更贴近实际应用。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.08867v1",
+      "source": "arxiv",
+      "title": "Zero-Shot Traffic Accident Detection via a Coarse-to-Fine VLM-Tracking Pipeline",
+      "abstract": "Traffic surveillance cameras capture accidents continuously, yet converting raw CCTV footage into structured event records that pinpoint when, where, and what type of collision occurred remains unsolved at scale. The ACCIDENT @ CVPR benchmark evaluates exactly this joint prediction under a strict constraint: no labeled real-world training data is available. We introduce a training-free, two-pass coarse-to-fine pipeline that pairs a frozen Qwen3-VL-32B-Instruct vision-language model with YOLO11x object detection and BoT-SORT tracking. A first pass sparsely samples the full clip to anchor the collision moment in time; a second pass re-examines a tight window around that estimate using frames annotated with stable vehicle identities and normalized bounding-box coordinates, which gives the model both a visual overlay and an explicit numeric description of the same scene. On the official 2,027-clip real-CCTV test set, our system achieves a three-way harmonic mean score of 0.504, surpassing all organizer-published baselines including the best multi-model ensemble (0.412) by a 22% relative margin.",
+      "authors": [
+        "Dipit Saha",
+        "Shah Mohammad Abdul Mannan",
+        "Mohammad Raihan Rashid",
+        "Ruwad Naswan",
+        "Ahnaf Tahmid"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-09T19:08:56+00:00",
+      "link": "https://arxiv.org/pdf/2608.08867v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "uses YOLO object detection and tracking for accident detection",
+      "llm_evidence_cn": "使用YOLO目标检测和跟踪进行事故检测",
+      "llm_evidence": "使用YOLO目标检测和跟踪进行事故检测",
+      "canonical_evidence": "使用YOLO目标检测和跟踪进行事故检测",
+      "llm_tldr_en": "Proposes a training-free two-pass coarse-to-fine pipeline combining a frozen vision-language model with YOLO11x object detection and BoT-SORT tracking for zero-shot traffic accident detection.",
+      "llm_tldr_cn": "该论文针对零样本交通事故检测问题：在没有真实标注训练数据的情况下，需要从监控视频中定位碰撞时间、地点和类型。作者提出免训练的两阶段由粗到细流水线，将冻结的Qwen3-VL模型与YOLO11x目标检测和BoT-SORT跟踪结合。第一阶段稀疏采样锚定碰撞时刻，第二阶段围绕估计时刻细看带稳定车辆身份和归一化信息的帧。该方法展示了目标检测与跟踪模块在复杂事件检测中的支撑作用，并为CVPR ACCIDENT基准提供了训练自由方案。",
+      "llm_tldr": "该论文针对零样本交通事故检测问题：在没有真实标注训练数据的情况下，需要从监控视频中定位碰撞时间、地点和类型。作者提出免训练的两阶段由粗到细流水线，将冻结的Qwen3-VL模型与YOLO11x目标检测和BoT-SORT跟踪结合。第一阶段稀疏采样锚定碰撞时刻，第二阶段围绕估计时刻细看带稳定车辆身份和归一化信息的帧。该方法展示了目标检测与跟踪模块在复杂事件检测中的支撑作用，并为CVPR ACCIDENT基准提供了训练自由方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.10723v2",
+      "source": "arxiv",
+      "title": "Grid-Preserving Knowledge Distillation: Transferring Convolutional Inductive Bias to Vision Transformers under Data Scarcity",
+      "abstract": "Vision Transformers demonstrate remarkable global modeling capacity but often underperform in data-scarce regimes. Distilling convolutional inductive biases from a CNN teacher provides an effective remedy while leaving the deployed model unchanged. However, general-purpose feature distillation transfers little in this setting. In CNN-to-CNN distillation, pooling, flattening, and logit-space projections remove the spatial grid that encodes locality and translation equivariance. Unlike a convolutional student, a ViT cannot readily reconstruct this structure on its own. In this paper, we propose iBKD, a distillation framework that preserves the spatial grid throughout the entire transfer process. Its core module, the Inductive Bias Attention Module, aggregates features from all student layers onto the teacher's grid using learned weights. It then enhances structural cues through channel and deformable spatial attention and injects them via convolutional cross-attention operating directly between spatial grids rather than token sets. The module is used only during training, leaving the deployed model as an unmodified ViT with no inference overhead. Across seven Transformer backbones and six data-scarce benchmarks, iBKD consistently outperforms both locality-guidance methods and general knowledge distillation baselines, with its advantage increasing as the amount of training data decreases.",
+      "authors": [
+        "Junyong Choi",
+        "Cheolhyeon Park",
+        "Jaehoon Cho"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T09:39:13+00:00",
+      "link": "https://arxiv.org/pdf/2608.10723v2",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "knowledge distillation from CNN to ViT, applicable to transformer-based detection",
+      "llm_evidence_cn": "CNN到ViT的知识蒸馏，可用于Transformer检测器",
+      "llm_evidence": "CNN到ViT的知识蒸馏，可用于Transformer检测器",
+      "canonical_evidence": "CNN到ViT的知识蒸馏，可用于Transformer检测器",
+      "llm_tldr_en": "Proposes iBKD, a grid-preserving knowledge distillation framework that transfers convolutional inductive bias to Vision Transformers under data scarcity.",
+      "llm_tldr_cn": "针对数据稀缺条件下视觉Transformer性能不足的问题，提出iBKD蒸馏框架，通过保持空间网格结构将卷积归纳偏置迁移到ViT。该方法解决了通用特征蒸馏在CNN到ViT中丢失空间信息的问题，改善了小样本场景下的ViT训练。实验表明该蒸馏方法能提升ViT性能，为基于Transformer的检测器等视觉任务提供了有效训练策略。",
+      "llm_tldr": "针对数据稀缺条件下视觉Transformer性能不足的问题，提出iBKD蒸馏框架，通过保持空间网格结构将卷积归纳偏置迁移到ViT。该方法解决了通用特征蒸馏在CNN到ViT中丢失空间信息的问题，改善了小样本场景下的ViT训练。实验表明该蒸馏方法能提升ViT性能，为基于Transformer的检测器等视觉任务提供了有效训练策略。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.11770v1",
+      "source": "arxiv",
+      "title": "Achieving Near-Zero-Overhead Multi-Model Hierarchical Classification in Real-Time Detection Pipelines",
+      "abstract": "Edge-deployed vision systems in target recognition, surveillance, autonomous vehicles, and drone domains require hierarchical inference pipelines where a detection model identifies objects of interest and downstream classifiers provide fine-grained attribute analysis. Running all models on the GPU creates a serial bottleneck that limits real-time throughput as pipeline stages grow. Modern edge SoCs pair GPUs with dedicated neural accelerators (NPUs, DLAs) capable of concurrent execution, yet deploying custom models on these accelerators remains impractical due to strict operator constraints, quantization incompatibilities, and an undocumented end-to-end pipeline. We target NVIDIA Jetson DLA cores as the representative platform. We present a five-step methodology for zero GPU fallback DLA INT8 deployment of classification backbones, comprising architecture adaptation, manual dynamic range workaround to rescue TensorRT's implicit quantization (recovering 94.0% accuracy from implicit quantization's 75%) for rapid pipeline validation before explicit quantization, quantization-aware training, ONNX graph surgery for DLA compilation, and a concurrent GPU-detection/DLA-classification inference pipeline. We document nine engineering constraints with root-cause analysis and generalizable solutions. Validation on a dual-head person attribute classifier running on DLA alongside a GPU object detector on a Jetson Orin NX demonstrates near-zero pipeline overhead (12.5 vs. 13.3~FPS detector-only at 1080p), with dual-DLA scaling at no additional cost. The methodology is backbone-agnostic and generalizes to any detection-classification edge pipeline.",
+      "authors": [
+        "Vaishnav Raju"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.DC",
+        "cs.LG"
+      ],
+      "published": "2026-08-12T08:14:22+00:00",
+      "link": "https://arxiv.org/pdf/2608.11770v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "optimizing multi-model hierarchical classification in real-time detection pipelines",
+      "llm_evidence_cn": "优化实时检测流水线中的多模型层次分类",
+      "llm_evidence": "优化实时检测流水线中的多模型层次分类",
+      "canonical_evidence": "优化实时检测流水线中的多模型层次分类",
+      "llm_tldr_en": "The paper proposes deploying hierarchical detection/classification models on NPU/DLA accelerators concurrently with GPU to eliminate serial bottleneck and achieve near-zero overhead in edge detection pipelines.",
+      "llm_tldr_cn": "该文针对边缘设备中检测模型与下游分类器串行执行导致实时吞吐受限的问题，提出在Jetson DLA等专用加速器上并发部署的流水线优化方案。通过算子约束处理和量化适配，实现检测与分类的并行执行。实验表明该方法可将多模型流水线开销降至近零，提升边缘目标检测系统的实时性能。",
+      "llm_tldr": "该文针对边缘设备中检测模型与下游分类器串行执行导致实时吞吐受限的问题，提出在Jetson DLA等专用加速器上并发部署的流水线优化方案。通过算子约束处理和量化适配，实现检测与分类的并行执行。实验表明该方法可将多模型流水线开销降至近零，提升边缘目标检测系统的实时性能。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

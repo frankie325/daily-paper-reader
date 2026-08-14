@@ -1,0 +1,237 @@
+Title: Zero-Shot Traffic Accident Detection via a Coarse-to-Fine VLM-Tracking Pipeline
+
+URL Source: https://arxiv.org/pdf/2608.08867v1
+
+Published Time: Tue, 11 Aug 2026 01:33:22 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+## Zero-Shot Traffic Accident Detection via a Coarse-to-Fine VLM-Tracking Pipeline 
+
+Dipit Saha *, Shah Mohammad Abdul Mannan *, Mohammad Raihan Rashid *,Ruwad Naswan *, Ahnaf Tahmid *
+
+Bangladesh University of Engineering and Technology  
+
+> Correspondence: sdipit099@gmail.com
+
+Abstract 
+
+Traffic surveillance cameras capture accidents continuously, yet converting raw CCTV footage into structured event records that pinpoint when, where, and what type of col-lision occurred remains unsolved at scale. The ACCIDENT @ CVPR benchmark evaluates exactly this joint prediction under a strict constraint: no labeled real-world training data is available. We introduce a training-free, two-pass coarse-to-fine pipeline that pairs a frozen Qwen3-VL-32B-Instruct vision-language model with YOLO11x object detec-tion and BoT-SORT tracking. A first pass sparsely samples the full clip to anchor the collision moment in time; a second pass re-examines a tight window around that estimate using frames annotated with stable vehicle identities and normal-ized bounding-box coordinates, which gives the model both a visual overlay and an explicit numeric description of the same scene. On the official 2,027-clip real-CCTV test set, our system achieves a three-way harmonic mean score of 0.504, surpassing all organizer-published baselines includ-ing the best multi-model ensemble (0.412) by a 22% relative margin. 
+
+1. Introduction 
+
+Traffic surveillance cameras capture accidents continuously, yet extracting structured event records from raw footage, predicting when , where , and what type of collision occurred, remains an open problem at scale. CCTV footage is unfor-giving: low resolution, heavily compressed, often filmed at night, with vehicles that may span only a handful of pixels. The ACCIDENT @ CVPR benchmark [1, 12] targets pre-cisely these conditions, framing accident understanding as a joint three-way task and evaluating submissions through the harmonic mean of all three branches, a metric that collapses to zero if any single branch fails. The central difficulty is the absence of real labeled train-ing data. Competitors have access only to a CARLA-based 
+
+> *Equal contribution.
+
+synthetic development set; all systems must generalize zero-shot to real CCTV clips at test time. A vision-language model (VLM) seems a natural fit for this setting, given its broad visual and semantic priors. Yet a naive single-pass call over the full clip fails on all three axes. Accidents occupy roughly 100–500 ms of a 30 s clip, so uniform 4 fps sampling routinely misses the contact moment. Low-resolution pixels make precise coordinate recovery unreliable even when the right frame is found. And under uncertainty, the model ex-hibits a consistent mid-video temporal bias , defaulting to the clip midpoint ˆt ≈ D/ 2 for a clip of duration D, regardless of where the event actually occurs. These are not incidental fail-ure modes; each one independently collapses the harmonic mean score. We address them through a training-free two-pass pipeline built around a frozen Qwen3-VL-32B-Instruct model. A coarse pass sparsely samples the full clip to anchor the collision in time, sidestepping the contact-frame problem by narrowing the search window before any spatial reason-ing begins. A fine pass then re-examines a tight window around that estimate, running YOLO11x and BoT-SORT at native frame rate to maintain stable vehicle identities across frames. Each selected frame is annotated with bounding boxes and vehicle labels, while the same detections are si-multaneously written as normalized coordinate text, giving the model visual and numeric views of the scene that are harder to recover from low-resolution pixels alone. Three inference-time safeguards complete the design: a sub-second temporal floor, an out-of-memory fallback chain, and a type-continuity hint carried between passes; Table 1 summarizes the failure modes they are designed to prevent. Our system surpasses all organizer-published baselines, including the best multi-model ensemble, by a 22% relative margin in harmonic mean score, without any real-data fine-tuning. 
+
+2. Related Work 
+
+Pretrained multimodal models for video understanding. 
+
+Recent vision-language models have improved multi-frame reasoning and open-ended video understanding. Qwen2.5-VL introduces dynamic frame-rate sampling and stronger arXiv:2608.08867v1 [cs.CV] 9 Aug 2026 temporal grounding [5, 15], while Qwen3-VL further im-proves long-context visual reasoning [4]. Other pretrained video models such as Video-LLaMA [10] and V-JEPA 2 [3] also show that large-scale pretraining can support temporal understanding without task-specific supervision. 
+
+Accident and anomaly understanding in surveillance video. Earlier surveillance-based accident detection meth-ods rely on motion cues, optical flow, or hand-crafted col-lision heuristics [12, 16]. More recent work uses large multimodal models for training-free or weakly supervised anomaly reasoning. Holmes-VAD [18] and LAVAD [17] show that captioning and language-based reasoning can be effective without end-to-end task-specific training. Other methods, including CrashSight [8] and STER-VLM [11], move closer to accident understanding in traffic scenes, but they rely on fine-tuning or more specialized adaptation. Our setting is stricter: we target zero-shot accident understanding on real CCTV video without real-data fine-tuning. 
+
+Detection, tracking, and visual guidance. Object detec-tion and multi-object tracking remain useful for structuring crowded traffic scenes before higher-level reasoning. We build on YOLO11 for vehicle detection [9] and BoT-SORT for identity-consistent tracking across frames [2]. We also draw on prior work showing that visual cues added directly to images can influence VLM predictions [13]. Our use of annotated frames follows this idea, but pairs visual overlays with normalized coordinate text so that the model receives both image-level and explicit geometric evidence. 
+
+3. Task and Metric 
+
+Given a fixed-view CCTV clip, the task is to predict the accident time ˆt, the normalized impact location (ˆ x, ˆy),and the collision type ˆc ∈ {head-on, rear-end, sideswipe, t-bone, single }.Evaluation is performed on three components: temporal localization, spatial localization, and collision-type classi-fication. The temporal score T and spatial score S use Gaussian-style similarity measures, while the classification score C is exact-match accuracy. The official unified bench-mark score is the harmonic mean of the three: 
+
+ACCIDENT Score = 3
+
+T −1 + S−1 + C−1 . (1) This scoring strongly penalizes weak performance on any single branch. In the zero-shot track, all 2,027 real-CCTV clips are held for evaluation only. The sole labeled resource available is a 2,211-clip synthetic set rendered in CARLA [1, 12]. 
+
+4. System Overview 
+
+Figure 1 shows the full pipeline. For each clip, the system runs two sequential passes of the video VLM Qwen3-VL-32B-Instruct. 
+
+4.1. Pass 1: Coarse Temporal Localization 
+
+We sample up to 60 frames at 2 fps from the full clip. Frames are then passed to the VLM interleaved with timestamp tokens in the official Qwen format, i.e., the token <T.T seconds> after each image. The model is then instructed to return only a JSON object {"accident_time": <time>, "type": <type>} , denoted by (ˆ tc, ˆcc).We use the coarse time prediction ˆtc to center Pass 2 and the coarse collision-type prediction ˆcc as a soft type hint. 
+
+4.2. Pass 2: Fine Spatial and Temporal Refinement 
+
+Given ˆtc, we define a 4-second refinement window [ˆ tc −
+
+2 s , ˆtc + 2 s] and run YOLO11x [7] in Ultralytics track-ing mode with the default BoT-SORT configuration [2] at the video’s native frame rate. A low tracking threshold (conf =0.1) keeps vehicles that turn blurry, small, or partly occluded. Running at native fps matters: tracking on sub-sampled frames swaps IDs between frames, which weakens both the visual prompt and the final prediction. We then uniformly sample 24 frames from the tracked window and annotate them with bounding boxes and vehicle IDs using the BoxAnnotator and LabelAnnotator 
+
+utilities from the supervision library [14]. A separate visualization threshold of 0.3 on YOLO confidence keeps the main collision participants while suppressing low-confidence background boxes. Each annotated frame is paired with a timestamp token 
+
+<T.T seconds> so the model can place it inside the re-finement window, and the detected vehicles are also listed as normalized bounding boxes:   
+
+> [Car 1: (0.491,0.620)-(0.589,0.694)]
+
+with (x1, y 1) and (x2, y 2) the top-left and bottom-right cor-ners in [0 , 1] . The coarse-pass type prediction ˆcc is passed in as a soft hint, and the model is asked to return a sin-gle JSON object {"accident_time", "center_x", "center_y", "type"} .
+
+5. Experiments 
+
+Setup. All inference runs on a single NVIDIA H100 80 GB GPU (bfloat16, FlashAttention-2 [6]) using YOLO11x and frozen Qwen3-VL-32B-Instruct weights; no model is trained or fine-tuned on ACCIDENT labels. 
+
+Main results. Table 2 compares our system against organizer-published baselines on the official real-CCTV test set. The first four rows are organizer-reported numbers, and 1 Sampling 60 frames at 2fps with timestamp <T.Timestamp = 1s> <T.Timestamp = 1.5s> <T.Timestamp = 1.25s>  
+
+> 2
+
+Passing the Sampled frame with timestep to Qwen3-
+
+VL-32B-Instruct Model with the follwing prompt 
+
+We receive the final output of 
+
+the first pass as (tc, Cc), 
+
+denoting the time of accident 
+
+and the frame respectively 
+
+> 3
+
+Given tc, we define a window 
+
+tc ± 2s and then select the 
+
+frames at the native frame 
+
+rate 
+
+> 4
+
+We run Yolo11x and BoT-Sort at native 
+
+frame rate. During tracking we lower the 
+
+conf threshold to 0.1 (necessary for 
+
+tracking). Each frame is annotated with 
+
+bounding box and vehicle ID. 
+
+> 5
+
+Prompt  
+
+> You are a traffic accident analysis expert examining
+> CCTV footage. You will see frames from a traffic
+> video with timestamps in the format <T.T seconds>.
+> Your task is to identify when the collision occurs
+> and classify the collision type. Collision types: -
+> head-on: Two vehicles collide front-to-front while
+> traveling in opposite directions ....
+> Respond ONLY with a JSON object:
+> {"accident_time": <seconds as float>, "type": "
+> <collision type>" }
+
+Selecting 24 
+
+frames uniformly 
+
+from the 
+
+annotated frames 
+
+but keeping only 
+
+0.3 detection 
+
+threshold vehicle 
+
+annotation 
+
+> 6<T.Timestamp = 1.5s> [Car 1: (0.321,0.590)-(0.400,0.672)]
+> Annotated Frames with spacial and
+> temporal information and type (hint)
+> are given to the VLM for final
+> classification along with the Prompt
+> 7
+
+Prompt You are a traffic accident analysis expert 
+
+> examining CCTV footage. You will see
+> annotated frames with vehicle bounding
+> boxes drawn as colored rectangles
+> labeled [Car N]. Each [Car N] label
+> identifies a tracked vehicle...
+> Respond ONLY with a JSON object:
+> {"accident_time": <seconds>, "center_x":
+> <0.0-1.0>, "center_y": <0.0-1.0>, "type": "
+> <collision type>"}
+> Final Result
+> “accident_time”: 2.0s,
+> “center_x”: 0.616,
+> “center_y”: 0.649,
+> “type”: “single” <T.Timestamp = 1.75s> [Car 1: (0.491,0.620)-(0.589,0.694)]
+
+Pass 1 
+
+Pass 2 
+
+Initial 30fps frames <T.Timestamp = 1.75s> <tc = 1.5s, Cc = “head on”> 2<T.Timestamp = 2.0s> [Car 1: (0.570,0.614)-(0.662,0.683)] Figure 1. Compact two-pass pipeline. Pass 1 performs temporal localization on sparse timestamped frames to produce a coarse time/type anchor; Pass 2 restricts attention to a ±2 s window, adds YOLO11x + BoT-SORT tracking and coordinate text, and returns the final structured prediction. 
+
+Mechanism Trigger Failure prevented 
+
+Temporal floor 
+
+ˆt < 0.3 s from either pass removes degenerate zero-time outputs that would collapse T
+
+YOLO retry detector OOM at imgsz =1088 preserves fine-pass spa-tial reasoning on long clips Raw-frame fallback zero detections in fine window avoids full pass failure on night or compressed clips Short-window retry VLM OOM in Pass 2 recovers inference with fewer frames and tighter context JSON safe-guard malformed structured out-put preserves non-zero prediction rather than crashing the clip Table 1. Inference-time safeguards used to prevent catastrophic harmonic-mean failures. 
+
+the last row is our system, scored on the full 2,027-clip test set by the organizer’s category-wise evaluator hosted on a separate official page; the Kaggle-style leaderboard itself reports only a combined HM (public 0.499 , private 0.503 ). 
+
+System T S C HM 
+
+Heuristics (no classification) [12] 0.287 0.273 0.000 0.000 Naive Baseline [12] 0.190 0.250 0.335 0.245 Molmo-7B [12] 0.343 0.488 0.293 0.358 Best from all [12] 0.343 0.488 0.433 0.412 
+
+Our System 0.549 0.468 0.503 0.504 
+
+Table 2. Official test-set results. The first four rows are organizer-published baselines [1], and HM is the three-way harmonic mean. Our row is the organizer’s category-wise evaluation over all 2,027 clips; the Kaggle leaderboard records the combined HM as 0.499 
+
+(public) and 0.503 (private). 
+
+Interpreting the branch gains. Relative to Best from all ,our system gains +0 .206 on T and +0 .070 on C, while S
+
+regresses by 0.020 . Inspecting the clips behind that regres-sion shows two recurring cases. A vehicle entering the frame late, such as the cross-traffic car in a t-bone, is dropped by BoT-SORT before it clears the 0.3 visualization threshold; the fine pass then anchors on the larger, stably tracked vehi-cle, which sits one to two car-lengths from the true contact point. Night and heavy compression also suppress YOLO confidence across the scene, the fine window falls back to raw frames, and the model regresses toward (0 .5, 0.5) in-stead of committing. Both trade a small spatial error for the larger temporal and classification gains that tracking and coordinate text provide. 
+
+Engineering progression on official test set. Because real-CCTV labels are hidden, Table 3 traces submission-level changes as the closest substitute for a controlled abla-tion. The dominant gain ( +0 .234 HM) came from replacing the organizer baseline with a single-pass VLM call; subse-quent design choices each contributed smaller but consistent improvements.                      
+
+> Variant Progressive change Pub. Priv.
+> Organizer Naive Baseline [12] organizer-reported ref-erence 0.226 0.246 Single-pass VLM full-clip VLM in place of heuristics 0.469 0.479 +Coarse temporal loc. coarse accident-time an-choring 0.481 0.491 + Spatial grounding YOLO boxes in the fine stage 0.472 0.492 +Temporal refine-ment tighter window around first contact 0.493 0.499 + Two-pass coarse-to-fine ( ours )balanced coarse-to-fine config
+> 0.499 0.504
+> Table 3. Engineering progression on the hidden test server. Each row adds one design change; Pub. /Priv. are the public- and private-leaderboard HMs for that submission. The final row matches the full-evaluator HM of 0.504 reported in Table 2; the corresponding raw private-leaderboard value is 0.50265 . Because these come from successive hidden-test submissions, the table is supportive development evidence rather than a controlled ablation.
+
+Reproducibility and inference budget. Each clip uses two VLM calls: 60 frames at 2 fps (coarse pass) and 24 annotated frames over a ±2 s window (fine pass). End-to-end latency is 40–90 s/clip on an H100. 
+
+Error analysis. Manual inspection of clips that triggered fallback behavior or produced suspicious coordinates re-vealed four dominant failure patterns, summarized in Ta-ble 4. 
+
+Practical lessons. (i) do_sample=True at V1 caused JSON drift and center-clustered 22% of clips; switching to greedy decoding eliminated this. (ii) Including all YOLO detections diluted collision evidence; filtering to track-stable, highest-confidence boxes reduced out-of-range out-puts. (iii) Equal temporal density in both passes wastes the fine pass: narrowing from ±4 s at 16 fps to ±2 s at 24 fps yielded the largest T gain. (iv) BoT-SORT on subsampled              
+
+> Failure mode Main hit Observed behavior
+> Night + com-pression
+> SYOLO often misses vehicles; the fine pass falls back to raw frames and frequently regresses toward
+> (0 .5,0.5) .Sideswipe T,CFirst contact is subtle, so the coarse pass can lock onto a near-miss frame instead of the impact mo-ment. Single-vehicle
+> CThe VLM sometimes hallucinates a second vehicle and misclassifies the event as t-bone .Mid-video bias
+> TUnder high uncertainty, the VLM defaults toward ˆt≈D/ 2.Table 4. Dominant failure patterns identified from manual inspec-tion of clips that triggered fallback behavior or produced suspicious coordinates.
+
+frames caused ID swaps ( [Car 4] →[Car 9] ); native-fps tracking preserved vehicle identity across the fine win-dow. 
+
+Limitations. The pipeline requires two large-VLM calls plus detector-tracker inference per clip, and the absence of labeled real-CCTV data leaves some design choices empiri-cally underspecified. 
+
+6. Conclusion 
+
+We presented a training-free two-pass pipeline for joint tem-poral, spatial, and collision-type prediction in CCTV traffic accidents. Our method combines a frozen Qwen3-VL-32B-Instruct model with YOLO11x detection and BoT-SORT tracking, and uses both annotated frames and normalized coordinate text to improve fine-grained reasoning. On the test dataset, it achieves a harmonic mean score of 0.504, exceeding the best organizer-published baseline by 22% 
+
+relative. Future work should explore: a lightweight temporal pre-filter (e.g., V-JEPA 2 surprise signal or RAFT-jerk curve) to narrow the coarse window; a dedicated single-vehicle detector to reduce t-bone misclassifications; and targeted domain adaptation using the synthetic CARLA labels, which we deliberately avoided to preserve the zero-shot design. 
+
+References   
+
+> [1] ACCIDENT Benchmark Organizers. Accident @ cvpr chal-lenge: Training-free accident understanding on cctv video. Official benchmark challenge leaderboard, 2026. 1, 2, 3 [2] Nir Aharon, Roy Orfaig, and Ben-Zion Bobrovsky. BoT-SORT: Robust associations multi-pedestrian tracking. arXiv preprint arXiv:2206.14651 , 2022. 2
+
+[3] Mahmoud Assran, Adrien Bardes, David Fan, Quentin Gar-rido, et al. V-JEPA 2: Self-supervised video models en-able understanding, prediction and planning. arXiv preprint arXiv:2506.09985 , 2025. https://arxiv.org/abs/ 2506.09985 . 2 [4] Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, et al. Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 , 2025. 
+
+https://arxiv.org/abs/2511.21631 . 2 [5] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, et al. Qwen2.5-vl technical report. arXiv preprint arXiv:2502.13923 , 2025. 2 [6] Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. FlashAttention: Fast and memory-efficient exact attention with IO-awareness. In NeurIPS , 2022. 2 [7] Uppada Enos. Traffic accident detection yolo11x. Hug-ging Face model card and checkpoint release, 2024. 
+
+https://huggingface.co/Enos-123/traffic-accident-detection-yolo11x . 2 [8] Rui Gan, Junyi Ma, Pei Li, Xingyou Yang, Kai Chen, Sikai Chen, and Bin Ran. CrashSight: A phase-aware, infrastructure-centric video benchmark for traffic crash scene understanding and reasoning. arXiv preprint arXiv:2604.08457 , 2026. 2 [9] Glenn Jocher, Jing Qiu, and Ayush Chaurasia. Ultralytics YOLO11. Ultralytics documentation, 2024. https:// docs.ultralytics.com/models/yolo11/ . 2 [10] KunChang Li, Yinan Wang, Yi He, Yizhuo Li, Yi Wang, Yali Liu, Zun Wang, Jilan Xu, Guo Chen, Ping Luo, Limin Wang, and Yu Qiao. Video-LLaMA: An instruction-tuned audio-visual language model for video understanding. In 
+
+Proceedings of EMNLP , 2023. 2 [11] Tinh-Anh Nguyen-Nhu, Triet Dao Hoang Minh, Dat To-Thanh, Phuc Le-Gia, Tuan Vo-Lan, and Tien-Huy Nguyen. STER-VLM: Spatio-temporal with enhanced reference vision-language models. In ICCV Workshops , 2025. 2 [12] Lukas Picek, Michal ˇ Cermák, Marek Hanzl, and Vojtˇ ech ˇ Cer-mák. Accident: A benchmark dataset for vehicle accident detection from traffic surveillance videos. In 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW) . IEEE, 2026. 1, 2, 3, 4 [13] Aleksandar Shtedritski, Christian Rupprecht, and Andrea Vedaldi. What does CLIP know about a red circle? Visual prompt engineering for VLMs. In ICCV , 2023. 2 [14] Piotr Skalski and Roboflow. Supervision: A library for com-puter vision annotations. Public project repository, 2024. 2 [15] Jianlin Su, Yu Lu, Shengfeng Pan, Bo Wen, and Yunfeng Liu. RoFormer: Enhanced transformer with rotary position embedding. arXiv preprint arXiv:2104.09864 , 2021. 2 [16] Zachary Teed and Jia Deng. RAFT: Recurrent all-pairs field transforms for optical flow. In ECCV , 2020. 2 [17] Luca Zanella, Willi Menapace, Massimiliano Mancini, Yim-ing Wang, and Elisa Ricci. Harnessing large language models for training-free video anomaly detection. In CVPR , 2024. 2 [18] Huaxin Zhang, Xiaohao Xu, Xiang Wang, Jialong Zuo, Chuchu Han, Xiaonan Huang, Changxin Gao, Yuehuan Wang, and Nong Sang. Holmes-VAD: Towards unbiased and explain-able video anomaly detection via multi-modal LLM. arXiv preprint arXiv:2406.12235 , 2024. 2
