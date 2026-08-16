@@ -1,0 +1,58 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-16T19:24:53.056524+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2608.08555v1",
+      "source": "arxiv",
+      "title": "SC-Diff: Semantically Calibrated Diffusion for Visible-to-Infrared Image Translation",
+      "abstract": "Visible-to-infrared image translation provides a practical way to expand infrared training data using abundant visible images. Diffusion models are promising for this task because of their strong generative performance. However, existing diffusion-based methods typically use semantic priors only as external conditions, without explicitly regulating token interactions within the denoising network. Consequently, they struggle to preserve object locations, shapes, and semantic layouts required for reliable annotation reuse. We propose SC-Diff, a semantically calibrated latent diffusion framework that uses semantic priors for both conditional guidance and internal self-attention calibration. A pretrained SAM3 model with predefined text prompts first extracts category-specific semantic masks from visible images. These masks are merged into a semantic map and fused with the visible image as the input condition. The same map is converted into token-level semantic labels to calibrate self-attention in the denoising network. Based on these labels, we introduce Semantic-Guided Self-Attention Calibration (SGSC), which adaptively applies positive biases to query-key pairs of the same category. The query-wise calibration strength depends on the dispersion of attention across semantic categories and the attention assigned to the query's own category. The original attention scores further modulate the bias, giving greater calibration to same-category keys with stronger responses. This soft calibration reduces cross-category interference while retaining global contextual interactions, thereby improving semantic consistency in generated infrared images. Extensive experiments show that SC-Diff improves perceptual quality and produces more effective synthetic training data for downstream infrared object detection.",
+      "authors": [
+        "Junyin Zhang",
+        "Siyu Huang",
+        "Jianxiong Ye",
+        "Haowei Gong",
+        "Ruicheng Zhang",
+        "Deyu Meng",
+        "Chenqiang Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-09T07:57:40+00:00",
+      "link": "https://arxiv.org/pdf/2608.08555v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "visible-to-infrared translation preserves object layouts for detection annotation reuse",
+      "llm_evidence_cn": "可见光到红外翻译保留物体布局以用于检测标注复用",
+      "llm_evidence": "可见光到红外翻译保留物体布局以用于检测标注复用",
+      "canonical_evidence": "可见光到红外翻译保留物体布局以用于检测标注复用",
+      "llm_tldr_en": "The paper addresses visible-to-infrared image translation for expanding infrared training data, proposing a semantically calibrated diffusion framework that uses semantic priors to regulate self-attention and preserve object locations, improving downstream annotation reuse.",
+      "llm_tldr_cn": "针对现有扩散模型在可见光到红外图像翻译中难以保持物体位置、形状和语义布局的问题，本文提出语义校准的潜在扩散框架SC-Diff，利用预训练SAM3模型生成的语义先验同时进行条件引导和内部自注意力校准。实验表明该方法能更可靠地保留物体结构，便于将可见光标注直接复用到红外数据，为红外目标检测等下游任务提供了有效的数据增强手段。",
+      "llm_tldr": "针对现有扩散模型在可见光到红外图像翻译中难以保持物体位置、形状和语义布局的问题，本文提出语义校准的潜在扩散框架SC-Diff，利用预训练SAM3模型生成的语义先验同时进行条件引导和内部自注意力校准。实验表明该方法能更可靠地保留物体结构，便于将可见光标注直接复用到红外数据，为红外目标检测等下游任务提供了有效的数据增强手段。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
