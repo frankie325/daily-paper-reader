@@ -1,0 +1,105 @@
+{
+  "date": "20260817",
+  "date_label": "",
+  "generated_at": "2026-08-17 19:48:54 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.14142v1",
+      "route": "202608/17/2608.14142v1-pisa-a-pseudo-individual-source-domain-feature-adaptation-framework-for-test-time-open-vocabulary-object-detection",
+      "title": "PISA: A Pseudo-Individual Source-Domain Feature Adaptation Framework for Test-Time Open-Vocabulary Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "开放词汇目标检测测试时自适应",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    },
+    {
+      "paper_id": "2608.14282v1",
+      "route": "202608/17/2608.14282v1-magnet-3d-monocular-and-domain-generalizable-temporal-3d-detection",
+      "title": "MAGneT-3D: Monocular and Domain-Generalizable Temporal 3D Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "单目时序3D目标检测的域泛化",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    },
+    {
+      "paper_id": "2608.14317v1",
+      "route": "202608/17/2608.14317v1-intelligent-detection-of-mechanical-electrical-and-plumbing-mep-metrics-based-on-2d-floor-plans",
+      "title": "Intelligent Detection of Mechanical, Electrical, and Plumbing (MEP) Metrics Based on 2D Floor Plans",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "使用Mask RCNN检测2D平面图中的照明符号",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    },
+    {
+      "paper_id": "2608.14394v1",
+      "route": "202608/17/2608.14394v1-irgnn-efficient-invariant-radar-graph-neural-network-for-radar-point-cloud-object-detection",
+      "title": "IRGNN: Efficient Invariant Radar Graph Neural Network for Radar Point Cloud Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于不变图神经网络的雷达点云目标检测",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    },
+    {
+      "paper_id": "2608.14428v1",
+      "route": "202608/17/2608.14428v1-ghostpoint-self-supervised-representation-learning-by-hallucinating-occluded-lidar-structure",
+      "title": "GhostPoint: Self-Supervised Representation Learning by Hallucinating Occluded LiDAR Structure",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向LiDAR 3D目标检测的自监督学习",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    },
+    {
+      "paper_id": "2608.13135v1",
+      "route": "202608/17/2608.13135v1-predicting-signed-distance-functions-for-visual-instance-segmentation",
+      "title": "Predicting Signed Distance Functions for Visual Instance Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉实例分割通过预测到物体轮廓的距离图，替代基于锚框的检测",
+      "first_seen_at": "2026-08-17 19:48:54 UTC",
+      "updated_at": "2026-08-17 19:48:54 UTC"
+    }
+  ]
+}

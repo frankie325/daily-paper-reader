@@ -1,0 +1,420 @@
+Title: PISA: A Pseudo-Individual Source-Domain Feature Adaptation Framework for Test-Time Open-Vocabulary Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.14142v1
+
+Published Time: Mon, 17 Aug 2026 00:46:27 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# PISA: A Pseudo-Individual Source-Domain Feature Adaptation Framework for Test-Time Open-Vocabulary Object Detection 
+
+## Ziyan He 1, Xiongtai Yang 1, Tao Wang 1∗
+
+> 1
+
+Sichuan University 2025223045235@stu.scu.edu.cn, 2025223045170@stu.scu.edu.cn, twangnh@gmail.com 
+
+Abstract 
+
+Open-vocabulary object detection test-time adaptation (OVOD-TTA) aims to address the performance degradation that pre-trained base models suffer when encountering image-domain shifts. Existing source-free OVOD-TTA methods rely either on refined test-time information for re-scoring or on pseudo-labels for self-training, leading to significant accuracy degradation when initial predictions are poor. Meanwhile, most conventional source-domain estimation methods recover abstract, sparse representations suitable for the classification task, but fail to capture the dense, concrete features required for detection. To address these issues, we propose PISA , a novel source-free OVOD-TTA method that can be seamlessly integrated into open-vocabulary visual backbones. The core components of our method are the Corruption-Invariant Fea-ture Extractor (CIFE), the Feature Alignment Module (FAM), and a multi-scale alignment framework (BAA). To capture detection-suitable features, we develop CIFE to exploit the invariance of CLIP’s visual features across corrupted images, ensuring robustness against various corruptions. We further develop FAM and BAA for the pre-training and adaptation to transform the corruption-invariant features into pseudo-individual source-domain features that are close to the orig-inal source-domain features. In this way, dense and concrete pseudo-individual source-domain features are used for super-vision instead of unreliable pseudo-label signals. Experiments on the corrupted VOC-C, COCO-C, and LVIS-C benchmarks across three base models demonstrate that PISA substantially improves both the localization precision and the category recognition accuracy of the original models. Notably, PISA achieves state-of-the-art performance without requiring ac-cess to source-domain data, surpassing existing methods by 3.92% in AP@50% on COCO-C. 
+
+## Introduction 
+
+Open-vocabulary object detection (OVOD) has emerged as a prominent object detection paradigm (Wu et al. 2024; Wang et al. 2025; Lin et al. 2024; Liang and Zhang 2026; Ma et al. 2025). By harnessing natural language, OVOD models align text and image features in a shared embedding space via large-scale image-text pre-training, enabling detection of ob-jects beyond a fixed set of categories. However, these models (Chhipa et al. 2024) suffer severe performance degradation when encountering different corrupted images in real scenes. To address this, open-vocabulary object detection test-time adaptation (OVOD-TTA) (Zhao et al. 2026; Liu et al. 2025; 
+
+> ∗
+
+Corresponding author. Copyright © 2027, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. Imp 32.3 Sht 31.5 Def 24.4 Gau 29.4 Gls 15.1 Mtn 21.2 Zm 12.1 Bgt 55.9 Fog 56.6 Fro 41.3 Snw 34.5 Cnt 43.5 Els 34.5 Pix 14.0 Jpeg 30.3 
+
+> TDA BCA+ IOU-Filter ViTPrompt RGSE PISA
+
+Figure 1: Comparison of PISA with other source free OVOD-TTA methods on COCO-C(AP@50%) with 15 different kinds of corruptions. PISA achieves state-of-the-art perfor-mance across most types of corruptions, demonstrating ex-ceptional robustness. Liang, He, and Tan 2025) is proposed to improve model’s performance by optimizing model during test time. Exist-ing OVOD-TTA methods can be roughly divided into two categories: training-based and training-free methods, as il-lustrated in Figure 2. Some OVOD-TTA methods (Yoo et al. 2024; Liao et al. 2026) build upon traditional domain adap-tation, aiming to align the distributions of source and target domains during testing, while others rely on pseudo-labels for self-training (Ruan and Tang 2024; Qin et al. 2026) or cache intermediate information for result aggregation (Kar-manov et al. 2024; Zhou et al. 2025a, 2026; Zhao et al. 2026). Although these methods have their respective advantages, several critical issues remain unresolved: (1) How to obtain high-quality, stable supervision sig-nals for model optimization? For those predictions used as pseudo-labels for self-training or re-scoring the output, severely corrupted test inputs can yield unreliable predic-arXiv:2608.14142v1 [cs.CV] 14 Aug 2026 Poor Pseudo label      
+
+> (a) Training based OVOD-TTA Method with pseudo-label/source domain estimation
+> Corrupted image input
+> Target
+> (b) Training Free OVOD-TTA Method
+> Corrupted image input
+> Poor Cached Result aggregation Source & Target Distribution
+> (c) PISA
+> Forward 1/2 Back propagation ’s feature Pseudo-Individual source feature Real source feature Direction from to Direction from to Unsuitable Pseudo-Individual source feature adaptation
+> OVOD Model OVOD Model Loss KL Loss
+> Source
+> OVOD Model OVOD Model PISA
+
+Figure 2: Comparison of different OVOD-TTA methods. (a) illustrates part of OVOD-TTA method rely on source-domain distribution or pseudo label for self-training. (b) shows the paradigm of cache-based training-free OVOD-TTA mehod. (c) presents our OVOD-TTA paradigm, which uses pseudo-individual source-domain feature for adaptation. tions that progressively degrade the model’s capability (Zhu and Chen 2024). (2) How to estimate individual source-domain features without source-domain data? Obtaining high-quality su-pervision signals hinges on effective domain estimation. However, conventional source-domain distribution estima-tion methods are designed for classification and unsuitable for object detection, while accessing source data to estimate distributions violates TTA’s core assumption that source fea-tures are unavailable at test time (Yang et al. 2021). To address the above issues, we propose PISA, a novel source-free OVOD-TTA method (Figure 2c). To capture dense, individual features that are suitable and robust for object detection, we leverage the visual backbone of CLIP (Radford et al. 2021), an open-vocabulary zero-shot classifi-cation model, as the Corruption-Invariant Feature Extractor (CIFE). CIFE produces highly similar feature representations for both noisy images and their clean counterparts, which ef-fectively bridges the domain gap. To obtain high-quality sig-nals for model optimization, we develop the Feature Align-ment Module (FAM), which consists of a main branch and a target branch. We further develop a multi-scale alignment framework, which mainly consists of two backbone align-ment adapters, BAA t and BAA a. BAA t transfers corruption-invariant features into pseudo instance-level source-domain features, while BAA a is the only component kept trainable during test time, with all other components frozen to ensure stable model updates. In this manner, PISA attains stable optimization of the model at test time through the use of pseudo-individual source-domain features. As shown in Fig-ure 1, PISA performs the best among existing source free OVOD-TTA methods on COCO-C with 15 different kinds of corruptions. More importantly, PISA is a general framework that can be applied to many OVOD backbones. Our main contributions are summarized as follows: 
+
+• We propose PISA, a source-free OVOD-TTA frame-work based on pseudo-individual source-domain features, which substantially improves the original OVOD model’s performance across diverse corruptions. 
+
+• We employ CLIP in OVOD-TTA and propose the Corruption-Invariant Feature Extractor (CIFE) for indi-vidual source-domain feature estimation, which extracts the corruption-invariant feature suitable for object de-tection from different corrupted images and bridges the domain gap. 
+
+• We propose Feature Alignment Module (FAM) and a multi-scale alignment framework (BAA), transfer-ring CIFE features into high-quality pseudo-individual source-domain features for stable model optimization. 
+
+• We evaluate PISA with three OVOD methods on VOC-C, COCO-C, and LVIS-C. The results demonstrate that PISA substantially improves the performance of multiple baseline models. Specifically, PISA outperforms the state of the art by 3.92% on COCO-C. 
+
+## Related Work 
+
+Source-Domain Estimation 
+
+Several early works explore reconstructing a surrogate source feature distribution without source data. Ding et al. (2022) estimate the source distribution via statistical descriptors from the pre-trained model and align target features toward it. VDM-DA (Tian et al. 2021) synthesizes pseudo source features using prototype information encoded in the source model. Similarly, Du et al. (2024) build a pseudo-source domain through generation and augmentation of synthetic features from the source model, enabling source-free adap-tation. However, they are predominantly designed for image-level classification, where only abstract, global representa-tions are needed. In contrast, detection models rely on dense, concrete features, making it more challenging to reconstruct the source domain. To address this, our method reconstructs multi-scale pseudo-individual source-domain features, en-abling better adaptation to the dense feature requirements of object detection. 
+
+Source-Free OVOD-TTA 
+
+OVOD-TTA refers to adapting the object detection model during the testing phase. Source free OVOD-TTA meth-ods eliminate the need for source domain data, perform-ing adaptation exclusively on target domain data at test time. Existing approaches can be categorized into training-free and training-based methods. The former mainly rely on cache-driven frameworks, which store refined visual features, text embeddings, or other test-time information to re-score the initial predictions, as in TDA (Karmanov et al. 2024), BCA (Zhou et al. 2025a), BCA+(Zhou et al. 2025b), ViT-Prompt (Qin et al. 2026), RGSE(Zhou et al. 2026), FAC-TOR(Zhao et al. 2026). The latter perform incremental self-supervised fine-tuning on test samples by updating only a CIFE ℬcife  
+
+> Conv1 BN1
+
+Swin Transformer backbone ℬimg 
+
+𝑓 1
+
+𝑓 2
+
+𝑓 𝑙 
+
+…
+
+𝑓 1
+
+> 𝑡
+
+𝑓 2
+
+> 𝑡
+
+𝑓 2
+
+> 𝑠
+
+𝑓 𝑙 𝑡 𝑓 𝑙 𝑠 
+
+…
+
+ℒ𝐹𝐴𝑀 
+
+> 1
+
+ℒ𝐵𝐴𝐴  
+
+> 2
+> Augment image x𝑡 ’s path
+
+Layers Layers BAA 𝑡 ,1 
+
+> 2
+
+𝑓 0 𝑓 0
+
+> 𝑡
+
+𝑓 0
+
+> 𝑠
+
+ℒ𝑇𝑇𝐴   
+
+> TTA image x𝑡𝑡𝑎 ’s path Trainable at 1/2 pretraining, adaptation stage
+
+Pretraining Stage Adaptation & Test Stage 
+
+𝑓 cife 
+
+> 𝑡
+
+𝑓 cife 
+
+> 𝑠
+
+𝑓 𝑙 𝑝 𝑓 𝑙 𝑡𝑡𝑎 
+
+x𝑠 x𝑡 𝑓 1𝑠 
+
+BAA 𝑡 ,2 
+
+> 2
+
+BAA 𝑡 ,... 
+
+> 2
+
+BAA 𝑡 ,𝑙 
+
+> 21
+
+x𝑡𝑡𝑎     
+
+> at12a
+> Origin image x𝑠 ’s path tFrozen at adaptation stage
+
+FAM 
+
+Swin Transformer backbone ℬimg 
+
+> Text input
+> Text Encoder
+> ℬtxt
+> Rest part of OVOD
+
+FAM Patch Embed CIFE ℬcife  
+
+> Conv1 BN1 Patch Embed
+
+BAA 𝑎 ,... BAA 𝑡 ,... 
+
+> Corruption-Invariant feature space Pseudo-individual source-domain feature space
+> Corruption-Invariant feature Different corrupted image Corruption-Invariant feature Different corrupted image
+> Source-domain feature Pseudo-individual source-domain feature 20% 60% 80% FAM + BAA
+> Source-domain feature Pseudo-individual source-domain feature
+
+Figure 3: Overview of PISA. The CIFE module extracts corruption-invariant features, while the FAM aligns them with patch embeddings via main and target branches. BAA integrates multi-scale adapters into the backbone to bridge the domain gap. small subset of parameters, establishing them as the main-stream paradigm for adaptive detection. IOU-Filter (Ruan and Tang 2024) is the first fully self-supervised OVOD-TTA framework, which refines training samples by discard-ing low-confidence pseudo-labels via thresholding. VLOD-TTA (Belal et al. 2025) strengthens domain-shift robustness through IoU-weighted entropy minimization on spatially co-herent proposals, coupled with image-conditioned prompt selection. However, both methods are sensitive to output quality, becoming less effective in complex environments when pseudo-labels or cached features are unreliable. In con-trast, our approach achieves source-free TTA while leverag-ing target-domain data to ensure high-quality optimization. 
+
+## Methodology 
+
+Preliminary 
+
+Since open-vocabulary object detectors already exhibit strong capability in recognizing novel categories, we primar-ily focus on the TTA scenario under different corruptions. Suppose we have a pre-trained OVOD model on the source-domain data, which consists of a text encoder Btxt and an image encoder Bimg . The key task is to fine-tune the model using unlabeled target-domain data {xtta i }Nt 
+
+> i=1
+
+to generalize it to better predict in target domain (Liang, He, and Tan 2025). In this section, we first review the traditional TTA paradigm and present the overall framework of our method. We then elaborate on the design of each module and describe the detailed procedures for every stages. 
+
+Traditional OD-TTA Method Traditional OD-TTA meth-ods, based on a self-supervised learning paradigm, rely on pseudo-labels for online optimization. When test sample xtta 
+
+arrives, the original model Bθ first generates the prediction set {bit, y it}Ni=0 = Bθ (xtta ). High-confidence predictions are then utilized as pseudo-labels to minimize a self-training loss, thereby updating the model parameters from θ to θ∗:
+
+ˆyt = I (pt > τ ) Bθ (xtta ) (1) 
+
+θ∗ = arg min 
+
+> θ
+
+X
+
+> xt∈Dt
+
+L (ˆ yt) (2) Although such a paradigm can mitigate the distribution shift between domains, its performance remains critically depen-dent on pseudo-label quality. On images with substantial domain shifts, erroneous pseudo-labels readily accumulate throughout iterative updates, causing the model to assimilate these spurious patterns. 
+
+Proposed Method 
+
+To avoid the issue of low-quality pseudo-labels in the test do-main, we instead resort to feature-level supervision, where the model is optimized to generate source-like features with a pseudo-feature alignment objective. The complete pipeline of our method is illustrated in Figure 3, which mainly com-prises three components: the Corruption-Invariant Feature Extractor (CIFE), the Feature Alignment Module (FAM) and a multi-scale alignment framework (BAA t and BAA a). The CIFE is responsible for extracting corruption-invariant fea-tures fcife , while the FAM and BAA t modules are designed to transform fcife into pseudo-individual source-domain fea-tures f p that is close enough to the real source-domain fea-tures f . As shown in Figure 3, within the pseudo-individual ViT-B/16          
+
+> CIFE Stem Layer 1 Layer 2 Layer 3 Layer 4 RN50
+> Conv1 Block0 Block6
+> Gaussian Noise Origin Gaussian Noise Origin
+> Block3 Block9 Block11
+
+Figure 4: Visualization of the outputs from CLIP visual backbones: ResNet-50 (top) and ViT-B/16 (bottom). Green bboxes highlight features that similar to original images’. source-domain feature space, after alignment via FAM and BAA, the direction from fcife to f p closely aligns with that from fcife to f . Thus, BAA a is used to fine-tune the original backbone with f p during testing. Here, Bimg ,θ denotes the visual backbones of the OVOD model, and Fpisa represents our method. 
+
+θ∗ = arg min 
+
+> θ
+
+X
+
+> xt∈Dt
+
+L (Bimg ,θ (xtta ) , Bimg ,θ (Fpisa (xtta ))) 
+
+(3) After fine-tuning the model with the input image xt, the updated parameters θ∗ are applied to re-evaluate the current image xtta to obtain the final predictions Bimg ,θ ∗ (xtta ).
+
+Corruption-Invariant Feature Extractor(CIFE) 
+
+Trained on massive data, CLIP exhibits inherent robustness to corruption. For instance, ResNet-series CLIP backbones preserve feature representations that remain highly similar to those extracted from clean images, even under varying levels of Gaussian noise (Cheng, Liang, and Tan 2024). Fur-thermore, we conducted visual analyses on images sharing identical content but subjected to different noise perturba-tions. As shown in Figure 4, from left to right, features tran-sition from dense and concrete to abstract and sparse. Shal-low features retain both noise robustness and original image information, whereas deep features, despite stronger robust-ness, lose much of the visual detail. Moreover, compared to ViT-B/16, features extracted by ResNet-50 demonstrate su-perior robustness against noise, as evidenced by the green boxes. Motivated by this observation, to preserve more raw pixel-level information, we construct a Corruption-Invariant Feature Extractor (CIFE), which consists of the first convo-lution and batch normalization layer of the stem structure of CLIP’s RN50 visual backbone. CIFE can extract fea-tures that are invariant to object style and noise while pre-serving most of the original image information, which are termed corruption-invariant features. As illustrated in Figure 3, within the corruption-invariant feature space, variations in corruption-invariant features across differently corrupted images are negligible. Additionally, we do not apply normal-ization to the input images, as this would amplify the impact of corruption. Conv 𝑑𝑤          
+
+> LayerNorm GELU SE Main
+> S
+> SE Conv ×3
+> AAP Adaptive Avg Pool
+> 𝑓 cife
+> 𝑠 𝑓 0
+> 𝑡 𝑓 0s
+> BAA 𝑎
+> MLP BAA 𝑡 ,𝑖
+> ReLU Target
+> FAM S
+> MultiHead SelfAttention MLP
+> Block
+> SSS
+> Spectral Normalization RELU MLP
+> 𝑓 cife
+> 𝑡 𝑊 1 ××𝑊 1
+> 𝑊 2 × ×𝑊 2
+> 𝑊 skip × ×𝑊 skip
+> LayerNorm Mona Mona LayerNorm LayerNorm Mona AAP Mona
+
+Figure 5: The architecture of FAM and the inserted position of BAA t (last block) and BAA a (every block) modules. 
+
+Feature Alignment Module (FAM) 
+
+Given the source and target CIFE features fcife , FAM aligns the inputs with the patch embedding output while main-taining robustness to corrupted target samples. As shown in Figure 5, it consists of a main branch and a target branch. 
+
+Main Branch. The main branch jointly performs spa-tial downsampling and channel projection. We first apply a depth-wise separable convolution to reduce parameters while preserving spatial locality: 
+
+˜f = GELU 
+
+
+
+LN  W1 · Conv dw (fcife )
+
+, (4) followed by a Squeeze-and-Excitation (SE) attention that re-calibrates channel-wise responses via a bottleneck FSE . SE attention suppresses domain-specific noise channels and en-hances transferable ones. A residual shortcut then fuses the projected feature with the input, where Wskip ensures dimen-sional alignment. The shortcut guarantees stable gradient flow during the pre-training stage. 
+
+ˆf = ˜f ⊙ F SE ( ˜f ), f 0 = LN  W2 ˆf + Wskip fcife 
+
+ (5) 
+
+Target Branch. To further handle corrupted samples, we optionally pass f t 
+
+> 0
+
+through Mona (Yin et al. 2025), a multi-scale visual adapter. To enhance the network’s ro-bustness against input perturbations, we apply spectral nor-malization to each convolutional layer within Mona by re-parameterizing its weight tensor Wm as: 
+
+ˆWm = Wm
+
+σ(Wm) , σ(Wm) = max  
+
+> ∥h∥2≤1
+
+∥Wm h∥2, (6) where σ(Wm) is the largest singular value of Wm.
+
+Multi-scale Alignment Framework 
+
+Backbone Alignment Adapter (BAA) Unfortunately, the Swin Transformer backbone of Bimg tends to amplify the discrepancies between similar input samples, thereby pro-gressively exacerbating the gap between corruption-invariant features and source-domain features. To address this issue, Dataset Method Base Novel All AP@50% mAP AP@50% mAP AP@50% mAP VOC GLIP (Li et al. 2022) 17.86 12.40 36.17 25.40 33.68 23.63 PISA (Ours) 35.98 (+18.12) 24.25 (+11.85) 43.31 (+7.14) 30.24 (+4.84) 42.31 (+8.63) 29.42 (+5.79) 
+
+GDINO (Liu et al. 2024) 31.00 22.60 44.77 33.86 42.90 32.33 PISA (Ours) 48.33 (+17.33) 35.17 (+12.57) 48.61 (+3.84) 36.63 (+2.77) 48.57 (+5.67) 36.42 (+4.09) 
+
+LLMDet (Fu et al. 2025) 31.77 21.30 50.44 36.46 47.90 34.39 PISA (Ours) 49.67 (+17.90) 34.13 (+12.83) 53.98 (+3.54) 39.12 (+2.66) 53.40 (+5.50) 38.44 (+4.05) 
+
+COCO GLIP (Li et al. 2022) 9.83 6.34 21.58 14.25 19.97 13.18 PISA (Ours) 23.90 (+14.07) 15.67 (+9.33) 25.25 (+3.67) 16.70 (+2.45) 25.07 (+5.10) 16.56 (+3.38) 
+
+GDINO (Liu et al. 2024) 22.53 15.70 30.39 21.21 29.32 20.45 PISA (Ours) 32.50 (+9.97) 22.37 (+6.67) 33.30 (+2.91) 23.17 (+1.96) 33.20 (+3.88) 23.06 (+2.61) 
+
+LLMDet (Fu et al. 2025) 23.07 16.13 32.31 22.71 31.05 21.81 PISA (Ours) 33.20 (+10.13) 23.07 (+6.94) 34.67 (+2.36) 24.33 (+1.62) 34.47 (+3.42) 24.16 (+2.35) 
+
+LVIS GLIP (Li et al. 2022) 5.40 3.33 10.62 7.01 9.90 6.51 PISA (Ours) 10.23 (+4.83) 6.63 (+3.30) 11.64 (+1.02) 7.70 (+0.69) 11.45 (+1.55) 7.55 (+1.04) 
+
+GDINO (Liu et al. 2024) 8.93 5.80 12.89 8.75 12.35 8.35 PISA (Ours) 13.10 (+4.17) 8.67 (+2.87) 14.17 (+1.28) 9.66 (+0.91) 14.03 (+1.68) 9.52 (+1.17) 
+
+Table 1: Object detection performance compared with baseline models on VOC-C, COCO-C, and LVIS-C. we follow (Chen et al. 2026) and construct a series of multi-scale adapters BAA t. Each consists of two components: (1) the same Mona (Yin et al. 2025) adapter as in FAM, inserted at the last block of each layer; and (2) the module that adjusts the dimensionality of the backbone features at each layer. As pseudo-individual source-domain features offer only di-rections roughly aligned with the source domain, we insert the TTA adapter BAA a (Yoo et al. 2024) into each block for better test-time adaptation. 
+
+Pre-training Stage During pre-training, our method relies solely on clean and augmented image pairs (xs, x t). xs is fed into the visual backbone of the open-vocabulary object detector to obtain the source-domain feature set {fl}Ll=1 .Meanwhile, both xs and xt are processed by Bcife , FAM, and the remaining parts of Bimg (excluding the patch embedding) to yield {f sl }Ll=1 and {f tl }Ll=1 , respectively. We conduct pre-training in two stages. In the first stage, we train the FAM to align the outputs of Bcife +FAM+ Bimg (without passing BAA t
+
+in Bimg ). In the second stage, we freeze the trained FAM and solely train BAA t (xt additionally passes through BAA t in 
+
+Bimg ). The two stages utilize the loss functions L1 
+
+> F AM
+
+and 
+
+L2 
+
+> BAA
+
+for alignment (where α is a hyperparameter used to prevent excessive feature discrepancies), respectively: 
+
+L1 
+
+> F AM
+
+=
+
+> L
+
+X
+
+> l=0
+
+ |f tl − fl| + |f sl − fl| + α|f sl − f tl | (7) 
+
+L2 
+
+> BAA
+
+=
+
+> L
+
+X
+
+> l=1
+
+|f tl − fl| (8) 
+
+Adaptation Stage After the pre-training stage, for a test-time input xtta , we process it through Bcife + FAM + Bimg 
+
+(excluding the patch embedding and utilizing BAA t) and through Bimg (utilizing BAA a) to obtain pseudo-individual source-domain feature {f pl }Ll=1 and xtta ’s feature {f tta l }Ll=1 ,respectively. Finally, we employ a cosine similarity loss func-tion to update the BAA a module: 
+
+LT T A =
+
+> L
+
+X
+
+> l=1
+
+
+
+1 − f pl · f tta l
+
+∥f pl ∥2∥f tta l ∥2
+
+
+
+(9) After updating the trainable parameters (BAA a), we evaluate 
+
+xtta on the model with the updated BAA a to obtain the final predictions. Furthermore, to prevent catastrophic forgetting, we reset the model to its initial state every T test samples. 
+
+## Experiment 
+
+We aim to investigate the following questions in experiment part: (1) Does PISA exhibit strong generalizability? (2) How does PISA compare with state-of-the-art approaches? and (3) How do hyper parameter affect the performance of PISA? 
+
+Experimental Setup 
+
+Datasets We utilize three datasets with different category sizes: VOC-C(20), COCO-C(80), and LVIS-C(1203). Based on COCO-2017 and VOC2007, and following (Hendrycks and Dietterich 2019; Michaelis et al. 2019; Inoue et al. 2018; Lu, Xu, and Jia 2012), we artificially introduce 19 types of corruptions and 3 types of styles to construct the corrupted datasets. Furthermore, since LVIS-minival (Gupta, Dollar, and Girshick 2019) and COCO share the same images, we also conduct evaluations on the LVIS-minival annotations using the aforementioned COCO-C datasets. 
+
+Implementation Details During the pre-training stage, we selected 10,000 unlabeled images from the COCO-2017 dataset (Lin et al. 2014), 10,000 images from the training and validation sets of VOC2012 (Everingham et al. 2010), and 5,011 images from the training and validation sets of VOC2007(Everingham et al. 2010), totaling 25,011 images. We chose the most commonly used data robustness opera-tions: Gaussian noise, Gaussian blur, and contrast—as the Method Source Imp Sht Gau Def Gls Mtn Zm Bgt Fog Fro Snw Cnt Els Pix Jpeg AVG TDA CVPR2024 16.7 17.1 15.8 20.3 9.9 16.9 9.6 45.5 45.9 32.3 28.2 24.4 27.1 9.0 26.3 23.00 HisTPT NeuralPS2024 18.2 17.9 17.6 21.3 12.5 19.1 9.9 45.6 45.1 32.8 28.2 26.1 26.0 8.6 26.2 23.67 IOU-Filter CVPR2024 18.4 18.7 18.7 22.3 11.6 18.8 11.7 50.1 53.4 36.6 32.6 31.2 32.0 8.5 26.5 26.07 BCA CVPR2025 17.3 18.0 16.0 21.0 10.9 16.1 9.9 46.3 46.7 33.9 29.0 25.2 27.5 8.9 26.2 23.53 BCA+ ARXIV2025 18.7 19.9 17.9 22.2 11.5 19.1 10.1 49.6 49.8 35.7 30.1 26.6 28.7 7.8 28.4 25.07 ViTPrompt CVPR2026 20.4 21.2 18.9 23.1 12.4 19.7 9.9 52.0 51.9 37.1 31.5 27.2 30.0 10.2 28.4 26.26 RGSE ARXIV2026 22.1 22.8 20.2 23.8 15.1 20.3 11.3 51.0 53.6 38.9 33.2 29.0 31.3 11.0 30.3 27.59 PISA Ours 32.3 31.5 29.4 24.4 12.1 21.2 12.1 55.9 56.6 41.3 34.5 43.5 34.5 14.0 29.3 31.51 (+3.92) 
+
+Table 2: Object Detection Performance Comparison with State-of-the-Art Methods on COCO-C. Metric: mean average precision at 50% (AP@50%). The best results are denoted in bold and the second best results are denoted in bold gray. 
+
+Figure 6: t-SNE visualization of clean (red) and corrupted (other colors) feature distributions at the first output layer of different PISA modules. The distinct cluster-like distribution in the right plot indicates that pseudo-individual source-domain features closely resemble real source-domain features. base types to augment the training data (for each image, one of the three corruptions and one of the five severity levels from 1 to 5 are randomly selected). The remaining 19 are referred to as novel types. Both FAM and BAA are trained using AdamW for 10 epochs with a batch size of 4 and the pre-training learning rate lr p of 0.01. α is set to 10. For noise and contrast corruption, the adaptation learning rate lr a is set to 0.01. For saturation, motion blur, oil painting, pencil color and pencil grey, lr a is set to 0.005. For the rest corrup-tions, lr a is set to 0.001. We set T to {1, 2, 4, 8, 16 , ∞} and report the best result for each corruption. All pre-training and adaptation experiments are conducted on a single NVIDIA RTX 4090 GPU. 
+
+Comparison Result 
+
+Baseline Model Comparison We evaluate the baseline methods by integrating PISA with an open-vocabulary visual backbone. As shown in Table 1, our method outperforms all baseline methods across the three corrupted datasets, which exhibit strong generalizability across different mod-els and datasets. Across the three models, PISA improves the average mAP on base corruption types by 12.42% on VOC-C, 7.65% on COCO-C, and 3.09% on LVIS-C. De-spite being pre-trained on only three corruption types, it also demonstrates strong generalization to unseen corrup-tion types, with average mAP gains of 3.42% (VOC-C) and 2.01% (COCO-C). Overall, the average mAP improvements across all corruption types are 4.64%, 2.78%, and 1.11% on VOC-C, COCO-C, and LVIS-C, respectively. These results demonstrate that, despite the increasing number of object categories, PISA still yields substantial performance gains over the original methods. 
+
+State-of-the-art Comparison The robust object detection results in Table 2 show that PISA consistently outperforms state-of-the-art methods across most corruption types on COCO-C datasets. It achieves the highest average AP@50% of 31.51%, surpassing the best baseline RGSE by 3.92%. Notably, PISA achieves clear gains on both severe noise and digital corruptions, indicating strong robustness to diverse perturbations. These results highlight PISA’s exceptional ro-bustness and stability in handling diverse and severe real-world image degradations.                                     
+
+> Base FAM BAA tBAA aAP@50% AP@75% mAP Main Target
+> ✓29.32 21.99 20.45
+> ✓✓✓31.46 23.66 22.00
+> ✓✓✓31.54 23.25 21.74
+> ✓✓✓✓32.84 24.62 22.92
+> ✓✓✓✓32.81 24.45 22.77
+> ✓✓✓✓✓33.20 24.75 23.06
+
+Table 3: Ablation studies on COCO-C dataset with GDINO Swin-T backbone. 
+
+Ablation Study 
+
+To investigate the contribution of each component in PISA, we conduct ablation studies on the COCO-C validation set with GDINO Swin-T backbone. As illustrated in Table 3, the baseline yields an mAP of 20.45%. Introducing the main branch of FAM and BAA a improves mAP to 22.00%. Adding the target branch of FAM yields 21.74%, while further in-GLIP PISA Gaussian Noise Brightness Spatter Oil Painting Zoom Blur Pencil Grey Pixelate Figure 7: Qualitative comparison against the baseline GLIP. Bounding boxes are overlaid on the images. Red and green boxes indicate negative and positive results, respectively, with an IoU threshold of 0.5. corporating BAA a brings a substantial gain to 22.92%. This suggests that while pseudo-individual source-domain fea-tures cannot directly replace source-domain features, they can be leveraged to offer effective and accurate guidance for optimizing the model at test time. Alternatively, adding BAA t to the FAM main branch with BAA a achieves 22.77% mAP. Ultimately, the full model integrating all components achieves the best performance, reaching 33.20% AP@50%, 24.75% AP@75%, and 23.06% mAP. This represents a cu-mulative improvement of 2.61% in mAP over the baseline, demonstrating that FAM, BAA t, and BAA a are mutually complementary and collectively enhance robustness against visual corruptions. We further visualize the feature distribu-tions of clean and corrupted samples at output layer 1 using t-SNE. As illustrated in Figure 6, the corrupted feature distri-bution progressively aligns with the clean feature distribution as more modules are introduced. This indicates that the joint effect of all modules successfully transfers the features of corrupted images toward the source domain. 
+
+Qualitative Results 
+
+To clearly demonstrate the superiority of our proposed method, we visualize the detection results of the original GLIP and PISA under various corruptions. As shown in Figure 7, when using the same backbone, compared to the original GLIP which often produces incorrect predictions or even fails to detect any objects, PISA exhibits significantly stronger robustness against different types of corruptions, yielding more accurate predictions for both object categories and bounding boxes. 
+
+Sensitivity Analysis 
+
+To further investigate the impact of the model initialization frequency on performance, we conduct a parameter sensitiv-ity analysis on the initialization interval. Figure 8 illustrates the average metrics across 22 types of corruptions. When the initialization interval is set to 0, TTA is disabled. We evaluate initialization intervals of 1, 2, 4, 8, 16, ∞. It can be observed that as the initialization interval increases, the 
+
+Figure 8: Average AP@50% on COCO-C under different initialization intervals T for GDINO, GLIP, and LLMDet. overall performance shows an upward trend and consistently outperforms the baseline without TTA. This further demon-strates that PISA, which leverages pseudo-individual source-domain features to guide model updates, is both effective and robust. 
+
+## Conclusion 
+
+In this paper, we present PISA, a source-free test-time adap-tation framework for open-vocabulary object detection. By leveraging corruption-invariant features from CIFE and us-ing pseudo-individual source-domain features to adapt the model during test time, PISA reconstructs source features for individual corrupted images to effectively bridge the domain gap. This eliminates the reliance on high-quality pseudo-labels or test-time re-scoring, providing a novel solution for instance-level source-domain estimation. Furthermore, PISA is highly compatible with various backbone models, sig-nificantly improving robustness against diverse and unseen corruptions and consistently outperforming existing state-of-the-art methods on challenging benchmarks. References 
+
+Belal, A.; Medeiros, H. R.; Pedersoli, M.; and Granger, E. 2025. VLOD-TTA: Test-Time Adaptation of Vision-Language Object Detectors. arXiv preprint arXiv:2510.00458 .Chen, Y.; Wu, Q.; Li, G.; Gao, J.; Niu, G.; and Wang, H. 2026. SAM2-OV: A Novel Detection-Only Tuning Paradigm for Open-Vocabulary Multi-Object Tracking. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, 3083–3091. Cheng, J.; Liang, D.; and Tan, S. 2024. Transfer CLIP for Generalizable Image Denoising. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition .Chhipa, P. C.; De, K.; Chippa, M. S.; Saini, R.; and Liwicki, M. 2024. Open-vocabulary object detectors: Robustness challenges under distribution shifts. In European Confer-ence on Computer Vision , 62–79. Springer. Ding, N.; Xu, Y.; Tang, Y.; Xu, C.; Wang, Y.; and Tao, D. 2022. Source-free domain adaptation via distribution es-timation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 7212–7222. Du, Y.; Yang, H.; Chen, M.; Luo, H.; Jiang, J.; Xin, Y.; and Wang, C. 2024. Generation, augmentation, and alignment: A pseudo-source domain based method for source-free domain adaptation. Machine Learning , 113(6): 3611–3631. Everingham, M.; Van Gool, L.; Williams, C. K.; Winn, J.; and Zisserman, A. 2010. The pascal visual object classes (voc) challenge. International journal of computer vision ,88(2): 303–338. Fu, S.; Yang, Q.; Mo, Q.; Yan, J.; Wei, X.; Meng, J.; Xie, X.; and Zheng, W.-S. 2025. Llmdet: Learning strong open-vocabulary object detectors under the supervision of large language models. In Proceedings of the Computer Vision and Pattern Recognition Conference , 14987–14997. Gupta, A.; Dollar, P.; and Girshick, R. 2019. LVIS: A Dataset for Large Vocabulary Instance Segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition , 5356–5364. Hendrycks, D.; and Dietterich, T. 2019. Benchmarking neu-ral network robustness to common corruptions and perturba-tions. arXiv preprint arXiv:1903.12261 .Inoue, N.; Furuta, R.; Yamasaki, T.; et al. 2018. Cross-Domain Weakly-Supervised Object Detection through Pro-gressive Domain Adaptation. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition ,5001–5009. Karmanov, A.; Guan, D.; Lu, S.; El Saddik, A.; and Xing, E. 2024. Efficient test-time adaptation of vision-language models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 14162–14171. Li, L. H.; Zhang, P.; Zhang, H.; Yang, J.; Li, C.; Zhong, Y.; Wang, L.; Yuan, L.; Zhang, L.; Hwang, J.-N.; et al. 2022. Grounded language-image pre-training. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 10965–10975. Liang, J.; He, R.; and Tan, T. 2025. A Comprehensive Survey on Test-Time Adaptation under Distribution Shifts. Interna-tional Journal of Computer Vision , 133(1): 31–64. Liang, Q.; and Zhang, Y. 2026. Tensor decomposition and language description for open-vocabulary object detection. In Proceedings of the AAAI Conference on Artificial Intelli-gence , volume 40, 6853–6861. Liao, D.; Qi, M.; Liu, L.; and Ma, H. 2026. Improving batch normalization with test-time adaptation for robust object de-tection in self-driving. In Proceedings of the AAAI Confer-ence on Artificial Intelligence , volume 40, 6925–6933. Lin, J.; Shen, Y.; Wang, B.; Lin, S.; Li, K.; and Cao, L. 2024. Weakly supervised open-vocabulary object detection. In Proceedings of the AAAI Conference on Artificial Intelli-gence , volume 38, 3404–3412. Lin, T.-Y.; Maire, M.; Belongie, S.; et al. 2014. Microsoft COCO: Common Objects in Context. In European Confer-ence on Computer Vision , 740–755. Springer. Liu, M.; Hayes, T. L.; Mancini, M.; Ricci, E.; Volpi, R.; and Csurka, G. 2025. Test-time vocabulary adaptation for language-driven object detection. In 2025 IEEE Interna-tional Conference on Image Processing (ICIP) , 540–545. IEEE. Liu, S.; Zeng, Z.; Ren, T.; Li, F.; Zhang, H.; Yang, J.; Jiang, Q.; Li, C.; Yang, J.; Su, H.; et al. 2024. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. In European conference on computer vision , 38– 55. Springer. Lu, C.; Xu, L.; and Jia, J. 2012. Combining Sketch and Tone for Pencil Drawing Production. In Proceedings of the Symposium on Non-Photorealistic Animation and Render-ing , 65–73. Ma, S.; Qian, D.; Ye, K.; and Zhang, S. 2025. Cake: Category aware knowledge extraction for open-vocabulary object de-tection. In Proceedings of the AAAI conference on artificial intelligence , volume 39, 5982–5990. Michaelis, C.; Mitzkus, B.; Geirhos, R.; Rusak, E.; Bring-mann, O.; Ecker, A. S.; Bethge, M.; and Brendel, W. 2019. Benchmarking robustness in object detection: Au-tonomous driving when winter is coming. arXiv preprint arXiv:1907.07484 .Qin, Y.; et al. 2026. ViTPrompt: Training-Free Prompt Re-finement with Visual Tokens for Open-Vocabulary Detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition .Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; et al. 2021. Learning transferable visual models from natural language supervision. In International conference on machine learning , 8748–8763. PmLR. Ruan, X.; and Tang, W. 2024. Fully test-time adaptation for object detection. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition , 1038– 1047. Tian, J.; Zhang, J.; Li, W.; and Xu, D. 2021. VDM-DA: Virtual domain modeling for source data-free domain adap-tation. IEEE Transactions on Circuits and Systems for Video Technology , 32(6): 3749–3760. Wang, J.; Chen, B.; Kang, B.; Li, Y.; Xian, W.; Chen, Y.; and Xu, Y. 2025. Ov-dquo: Open-vocabulary detr with denoising text query training and open-world unknown objects super-vision. In Proceedings of the AAAI conference on artificial intelligence , volume 39, 7762–7770. Wu, J.; Li, X.; Xu, S.; Yuan, H.; Ding, H.; Yang, Y.; Li, X.; Zhang, J.; Tong, Y.; Jiang, X.; et al. 2024. Towards open vocabulary learning: A survey. IEEE transactions on pattern analysis and machine intelligence , 46(7): 5092–5113. Yang, S.; Wang, Y.; Van De Weijer, J.; Herranz, L.; and Jui, S. 2021. Generalized source-free domain adaptation. In 
+
+Proceedings of the IEEE/CVF international conference on computer vision , 8978–8987. Yin, D.; et al. 2025. 5% > 100%: Breaking Performance Shackles of Full Fine-Tuning on Visual Recognition Tasks. In 
+
+Proceedings of the Computer Vision and Pattern Recognition Conference .Yoo, J.; et al. 2024. What, How, and When Should Object Detectors Update in Continually Changing Test Domains? In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition .Zhao, K.; Ye, M.; Zhou, L.; Wang, H.; Ji, L.; Tang, S.; and Zhu, X. 2026. FACTOR: Counterfactual Training-Free Test-Time Adaptation for Open-Vocabulary Object Detec-tion. arXiv preprint arXiv:2605.03294 .Zhou, L.; Ye, M.; Li, S.; Li, N.; Wu, J.; Zhu, X.; Deng, L.; Liu, H.; Luo, J.; and Lei, Z. 2025a. Bayesian Test-time Adaptation for Object Recognition and Detection with Vision-language Models. arXiv preprint arXiv:2510.02750 .Zhou, L.; Ye, M.; Li, S.; Li, N.; Zhu, X.; Deng, L.; Liu, H.; and Lei, Z. 2025b. Bayesian test-time adaptation for vision-language models. In Proceedings of the Computer Vision and Pattern Recognition Conference , 29999–30009. Zhou, L.; Ye, M.; Zhu, X.; Li, N.; Ma, C.; Li, S.; Qin, Y.; Liu, H.; Luo, J.; and Lei, Z. 2026. Reward-Guided Semantic Evolution for Test-time Adaptive Object Detection. arXiv preprint arXiv:2605.04531 .Zhu, C.; and Chen, L. 2024. A Survey on Open-Vocabulary Detection and Segmentation: Past, Present, and Future. IEEE Transactions on Pattern Analysis and Machine Intelligence ,46(12): 8954–8975.

@@ -1,0 +1,245 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-17T19:40:38.225615+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 5,
+    "deep_cap": 6,
+    "deep_selected": 5,
+    "quick_candidates": 1,
+    "quick_skim_target": 11,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2608.14142v1",
+      "source": "arxiv",
+      "title": "PISA: A Pseudo-Individual Source-Domain Feature Adaptation Framework for Test-Time Open-Vocabulary Object Detection",
+      "abstract": "Open-vocabulary object detection test-time adaptation (OVOD-TTA) aims to address the performance degradation that pre-trained base models suffer when encountering image-domain shifts. Existing source-free OVOD-TTA methods rely either on refined test-time information for re-scoring or on pseudo-labels for self-training, leading to significant accuracy degradation when initial predictions are poor. Meanwhile, most conventional source-domain estimation methods recover abstract, sparse representations suitable for the classification task, but fail to capture the dense, concrete features required for detection. To address these issues, we propose PISA, a novel source-free OVOD-TTA method that can be seamlessly integrated into open-vocabulary visual backbones. The core components of our method are the Corruption-Invariant Feature Extractor (CIFE), the Feature Alignment Module (FAM), and a multi-scale alignment framework (BAA). To capture detection-suitable features, we develop CIFE to exploit the invariance of CLIP's visual features across corrupted images, ensuring robustness against various corruptions. We further develop FAM and BAA for the pre-training and adaptation to transform the corruption-invariant features into pseudo-individual source-domain features that are close to the original source-domain features. In this way, dense and concrete pseudo-individual source-domain features are used for supervision instead of unreliable pseudo-label signals. Experiments on the corrupted VOC-C, COCO-C, and LVIS-C benchmarks across three base models demonstrate that PISA substantially improves both the localization precision and the category recognition accuracy of the original models. Notably, PISA achieves state-of-the-art performance without requiring access to source-domain data, surpassing existing methods by 3.92% in AP@50% on COCO-C.",
+      "authors": [
+        "Ziyan He",
+        "Xiongtai Yang",
+        "Tao Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-14T09:47:44+00:00",
+      "link": "https://arxiv.org/pdf/2608.14142v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "open-vocabulary object detection test-time adaptation",
+      "llm_evidence_cn": "开放词汇目标检测测试时自适应",
+      "llm_evidence": "开放词汇目标检测测试时自适应",
+      "canonical_evidence": "开放词汇目标检测测试时自适应",
+      "llm_tldr_en": "PISA addresses domain-shift degradation in open-vocabulary object detection at test time by proposing a pseudo-individual source-domain feature adaptation method that adapts dense features without source data; experiments show improved detection accuracy under domain shifts.",
+      "llm_tldr_cn": "PISA针对开放词汇目标检测在测试时遭遇图像域偏移导致性能下降的问题，提出一种伪个体源域特征自适应框架。该方法无需源域数据，通过构建伪个体源特征来适配检测所需的稠密特征，克服了现有源无关方法在初期预测不佳时准确率大幅下降的局限。实验表明PISA在多个域偏移场景下显著提升检测准确率，为开放词汇目标检测的测试时适应提供了实用且有效的解决方案，增强了实际部署中的域鲁棒性。",
+      "llm_tldr": "PISA针对开放词汇目标检测在测试时遭遇图像域偏移导致性能下降的问题，提出一种伪个体源域特征自适应框架。该方法无需源域数据，通过构建伪个体源特征来适配检测所需的稠密特征，克服了现有源无关方法在初期预测不佳时准确率大幅下降的局限。实验表明PISA在多个域偏移场景下显著提升检测准确率，为开放词汇目标检测的测试时适应提供了实用且有效的解决方案，增强了实际部署中的域鲁棒性。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.14282v1",
+      "source": "arxiv",
+      "title": "MAGneT-3D: Monocular and Domain-Generalizable Temporal 3D Detection",
+      "abstract": "Monocular temporal 3D detection aims to detect objects in 3D, given a monocular video. Query-based 3D detectors unify detection and cross-view association, but their learnable queries fit the spatial distribution of the training data (e.g., field-of-view). We show that this issue is especially severe when these models are applied to monocular video, hindering generalization to unseen datasets and environments. To address this limitation, we introduce MAGneT-3D, the first method for domain-generalized monocular temporal 3D object detection. Instead of relying on static learnable queries, we propose a Domain-Robust Anchor Generator (DRAG) approach that adaptively derives 3D proposals during inference. To further enable domain generalization, we propose a Temporal Refinement and Identity Merging (TRIM) strategy, reducing dependence on specific 3D proposals. To enable comprehensive domain-generalization evaluation, we establish a cross-dataset benchmark spanning nuScenes, Waymo, Lyft, and ONCE. Under zero-shot domain shifts, MAGneT-3D outperforms all baselines, improving NDS from 12.1% to 18.6% while also increasing in-domain accuracy.",
+      "authors": [
+        "Mohamed Kotb",
+        "Johannes Meier",
+        "Christoph Reich",
+        "Oussema Dhaouadi",
+        "Luis Denninger",
+        "Daniel Cremers"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-14T13:09:07+00:00",
+      "link": "https://arxiv.org/pdf/2608.14282v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Monocular temporal 3D object detection with domain generalization",
+      "llm_evidence_cn": "单目时序3D目标检测的域泛化",
+      "llm_evidence": "单目时序3D目标检测的域泛化",
+      "canonical_evidence": "单目时序3D目标检测的域泛化",
+      "llm_tldr_en": "Addresses domain generalization for monocular temporal 3D object detection by replacing static learnable queries with adaptive 3D proposals, improving cross-dataset robustness.",
+      "llm_tldr_cn": "针对单目时序3D目标检测中可学习查询过拟合训练数据分布、跨域泛化差的问题，提出MAGneT-3D，首次实现域泛化的单目时序3D检测。方法用域鲁棒锚点生成器（DRAG）在推理时自适应生成3D提议，并采用时间建模增强泛化。实验显示在未知数据集上检测性能显著提升鲁棒性。",
+      "llm_tldr": "针对单目时序3D目标检测中可学习查询过拟合训练数据分布、跨域泛化差的问题，提出MAGneT-3D，首次实现域泛化的单目时序3D检测。方法用域鲁棒锚点生成器（DRAG）在推理时自适应生成3D提议，并采用时间建模增强泛化。实验显示在未知数据集上检测性能显著提升鲁棒性。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.14317v1",
+      "source": "arxiv",
+      "title": "Intelligent Detection of Mechanical, Electrical, and Plumbing (MEP) Metrics Based on 2D Floor Plans",
+      "abstract": "This research developed a neural network-based model to extract various information from 2D floor plans. We detect lighting symbols, identify the appropriate type of light, and extract the associated texts with lights. The study aims to enable efficient floor designing and determining the number and type of lights needed per floor, i.e., allow efficient design and estimate the power requirement of the floor plan. The model was developed using Mask RCNN as the base. The images were annotated and converted into a Coco data format for training the model. The model achieved bbox\\_mAP and segm\\_mAP values of 0.7596 and 0.7111, respectively. It also performed well at different IoU thresholds, i.e., with bbox\\_mAP 50 and segm\\_mAP 75 values of 0.9850 and 0.9219, respectively. The developed model will help various industries, such as architecture and construction, to improve design time and create efficient workflows by automatically detecting Mechanical, Electrical, and Plumbing (MEP) objects from floor plans, and it is the first step towards building tools that will help energy-efficient building design.",
+      "authors": [
+        "Tarandeep Singh Mandhiratta",
+        "ANK Zaman",
+        "Abdul-Rahman Mawlood-Yunis"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.HC",
+        "cs.LG"
+      ],
+      "published": "2026-08-14T13:59:55+00:00",
+      "link": "https://arxiv.org/pdf/2608.14317v1",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "detects lighting symbols in 2D floor plans using Mask RCNN",
+      "llm_evidence_cn": "使用Mask RCNN检测2D平面图中的照明符号",
+      "llm_evidence": "使用Mask RCNN检测2D平面图中的照明符号",
+      "canonical_evidence": "使用Mask RCNN检测2D平面图中的照明符号",
+      "llm_tldr_en": "This paper develops a Mask RCNN-based model to detect lighting symbols, identify light types, and extract associated texts from 2D floor plans. It achieves bbox_mAP 0.7596 and segm_mAP 0.7111, enabling efficient floor design and power requirement estimation.",
+      "llm_tldr_cn": "针对2D平面图中照明符号检测与信息提取需求，本文基于Mask RCNN构建检测模型，可识别灯具符号、灯具类型并提取关联文本。图像标注后转换为COCO格式训练。模型取得bbox_mAP 0.7596、segm_mAP 0.7111，并在不同IoU阈值下表现良好。该工作支持高效的楼层照明设计、灯具数量统计与功率需求估算。",
+      "llm_tldr": "针对2D平面图中照明符号检测与信息提取需求，本文基于Mask RCNN构建检测模型，可识别灯具符号、灯具类型并提取关联文本。图像标注后转换为COCO格式训练。模型取得bbox_mAP 0.7596、segm_mAP 0.7111，并在不同IoU阈值下表现良好。该工作支持高效的楼层照明设计、灯具数量统计与功率需求估算。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.14394v1",
+      "source": "arxiv",
+      "title": "IRGNN: Efficient Invariant Radar Graph Neural Network for Radar Point Cloud Object Detection",
+      "abstract": "Perception is a fundamental component of autonomous driving systems. While LiDAR-based methods have achieved remarkable progress in object detection, their reliability can degrade under adverse weather conditions. Radar point clouds provide a robust alternative due to their resilience to bad weather and low-illumination scenarios. However, radar point clouds are typically sparse, unordered, and less informative than LiDAR data, making it challenging to directly apply existing LiDAR-based perception methods. To address these challenges, we propose IRGNN, an Invariant Radar Graph Neural Network for radar point cloud object detection. IRGNN first reconstructs radar point clouds into graph representations using translation- and rotation-invariant feature designs, enabling robust modeling of sparse radar measurements. It then employs an improved message passing neural network (MPNN) with residual connections and a virtual node layer to enhance local feature propagation and global context modeling. Finally, task-specific heads are applied to the learned graph representations for object classification and bounding box prediction. Experimental results on the RadarScenes dataset show that IRGNN outperforms existing radar-based object detection methods and achieves competitive performance. In addition, IRGNN significantly reduces computational cost and memory usage during inference, demonstrating its effectiveness and practical potential for efficient radar-based perception in autonomous driving.",
+      "authors": [
+        "Xiao Guo",
+        "Wanke Xia",
+        "Lili Yang",
+        "Caicong Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-14T15:35:06+00:00",
+      "link": "https://arxiv.org/pdf/2608.14394v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "radar point cloud object detection using invariant graph neural network",
+      "llm_evidence_cn": "基于不变图神经网络的雷达点云目标检测",
+      "llm_evidence": "基于不变图神经网络的雷达点云目标检测",
+      "canonical_evidence": "基于不变图神经网络的雷达点云目标检测",
+      "llm_tldr_en": "IRGNN proposes an invariant radar graph neural network for radar point cloud object detection, addressing sparsity and unorderedness of radar data. It reconstructs radar points into translation- and rotation-invariant graph representations, enabling robust perception under adverse weather and low illumination.",
+      "llm_tldr_cn": "针对雷达点云稀疏、无序、信息量低于LiDAR数据，难以直接应用现有LiDAR感知方法的问题，IRGNN提出一种不变雷达图神经网络，将雷达点云重建为具有平移和旋转不变性的图表示，用于雷达点云目标检测。该方法在自动驾驶恶劣天气和低光照条件下提供更可靠的感知。实验表明IRGNN在雷达目标检测任务上有效，为多传感器融合提供了雷达侧支持。",
+      "llm_tldr": "针对雷达点云稀疏、无序、信息量低于LiDAR数据，难以直接应用现有LiDAR感知方法的问题，IRGNN提出一种不变雷达图神经网络，将雷达点云重建为具有平移和旋转不变性的图表示，用于雷达点云目标检测。该方法在自动驾驶恶劣天气和低光照条件下提供更可靠的感知。实验表明IRGNN在雷达目标检测任务上有效，为多传感器融合提供了雷达侧支持。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.14428v1",
+      "source": "arxiv",
+      "title": "GhostPoint: Self-Supervised Representation Learning by Hallucinating Occluded LiDAR Structure",
+      "abstract": "3D object detection from LiDAR point clouds is a core problem in autonomous driving. Recent advances in self-supervised learning (SSL) enable scalable pretraining and transfers well to per-point tasks such as semantic and panoptic segmentation, but transfer to 3D detection remains weaker. We analyze recent SSL methods and find that most objectives are defined only on measured LiDAR returns from visible surfaces, leaving occluded and unobserved regions unconstrained. This visible-surface bias can be sufficient for point-wise prediction, but 3D detection requires robustness to missing structure. To address this gap, we propose GhostPoint, an SSL framework that hallucinates latent features in local neighborhoods around discovered instances, generated via a novel instance voxel dilation. In GhostPoint, an encoder processes observed returns, and an additional predictor infers neighborhood representations from observed context. In addition to standard encoder-level supervision, we introduce a predictor-level supervision scheme on sampled voxels from generated neighborhoods. Specifically, observed (visible/masked) voxels match teacher-encoder targets, while unobserved voxels match teacher-predictor hallucinations. This design encourages the learned representation to explicitly model structure beyond observed returns. Extensive evaluations on nuScenes and Waymo demonstrate that our method achieves state-of-the-art performance, consistently improving downstream 3D detection, especially under sparse scans and limited labels.",
+      "authors": [
+        "Mohamed Abdelsamad",
+        "Bin Yang",
+        "Michael Ulrich",
+        "Miao Zhang",
+        "Yakov Miron",
+        "Alexandru Paul Condurache",
+        "Abhinav Valada"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-14T16:10:35+00:00",
+      "link": "https://arxiv.org/pdf/2608.14428v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "self-supervised learning for LiDAR 3D object detection",
+      "llm_evidence_cn": "面向LiDAR 3D目标检测的自监督学习",
+      "llm_evidence": "面向LiDAR 3D目标检测的自监督学习",
+      "canonical_evidence": "面向LiDAR 3D目标检测的自监督学习",
+      "llm_tldr_en": "GhostPoint is a self-supervised learning framework that hallucinates latent features in occluded LiDAR regions to improve transfer to 3D object detection. It addresses the visible-surface bias in existing SSL methods, making pretraining robust to missing structure and boosting downstream detection performance.",
+      "llm_tldr_cn": "针对现有LiDAR自监督学习方法仅约束可见表面、对遮挡和未观测区域缺乏约束，导致迁移到3D目标检测效果不佳的问题，GhostPoint提出在发现到的局部邻域内幻化潜在特征，以模拟被遮挡的LiDAR结构。该框架增强了预训练表示对缺失结构的鲁棒性。实验表明，GhostPoint在下游3D目标检测任务上优于现有自监督方法，为自动驾驶中的点云感知提供了更有效的预训练途径。",
+      "llm_tldr": "针对现有LiDAR自监督学习方法仅约束可见表面、对遮挡和未观测区域缺乏约束，导致迁移到3D目标检测效果不佳的问题，GhostPoint提出在发现到的局部邻域内幻化潜在特征，以模拟被遮挡的LiDAR结构。该框架增强了预训练表示对缺失结构的鲁棒性。实验表明，GhostPoint在下游3D目标检测任务上优于现有自监督方法，为自动驾驶中的点云感知提供了更有效的预训练途径。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.13135v1",
+      "source": "arxiv",
+      "title": "Predicting Signed Distance Functions for Visual Instance Segmentation",
+      "abstract": "Visual instance segmentation is a challenging problem and becomes even more difficult if objects of interest varies unconstrained in shape. Some objects are well described by a rectangle, however, this is hardly always the case. Consider for instance long, slender objects such as ropes. Anchor-based approaches classify predefined bounding boxes as either negative or positive and thus provide a limited set of shapes that can be handled. Defining anchor-boxes that fit well to all possible shapes leads to an infeasible number of prior boxes. We explore a different approach and propose to train a neural network to compute distance maps along different directions. The network is trained at each pixel to predict the distance to the closest object contour in a given direction. By pooling the distance maps we obtain an approximation to the signed distance function (SDF). The SDF may then be thresholded in order to obtain a foreground-background segmentation. We compare this segmentation to foreground segmentations obtained from the state-of-the-art instance segmentation method YOLACT. On the COCO dataset, our segmentation yields a higher performance in terms of foreground intersection over union (IoU). However, while the distance maps contain information on the individual instances, it is not straightforward to map them to the full instance segmentation. We still believe that this idea is a promising research direction for instance segmentation, as it better captures the different shapes found in the real world.",
+      "authors": [
+        "Emil Brissman",
+        "Joakim Johnander",
+        "Michael Felsberg"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-13T12:09:23+00:00",
+      "link": "https://arxiv.org/pdf/2608.13135v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "visual instance segmentation via predicting distance maps to object contours, an alternative to anchor-based detection",
+      "llm_evidence_cn": "视觉实例分割通过预测到物体轮廓的距离图，替代基于锚框的检测",
+      "llm_evidence": "视觉实例分割通过预测到物体轮廓的距离图，替代基于锚框的检测",
+      "canonical_evidence": "视觉实例分割通过预测到物体轮廓的距离图，替代基于锚框的检测",
+      "llm_tldr_en": "This paper proposes training a neural network to predict signed distance functions for instance segmentation, instead of anchor-based bounding boxes. It handles objects with unconstrained shapes like ropes, learning per-pixel distances to object contours in multiple directions, offering a shape-flexible detection and segmentation approach.",
+      "llm_tldr_cn": "针对基于锚框的实例分割难以处理细长、形状不固定物体（如绳索）的问题，本文提出训练神经网络预测沿不同方向到最近物体轮廓的距离图。该方法无需海量先验框，逐像素回归有符号距离函数，能够适应任意形状。实验表明该方案对形状变化大的物体提供更灵活的实例分割，为检测与分割任务提供了新的形状表示思路。",
+      "llm_tldr": "针对基于锚框的实例分割难以处理细长、形状不固定物体（如绳索）的问题，本文提出训练神经网络预测沿不同方向到最近物体轮廓的距离图。该方法无需海量先验框，逐像素回归有符号距离函数，能够适应任意形状。实验表明该方案对形状变化大的物体提供更灵活的实例分割，为检测与分割任务提供了新的形状表示思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

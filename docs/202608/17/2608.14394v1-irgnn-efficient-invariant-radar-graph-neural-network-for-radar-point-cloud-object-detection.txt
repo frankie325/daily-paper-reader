@@ -1,0 +1,370 @@
+Title: IRGNN: Efficient Invariant Radar Graph Neural Network for Radar Point Cloud Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.14394v1
+
+Published Time: Mon, 17 Aug 2026 00:57:29 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# IRGNN: Efficient Invariant Radar Graph Neural Network for Radar Point Cloud Object Detection 
+
+Xiao Guo 1, Wanke Xia 2, Lili Yang 1⋆, and Caicong Wu 1 
+
+> 1
+
+China Agricultural University  
+
+> 2
+
+Tsinghua University 
+
+Abstract. Perception is a fundamental component of autonomous driv-ing systems. While LiDAR-based methods have achieved remarkable progress in object detection, their reliability can degrade under adverse weather conditions. Radar point clouds provide a robust alternative due to their resilience to bad weather and low-illumination scenarios. How-ever, radar point clouds are typically sparse, unordered, and less infor-mative than LiDAR data, making it challenging to directly apply exist-ing LiDAR-based perception methods. To address these challenges, we propose IRGNN , an Invariant Radar Graph Neural Network for radar point cloud object detection. IRGNN first reconstructs radar point clouds into graph representations using translation- and rotation-invariant fea-ture designs, enabling robust modeling of sparse radar measurements. It then employs an improved message passing neural network (MPNN) with residual connections and a virtual node layer to enhance local feature propagation and global context modeling. Finally, task-specific heads are applied to the learned graph representations for object classification and bounding box prediction. Experimental results on the RadarScenes dataset show that IRGNN outperforms existing radar-based object detec-tion methods and achieves competitive performance. In addition, IRGNN significantly reduces computational cost and memory usage during infer-ence, demonstrating its effectiveness and practical potential for efficient radar-based perception in autonomous driving. 
+
+Keywords: Radar Point Cloud · Graph Neural Network · Object De-tection. 
+
+## 1 Introduction 
+
+Accurate perception is essential for autonomous driving systems. Existing per-ception methods mainly rely on cameras and LiDAR sensors [16,1,13,3,41]. Cam-eras provide rich texture and semantic information, but their performance is highly sensitive to illumination conditions and can degrade in overexposed or low-light environments [29,28,37]. LiDAR sensors provide accurate geometric measurements, but they are vulnerable to adverse weather conditions such as  
+
+> ⋆
+
+Corresponding author: llyang@cau.edu.cn arXiv:2608.14394v1 [cs.CV] 14 Aug 2026 2 X. Guo et al. 
+
+rain, snow, and fog, which may introduce noise, occlusion, and unreliable detec-tions. Millimeter-wave radar has become an important complementary sensor for robust autonomous driving perception [12,6,35,36,25]. Compared with cameras and LiDAR, radar is less affected by bad weather and low illumination and can also directly measure target velocity, which provides useful motion information for dynamic driving scenarios. However, radar point clouds are usually sparse, noisy, unordered, and less informative than LiDAR data, which makes it difficult to directly apply LiDAR-based object detection methods to radar data. Graph neural networks (GNNs) offer a natural way to model radar point clouds. By treating radar points as nodes and point-wise relationships as edges, GNNs can preserve the irregular structure of point clouds and capture local geometric dependencies. However, two challenges remain for graph-based radar perception. First, radar point cloud features are sensitive to coordinate trans-formations, which weakens the robustness of learned representations. Second, standard message passing networks may suffer from limited global context mod-eling and over-smoothing when processing sparse radar graphs. To address these challenges, we propose IRGNN , an Invariant Radar Graph Neural Network for radar point cloud object detection. IRGNN first reconstructs radar point clouds into graph structures with translation- and rotation-invariant feature representations. Then, it introduces an improved message passing neural network (MPNN) with residual connections and a virtual node layer to enhance feature propagation and global context modeling. Finally, classification and de-tection heads are applied to the learned node representations for object recog-nition and bounding box prediction. We evaluate IRGNN on the RadarScenes dataset [22], the representative large-scale high-resolution radar dataset that includes per-point annotations for moving instance tracking under versatile sce-narios. Experimental results show that IRGNN outperforms comparable radar-based methods and achieves competitive performance. In general, our main contributions can be summarized as follows: (1) We propose IRGNN, an invariant radar graph neural network framework for radar point cloud object detection. (2) We design translation- and rotation-invariant graph representations and improve MPNN with residual connections and a virtual node layer to enhance robustness, feature propagation, and global context modeling. (3) Experimental results show that IRGNN outperforms comparable radar-based detection methods and reduces inference time and memory usage with post-processing optimization, demonstrating the practical potential for efficient radar-based perception in autonomous driving. 
+
+## 2 Related Works 
+
+2.1 Graph Neural Network in Point Cloud 
+
+Early point cloud methods were largely inspired by CNN-based representations, where irregular points were converted into grids, voxels, or image-like struc-tures [27,4,32], but they may weaken the unordered and irregular nature of IRGNN 3
+
+point clouds and introduce discretization costs. To better preserve geometric structures, GNN-based methods were introduced to directly model point clouds as graphs, where points are treated as nodes and local neighborhoods are repre-sented as edges [23,26,8]. These methods replace regular convolutions with graph convolutions or message passing, enabling more effective modeling of local spa-tial relationships. More recently, GNNs have been extended to radar point cloud perception, showing advantages in modeling sparse and unstructured radar mea-surements [24,11,14,9]. However, radar point clouds remain challenging due to sparsity, noise, weak geometric information, and sensitivity to coordinate trans-formations, which motivates more robust and invariant graph representations. 
+
+2.2 Invariance in Point Cloud 
+
+Invariance is a key issue in point cloud learning, since point cloud features are sensitive to geometric transformations. Existing studies mainly address this problem from three directions. Transformation-based methods learn alignment or pose transformation modules to normalize point clouds before feature extraction, but they do not strictly guarantee invariance [17,33,34,10]. Value-based meth-ods construct invariant descriptors from geometric relations such as distances, angles, point-pair features, or Gram matrices, providing stricter invariance but relying heavily on the discriminative ability of handcrafted geometric descriptors [7,38,31]. LRF-based methods further establish local reference frames or local co-ordinate systems to represent points under a consistent local basis, improving rotation robustness and local geometric modeling, while their effectiveness de-pends on the stability and expressiveness of the constructed reference frame [2,5,40]. These studies motivate the use of invariant point-pair representations for robust radar point cloud modeling. 
+
+## 3 Methods 
+
+We propose IRGNN , an invariant radar graph neural network framework for radar point cloud object detection in autonomous driving scenarios (Figure 1). 
+
+3.1 Graph Construction Data Preprocessing. The original radar point cloud in RadarScenes [22] con-tains 17-dimensional data, of which we use six types: x, y, vx , vy , timestamp, and RCS. Early data preparation follows RadarGNN [11] and Scheiner’s method [21]. RadarScenes applied multiple radars to gather data, and timing disparities can still be seen in the same frame of data from different radars. As a result, radar point clouds within 0.5 seconds are aggregated into a single frame and cropped to the area in front of the vehicle that is 100 by 100 meters. After that, points with invalid coordinates and velocities are removed. 
+
+Transformation-Invariant Graph. The graph is defined as G(V, E). The original point cloud is a finite set P = {P1, P 2, . . . , P n}, where Pi (i ∈ n) is a 4 X. Guo et al. (1) Input   
+
+> Per-point Features
+> (2) Graph Construction
+> Invariance Pipelines
+> Translation Invariance
+> Relative
+> coordinates
+> or
+> Rotation Invariance
+> Local
+> Reference
+> Frame
+> Graph Construction
+> k-NN Graph
+> Graph Representation
+> Node Features Vi
+> ...
+> (N x F v)
+> Edge Features Eij
+> ...
+> (E x F e)
+> (3) GNN Backbone
+> (4) Prediction Heads
+> Pre-processing
+> Multi-radar Aggregation (0.5 s)
+> ROI Crop
+> (100 m x 100 m)
+> Invalid Removal
+> Node
+> Features
+> ...
+> Virtual Node Layer
+> ...
+> ...
+> (N ×224)
+> Edge
+> Features
+> ...
+> (E ×16)
+> Stacked Residual MPNN Layers
+> x 5
+> Edge
+> Update
+> Message
+> Passing
+> Node
+> Update
+> Classification Head
+> Detection Results
+> Detection Head
+> Car
+> Pedestrian
+> Pedestrian Group
+> Two-Wheeler
+> Large Vehicle
+> Background
+> Radar Point Cloud
+> (N x 6)
+> x, y
+> vx, v y
+> timestamp
+> RCS
+
+Fig. 1. Overview of IGRNN , mainly comprising Graph Construction and GNN .
+
+vector containing the original point features of Fp dimensions. Pi is mapped to 
+
+Vi (i ∈ n), a vector containing the node features of Fv dimensions. The final node set with features is V = {V1, V 2, . . . , V n}. Edges E are computed by k-Nearest Neighbor (KNN). Formally, the edge between node u and node v is defined as: 
+
+Euv = (Vu, V v ) | (Vu, V v ) ∈ V 2, u ̸ = v (1) where Vu denotes node u and Vv denotes node v. Also, node v with feature is: 
+
+Vv = KN N σ (Vu) (2) where KN N σ denotes KNN with σ neighbors. The edges carry point-to-point features between nodes with dimension of Fe. To achieve transformation invari-ance, we apply two strategies: translation invariance and rotation invariance. 
+
+Translation Invariance. In a graph without invariance implementation, all six-dimensional features are encoded into point features, while edge features re-main empty. However, x and y cannot be explicitly encoded into point features as translation-invariant properties because their values change as the point is trans-lated. As a result, they are converted to relative coordinates (dx, dy ) between the two nodes and become edge features between the two points, as illustrated in Figure 2. In addition, the timestamps in the point features are converted to time indexes, and the point connectivity information c is included. 
+
+Rotation Invariance. When rotating point clouds, the velocities and rel-ative positions also change. RadarGNN [11] uses a set of point pair features to solve the rotation problem, as shown in Figure 3 (a). These features include the distance |d| between nodes, the relative angle θa of the velocities, and the relative angles a1 and a2 between the velocities of two nodes and the edges. 
+
+Enhanced Point Pair Feature. While RadarGNN [11] guarantees rotation invariance, it falls short in capturing local geometric features. To address this IRGNN 5    
+
+> (a) (b)
+> Fig. 2. Schematic diagram of translation invariance: (a) no invariance (position changes after translation); (b) translation invariance (relative position does not change).
+> (a) (b)
+> Fig. 3. Schematic diagram of rotation invariance: (a) RadarGNN’s [11]; (b) Our EPPF.
+
+issue, we introduce an enhanced point pair feature method (EPPF) based on a local reference frame (LRF) to improve the expressiveness and discriminability of local features, as shown in Figure 3 (b). Specifically, for a given current node and its set of neighborhood points, a stable and unique LRF must first be estab-lished. The construction of LRF relies on the spatial distribution characteristics of the neighborhood points. By constructing a weighted covariance matrix for neighborhood points and performing eigen-decomposition on the matrix, a set of eigenvalues and corresponding eigenvectors can be obtained. The eigenvector corresponding to the maximum eigenvalue is designated as the reference axis of the local reference coordinate system. Based on this local reference axis (LRA), the computation of point-to-point features remains consistent under different rotation conditions. Concretely, the calculation process is as follows. First, we obtain the displacement vector of the u-th neighbor ai,u relative to node ai:
+
+bu = ai,u − ai
+
+ ai ∈ R2, KN N a = {ai, 1, a i, 2, . . . , a i,a } (3) Then, we compute the distance weight of the u-th neighbor as: 
+
+wu = ∥bu∥−1
+
+Pan=1 ∥bn∥−1 (4) 6 X. Guo et al. 
+
+The closer the u-th neighbor point is to node ai, the heavier the weight wu is. Now, the weighted covariance matrix Mi is defined as: 
+
+Mi =
+
+> a
+
+X
+
+> n=1
+
+wnbnb⊤ 
+
+> n
+
+(5) EPPF consists of relative angles β0 and β1 between LRA and the edge, and the angle θβ of LRA. Finally, EPPF is computed as: EPPF (V0,1) = [ |d|, a 1, a 2, θ α, β 1, β 2, θ β ] (6) 
+
+
+
+|d| = ∥V1 − V0∥ ,a0 = ∠ac (v0, d ) , a 1 = ∠ac (v1, d ) , θ α = ∠ac (v0, v 1) ,β0 = ∠ac (L0, d ) , β 1 = ∠ac (L1, d ) , θ β = ∠ac (L0, L 1)
+
+(7) where ∠ac represents an acute angle. 
+
+3.2 Graph Neural Network Feature Embemdding. Node and edge features are initially sent into the fea-ture embedding layer, which employs a multi-layer perceptron (MLP) to expand the dimensions of features. 
+
+Virtual Node Layer. We design a virtual node layer right after the feature embedding layer to enhance GNN’s capacity to learn global information. The virtual node feature vector for the i-th graph Gi(V, E ) is: 
+
+V N i ∈ RFE (8) where FE is the feature dimension of the virtual node. Here, FE aligns with the first-layer node features. In the forward propagation, virtual node features are concatenated with the embedded node feature vectors to form the input representation of the first-layer node features, which is formally as: 
+
+˜Xi(1) = Xi(1) + V N i (9) where Xi(1) denotes the original node features of first layer for the i-th graph. 
+
+Message Passing Neural Network. MPNN updates node representations by passing messages along graph edges. For each target node Vi, a message is first generated from its current node feature F Vi , the neighbor node feature F Vj ,and the edge feature F Eij :
+
+Mij = ϕe
+
+ F Vi , F Vj , F Eij 
+
+ , (10) where ϕe is the generate function by MLP. Then, all messages from the neigh-borhood N (i) are aggregated to obtain the neighborhood representation: 
+
+Mi = M 
+
+> j∈N(i)
+
+Mij . (11) IRGNN 7
+
+Finally, the target node feature is updated by combining its original feature with the aggregated message: 
+
+F Vi = ϕu
+
+ F Vi , M i
+
+ , (12) where ϕu is the update function by MLP. Through this process, MPNN captures local structural information from neighboring radar points. 
+
+Residual Block. Repeated neighborhood aggregation in MPNN may smooth node representations, causing nodes within the same connected component to become indistinguishable as the network goes deeper. To alleviate this issue, we add a residual block after each MPNN layer. Given the MPNN output ˜F li at the 
+
+l-th layer and the previous-layer feature F l−1 
+
+> i
+
+, the residual output is defined as: 
+
+ˆF li =
+
+( ˜F li + γF l−1 
+
+> i
+
+, Dl−1 = Dl
+
+˜F li + γp (l)F l−1 
+
+> i
+
+, Dl−1̸ = Dl
+
+(13) where γ is the residual scaling factor, and p(l) is a linear projection used only when the feature dimensions of adjacent layers are different. ˆF li is then passed through batch normalization and ReLU to obtain the final layer output F li .
+
+Loss Function. We use a combined loss function consisting of weighted classification loss Lcls and bounding box loss Lbbox :
+
+L = λcLcls + λbLbbox (14) where λc and λb represent the weights of Lcls and Lbbox , respectively. The clas-sification loss uses weighted cross entropy loss: 
+
+Lcls = − 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+γc log ( qi,c ) (15) where N is the total number of samples in a batch, c is a class in the total category C, γc represents the weight of class c, and qi,c represents the predicted probability that the i-th sample belongs to class c. The bounding box loss uses Huber loss, which is a loss function between L1 and L2 loss: 
+
+∆z = ˆ z − z (16) 
+
+Lbbox =
+
+( 12 ∆2 
+
+> z
+
+, |∆z | ≤ δδ  |∆z | − 12 δ , |∆z | > δ (17) where ˆz is the prediction, z is the ground truth, and ∆z represents the error between the prediction and the ground truth. δ is the smoothing threshold used to determine the boundary between L1 and L2 losses. 
+
+Post Processing. The classification head maps the final node features to class scores, while the bounding box head predicts candidate boxes for each node using a two-layer MLP with ReLU. During post processing, candidates classified as background or with high background confidence are first removed. The remaining boxes are then converted from the relative coordinate system 8 X. Guo et al. 
+
+of the invariant representation to the absolute coordinate system. Next, non-maximum suppression (NMS) is applied within each frame to remove duplicate detections. Finally, a confidence threshold is used to filter low-score boxes and obtain the final detection results. 
+
+## 4 Experiments 
+
+4.1 Experiment Setup 
+
+During graph construction, we employ two invariance configurations in Table 1. In KN N σ , we set σ to 20. In the residual block, we set γ to 0.3. During GNN, node features are increased to 224 dimensions, while edge features are increased to 16. IRGNN is trained for 40 epochs on an NVIDIA RTX4090 24 GB GPU with a learning rate of 0.001 and a batch size of 5. To avoid overfitting, we set the learning rate decay parameter to 0.95, and employ an early stopping strat-egy. In the loss function, we set λc, λb and δ to 1.0, 0.5 and 1.0, respectively. We compare IRGNN with baseline RadarGNN [11], pseudo-image-based Point-Pillars [15], point-set-based PointNet++ [18], and grid-based DOG [19] on the RadarScenes dataset [22]. All methods are evaluated under an IoU of 0.3.          
+
+> Table 1. Node and edge feature for translation invariance and rotation invariance. Invariance Node Feature Edge Feature Translation vx, v y, rcs, t idx , c dx, dy
+> Rotation |v|, rcs, t idx , c EPPF
+
+4.2 Evaluation Metrics 
+
+We apply average precision (AP) and mean average precision (mAP) to evaluate the performance of object detection. Precision and Recall are computed as: 
+
+P r (i) = 
+
+P T P (i)
+
+P T P (i) + P F P (i) , Re (i) = 
+
+P T P (i)
+
+G (18) where T P (i) and F P (i) represent the number of true positives and false positives up to the i-th prediction, respectively. G represents the total number of ground truth for the category. Then, the AP for each class and mAP are calculated as: 
+
+AP c(τ ) = X ∆Re (j, j − 1) · P r smooth (j), mAP (τ ) = 1
+
+C
+
+> C
+
+X
+
+> c=1
+
+AP c(τ ) (19) where c represents a class in the class set C, ∆Re represents the difference in recall between two adjacent sampling points, P r smooth represents the accuracy after non-increasing smoothing, and τ is the IoU threshold. IRGNN 9(a) EGNN  (b)  EGNNVel   
+
+> (c) MPNN (d) MPNNVel
+
+Fig. 4. Schematic diagram of different convolutional layers. 
+
+4.3 Experimental Results Comparison Experiments. As shown in Table 2, IRGNN achieves the best overall performance with a mAP of 0.591, outperforming RadarGNN by 0.024 and showing clear gains over PointNet++, PointPillars, and DOG. The results indicate that radar point cloud detection benefits more from structure-preserving graph modeling than from grid-based, pseudo-image-based, or pure point-set representations. IRGNN also performs best on pedestrian group, two-wheeler, and large vehicle classes, indicating that point-pair relations and global context help capture object structures with diverse shapes and spatial distributions. In summary, IRGNN achieves a more balanced performance across categories and shows stronger robustness for radar point cloud detection. 
+
+Table 2. Comparison results of mAP and class-wise AP by various detection methods. Model mAP Car Pedestrian Pedestrian Group Two-Wheeler Large Vehicle DOG [19] 0.327 0.387 0.306 0.345 0.357 0.241 PointPillars [15] 0.392 0.148 0.148 0.279 0.405 0.549 PointNet++ [18] 0.459 0.531 0.336 0.515 0.522 0.390 RadarGNN [11] 0.567 0.709 0.277 0.560 0.588 0.701 IRGNN (Ours) 0.591 0.696 0.286 0.600 0.639 0.735 
+
+Convolutional Layer Experiments. To analyze the influence of differ-ent graph convolution designs on radar point cloud detection, we compare four representative layers shown in Figure 4: EGNN [20], EGNNVel [20], MPNN, and MPNNVel. EGNN is selected as the geometric equivariant baseline, since it jointly updates node features and coordinates while preserving equivariance to 10 X. Guo et al. 
+
+translation, rotation, permutation, and reflection. EGNNVel further introduces velocity information into the coordinate update process, allowing motion cues to participate in geometric feature propagation. In contrast, MPNN follows a feature-centric message passing paradigm, where messages are generated from node and edge features, aggregated from neighboring nodes, and used to update node representations without explicitly modifying positions or velocities. To ex-amine whether explicit motion modeling benefits MPNN, we additionally de-sign MPNNVel, which removes velocity vectors from node features and instead encodes relative velocity differences into edge messages, followed by additive velocity-state regression.                              
+
+> Table 3. Results of mAP and class-wise AP with different convolutional layers. Layer mAP Car Pedestrian Pedestrian Group Two-Wheeler Large Vehicle EGNN [20] 0.531 0.678 0.251 0.495 0.583 0.646 EGNNVel [20] 0.552 0.723 0.346 0.540 0.523 0.630 MPNN 0.567 0.709 0.277 0.560 0.588 0.701
+> MPNNVel 0.510 0.693 0.218 0.447 0.514 0.680
+
+As shown in Table 3, MPNN achieves the best overall mAP of 0.567, out-performing EGNN and EGNNVel despite their explicit geometric equivariance. This suggests that, for sparse and noisy radar point clouds, stable feature-level message passing is more effective than repeatedly updating coordinates or mo-tion states. EGNNVel obtains the best AP on Car and Pedestrian, indicating that velocity cues can help objects with relatively clear motion or reflection pat-terns. However, its lower performance on Pedestrian Group, Two-Wheeler, and Large Vehicle shows that velocity-aware coordinate updates do not consistently generalize across categories. MPNNVel further decreases mAP to 0.510, suggest-ing that explicitly regressing velocity states may amplify radar noise rather than provide robust motion information. 
+
+Rotation Invariance Experiments. To evaluate the effectiveness of differ-ent rotation-invariant feature designs, we compare IRGNN with RadarGNN [11] and RIConv++ [39]. RadarGNN is based on point-pair geometric relations, while RIConv++ is a LRF-based method that constructs LRA and designs informa-tive rotation-invariant features (IRIF) to enhance local geometric discrimination. For a fair comparison, we only replace the edge representation in the rotation-invariant pipeline and keep all other feature settings consistent. Specifically, EPPF is replaced with IRIF when evaluating RIConv++. As shown in Table 4, our IRGNN achieves the highest mAP of 0.238, slightly outperforming RadarGNN and RIConv++. The improvement mainly comes from Pedestrian and Pedestrian Group, indicating that the proposed EPPF can better capture local point-pair geometry in sparse radar regions. However, the overall gain is limited, and all rotation-invariant pipelines perform much IRGNN 11 0.10       
+
+> 0.15
+> 0.20
+> 0.25
+> 0.30
+> 0.35
+> 0.40
+> 0.45
+> 0.50
+> 1.30
+> 1.35
+> 1.40
+> 1.45
+> 1.50
+> 10 15 20 25 30 35 40
+> Loss
+> Epoch
+> MPNN+Residual
+> MPNN
+> EGNN+Vel
+> EGNN
+> VN+Each
+
+Fig. 5. Training loss with different convolutional layers and improvements. All training processes have triggered the early stopping. 
+
+Table 4. Results of mAP and class-wise AP with different rotation invariance pipelines. Model mAP Car Pedestrian Pedestrian Group Two-Wheeler Large Vehicle RadarGNN [11] 0.229 0.229 0.118 0.267 0.337 0.196 
+
+RICONV++ [39] 0.230 0.258 0.102 0.256 0.339 0.193 IRGNN (Ours) 0.238 0.259 0.133 0.332 0.277 0.190 
+
+worse than the translation-invariant setting . Although rotation-invariant descriptors improve robustness to pose changes, they may also remove useful orientation-related cues for bounding box prediction. 
+
+4.4 Ablation Study 
+
+We conduct ablation experiments on residual blocks and virtual node layer (Ta-ble 5). All experiments are performed on the translation invariance pipeline. 
+
+Ablation of Residual Blocks. As shown in Table 5, adding residual blocks improves the mAP from 0.567 to 0.578, with clear gains on Car, Pedestrian Group, Two-Wheeler, and Large Vehicle. This indicates that residual connec-tions help preserve earlier-layer node information during repeated message pass-ing, thereby alleviating representation degradation caused by over-smoothing. The improvement is especially evident on categories with stronger or more spa-tially extended radar reflections, such as Two-Wheeler and Large Vehicle, where stable feature propagation is important for maintaining object-level structures. Although the AP for Pedestrian decreases, this may be due to the extremely 12 X. Guo et al.                           
+
+> Table 5. Results of mAP and class-wise AP in ablation studies. Residual Blocks Virtual Node Layer mAP Car Pedestrian Pedestrian Group Two-Wheeler Large Vehicle
+> ××0.567 0.709 0.277 0.560 0.588 0.701
+> ✓×0.578 0.727 0.242 0.570 0.638 0.711
+> ✓✓0.591 0.696 0.286 0.600 0.639 0.735
+
+sparse and weak radar returns of small targets, where residual connections may also preserve noisy local responses. Overall, the results show that residual blocks improve the stability and discriminability of graph feature learning, leading to better detection performance in most categories. 
+
+Ablation of Virtual Node Layer. As shown in Table 5, adding the vir-tual node layer further improves the mAP from 0.578 to 0.591 on top of residual blocks, with clear gains on Pedestrian, Pedestrian Group, and Large Vehicle. This indicates that the virtual node layer introduces useful graph-level context, helping each radar point access global structural information beyond its local neighborhood. Such global information is especially beneficial for sparse radar point clouds, where local observations may be incomplete or fragmented. How-ever, the AP of Car decreases from 0.727 to 0.696, suggesting that excessive global aggregation may weaken fine-grained local patterns for classes with rela-tively stable and dense radar reflections. This also explains why inserting virtual nodes before every convolutional layer can cause convergence problems. That is, overly frequent global information injection may lead to over-globalization and reduce the discriminability of node representations [30]. Overall, using a single virtual node layer provides a better balance between global context modeling and local feature preservation. 
+
+4.5 Post Process Experiments 
+
+To evaluate the deployment efficiency of IRGNN, we conduct post-processing experiments on an RTX 2060 12GB GPU under the translation-invariant set-ting. As shown in Table 6, the baseline pipeline is mainly bottlenecked by raw box generation and extraction. The extraction stage involves repeated operations for prediction labels, confidence scores, and background probabilities. After vec-torization, time cost is reduced from 131.43s to 30.19s, showing the efficiency of batch computation over point-wise processing. Since the major VRAM con-sumption comes from intermediate tensors during raw box generation, further releasing intermediate states reduces VRAM usage from 8.11GB to 3.05GB and also lowers raw box generation time from 224.23s to 176.28s. Overall, the op-timized post-processing pipeline reduces total time cost by 38.69% and VRAM usage by 62.39%, improving the deployability on resource-limited hardware. IRGNN 13 
+
+Table 6. Comparisons of post-process time cost and VRAM usage. Time cost refers to the total inference time for the entire validation set. VRAM usage represents the consumption during the raw bounding box generation stage. Model Raw Box Cost (s) Extraction Cost (s) NMS Cost (s) VRAM Usage (GB) Baseline 224.23 131.43 21.61 8.11 +Vectorization 225.34 30.19 20.94 8.10 +Intermediate Release 176.28 32.29 22.73 3.05 
+
+## 5 Conclusion 
+
+In this study, we propose IRGNN , an invariant graph neural network frame-work for radar point cloud object detection in autonomous driving. IRGNN con-structs invariant graph representations from sparse radar points and employs an improved MPNN with residual connections and a virtual node layer to en-hance feature propagation, reduce over-smoothing, and capture global context. Experiments on RadarScenes demonstrate that IRGNN achieves competitive performance against existing radar-based methods. 
+
+## References 
+
+1. Alfred Daniel, J., Chandru Vignesh, C., Muthu, B.A., Senthil Kumar, R., Siva-parthipan, C., Marin, C.E.M.: Fully convolutional neural networks for lidar–camera fusion for pedestrian detection in autonomous vehicle. Multimedia Tools and Ap-plications 82 (16), 25107–25130 (2023) 2. Cao, H., Zhan, R., Ma, Y., Ma, C., Zhang, J.: Lfnet: Local rotation invariant coordinate frame for robust point cloud analysis. IEEE Signal Processing Letters 
+
+28 , 209–213 (2020) 3. Carranza-García, M., Galán-Sales, F.J., Luna-Romera, J.M., Riquelme, J.C.: Ob-ject detection using depth completion and camera-lidar fusion for autonomous driving. Integrated Computer-Aided Engineering 29 (3), 241–258 (2022) 4. Chen, J., Lei, B., Song, Q., Ying, H., Chen, D.Z., Wu, J.: A hierarchical graph network for 3d object detection on point clouds. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 392–401 (2020) 5. Chen, R., Cong, Y.: The devil is in the pose: Ambiguity-free 3d rotation-invariant learning via pose-aware convolution. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 7472–7481 (2022) 6. Cheng, R., Di, H., Li, J., Liu, F., Liang, W.: Radarmp: Motion perception for 4d mmwave radar in autonomous driving. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 40, pp. 3282–3290 (2026) 7. Deng, H., Birdal, T., Ilic, S.: Ppfnet: Global context aware local features for robust 3d point matching. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 195–205 (2018) 8. Ding, Y., Xia, W., Zhao, Y., Su, J., Yang, J., Zhang, Z., Wang, K., Yang, W.: Mem-ground: Long-term memory evaluation kit for large language models in gamified scenarios. arXiv preprint arXiv:2604.14158 (2026) 14 X. Guo et al. 9. Fang, J., Xu, Y., Liu, W., Li, C., Fang, Q., He, X.: Real-time fine-grained gesture recognition based on millimeter wave radar. In: 2024 IEEE Smart World Congress (SWC). pp. 394–401. IEEE (2024) 10. Fei, J., Deng, Z.: Rotation invariance and equivariance in 3d deep learning: a survey. Artificial Intelligence Review 57 (7) (2024) 11. Fent, F., Bauerschmidt, P., Lienkamp, M.: Radargnn: Transformation invari-ant graph neural network for radar-based perception. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 182–191 (2023) 12. Harlow, K., Jang, H., Barfoot, T.D., Kim, A., Heckman, C.: A new wave in robotics: Survey on recent mmwave radar applications in robotics. IEEE Transactions on Robotics 40 , 4544–4560 (2024) 13. Hess, G., Lindström, C., Fatemi, M., Petersson, C., Svensson, L.: Splatad: Real-time lidar and camera rendering with 3d gaussian splatting for autonomous driving. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 11982–11992 (2025) 14. Hunt, D., Luo, S., Hallyburton, S., Nillongo, S., Li, Y., Chen, T., Pajic, M.: Ragn-narok: A light-weight graph neural network for enhancing radar point clouds on unmanned ground vehicles. In: 2025 IEEE/RSJ International Conference on Intel-ligent Robots and Systems (IROS). pp. 16739–16745. IEEE (2025) 15. Lang, A.H., Vora, S., Caesar, H., Zhou, L., Yang, J., Beijbom, O.: Pointpillars: Fast encoders for object detection from point clouds. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 12697–12705 (2019) 16. Liu, H., Wu, C., Wang, H.: Real time object detection using lidar and camera fusion for autonomous driving. Scientific Reports 13 (1), 8056 (2023) 17. Qi, C.R., Su, H., Mo, K., Guibas, L.J.: Pointnet: Deep learning on point sets for 3d classification and segmentation. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 652–660 (2017) 18. Qi, C.R., Yi, L., Su, H., Guibas, L.J.: Pointnet++: Deep hierarchical feature learn-ing on point sets in a metric space. Advances in neural information processing systems 30 (2017) 19. Ronecker, M.P., Schratter, M., Kuschnig, L., Watzenig, D.: Dynamic occupancy grids for object detection: A radar-centric approach. In: 2024 IEEE International Conference on Robotics and Automation (ICRA). pp. 13991–13997. IEEE (2024) 20. Satorras, V.G., Hoogeboom, E., Welling, M.: E (n) equivariant graph neural net-works. In: International conference on machine learning. pp. 9323–9332. PMLR (2021) 21. Scheiner, N., Kraus, F., Appenrodt, N., Dickmann, J., Sick, B.: Object detection for automotive radar point clouds–a comparison. AI Perspectives 3(1), 6 (2021) 22. Schumann, O., Hahn, M., Scheiner, N., Weishaupt, F., Tilly, J.F., Dickmann, J., Wöhler, C.: Radarscenes: A real-world radar point cloud data set for automotive applications. In: 2021 IEEE 24th International Conference on Information Fusion (FUSION). pp. 1–8. IEEE (2021) 23. Shi, W., Rajkumar, R.: Point-gnn: Graph neural network for 3d object detection in a point cloud. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 1711–1719 (2020) 24. Svenningsson, P., Fioranelli, F., Yarovoy, A.: Radar-pointgnn: Graph based object recognition for unstructured radar point-cloud data. In: 2021 IEEE Radar Confer-ence (RadarConf21). pp. 1–6. IEEE (2021) IRGNN 15 25. Tian, Y., Cheng, K.M., Zhang, Z., Zhang, T., Feng, J., Ren, Z., Li, S., Yan, D., Xu, B.: An extended viirs-like artificial nighttime light data reconstruction (1986– 2024). Scientific Data 13 (1), 233 (2026) 26. Wang, W., You, Y., Liu, W., Lu, C.: Point cloud classification with deep normalized reeb graph convolution. Image and Vision Computing 106 , 104092 (2021) 27. Wang, Y., Sun, Y., Liu, Z., Sarma, S.E., Bronstein, M.M., Solomon, J.M.: Dynamic graph cnn for learning on point clouds. ACM Transactions on Graphics (tog) 38 (5), 1–12 (2019) 28. Xia, W., Lv, B., Xiang, X., Peng, R., Chu, H., Zhu, X., Yang, Z., Yang, L.: An improved pure fully connected neural network for rice grain classification. In: 2025 6th International Conference on Computers and Artificial Intelligence Technology (CAIT). pp. 179–184. IEEE (2025) 29. Xia, W., Peng, R., Chu, H., Zhu, X., Yang, Z., Zhao, Y., Yang, L.: An overall real-time mechanism for classification and quality evaluation of rice. arXiv preprint arXiv:2502.13764 (2025) 30. Xing, Y., Wang, X., Li, Y., Huang, H., Shi, C.: Less is more: on the over-globalizing problem in graph transformers. In: Proceedings of the 41st International Confer-ence on Machine Learning. pp. 54656–54672 (2024) 31. Xu, J., Tang, X., Zhu, Y., Sun, J., Pu, S.: Sgmnet: Learning rotation-invariant point cloud representations via sorted gram matrix. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 10468–10477 (2021) 32. Yang, H., Liu, Z., Wu, X., Wang, W., Qian, W., He, X., Cai, D.: Graph r-cnn: Towards accurate 3d object detection with semantic-decorated local graph. In: European conference on computer vision. pp. 662–679. Springer (2022) 33. You, H., Feng, Y., Ji, R., Gao, Y.: Pvnet: A joint convolutional network of point cloud and multi-view for 3d shape recognition. In: Proceedings of the 26th ACM international conference on Multimedia. pp. 1310–1318 (2018) 34. Yuan, W., Held, D., Mertz, C., Hebert, M.: Iterative transformer network for 3d point cloud. arXiv preprint arXiv:1811.11209 (2018) 35. Zeng, C., Chu, W., Fan, L., Ding, Y., Tian, Y., Tang, X., Li, K.: Velocity first? rethinking 3d object detection with 4d millimeter wave radar. IEEE Transactions on Multimedia (2026) 36. Zhang, Z., Tian, Y., Xia, W., Chen, L., Sun, Y., Ding, K., Wang, Y., Xu, B., Xiang, S.: Dsfc-net: A dual-encoder spatial and frequency co-awareness network for rural road extraction. arXiv preprint arXiv:2602.01278 (2026) 37. Zhang, Z., Xiao, Y., Chen, Z., Chen, X., Li, X.: Gait recognition for farm workers via multi-scale temporal feature perception. Computers and Electronics in Agri-culture 226 , 109353 (2024) 38. Zhang, Z., Hua, B.S., Rosen, D.W., Yeung, S.K.: Rotation invariant convolutions for 3d point clouds deep learning. In: 2019 International Conference on 3D Vision (3DV). pp. 204–213. IEEE (2019) 39. Zhang, Z., Hua, B.S., Yeung, S.K.: Riconv++: Effective rotation invariant convo-lutions for 3d point clouds deep learning: Z. zhang et al. International Journal of Computer Vision 130 (5), 1228–1243 (2022) 40. Zhao, C., Yang, J., Xiong, X., Zhu, A., Cao, Z., Li, X.: Rotation invariant point cloud analysis: Where local geometry meets global topology. Pattern Recognition 
+
+127 , 108626 (2022) 41. Zimmer, W., Birkner, J., Brucker, M., Nguyen, H.T., Petrovski, S., Wang, B., Knoll, A.C.: Infradet3d: Multi-modal 3d object detection based on roadside infras-tructure camera and lidar sensors. In: 2023 IEEE Intelligent Vehicles Symposium (IV). pp. 1–8. IEEE (2023)
