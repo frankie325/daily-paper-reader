@@ -1,0 +1,248 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-18T19:52:18.741679+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 4,
+    "deep_cap": 6,
+    "deep_selected": 4,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2608.15261v1",
+      "source": "arxiv",
+      "title": "Boundary-Aligned Contribution Routing for Robust Optical--SAR Object Detection",
+      "abstract": "Optical imagery provides rich appearance cues, whereas synthetic aperture radar (SAR) offers observations that are less sensitive to illumination and weather, making optical--SAR fusion attractive for remote-sensing object detection. However, the presence of multiple modalities does not guarantee beneficial fusion: imperfect spatial, temporal, and semantic correspondence can make an otherwise intact stream conditionally harmful and induce negative cross-modal transfer. We handle this issue through a model-specific task-utility perspective and learn task-conditioned contribution routing using detection supervision alone. The proposed fusion-boundary-aligned routing regulates each modality's contribution before the first learned cross-modal feature-value mixing operation. For architectures with frequent shallow interaction, a Feature Router performs cross-conditioned, group-addressable modulation near the input; for dual-backbone architectures, a Dual-Statistic Semantic Router predicts stream-level contribution weights from modality-specific average and maximum statistics before late semantic fusion. The routers require no explicit utility supervision, quality labels, reconstruction, or distillation. Experiments on M4-SAR and SpaceNet6-OTD cover nominal full inputs, controlled correspondence shifts, missing modalities, and four nonzero modality-corruption scenarios. Across the reported clean-training controls, routing improves full-input $\\text{mAP}_{50}$ by 0.5--5.9 points. Relative to the corresponding modality-dropout baselines, it raises missing-modality $\\text{mAP}_{50}$ by 7.6--41.6 points and reduces the negative-transfer rate by up to 12.7 percentage points. Spearman correlations between the learned routing weights and model-specific leave-one-modality-out utility range from 0.45 to 0.66, supporting the task-utility interpretation of the routing coefficients.",
+      "authors": [
+        "Haifa Zhang",
+        "Yijing Wang",
+        "Haoyu Wang",
+        "Zheng Li",
+        "Zhiqiang Zuo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-15T14:37:23+00:00",
+      "link": "https://arxiv.org/pdf/2608.15261v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Optical-SAR fusion object detection with task-conditioned contribution routing",
+      "llm_evidence_cn": "光学-SAR融合目标检测中的任务条件贡献路由",
+      "llm_evidence": "光学-SAR融合目标检测中的任务条件贡献路由",
+      "canonical_evidence": "光学-SAR融合目标检测中的任务条件贡献路由",
+      "llm_tldr_en": "Addresses conditional harm in optical-SAR fusion for remote sensing object detection. Proposes fusion-boundary-aligned routing that regulates each modality's contribution using detection supervision. Shows robust fusion and improved detection under imperfect correspondence.",
+      "llm_tldr_cn": "光学与SAR融合用于遥感目标检测时，模态间不完美对应可能导致负迁移。提出融合边界对齐路由，利用检测监督学习任务条件化的模态贡献。实验表明该方法在存在空间、时间和语义不对齐时仍能稳健融合并提升检测性能。",
+      "llm_tldr": "光学与SAR融合用于遥感目标检测时，模态间不完美对应可能导致负迁移。提出融合边界对齐路由，利用检测监督学习任务条件化的模态贡献。实验表明该方法在存在空间、时间和语义不对齐时仍能稳健融合并提升检测性能。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.15297v1",
+      "source": "arxiv",
+      "title": "TinyDETR-Pose: Towards End-to-End Real-Time Single-Stage 6DoF Object Pose Estimation with Lightweight Transformers",
+      "abstract": "Real-time 6DoF object pose estimation on resource-constrained hardware remains challenging, as accurate correspondence-based and refinement pipelines typically rely on non-differentiable PnP/RANSAC stages or costly iterative refinement, while recent foundation-model-based approaches incur inference costs that are prohibitive for edge deployment. We present TinyDETR-Pose, a lightweight, end-to-end, single-stage framework that jointly detects objects and regresses their full 6D pose in a single forward pass. Built on the efficient LW-DETR architecture, TinyDETR-Pose formulates detection and pose estimation as a set-prediction problem and attaches dedicated MLP heads for rotation, monocular depth, and projected object center regression to each decoder query, eliminating the need for PnP, NMS (non-maximum suppression), or iterative pose refinement. Object symmetries are handled through a ADD-S loss applied uniformly to all objects, without the need for object-specific loss schedules or separate geodesic/ADD supervision. In addition, predictions are assigned to ground truth using a symmetry-safe Hungarian matcher based on class and 2D spatial cues, yielding stable assignment under symmetry and depth ambiguity. On YCB-V, TinyDETR-Pose achieves a comparable ADD-S AUC of 85.9, while requiring up to 72.7% fewer parameters than other DETR-based single-stage pose-estimation approaches. Due to its compact design, TinyDETR-Pose runs in real time and achieves an inference latency of only ~4.5 ms per frame on an NVIDIA Jetson Nano using TensorRT, demonstrating that accurate end-to-end transformer-based 6D pose estimation can be made practical for edge deployment.",
+      "authors": [
+        "Paul Julius Kühn",
+        "Duc Anh Nguyen",
+        "Saptarshi Neil Sinha",
+        "Michael Weinmann",
+        "Arjan Kuijper"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-15T16:02:51+00:00",
+      "link": "https://arxiv.org/pdf/2608.15297v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "DETR-based joint object detection and 6D pose estimation",
+      "llm_evidence_cn": "基于DETR的联合目标检测与6D姿态估计",
+      "llm_evidence": "基于DETR的联合目标检测与6D姿态估计",
+      "canonical_evidence": "基于DETR的联合目标检测与6D姿态估计",
+      "llm_tldr_en": "TinyDETR-Pose addresses real-time 6DoF pose estimation on edge hardware. It builds on efficient LW-DETR to jointly detect objects and regress 6D pose in a single forward pass as set prediction, enabling end-to-end single-stage detection and pose estimation.",
+      "llm_tldr_cn": "该文针对资源受限硬件上实时6DoF目标姿态估计的难题，提出基于轻量级LW-DETR的TinyDETR-Pose框架，以集合预测方式在单次前向传播中联合检测目标并回归完整6D姿态。实验显示该方法可端到端实时运行，为边缘设备上的目标检测与姿态估计提供了高效方案。",
+      "llm_tldr": "该文针对资源受限硬件上实时6DoF目标姿态估计的难题，提出基于轻量级LW-DETR的TinyDETR-Pose框架，以集合预测方式在单次前向传播中联合检测目标并回归完整6D姿态。实验显示该方法可端到端实时运行，为边缘设备上的目标检测与姿态估计提供了高效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.15713v1",
+      "source": "arxiv",
+      "title": "YOLO26-RD: An End-to-End Road Damage Detection Network With Learnable Contrast Enhancement and Edge-Guided Downsampling",
+      "abstract": "Automated pavement-distress detection is commonly framed as a small-object problem, motivating high-resolution P2/4 detection heads and lossless downsampling. We present YOLO26-RD, an end-to-end (NMS-free) detector built on YOLO26 with two lightweight novel modules (LearnableContrast, a 494-parameter differentiable analogue of CLAHE that adapts contrast per tile inside the network, and EdgeSPD, a Sobel-gated space-to-depth downsampler adding only 2 parameters over SPD-Conv), and we subject the design to a data-first audit on a 7,618-image road-survey dataset (alligator crack, linear crack, patching). The audit falsifies the small-object premise: 92% of instances are COCO-large, and linear cracks are extreme-aspect structures (median 10:1) whose difficulty is sensitivity, not localization. Guided by this analysis, we remove the P2 detection level while retaining P2 features in the fusion path, which improves mAP50 by 2.8 points over the full YOLO26-RD model and reduces epoch time by 8%. Trained from scratch at 640x640, our best screening configuration reaches 0.787 mAP50 on the validation split versus a 0.771 project baseline (a stock YOLO26-s of uncontrolled recipe), with the largest per-class gain on the rarest class (patching, 2.6 points over baseline; 9.4 over the unmodified YOLO26-RD control under an identical recipe). A failure-mode decomposition further attributes the residual error of the bottleneck class (crack, approximately 0.74 across all architectures tested) to train/validation distribution shift on crack orientation and length, sub-pixel crack width at 640x640, and label incompleteness, factors no architecture change can address. We argue that for pavement imagery, measurement-driven subtraction outperforms module accretion, and we release our audit protocol alongside the model.",
+      "authors": [
+        "Sompote Youwai",
+        "Pawarotorn Chaipetch",
+        "Hathairat Samaikul",
+        "Theerayut Yonseng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-16T12:36:12+00:00",
+      "link": "https://arxiv.org/pdf/2608.15713v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "road damage detection with YOLO26 end-to-end detector",
+      "llm_evidence_cn": "基于YOLO26的端到端道路损坏检测",
+      "llm_evidence": "基于YOLO26的端到端道路损坏检测",
+      "canonical_evidence": "基于YOLO26的端到端道路损坏检测",
+      "llm_tldr_en": "Proposes YOLO26-RD, an end-to-end NMS-free detector for road damage; introduces LearnableContrast and EdgeSPD modules; data audit shows most instances are large, challenging small-object assumption.",
+      "llm_tldr_cn": "针对道路损坏检测中常被当作小目标问题而设计高分辨率检测头的做法，本文提出端到端检测网络YOLO26-RD，引入可学习对比度增强模块LearnableContrast和边缘引导下采样模块EdgeSPD。在7618张道路巡检图像上的数据分析表明，92%的实例为COCO大目标，推翻了小目标前提。该设计无需NMS，参数轻量，为道路损坏检测提供了高效方案。",
+      "llm_tldr": "针对道路损坏检测中常被当作小目标问题而设计高分辨率检测头的做法，本文提出端到端检测网络YOLO26-RD，引入可学习对比度增强模块LearnableContrast和边缘引导下采样模块EdgeSPD。在7618张道路巡检图像上的数据分析表明，92%的实例为COCO大目标，推翻了小目标前提。该设计无需NMS，参数轻量，为道路损坏检测提供了高效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.16632v1",
+      "source": "arxiv",
+      "title": "DRAFE: Domain-Robust Asymmetric Fusion of Heterogeneous Detection Transformers for Cross-City Fine-Grained Traffic Object Detection",
+      "abstract": "Deep learning-based object detectors are fundamental to intelligent transportation systems, enabling traffic monitoring, vehicle analytics, and infrastructure management. However, achieving both fine-grained vehicle recognition and robust cross-city domain generalization remains challenging. We present the Domain-Robust Asymmetric Fusion Ensemble (DRAFE), which combines independently trained LW-DETR and RF-DETR detectors for cross-city fine-grained traffic object detection. DRAFE employs a two-stage training strategy that first pretrains complementary detectors on diverse public traffic datasets using pseudo-label expansion and human-in-the-loop annotation refinement, producing a curated corpus of 6,049 images and 203,619 annotations, before challenge-compliant fine-tuning on the Project Hafnia Track 6 dataset. At inference, DRAFE applies anchor-conditioned class-consistent matching, reliability-weighted coordinate fusion, agreement-aware confidence recalibration, and complementary hypothesis recovery. On AI City Challenge 2026 Track 6, DRAFE achieves 0.4022 mAP, ranks sixth among 25 participating teams, and improves by 0.0553 mAP over a preliminary ensemble evaluated under identical benchmark conditions.",
+      "authors": [
+        "Divine Yao Agbobli",
+        "Geoffery Eyram Agorku",
+        "Israel Afriyie",
+        "Kwadwo Amankwah-Nkyi",
+        "Marvin Osei-Kuffour",
+        "Richmond Owusu Duah",
+        "Bright Seglah",
+        "Kelvin Asamoah Terkper",
+        "Kwabena Amoako Adjei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-17T14:32:03+00:00",
+      "link": "https://arxiv.org/pdf/2608.16632v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "detection transformers for cross-city traffic object detection",
+      "llm_evidence_cn": "检测Transformer用于跨城市交通目标检测",
+      "llm_evidence": "检测Transformer用于跨城市交通目标检测",
+      "canonical_evidence": "检测Transformer用于跨城市交通目标检测",
+      "llm_tldr_en": "DRAFE combines LW-DETR and RF-DETR detection transformers with asymmetric fusion for fine-grained cross-city traffic object detection, improving domain robustness.",
+      "llm_tldr_cn": "针对跨城市细粒度交通目标检测中域泛化与识别精度难以兼顾的问题，提出DRAFE框架，融合LW-DETR和RF-DETR两个异构检测Transformer，采用两阶段训练与伪标签扩展、人机协同标注。实验表明所提方法在跨城市场景下显著提升细粒度车辆识别性能和域鲁棒性，为智能交通目标检测提供了新思路。",
+      "llm_tldr": "针对跨城市细粒度交通目标检测中域泛化与识别精度难以兼顾的问题，提出DRAFE框架，融合LW-DETR和RF-DETR两个异构检测Transformer，采用两阶段训练与伪标签扩展、人机协同标注。实验表明所提方法在跨城市场景下显著提升细粒度车辆识别性能和域鲁棒性，为智能交通目标检测提供了新思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.16225v1",
+      "source": "arxiv",
+      "title": "PCT-Prompt: A Prompt-Guided Transformer Framework for Dense Prediction Tasks in Point Clouds",
+      "abstract": "Standard Transformers have proven effective in point cloud object classification, but their performance in dense prediction tasks within complex scenes is often hindered by weak prior assumptions. To address this challenge, we propose PCT-Prompt, a novel framework that enhances standard Transformers by introducing a prompt-guided feature branch to improve performance in dense prediction tasks. The standard Transformer branch leverages pre-trained models for global feature extraction from point cloud data, serving as the backbone for processing high-level features. Meanwhile, the prompt-guided feature branch consists of two key components: a fine-grained feature extraction block that captures multi-scale geometric features using geometry-sensitive abstraction layer, along with the PnP-3D layer to integrate local context with global regularization. The second component, the prompt-refined feature learning block generates prompt tokens, which are subsequently refined through cross-attention mechanisms. Additionally, we introduce a prompt drop mechanism that progressively removes prompt information across Transformer layers, balancing local details and global consistency. Experimental results on the ShapeNetPart, S3DIS, and DALES datasets demonstrate that PCT-Prompt significantly improves the adaptability of standard Transformers to dense prediction tasks, achieving strong performance in real-world scenarios.",
+      "authors": [
+        "Dejun Zhang",
+        "Yanzi Bai",
+        "Yiqi Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-17T08:01:33+00:00",
+      "link": "https://arxiv.org/pdf/2608.16225v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "prompt-guided transformer for point cloud dense prediction",
+      "llm_evidence_cn": "面向点云密集预测的提示引导Transformer框架",
+      "llm_evidence": "面向点云密集预测的提示引导Transformer框架",
+      "canonical_evidence": "面向点云密集预测的提示引导Transformer框架",
+      "llm_tldr_en": "PCT-Prompt enhances standard Transformers with a prompt-guided feature branch to improve dense prediction tasks in point clouds.",
+      "llm_tldr_cn": "针对标准Transformer在点云密集预测任务中先验假设弱、性能受限的问题，提出PCT-Prompt框架。该框架在标准Transformer分支基础上增加提示引导特征分支，提取多尺度几何特征以增强密集预测。实验表明其能有效提升点云密集预测性能，为Transformer在点云感知中的应用提供了新思路。",
+      "llm_tldr": "针对标准Transformer在点云密集预测任务中先验假设弱、性能受限的问题，提出PCT-Prompt框架。该框架在标准Transformer分支基础上增加提示引导特征分支，提取多尺度几何特征以增强密集预测。实验表明其能有效提升点云密集预测性能，为Transformer在点云感知中的应用提供了新思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.13141v1",
+      "source": "arxiv",
+      "title": "MergeOver: Post-Training Token Merging for Recursive Vision Transformers",
+      "abstract": "Vision Transformers (ViTs) demonstrate exceptional performance in computer vision but suffer from large parameter counts and quadratic computational complexity, severely limiting their deployment on resource-constrained edge hardware. While recursive weight-sharing reduces parameter counts and token merging mitigates computational and memory bottlenecks, integrating these two paradigms without costly retraining is non-trivial, leaving this intersection largely unexplored. We propose MergeOver, a post-training approach that integrates Token Merging (ToMe) into the recursively weight-shared Sliced Recursive Transformer (SReT). Through an Unmerge tracking stack, constraint-safe merge-rate adjustment, and synchronised token-mass tracking across spatial permutations, MergeOver resolves the spatial and merging constraints of this integration. We further employ a stage-wise single-shot schedule that performs token reduction at the first block of each stage and maintains a fixed sequence length throughout its subsequent recursive iterations. Benchmarked on ImageNet-1K, our selected configuration reduces top-1 accuracy by 1.47 percentage points. On the GPU, it reduces peak activation memory by 37.3% and 38.4% at batch sizes 1 and 16, while throughput decreases by 21.7% at batch size 1 but increases by 21.7% at batch size 16. On a Raspberry Pi 5 (ARM CPU), it reduces latency by 2.4% and 17.6% at batch sizes 1 and 16. These results show that MergeOver can recover a meaningful part of the throughput and memory cost that recursive weight-sharing introduces, without retraining, and provides a baseline for combining token merging with hierarchical recursive transformers.",
+      "authors": [
+        "Junseo Kim",
+        "Uraz Odyurt",
+        "Amirreza Yousefzadeh"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-08-13T12:15:10+00:00",
+      "link": "https://arxiv.org/pdf/2608.13141v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "post-training token merging for vision transformers",
+      "llm_evidence_cn": "视觉Transformer后训练令牌合并",
+      "llm_evidence": "视觉Transformer后训练令牌合并",
+      "canonical_evidence": "视觉Transformer后训练令牌合并",
+      "llm_tldr_en": "MergeOver integrates Token Merging into recursively weight-shared Sliced Recursive Transformer without costly retraining, reducing ViT complexity for edge deployment.",
+      "llm_tldr_cn": "针对递归视觉Transformer参数多、计算复杂度高的问题，提出MergeOver后训练方法。该方法将Token Merging集成到权重共享的Sliced Recursive Transformer中，通过Unmerge跟踪栈和约束安全的合并率调整，实现无需重训练的效率提升。实验表明其降低了模型计算和内存开销，为边缘设备上的Transformer部署提供了可行方案。",
+      "llm_tldr": "针对递归视觉Transformer参数多、计算复杂度高的问题，提出MergeOver后训练方法。该方法将Token Merging集成到权重共享的Sliced Recursive Transformer中，通过Unmerge跟踪栈和约束安全的合并率调整，实现无需重训练的效率提升。实验表明其降低了模型计算和内存开销，为边缘设备上的Transformer部署提供了可行方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

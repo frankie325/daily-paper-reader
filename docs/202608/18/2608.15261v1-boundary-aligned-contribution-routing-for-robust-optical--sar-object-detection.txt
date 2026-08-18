@@ -1,0 +1,550 @@
+Title: Boundary-Aligned Contribution Routing for Robust Optical–SAR Object Detection
+
+URL Source: https://arxiv.org/pdf/2608.15261v1
+
+Published Time: Tue, 18 Aug 2026 00:40:55 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+> 1
+
+# Boundary-Aligned Contribution Routing for Robust Optical–SAR Object Detection 
+
+Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo, Senior Member, IEEE 
+
+Abstract —Optical imagery provides rich appearance cues, whereas synthetic aperture radar (SAR) offers observations that are less sensitive to illumination and weather, making optical–SAR fusion attractive for remote-sensing object detection. However, the presence of multiple modalities does not guarantee beneficial fusion: imperfect spatial, temporal, and semantic cor-respondence can make an otherwise intact stream conditionally harmful and induce negative cross-modal transfer. We handle this issue through a model-specific task-utility perspective and learn task-conditioned contribution routing using detection supervision alone. The proposed fusion-boundary-aligned routing regulates each modality’s contribution before the first learned cross-modal feature-value mixing operation. For architectures with frequent shallow interaction, a Feature Router performs cross-conditioned, group-addressable modulation near the input; for dual-backbone architectures, a Dual-Statistic Semantic Router predicts stream-level contribution weights from modality-specific average and maximum statistics before late semantic fusion. The routers re-quire no explicit utility supervision, quality labels, reconstruction, or distillation. Experiments on M4-SAR and SpaceNet6-OTD cover nominal full inputs, controlled correspondence shifts, miss-ing modalities, and four nonzero modality-corruption scenarios. Across the reported clean-training controls, routing improves full-input mAP 50 by 0.5–5.9 points. Relative to the corresponding modality-dropout baselines, it raises missing-modality mAP 50 by 7.6–41.6 points and reduces the negative-transfer rate by up to 12.7 percentage points. Spearman correlations between the learned routing weights and model-specific leave-one-modality-out utility range from 0.45 to 0.66, supporting the task-utility interpretation of the routing coefficients. 
+
+Index Terms —Multimodal object detection, Optical–SAR fu-sion, task utility, negative transfer, imperfect modality correspon-dence. 
+
+I. I NTRODUCTION 
+
+# MULTIMODAL object detection exploits the comple-mentary sensing characteristics of Optical and Syn-thetic Aperture Radar (SAR) imagery [1]–[3]. Optical imagery provides interpretable texture and appearance cues, whereas active microwave sensing remains informative under adverse illumination and weather but exhibits speckle and weaker 
+
+This work was supported in part by the National Natural Science Foundation of China under Grants 62403348 and 62403350; in part by the Postdoctoral Fellowship Program of CPSF under Grant 2026T190468; in part by the Foundation of Key Laboratory of System Control and Information Processing, Ministry of Education, P.R. China, under Grant Scip20240116; and in part by the Emerging Frontiers Cultivation Program of Tianjin University Interdisci-plinary Center. (Corresponding author: Haoyu Wang.) The authors are with the Tianjin Key Laboratory of Intelligent Un-manned Swarm Technology and System, School of Electrical and In-formation Engineering, Tianjin University, Tianjin 300072, China (e-mail: zhanghaifa@tju.edu.cn; yjwang@tju.edu.cn; why2014@tju.edu.cn; zhengl@tju.edu.cn; zqzuo@tju.edu.cn). H. Wang is also with the Key Labo-ratory of System Control and Information Processing, Ministry of Education of China, Shanghai 200240, China (e-mail: why2014@tju.edu.cn). SAR OPT Detection Network Complementary Full Extreme Low Utility Intact but Conflicting mAP Ours Baseline 
+
+> Ours  Ours
+> Reduced Ours Suppressed Complementary Full Intact but Conflicting
+> Extreme Low Utility
+
+Fig. 1. Motivation for fusion-boundary-aligned contribution routing. A present and visually valid stream can still conflict with the other modality and cause negative transfer. We control source-indexed contributions before the first learned cross-modal feature-value mixing operation. 
+
+visual semantics. These complementary properties motivate Optical–SAR fusion for Earth observation [4], [5]. Complementarity, however, is not equivalent to universal usefulness. Optical–SAR pairs rarely achieve satisfactory spa-tial, temporal, scale, and semantic correspondence due to registration error, resolution mismatch, acquisition-time gaps, heterogeneous sensing mechanisms, and scene change. Conse-quently, a visually intact modality can still introduce conflict-ing features and degrade detection accuracy after fusion. We therefore regard modality usefulness as a task-conditioned and interaction-dependent quantity rather than an intrinsic image-quality score. As illustrated in Fig. 1, this variable-utility spectrum ranges from complementary full inputs, through intact-but-conflicting pairs, to extreme low-utility cases such as missing or visibly corrupted modalities, motivating routing that retains, reduces, or suppresses source contributions before the first learned cross-modal feature-value mixing operation. Modern fusion architectures include early concatenation [6], [7], cross-modal attention [8], [9], and state-space mod-els [10]–[12]. It is noted that most of them emphasize stronger interaction but do not ask whether every source feature should enter the joint transformation for the current sample. When low-utility or conflicting content is mixed without contribution control, it will cause negative cross-modal transfer. This obser-vation raises two questions: how should modality contribution be represented, and at what point should it be controlled before harmful content is mixed into a shared representation? Existing robust multimodal methods primarily treat absence or visible corruption through reconstruction and knowledge distillation. Generative approaches recover missing informa-tion from cross-modal correlations [13]–[15], whereas distil-lation transfers full-modality knowledge to incomplete-input models [16]–[19]. These methods address important boundary arXiv:2608.15261v1 [cs.CV] 15 Aug 2026 2
+
+cases but do not directly model sample-dependent contribution under nominal full inputs. Their auxiliary reconstruction or alignment objectives can also diverge from detection utility. Here we propose fusion-boundary-aligned contribution routing from this model-specific task-utility perspective. The implementation follows fusion topology rather than imposing one module everywhere. Architectures with frequent shal-low interaction use an input Feature Router (FR): modality-specific scalar weights precede concatenation, after which cross-conditioned channel and spatial gates modulate the still-addressable Optical/SAR groups. Dual-backbone architectures use a Dual-Statistic Semantic Router (SR), which maps av-erage and maximum statistics of each separated high-level stream to a contribution weight before late fusion. FR and SR are mutually exclusive realizations of the same placement principle. The detection objective learns the weights without quality labels, reconstruction, distillation, or explicit utility supervision. And the leave-one-modality-out (LOMO) utility remains an analytical diagnostic rather than the router’s opti-mization target; modality dropout only broadens the observed range of input states. The proposed routing is therefore not restricted to unavail-able or visibly corrupted inputs. Under nominal full-modality observations, imperfect correspondence can make one stream conditionally harmful. Boundary-aligned routing mitigates this negative transfer and can improve full-input detection beyond an ordinary clean-trained fusion baseline. The main contributions of this work are summarized as follows:  
+
+> •
+
+We propose a model-specific task-utility formulation for multimodal fusion via detector-level counterfactual anal-ysis instead of modality-quality assessment, and employ LOMO utility as an analytical diagnostic of sample-dependent contribution rather than an optimization target.  
+
+> •
+
+We identify the first learned cross-modal feature-value mixing boundary and propose topology-aligned FR/SR routing that controls contribution while source-indexed feature-value paths remain explicitly addressable.  
+
+> •
+
+We achieve state-of-the-art performance under missing modalities among the compared methods on M4-SAR and SpaceNet6-OTD, with a maximum mAP 50 improvement of 41.6 points. Controlled shifts, LOMO-utility correla-tions, and negative-transfer analysis further validate full-input enhancement, boundary placement, and the empir-ical utility interpretation. II. R ELATED WORK 
+
+A. Multimodal Remote Sensing Perception 
+
+The fusion of optical and SAR imagery has been ex-tensively investigated for robust remote sensing perception, owing to the complementary sensing characteristics of these modalities [20]. Optical imagery provides rich appearance and texture cues, whereas SAR is more resilient to illumination and weather variations but typically contains weaker semantic details and is affected by speckle noise. Such complementarity has supported optical-enhanced object detection and heteroge-neous time-series change monitoring [21]–[23]. At the image level, complementary-feature decomposi-tion and visual saliency have been utilized to combine op-tical and SAR observations [1], [24]. Related hyperspectral– multispectral fusion methods employ deep spectral–spatial constraints or self-supervised unrolling to reconstruct high-resolution products [20], [25], [26]. Existing Optical–SAR fusion schemes for perception can generally be categorized into early-fusion and late-fusion paradigms [20], [27]. Conventional approaches primarily rely on early feature concatenation [7] or late decision-level fu-sion [28], [29] to integrate cross-modal information. More recent deep learning-based developments have introduced cross-modal attention, dynamic interaction, frequency-domain decoupling, state space modeling, and bidirectional distilla-tion to enhance heterogeneous feature interaction and align-ment [10]–[12], [30]–[33]. Dedicated affine and deformable registration networks can reduce geometric discrepancies be-fore fusion [34], but do not directly control sample-wise task contribution. Most fusion results depend on the premise that additional modality content is beneficial whenever it is available [27], [35]. This assumption may fail in the absence of visible degra-dation: imperfect correspondence may render intact source features low-utility or conflicting for the joint detector. Missing inputs, clouds, and speckle constitute severe manifestations of the broader variable-utility problem [5], [19], [36]. 
+
+B. Cross-Modal Conflict and Reliability-Aware Fusion 
+
+Prior work has recognized that multimodal interaction can be unreliable. Conflict-aware multispectral detection explic-itly addresses disagreement between visible and infrared fea-tures [37], while channel-selection and spatial-attention fusion adaptively govern which features are combined [38], [39]. A related line estimates predictive confidence or view uncer-tainty: confidence-aware fusion and CML regulate uncertain predictions [40], [41], while trusted multi-view and dual-level evidential fusion perform uncertainty-aware integration [42], [43]. These findings indicate that, rather than fusing modal-ities with uniform weighting, fusion control variables should capture feature attention, predictive confidence, or evidential uncertainty. Although these treatments improve conflict awareness, their learned variables are usually tied to attention, confidence, or uncertainty [40], [42], [43]. And they do not directly quantify the counterfactual contribution of each modality to a fixed detector, nor do they examine whether the location of a gate relative to the first cross-modal feature-value mixing operation affects its ability to prevent negative transfer. 
+
+C. Missing Modalities and Robust Perception 
+
+Robust multimodal perception with missing or corrupted modalities has received increasing attention because sensor failure and severe local degradation reduce downstream ac-curacy [19], [35], [36], [44]–[48]. Existing approaches are broadly divided into reconstruction-based and distillation-based streams [35]. 3
+
+Reconstruction-based methods recover missing views or features from cross-modal dependencies [19], [49]–[51], while distillation-based ones transfer full-modality knowledge to a student operating under incomplete inputs [48], [52]–[54]. These compensation strategies will incur overhead and rely on proxy objectives, and their primary focus remains complete modality absence rather than sample-dependent contribution under nominal full inputs [35]. Recent robustness-oriented detectors increasingly employ architecture-specific alignment, Transformer, quality-token, dynamic-interaction, knowledge-distillation, or expert-routing components [30]–[32], [46], [55]–[57]. Although effective, these designs may introduce substantial parameter or compu-tation overhead, particularly in Transformer- and multi-expert variants, and often require nontrivial redesign for different fusion topologies. Moreover, their learned quality or routing variables are not consistently related to detector-specific coun-terfactual utility, which limits their task-level interpretability. 
+
+D. Feature Gating and Routing Mechanisms 
+
+Feature gating and routing mechanisms, including Squeeze-and-Excitation (SE) networks [58] and Mixture-of-Experts architectures [59], dynamically modulate feature propaga-tion [60]. Multimodal variants often interpret gates through availability, confidence, or input quality [35], [43]. Their placement is commonly selected as an architectural choice rather than analyzed relative to the point at which modality-indexed feature values first become irreversibly mixed. However, several existing gating modules rely primarily on global average pooling [58], [60]. A single statistic would be insufficient when strong local responses arise from ei-ther targets or degradation artifacts. Complementary average and maximum descriptors provide a richer input for task-conditioned routing, although they do not by themselves constitute calibrated reliability or uncertainty estimates [42], [43]. 
+
+E. Summary 
+
+Existing studies provide strong mechanisms for heteroge-neous feature interaction, conflict awareness, missing-modality compensation, and dynamic gating [20], [35], [60]. Never-theless, three issues are not fully explored: sample-specific contribution to the detector is rarely quantified counterfactu-ally; nominal full inputs and missing or corrupted inputs are usually treated as separate robustness regimes; and routing position is seldom defined relative to the first learned cross-modal feature-value mixing operation. We address these issues by using model-specific LOMO utility only as an analytical diagnostic, defining a feature-value mixing boundary, and deploying topology-aligned FR or SR modules before that boundary. The routers are optimized by detection supervision without utility, quality, reconstruction, or distillation labels. III. M ETHODOLOGY 
+
+A. Task Utility and Feature-Value Mixing Boundary 
+
+Let (xo, x s, y ) be an Optical image, a SAR image, and the detection target, respectively. For subsequent analysis, we quantify the counterfactual contribution of modality m ∈{o, s } via model-specific leave-one-modality-out (LOMO) task utility, where o and s index the Optical and SAR streams. Before cross-modal interaction, these two streams are represented as 
+
+hlo = Elo(xo), hls = Els(xs), (1) where Elm is the modality-specific encoder mapping at layer 
+
+l, and hlm is its output feature representation. The LOMO task utility is the loss reduction obtained by adding modality m to the complementary stream: 
+
+um = Ldet (D(h−m), y ) − L det (D(ho, h s), y ) , (2) where D is the frozen detector, Ldet is its detection loss, and 
+
+h−m replaces stream m with the zero-valued missing-stream representation in our availability tests. Both terms adopt the same checkpoint and target y, without retraining or changing any model parameter. Thus, um is a counterfactual property of a particular detector under this intervention, not an intrinsic property of modality m. A positive um stands for useful contribution, um ≈ 0 represents redundancy, and um < 0
+
+means that adding modality m increases the detection loss and causes negative transfer. Across a dataset, we define the 
+
+negative-transfer rate (NTR) as the frequency at which full fusion underperforms either single-stream counterfactual from the same frozen detector: 
+
+NTR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+1
+
+h
+
+Lf ull i > min  Lopt i , Lsar i
+
+i
+
+, (3) where N is the number of evaluated samples, 1[·] is the indicator function, and Lf ull i , Lopt i , and Lsar i are the detection losses of the full, Optical-only, and SAR-only inputs for sample i, respectively. LOMO utility is an analytical diag-nostic rather than the optimization target of the router. These counterfactual quantities are used exclusively for analysis. The router receives no utility label, and detection supervision alone justifies interpreting its output solely as a task-conditioned contribution weight. Whether that weight tracks LOMO utility is an empirical question evaluated later by rank correlation; it is not guaranteed by the optimization objective. The routing coefficient am does not estimate intrinsic image quality, sen-sor reliability, or uncertainty. A visually intact stream may nevertheless be downweighted when imperfect registration, temporal inconsistency, or heterogeneous sensing renders its contribution detrimental to the complete detector. Before defining the boundary, we distinguish control-path interaction from cross-modal feature-value mixing. A learned gate may be cross-conditioned on both streams, 
+
+˜hm = am(ho, h s) ⊙ hm, m ∈ { o, s }. (4) Here, am(ho, h s) is the routing coefficient for stream m,
+
+⊙ denotes the Hadamard product, and ˜hm is the routed feature. We call Eq. (4) addressability-preserving modulation :although am may read both modalities, every output remains a multiplicative transformation of its original modality-indexed feature. Cross-modal interaction is therefore allowed in the control path. However, no additive or value-projection term 4
+
+injects SAR feature values into the Optical-indexed value path, or vice versa. Our boundary refers specifically to the first operation that mixes feature values across source-indexed streams, rather than the first operation whose output depends on both modal-ities. We define cross-modal feature-value mixing as a learned transformation that integrates feature values across modality groups, whether by additive combination or other fusion mechanisms (e.g., Wo←shs, Ws←oho, a joint convolution, or cross-modal attention). The first learned cross-modal feature-value mixing boundary b is the earliest such mapping, after which the output no longer admits a fixed channel partition attributable to one input modality: 
+
+zb = Φ b(hb−1 
+
+> o
+
+, h b−1 
+
+> s
+
+), (5) where Φb is the first learned cross-modal feature-value mixing operator and zb represents its output. Note that simple concate-nation is not a feature-value mixing boundary because fixed channel indexing may recover the two groups. A boundary-aligned router instead acts before formula (5): 
+
+˜hb−1 
+
+> m
+
+= Rm(hb−1 
+
+> o
+
+, h b−1 
+
+> s
+
+; θr ) ⊙ hb−1 
+
+> m
+
+,zb = Φ b(˜hb−1 
+
+> o
+
+, ˜hb−1 
+
+> s
+
+). (6) Here, Rm(·; θr ) is the router for modality m, and θr denotes its trainable parameters. SR follows this form directly. FR first applies stream-wise scalar routing, concatenates the weighted features, and then performs addressability-preserving chan-nel/spatial modulation. Its gates may read the full concatenated tensor, but their outputs only scale the original indexed chan-nels; the downstream joint transformation is the first feature-value mixing layer. Training samples a modality-availability state q from 
+
+Q = {qf ull , q −o, q −s},P (qf ull ) = 1 − 2p, P (q−o) = P (q−s) = p, 
+
+(7) where Q is the set of allowed availability states, qf ull retains both streams, q−o masks Optical, q−s masks SAR, and p = 0 .2
+
+is the single-stream masking probability. Thus, full input, Missing Optical, and Missing SAR occur with probabilities 
+
+0.6, 0.2, and 0.2, respectively; masking both modalities to-gether is excluded. The training objective is 
+
+min  
+
+> θ
+
+E(xo,x s,y ), q ∼Q 
+
+Ldet 
+
+ Dθ (xqo, x qs), y  , (8) where θ denotes all trainable detector and router parameters, 
+
+xqm is modality m after applying availability state q, and 
+
+E denotes expectation over training samples and availability states. 
+
+B. Overall Architecture 
+
+As illustrated in Fig. 2, the first learned feature-value mixing boundary depends on network topology. In encoder–decoder architectures, the downstream stem learns from the group-addressable FR output, while in dual-backbone frameworks, modality separation persists until semantic fusion and SR is placed immediately before that operation. Actually, FR and SR are alternative topology-matched realizations rather than sequential components. Specifically, given an input multimodal tensor comprising optical and SAR data, the pipeline operates as follows: 
+
+Step 1) Input-boundary routing: FR computes wopt and 
+
+wsar before concatenation, then implements group-addressable channel selection ( vc) and spatial filtering ( Gvoxel ). The gates may be cross-conditioned, but their outputs remain multiplica-tively tied to the indexed source channels before downstream feature-value mixing. 
+
+Step 2) Late-boundary routing: SR aggregates average-pooled ( Fap ) and max-pooled ( Fmp ) responses from each separated semantic stream and generates a task-conditioned contribution weight α before learned cross-modal fusion. 
+
+Step 3) Task-driven learning: The training-state distribution in (7) exposes the detector to a wider utility range. The downstream detection loss learns routing weights without quality, reliability, or LOMO-utility labels. 
+
+C. Feature Routing Stem 
+
+To control low-utility modality effects near the input, we introduce the FR stem as in Fig. 3. FR is not entirely pre-concatenation: its scalar weights are modality-specific, whereas its channel and spatial gates operate on Fcat . Because these gates rescale indexed feature values rather than inject values across source paths, we regard FR as boundary-aligned, group-addressable routing rather than purely pre-fusion rout-ing. Let X ∈ RB×6×H×W be the input multimodal tensor, where B is the batch size, and H and W are the spatial dimen-sions. The FR stem first splits X along the channel dimension into two modality-specific components: Xopt ∈ RB×3×H×W
+
+and Xsar ∈ RB×3×H×W .
+
+1) Independent Scalar Weighting: Each modality is pro-cessed by an independent scalar branch for preliminary con-tribution modulation. For each modality m ∈ { opt, sar }, the initial feature extraction is formulated as: 
+
+Fm = LReLU (IN (Conv 3×3(Xm))) , (9) where Conv 3×3 is a 3 × 3 convolution, and IN and LReLU are Instance Normalization and Leaky ReLU, respectively. A task-conditioned scalar weight wm is generated via an SE operation [58]: 
+
+wm = σ(Wm, 2δ(Wm, 1GAP (Fm))) , (10) where GAP (·) is global average pooling, δ is the ReLU activation, and σ is the sigmoid function; Wm, 1 and Wm, 2 are learnable weights of the fully connected layers. The weighted modality feature is then ˆFm = wm · Fm.
+
+2) Hierarchical Gating Refinement: The weighted features are concatenated to form a fused representation Fcat =[ ˆFopt , ˆFsar ] ∈ RB×C×H/ 2×W/ 2, where C is the concatenated channel count. To further refine channel-wise and spatial dependencies, a two-stage gating mechanism is proposed: 1) Channel Importance Selection: A channel gate vc recal-ibrates channel responses: 
+
+Fc = Fcat ⊗ vc. (11) 5(a) Feature Router (FR) for Frequently Fused Architectures 
+
+> Optical
+> SAR
+> Detection Head
+> Feature flow Skip connection Optical SAR
+> (b) Semantic Router (SR) for Dual-Backbone Late Fusion
+> Detection Head Optical Backbone SAR Backbone
+> Feature flow
+> SAR features SAR features
+> Optical features Optical features
+> SAR features
+> Optical features Feature Router Feature Router
+> Semantic Router Semantic Router Original Fusion Module
+
+Fig. 2. Topology-aligned realizations of fusion-boundary contribution routing. FR modulates explicitly addressable input channel groups before the backbone mixes their feature values; SR learns a task-conditioned stream contribution weight from separated semantic features before late fusion. The modules are mutually exclusive choices. Feature Router 
+
+> Optical Images SAR Images (Broken)
+> Modality Routing
+> Pooling Conv opt
+
+Fˆopt Fopt wopt F
+
+> MLP Pooling sar
+
+F0sar w sar F
+
+> MLP Conv
+
+ˆsar F
+
+> Pooling Channel Selection cat
+
+FcvcFvoxel G Spatial Gating out F
+
+> U-Net
+> cc
+> MLP Dilated Conv
+
+Fig. 3. Detailed architecture of the FR stem. Modality-specific scalar weighting precedes concatenation; cross-conditioned channel and spatial gates then perform addressability-preserving modulation before downstream feature-value mixing. 
+
+The channel gate is computed as vc = σ(MLP (GAP (Fcat ))) ,where MLP is a multi-layer perceptron and ⊗ denotes broad-cast element-wise multiplication. 2) Spatial Gating: To attenuate localized low-utility re-sponses (e.g., local cloud occlusion), a spatial gate Gvoxel in terms of dilated convolutions is introduced: 
+
+Fout = Fc ⊗ Gvoxel , (12) where Gvoxel = σ(Conv 1×1(D-Conv 3×3(Conv 1×1(Fc)))) is the spatial gate and D-Conv 3×3 is a dilated 3 × 3 convolution. The cumulative FR variants are evaluated in the component ablation. 
+
+D. Dual-Statistic Semantic Routing 
+
+For a dual-backbone detector, modality-separated features remain available through the deep stages. We insert SR after the backbones but before their first learned semantic feature-value mixing operation, as shown in Fig. 4. SR modulates task contribution; it does not explicitly estimate sensor reliability or geometric alignment. 
+
+1) Statistical Feature Aggregation: The SR module oper-ates on the input backbone feature map Fin ∈ RB×C×H×W .Unlike conventional attention mechanisms that rely exclu-sively on average pooling, the SR aggregates complementary global statistics by concatenating average-pooled and max-6Fusion Module Backbone Features 
+
+> Global Max Pooling Global Avg. Pooling
+
+mp Fap F
+
+> Semantic Router out
+
+F
+
+> MLP
+> ccin
+
+F 
+
+> Fig. 4. Architecture of SR. Average and maximum descriptors are mapped to a task-conditioned routing coefficient; the coefficient is not interpreted as calibrated confidence or uncertainty.
+
+pooled responses: 
+
+Fap = AvgPool (Fin ), Fmp = MaxPool (Fin ), (13) where Fap , F mp ∈ RB×C are the global average and max-imum responses across the spatial dimensions, respectively. The average-pooled response reflects the overall activation level, whereas the max-pooled response captures the strongest local activation. 
+
+2) Task-Conditioned Contribution Gating: The concate-nated global statistics [Fap , F mp ] are fed into a lightweight MLP to generate a task-conditioned routing coefficient α:
+
+α = σ(W2 · δ(W1 · [Fap , F mp ] + b1) + b2), (14) where W1 and W2 are learnable weight matrices, and b1
+
+and b2 are their corresponding biases. A reduction ratio is selected for computational efficiency. To avoid suppressing feature transmission during early training, the output bias 
+
+b2 is initialized to 3.0, yielding an initial gating value of approximately 0.95 . The final gated feature is Fout = Fin · α,where Fout denotes the routed semantic feature. This coefficient multiplicatively governs feature transmis-sion according to detection supervision. Without calibration or uncertainty labels, α is interpreted only as a routing weight rather than a probability of reliability [42]. 
+
+3) Explicit Ablation Variants: Pooling produces a descrip-tor rather than a routing weight. Therefore, every SR ablation maps its descriptor to a scalar gate before feature modulation. Complementing the FR variants, let wap , wmp , and wam be learnable linear projections and bap , bmp , and bam be their biases. The four SR variants are defined as 
+
+αlin  
+
+> ap
+
+= σ(w⊤
+
+> ap
+
+Fap + bap ), (15a) 
+
+αlin  
+
+> mp
+
+= σ(w⊤
+
+> mp
+
+Fmp + bmp ), (15b) 
+
+αlin  
+
+> am
+
+= σ(w⊤
+
+> am
+
+[Fap , F mp ] + bam ), (15c) 
+
+αmlp  
+
+> am
+
+= σ(W2δ(W1[Fap , F mp ] + b1) + b2), (15d) where the last expression is the full SR gate in (14). For any variant q ∈ { ap -lin , mp -lin , am -lin , am -mlp }, the routed output is 
+
+F qout = αq Fin . (16) Thus, the first two variants test the descriptor statistic while keeping a linear scalar mapper; the third tests descriptor complementarity with the same linear mapper; and the fourth tests the additional nonlinear capacity of the two-layer MLP. IV. E XPERIMENTAL RESULTS AND ANALYSIS 
+
+A. Experimental Setup 1) Datasets and Evaluation Metrics: To assess the effec-tiveness and robustness of the proposed framework, experi-ments are conducted on two representative multimodal remote sensing datasets:  
+
+> •
+
+M4-SAR: A large-scale benchmark for Optical–SAR fusion object detection. It comprises 112,174 instance-level aligned image pairs and approximately one million labeled instances with arbitrary orientations across six categories [61].  
+
+> •
+
+SpaceNet6-OTD: A specialized dataset for oriented oil tank detection, constructed from paired high-resolution SAR and optical imagery [21], [62]. It features densely arranged objects and complex backgrounds, offering a challenging benchmark for assessing cross-modal robust-ness and generalization. The primary evaluation metric is mean Average Precision (mAP) for oriented bounding box (OBB) detection. We report mAP 50 and mAP 50:95 under three test settings, namely Full Modality, Masked Optical (SAR only), and Masked SAR (Optical only), to evaluate robustness under different modality availability conditions. 
+
+2) Implementation Details: We evaluate one router per detector. Simple U-Net and nnU-Net [63], [64] adopt FR since their first cross-modal interaction occurs in the shallow encoder. CSSA, CLANet, and CFT [8], [37], [38] instead use SR because their dual backbones preserve modality-separated semantic streams until late fusion. FR and SR are not combined in one model. All models are implemented in PyTorch and trained on NVIDIA RTX 4090 GPUs. Tables I and II separate architec-ture and training effects with four conditions: Baseline/Clean, Router/Clean, Baseline/MD, and Router/MD. The Clean pair isolates router architecture under nominal full-input training; the Router/Clean versus Router/MD difference measures inter-action with missing-modality exposure. MD samples the three states in formula (7). Unless otherwise specified, p = 0 .2, giv-ing probabilities 0.6/0.2/0.2 for full input, Missing Optical, and Missing SAR; the two modalities are not masked together. Optimization is performed with AdamW at an initial learning rate of 10 −3 and with cosine annealing throughout training; all inputs are resized to 512 × 512 pixels. Within each controlled comparison, the schedule, augmentation, and modality-mask sampler are identical. 
+
+3) Budget-Matched CSSA Adaptations of Existing Meth-ods: For the resource-matched comparison, CSSA serves as the common detector. Every external baseline is a detection adaptation of one existing method, not a direct reproduction of its original task-specific architecture or schedule. SE and CBAM are inserted immediately before the original CSSA fusion module and use no auxiliary loss. For all reported performance entries, we conduct three independent runs and present the mean ± standard deviation. The remaining adap-tation protocols are defined as follows: 
+
+CML-style CSSA [41] is our detection-specific adaptation of the original classification regularizer. The detector’s ground-7
+
+truth assigner first constructs a positive index set P from the full-modality forward pass; the same indices and target classes are then reused for the missing-modality pass so that confidence is compared at identical locations. We identify the native OBB detection score as si = pobj i pi(yi) when the head has a separate objectness branch, and as si = pi(yi) otherwise. The positive-set confidence is C(x) = |P| −1 P 
+
+> i∈P
+
+si(x). For a full input xS and a sampled subset xT with T ⊂ S, the objective is 
+
+LCML = max(0 , C (xT ) − C(xS )) ,
+
+L = LS 
+
+> det
+
++ LT 
+
+> det
+
++ λCML LCML . (17) where LS 
+
+> det
+
+and LT 
+
+> det
+
+are the detection losses for the full and sampled-subset inputs, respectively, and λCML weights the CML regularizer. We select λCML from the pre-declared grid 
+
+{1, 5, 10 , 20 } on the validation split and train for 300 epochs. Note that this fixed-location proposal formulation is specific to our OBB adaptation and is not the original CML definition. 
+
+ShaSpec-style CSSA [44] decomposes the last modality-indexed CSSA feature Fm ∈ RC×H×W into a shared rep-resentation rm = Esha (Fm) and a specific representation 
+
+sm = Espec  
+
+> m
+
+(Fm). The weights of Esha are fully tied between Optical and SAR; the two specific encoders are independent. Each branch outputs C/ 2 channels at this single pre-mixing scale, and P ([ rm, s m]) ∈ RC×H×W . Following the residual form reported in the source method, ˆFm = P ([ rm, s m]) + Fm
+
+is passed to the original CSSA fusion module. Its objective is 
+
+L = Ldet + 0 .1LDAO + 0 .02 LDCO , (18) where DAO uses the source method’s L1 distribution-alignment option, and DCO is a modality-domain classification loss that trains a classifier to identify the source modality. Both auxiliary losses are applied only at the last pre-mixing scale, and all added encoders, projections, and classifiers are included in the parameter and FLOP counts. Training follows the common 300-epoch budget. 
+
+SimMLM-style CSSA [65] adopts DMoME weighting with MoFe ranking for the two CSSA streams. A gating network produces wm = exp( gm)/ P 
+
+> j
+
+exp( gj ), with gm = −∞ when modality m is absent; the weighted features ˜Fm = wmFm
+
+retain the original CSSA fusion module. Given a more-modal input x+ and fewer-modal input x− ⊂ x+, the corresponding MoFe objective is 
+
+LMoFe = max(0 , Ldet (x+) − L det (x−)) ,
+
+L = Ldet (x+) + Ldet (x−) + 0 .1LMoFe . (19) To match the 300-epoch budget, two experts are initialized independently for 50 epochs and cooperatively trained with the gate for 250 epochs. This two-stage allocation is selected under our common optimization budget rather than borrowed from a universal SimMLM schedule. 
+
+M3AE-style CSSA (budget-matched) [52] adds a lightweight reconstruction decoder to the CSSA bottleneck during pre-training and removes it at inference. The 2-D patch-mask ratio is chosen from r ∈ {0.5, 0.75 , 0.875 } on the M4-SAR validation split instead of transferring the BraTS-specific value without validation. The first-stage objective is Lrec =
+
+∥ ˆX − X∥22. Fine-tuning samples two availability patterns of the same pair and performs latent self-distillation, 
+
+L = Ldet (x0) + Ldet (x1) + 0 .1∥f (x0) − f (x1)∥22. (20) We allocate 50 epochs to reconstruction pretraining and 250 epochs to detection fine-tuning, preserving the shared opti-mization budget. This is a resource-matched adaptation rather than a reproduction of the original M3AE schedule, which uses 600 pretraining and 300 fine-tuning epochs on 3-D BraTS data. 
+
+Flex-MoE-style CSSA (budget-matched) [66] retains the original missing-modality bank, generalized router, specialized router, sparse MoE layer, and combination-specific expert assignment. For the two-modality setting, the valid states are full, Optical-only, and SAR-only, but the expert count and active experts are selected from the reported search spaces 
+
+|E| ∈ { 16 , 32 } and k ∈ { 2, 3, 4} on the validation split rather than collapsed to three experts. A conditional bank supplies 
+
+Fm = BS,m when m / ∈ S. In this case, 
+
+L = Ldet + 0 .01( Lce + Lbalance ), (21) with the generalized and specialized routing phases imple-mented within the common 300-epoch optimization budget. Because the source method was developed for medical clas-sification, this remains a CSSA detection adaptation; its full parameter, FLOP, active-expert, GPU-hour, and auxiliary-loss costs are reported rather than hidden by simplifying the expert bank. 
+
+B. Quantitative Results 
+
+Quantitative comparisons on M4-SAR and SpaceNet6-OTD are reported in Tables I and II. We first evaluate complete modality absence using Full Modality, Masked Optical (SAR only), and Masked SAR (Optical only). Controlled nonzero modality corruptions are evaluated separately in Section IV-G. Table I first lists the controlled results on M4-SAR. 
+
+1) Performance on M4-SAR: Representative multimodal detectors such as ICAFusion and MMIDet achieve competitive performance under full-modality inputs, but their accuracy drops substantially when one modality is absent. For example, MMIDet’s mAP 50 decreases from 87.4% to 15.5% under the SAR-only setting. With the controlled MD protocol, FR improves Simple U-Net from 43.7% to 63.2% under full input, from 8.4% to 26.0% under Masked Optical, and from 27.6% to 45.6% under Masked SAR. SR raises CSSA from 62.7% to 83.7%, from 18.7% to 26.3%, and from 38.2% to 55.7%, respectively. The nnU-Net, CLANet, and CFT blocks follow the same comparison structure and exhibit consistent gains under both missing directions. Table II next gives the corresponding comparison on SpaceNet6-OTD. 
+
+2) Performance on SpaceNet6-OTD: On SpaceNet6-OTD, the matched-training results show the same trend: relative to MD-only training, FR enhances Masked-Optical mAP 50 from 25.4% to 61.6% for Simple U-Net and from 30.8% to 72.4% for nnU-Net. SR raises CSSA from 35.6% to 72.8%, CLANet 8
+
+TABLE I RESULTS ON M4-SAR UNDER A 2 × 2 ARCHITECTURE /TRAINING CONTROL . “C LEAN ” REPRESENTS COMPLETE PAIRS ONLY ; “MD” FOLLOWS EQ. (7). REPRESENTATIVE CLEAN +R OUTER ROWS ISOLATE ARCHITECTURAL FULL -INPUT GAINS , WHEREAS MD+R OUTER VERSUS CLEAN +R OUTER ISOLATES THE INTERACTION WITH MISSING -MODALITY TRAINING . G REEN PARENTHESIZED VALUES DENOTE ABSOLUTE M AP GAINS OVER THE CORRESPONDING BASELINE UNDER THE SAME TRAINING PROTOCOL .                                                                                                                                                                                                 
+
+> Method Train Full Modality Masked Optical Masked SAR Params (M) ↓
+> mAP 50 ↑mAP 50:95 ↑mAP 50 ↑mAP 50:95 ↑mAP 50 ↑mAP 50:95 ↑
+> SuperYOLO [23] Clean 72.4 46.9 8.9 4.1 31.8 19.6 4.85 MCHE [40] Clean 81.2 52.8 12.8 7.5 34.9 22.8 145.81 ICAFusion [9] Clean 87.3 58.8 15.0 7.4 40.3 24.4 28.97 MMIDet [39] Clean 87.4 57.8 15.5 7.6 34.6 24.0 53.70 Simple U-Net [63] Clean 58.2 31.1 0.2 0.0 22.9 12.8 2.42 Simple U-Net + FR Clean 64.1( ↑5.9 )35.2( ↑4.1 )5.8( ↑5.6 )2.1( ↑2.1 )30.7( ↑7.8 )16.9( ↑4.1 )2.44(+ 0.02 )Simple U-Net MD 43.7 23.4 8.4 3.1 27.6 14.9 2.42 Simple U-Net + FR MD 63.2( ↑19.5 )34.7( ↑11.3 )26.0( ↑17.6 )10.4( ↑7.3 )45.6( ↑18.0 )24.4( ↑9.5 )2.44(+ 0.02 )nnU-Net [64] Clean 63.2 34.7 3.9 0.0 27.4 14.5 12.34 nnU-Net MD 48.8 26.1 11.6 4.8 32.7 18.3 12.34 nnU-Net + FR MD 77.6( ↑28.8 )50.3( ↑24.2 )33.7( ↑22.1 )17.1( ↑12.3 )52.6( ↑19.9 )31.5( ↑13.2 )12.36(+ 0.02 )CSSA [38] Clean 83.6 54.1 13.1 8.6 28.8 20.2 13.51 CSSA + SR Clean 85.4( ↑1.8 )55.8( ↑1.7 )15.6( ↑2.5 )9.4( ↑0.8 )34.7( ↑5.9 )22.9( ↑2.7 )14.03(+ 0.52 )CSSA MD 62.7 40.6 18.7 10.4 38.2 22.6 13.51 CSSA + SR MD 83.7( ↑21.0 )54.7( ↑14.1 )26.3( ↑7.6 )14.6( ↑4.2 )55.7( ↑17.5 )32.1( ↑9.5 )14.03(+ 0.52 )CLANet [37] Clean 68.3 51.6 11.7 6.3 30.6 21.9 48.21 CLANet MD 55.4 40.8 17.1 9.5 37.9 23.8 48.21 CLANet + SR MD 79.8( ↑24.4 )53.6( ↑12.8 )25.9( ↑8.8 )15.8( ↑6.3 )52.7( ↑14.8 )31.2( ↑7.4 )48.73(+ 0.52 )CFT [8] Clean 87.6 59.0 17.9 10.4 35.3 22.7 53.76 CFT + SR Clean 89.1( ↑1.5 )60.3( ↑1.3 )20.6( ↑2.7 )12.1( ↑1.7 )39.4( ↑4.1 )25.1( ↑2.4 )54.28(+ 0.52 )CFT MD 74.6 48.3 22.4 12.7 42.8 26.5 53.76 CFT + SR MD 87.8( ↑13.2 )59.2( ↑10.9 )31.7( ↑9.3 )20.0( ↑7.3 )57.3( ↑14.5 )36.2( ↑9.7 )54.28(+ 0.52 )
+
+from 33.8% to 71.0%, and CFT from 41.5% to 79.2%. Full-input changes are somewhat smaller on this dataset, consistent with performance saturation near 97%. 
+
+3) Parameter Efficiency: Despite the substantial robustness improvements, the proposed modules incur only marginal parameter overhead. As shown in the “Params” column, FR adds only 0.02M parameters to the U-Net-based baselines. Similarly, SR increases the parameter count of dual-backbone models (e.g., CSSA and CFT) by about 0.52M, which remains small relative to the overall model size. These results demon-strate that the proposed framework achieves a favorable trade-off between robustness and model complexity. 
+
+4) Full-Input Fusion Enhancement: The Clean+Router controls test whether routing helps without missing-modality exposure. On M4-SAR, FR increases the full-input mAP 50 
+
+of Simple U-Net from 58.2% to 64.1%; SR raises CSSA from 83.6% to 85.4% and CFT from 87.6% to 89.1%. The corresponding SpaceNet6-OTD gains are smaller because the baselines are already near saturation, but remain positive. These improvements cannot be attributed to modality dropout. They support the hypothesis that nominal full pairs con-tain sample-dependent conflicts that can be attenuated before feature-value mixing. MD then provides a different benefit: comparing Router/MD with Router/Clean shows large im-provements under missing inputs, with a modest full-input trade-off. 
+
+C. Ablation Study 
+
+To isolate architectural contributions from missing-modality exposure, every variant in Table III is trained with the same modality-dropout probability ( p = 0 .2), optimizer, schedule, modality-mask sampler, and augmentation pipeline. Thus, each block changes only the indicated routing component. 
+
+1) Effectiveness of the FR Stem: Table III(a) presents the stepwise FR experiment under a shared training protocol. Under Masked Optical, the MD-only baseline obtains 8.4% mAP 50 ; scalar routing, channel selection, and spatial gat-ing raise it to 13.7%, 19.7%, and 26.0%, respectively. The monotonic endpoint-consistent trend indicates complementary contributions from the three stages. 
+
+2) Effectiveness of SR: Table III(b) applies the same control to CSSA using the executable gates in Eqs. (15)–(16). Under Masked SAR, average-only and maximum-only linear gates attain 43.5% and 46.1% mAP 50 , the dual-statistic linear gate reaches 50.7%, and the two-layer MLP achieves 55.7%. This ordering separates descriptor complementarity from nonlinear mapping capacity. 
+
+3) Controlled Utility-Exposure Comparison: Table IV fixes the schedule, optimizer, augmentation, masking sampler, and modality-dropout probability across all MD-trained variants. SE and CBAM remain close to the MD-only baseline, while a modality-level scalar gate yields a larger gain but still under-performs Full FR, which achieves the strongest result in all three input conditions. The shared curriculum prevents unequal low-utility exposure from explaining these differences. 
+
+4) Budget-Matched Adaptations of Existing Methods: Ta-ble V compares CSSA detection adaptations inspired by CML, ShaSpec, M3AE, Flex-MoE, and SimMLM. The original schedules and task-specific architectures are not involved in these direct reproductions: the M3AE-style row uses a re-duced 50+250 budget, the SimMLM-style allocation follows the common budget, and the Flex-MoE-style row retains the bank/router/sparse-MoE components while searching the re-9
+
+TABLE II RESULTS ON SPACE NET 6-OTD WITH THE SAME ARCHITECTURE /TRAINING CONTROLS AS TABLE I. C LEAN +R OUTER CONTROLS ARE REPORTED FOR 
+
+SIMPLE U-N ET , CSSA, AND CFT. G REEN PARENTHESIZED VALUES DENOTE ABSOLUTE M AP GAINS OVER THE CORRESPONDING BASELINE UNDER THE SAME TRAINING PROTOCOL .
+
+Method Train Full Modality Masked Optical Masked SAR Params (M) ↓
+
+mAP 50 ↑ mAP 50:95 ↑ mAP 50 ↑ mAP 50:95 ↑ mAP 50 ↑ mAP 50:95 ↑
+
+SuperYOLO [23] Clean 96.9 84.1 9.7 5.4 77.8 55.1 4.85 MCHE [40] Clean 97.2 85.8 13.6 7.9 80.6 57.9 145.81 ICAFusion [9] Clean 96.6 82.8 6.8 3.7 74.6 52.3 28.97 MMIDet [39] Clean 97.4 86.5 16.9 9.8 82.4 59.3 53.70 Simple U-Net [63] Clean 96.2 74.2 0.0 0.0 65.8 46.2 2.42 Simple U-Net + FR Clean 97.0( ↑0.8 ) 76.2( ↑2.0 ) 8.7( ↑8.7 ) 4.1( ↑4.1 ) 70.4( ↑4.6 ) 50.3( ↑4.1 ) 2.44(+ 0.02 )Simple U-Net MD 92.8 70.1 25.4 12.9 82.6 58.8 2.42 Simple U-Net + FR MD 96.3( ↑3.5 ) 74.9( ↑4.8 ) 61.6( ↑36.2 ) 32.2( ↑19.3 ) 96.0( ↑13.4 ) 74.8( ↑16.0 ) 2.44(+ 0.02 )nnU-Net [64] Clean 96.3 77.3 0.4 0.0 66.2 50.4 12.34 nnU-Net MD 93.6 73.5 30.8 15.7 83.7 61.2 12.34 nnU-Net + FR MD 97.1( ↑3.5 ) 81.2( ↑7.7 ) 72.4( ↑41.6 ) 40.6( ↑24.9 ) 92.2( ↑8.5 ) 69.8( ↑8.6 ) 12.36(+ 0.02 )CSSA [38] Clean 97.0 85.7 14.0 8.2 78.0 55.6 13.51 CSSA + SR Clean 97.6( ↑0.6 ) 86.8( ↑1.1 ) 22.7( ↑8.7 ) 12.6( ↑4.4 ) 82.1( ↑4.1 ) 59.2( ↑3.6 ) 14.03(+ 0.52 )CSSA MD 94.1 81.8 35.6 19.2 86.4 63.8 13.51 CSSA + SR MD 97.0( ↑2.9 ) 86.2( ↑4.4 ) 72.8( ↑37.2 ) 40.4( ↑21.2 ) 96.2( ↑9.8 ) 76.0( ↑12.2 ) 14.03(+ 0.52 )CLANet [37] Clean 96.9 85.4 12.3 7.2 79.2 56.7 48.21 CLANet MD 93.8 81.2 33.8 18.1 86.9 64.1 48.21 CLANet + SR MD 96.9( ↑3.1 ) 86.0( ↑4.8 ) 71.0( ↑37.2 ) 39.2( ↑21.1 ) 96.9( ↑10.0 ) 75.8( ↑11.7 ) 48.73(+ 0.52 )CFT [8] Clean 97.5 86.9 19.8 11.6 83.6 60.4 53.76 CFT + SR Clean 98.0( ↑0.5 ) 87.9( ↑1.0 ) 27.6( ↑7.8 ) 15.8( ↑4.2 ) 87.0( ↑3.4 ) 63.1( ↑2.7 ) 54.28(+ 0.52 )CFT MD 94.8 83.3 41.5 22.8 88.7 66.0 53.76 CFT + SR MD 97.6( ↑2.8 ) 87.5( ↑4.2 ) 79.2( ↑37.7 ) 45.5( ↑22.7 ) 97.1( ↑8.4 ) 77.1( ↑11.1 ) 54.28(+ 0.52 )
+
+TABLE III COMPONENT ABLATION ON M4-SAR UNDER FIXED MODALITY DROPOUT (p = 0 .2). A LL VARIANTS WITHIN EACH BLOCK USE IDENTICAL OPTIMIZATION , MODALITY -MASK SAMPLING , AND DATA AUGMENTATION .Configuration Full Modality Masked Optical (SAR only) Masked SAR (Optical only) mAP 50 ↑ mAP 50:95 ↑ mAP 50 ↑ mAP 50:95 ↑ mAP 50 ↑ mAP 50:95 ↑
+
+(a) Ablation on FR with U-Net Baseline 
+
+Baseline + modality dropout 43.7 23.4 8.4 3.1 27.6 14.9 + Independent scalar routing 46.1 25.0 13.7 5.4 31.8 17.2 + Channel selection 54.8 29.6 19.7 7.7 39.6 21.5 + Spatial gating (Full FR) 63.2 34.7 26.0 10.4 45.6 24.4 
+
+(b) Ablation on SR with CSSA Baseline 
+
+Baseline + modality dropout 62.7 40.6 18.7 10.4 38.2 22.6 + Avg descriptor + linear gate 68.4 44.2 21.1 11.7 43.5 25.4 + Max descriptor + linear gate 69.2 44.8 22.5 12.4 46.1 27.0 + Avg–Max descriptor + linear gate 75.8 49.3 24.2 13.5 50.7 29.4 + Avg–Max descriptor + two-layer MLP gate (Full SR) 83.7 54.7 26.3 14.6 55.7 32.1 
+
+ported expert and top-k ranges. Under this budget, the external adaptations improve on CSSA+MD with different computation costs, while SR reaches the highest three mAP 50 values with substantially lower training cost than the reconstruction, two-stage, and sparse-MoE adaptations. 
+
+5) Effect of Routing Position: Table VI reports a con-trolled study in which router capacity and training are held approximately fixed while the gate is moved through CSSA. Routing immediately before the first learned cross-modal feature-value mixing operation performs best across full and missing inputs. Moving the same-capacity gate after feature-value mixing leads to a marked drop, supporting the boundary-alignment hypothesis rather than a generic benefit from adding parameters. 
+
+6) Sensitivity to Modality Dropout Probability: Table VII evaluates p ∈ { 0, 0.1, 0.2, 0.3, 0.5}. Robustness is improved for p = 0 .2, while p = 0 .3 yields only small missing-modality gains and reduces full-input accuracy; p = 0 .5 collapses under the stated schedule. We therefore choose p = 0 .2 as the clean– robustness trade-off. 
+
+D. Routing-Weight Response to Modality Availability 
+
+Table VIII summarizes two separate routing experiments. FR and SR retain high weights for available streams and reduce the masked stream. Since this test has zero-valued inputs, it demonstrates availability awareness only; it neither calibrates the weights as probabilities nor establishes reliability estimation under nonzero corruption. 10 
+
+TABLE IV CONTROLLED COMPARISON ON M4-SAR. A LL MD-TRAINED VARIANTS USE THE SAME 300 EPOCHS , OPTIMIZER , MODALITY -MASK SAMPLER ,
+
+AUGMENTATION , AND MODALITY -DROPOUT PROBABILITY (p = 0 .2). T HE CLEAN BASELINE IS DIAGNOSTIC ONLY .Method Full Modality Masked Optical Masked SAR Params ↓
+
+mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑ (M) Baseline (clean training) 58.2 31.1 0.2 0.0 22.9 12.8 2.42 Baseline + modality dropout 43.7 23.4 8.4 3.1 27.6 14.9 2.42 Baseline + SE 44.0 23.7 9.1 3.5 28.1 15.2 2.43 Baseline + CBAM 44.2 23.8 9.5 3.7 28.4 15.4 2.43 Baseline + scalar gate 46.1 25.0 13.7 5.4 31.8 17.2 2.42 Baseline + FR (ours) 63.2 34.7 26.0 10.4 45.6 24.4 2.44 TABLE V BUDGET -MATCHED CSSA ADAPTATIONS INSPIRED BY EXISTING METHODS ON M4-SAR. T HESE ARE RE -IMPLEMENTED DETECTION ADAPTATIONS RATHER THAN DIRECT REPRODUCTIONS OF THE ORIGINAL TASK -SPECIFIC ARCHITECTURES . A LL ROWS USE THE SAME MODALITY -DROPOUT SAMPLER AND 300-EPOCH OPTIMIZATION BUDGET . P ERFORMANCE IS REPORTED AS MEAN ± STANDARD DEVIATION OVER THREE INDEPENDENT RUNS ; P ARAMS AND GFLOP S DENOTE INFERENCE -TIME COST AT 512 × 512 .
+
+Method Adaptation Params (M) ↓ GFLOPs ↓ GPU-h ↓ Auxiliary objective Full mAP50 ↑
+
+Miss OPT mAP50 ↑
+
+Miss SAR mAP50 ↑
+
+CSSA 
+
++ MD None (MD only) 13.51 42.6 18.4 none 62.7 ±0.4 18.7 ±0.7 38.2 ±0.6 + SE [58] Channel recalibration 13.54 42.7 19.0 none 63.4 ±0.5 19.8 ±0.6 39.6 ±0.7 + CBAM [67] Channel–spatial attention 13.56 42.9 19.5 none 64.0 ±0.4 20.5 ±0.8 39.2 ±0.5 + CML [41] Confidence ranking 13.51 42.6 32.8 λCML LCML 66.1 ±0.6 22.8 ±0.7 44.5 ±0.8 + ShaSpec [44] Shared–specific features 15.20 45.8 26.7 0.1LDAO + 0 .02 LDCO 70.2 ±0.5 23.9 ±0.9 47.1 ±0.6 + M3AE [52] Recon. + distillation 15.42 43.9 38.9 Lrec + 0 .1Lcon 71.5 ±0.8 24.9 ±0.6 49.3 ±0.9 + Flex-MoE [66] Sparse MoE routing 31.86 48.7 44.6 0.01( Lce + Lbalance ) 73.6 ±0.7 25.7 ±0.8 50.8 ±0.7 + SimMLM [65] DMoME + MoFe 14.06 43.1 34.2 0.1LMoFe 75.9 ±0.5 25.4 ±0.6 53.1 ±0.8 + SR (ours) Boundary routing 14.03 42.9 19.7 none 83.7 ±0.3 26.3 ±0.5 55.7 ±0.6 
+
+TABLE VI ROUTING -POSITION STUDY UNDER A MATCHED PARAMETER BUDGET ON M4-SAR. T HE SAME ROUTER IS MOVED THROUGH CSSA WITHOUT CHANGING THE MODALITY -MASK CURRICULUM . “B EFORE FEATURE -VALUE MIXING ” DENOTES PLACEMENT IMMEDIATELY BEFORE THE FIRST LEARNED CROSS -MODAL FEATURE -VALUE MIXING BOUNDARY .Routing position Full Modality Masked Optical Masked SAR Params ↓
+
+mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑ (M) Raw input 78.1 50.2 21.4 11.8 45.0 26.3 14.02 After first layer 80.0 51.7 23.6 12.9 48.2 28.1 14.03 Before feature-value mixing (ours) 83.7 54.7 26.3 14.6 55.7 32.1 14.03 After feature-value mixing 77.2 49.4 18.8 10.1 42.3 24.7 14.03 Before late semantic mixing 75.6 48.1 17.2 9.3 39.7 23.0 14.04 Before detection head 73.9 46.8 15.9 8.5 36.8 21.4 14.03 TABLE VII SENSITIVITY OF THE MODALITY DROPOUT PROBABILITY p ON M4-SAR 
+
+USING SIMPLE U-N ET WITH FR. “C OLLAPSE ” INDICATES FAILURE TO CONVERGE UNDER THE STATED TRAINING SCHEDULE .
+
+p Full Modality Masked Optical Masked SAR mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑ mAP50 ↑ mAP50:95 ↑
+
+0.0 64.1 35.2 5.8 2.1 30.7 16.9 0.1 64.0 35.0 18.4 7.4 39.2 21.1 0.2 63.2 34.7 26.0 10.4 45.6 24.4 0.3 56.8 29.6 26.4 10.6 46.1 24.8 0.5 Collapse 
+
+E. Task Utility and Negative Transfer 
+
+Table IX isolates cross-modal correspondence from in-trinsic image appearance by circularly translating SAR by 
+
+{0, 2, 4, 8, 16 } pixels. Circular translation preserves each chan-nel’s pixel distribution exactly, while progressively disrupt-
+
+TABLE VIII TASK -CONDITIONED ROUTING WEIGHTS FROM TWO SEPARATE ARCHITECTURE -SPECIFIC EXPERIMENTS : FR ( w) IN SIMPLE U-N ET AND 
+
+SR ( α) IN CSSA. V ALUES ARE MEAN ± STANDARD DEVIATION OVER EACH TEST SET ; FR AND SR ARE NOT USED JOINTLY .
+
+Scenario FR Scalar ( w) SR Gate ( α)OPT ( wopt ) SAR ( wsar ) OPT ( αopt ) SAR ( αsar )Full Modality 0.81 ±0.07 0.78 ±0.09 0.92 ±0.03 0.89 ±0.05 Masked Optical 0.15 ±0.06 0.84 ±0.08 0.11 ±0.07 0.91 ±0.07 Masked SAR 0.86 ±0.07 0.17 ±0.07 0.93 ±0.02 0.16 ±0.03 
+
+ing Optical–SAR correspondence. For FR, ¯rm averages the complete multiplicative transmission assigned to modality-indexed group m after scalar, channel, and spatial modulation. As displacement increases, both detectors lose accuracy, but FR degrades more slowly and reduces SAR transmission from 0.78 to 0.39. This behavior links the gate to joint task contribution rather than visible image quality. 11 Missing     
+
+> OPT Missing SAR Full GT Unet Unet+Ours Input M4-SAR GT Unet Unet+Ours Input SpaceNet6-OTD
+> Broken
+> Broken Broken
+> Broken Broken
+> Broken Broken
+
+Fig. 5. Qualitative comparison under full- and missing-modality settings. “Broken” denotes complete input unavailability. Yellow circles and arrows highlight baseline errors mitigated by task-conditioned routing. TABLE IX M4-SAR CORRESPONDENCE -SHIFT CONTROL (B ASELINE /+FR: mAP 50 ). CIRCULAR TRANSLATION PRESERVES PER -CHANNEL PIXEL DISTRIBUTIONS ; ¯rm DENOTES MEAN FR TRANSMISSION .Shift (px) Baseline ↑ +FR ↑ ¯ropt ¯rsar 
+
+0 58.2 64.1 0.81 0.78 2 57.5 63.5 0.82 0.74 4 55.8 62.0 0.83 0.68 8 51.6 59.3 0.84 0.57 16 43.2 53.8 0.86 0.39 TABLE X SPEARMAN CORRELATION BETWEEN ROUTING WEIGHTS AND MODEL -SPECIFIC LOMO UTILITY . A LL LISTED CORRELATIONS ARE SIGNIFICANT AT p < 0.001 .Router Modality M4-SAR SpaceNet6-OTD FR Optical 0.62 0.57 FR SAR 0.66 0.61 SR Optical 0.49 0.45 SR SAR 0.53 0.48 TABLE XI NEGATIVE -TRANSFER RATE (NTR, %) ON M4-SAR. L OWER IS BETTER ;“B ASE ” AND “+FR/SR” USE MATCHED PROTOCOLS . “+FR/SR” DENOTES 
+
+FR FOR SIMPLE U-N ET AND SR FOR CSSA AND CFT. Backbone Train Base ↓ +FR/SR ↓ ∆ (pp) Simple U-Net Clean 31.8 20.6 −11 .2
+
+Simple U-Net MD 29.4 16.7 −12 .7
+
+CSSA Clean 27.5 18.2 −9.3
+
+CSSA MD 25.8 14.9 −10 .9
+
+CFT Clean 23.1 15.6 −7.5
+
+CFT MD 21.4 12.8 −8.6
+
+We further compare learned weights with the model-specific LOMO utility in Eq. (2). Table X uses MD-trained frozen checkpoints and reports positive Spearman correlations for both modalities and both router types. This evidence supports the utility interpretation, although it is not guaranteed by the model design. FR exhibits stronger correlations because its cross-conditioned channel/spatial gates directly observe the paired representation; SR remains a weaker stream-level proxy based only on modality-specific statistics. We therefore do not view SR as an explicit misalignment or conflict estimator. Finally, Table XI evaluates the sample-level failure mode defined in Eq. (3). The MD rows serve as the primary comparison because their checkpoints are trained on the same three input configurations evaluated by NTR: full, Optical-masked (SAR-only), and SAR-masked (Optical-only). Clean rows are diagnostic only: their zero-stream counterfactuals are out of distribution and may conflate modality contribution with missing-input fragility. Across both protocols, the matched FR/SR variants consistently reduce NTR. Together, the clean-router, utility-correlation, and NTR controls support negative-transfer mitigation across nominal, corrupted, and missing-input settings without treating LOMO utility as modality-intrinsic. 
+
+F. Qualitative Analysis 
+
+Fig. 5 exhibits detection results under full- and missing-modality settings. Compared with the baseline, the proposed framework produces fewer false alarms and missed detections, indicating that unavailable or low-utility stream responses are attenuated under incomplete inputs. 
+
+G. Robustness under Controlled Modality Corruptions 
+
+Beyond complete modality absence, we further evaluate the four controlled conditions in Fig. 6: optical cloud occlusion, optical low-light/haze, SAR speckle noise, and Optical–SAR misregistration. Cloud occlusion is synthesized by alpha-blending blurred anisotropic bright masks with the Optical image. Low-light/haze combines intensity attenuation, con-trast compression, and a spatially varying gray veil. SAR speckle uses multiplicative Gamma noise with a small additive Gaussian component. The displayed misregistration example translates an edge-enhanced SAR rendering relative to Optical, with cropping and boundary fill; it is therefore distinct from the distribution-preserving circular shifts in Table IX. Fig. 6(b) reports CFT+SR against CFT under each condi-tion. Cloud, low-light/haze, and speckle test nonzero changes to modality content. Misregistration is retained only as an 12 aControlled physical degradations Optical cloud Optical low light / haze SAR speckle noise Opt-SAR misregistration bRobustness gain under each degradation M4-SAR SpaceNet6-OTD mAP50 mAP50:95 mAP50 mAP50:95 Optical cloud +12.4 65.2→77.6 +8.6 39.6→48.2 +13.6 78.9→92.5 +12.1 66.7→78.8 Optical low light +7.6 71.4→79.0 +5.2 44.1→49.3 +9.1 84.7→93.8 +8.4 71.5→79.9 SAR speckle +5.8 74.8→80.6 +4.6 46.8→51.4 +6.4 87.2→93.6 +5.7 73.2→78.9 Opt-SAR misregistration +10.2 68.7→78.9 +7.5 42.5→50.0 +11.3 82.1→93.4 +9.8 68.4→78.2 15 7.5 0ΔmAP 50 
+
+Fig. 6. Controlled low-utility conditions. (a) Visual examples of optical cloud, optical low-light/haze, SAR speckle, and composite SAR translation with boundary corruption. (b) Detection performance of CFT+SR against CFT, with absolute gains reported under each condition. The misregistration panel is an additional observation rather than evidence that SR explicitly estimates geometric alignment. 
+
+additional observation: SR can attenuate a stream that becomes less useful under this composite shift-and-boundary corrup-tion, but it does not explicitly estimate geometric alignment since its independent global-statistic gates contain no cross-modal correspondence term. V. C ONCLUSION 
+
+This work investigates Optical–SAR fusion from a model-specific task-utility perspective under imperfect correspon-dence and learns contribution routing from detection super-vision alone. We define the first learned cross-modal feature-value mixing boundary and deploy one topology-aligned router per detector: FR enables cross-modal interaction in the control path while preserving source-indexed value paths near an early boundary, whereas SR predicts a stream-level contribution weight from modality-specific statistics before late fusion. Detection supervision produces task-conditioned weights; their positive correlation with model-specific LOMO utility provides empirical support for the utility interpretation with-out turning them into calibrated reliability, confidence, or uncertainty estimates. LOMO utility is not employed as an optimization target, yet it provides an analysis-only reference for examining whether the learned weights track model-specific contribution. Clean-input controls show that routing can improve ordinary full-modality fusion by reducing nega-tive transfer, while controlled shifts and NTR analysis further connect the gains to task contribution. Missing modalities and nonzero corruptions are treated as extreme low-utility conditions, and SR remains a stream-level proxy rather than an explicit geometric-alignment estimator. The approach incurs limited overhead and requires no reconstruction or distillation objective. REFERENCES [1] G. Gao, M. Wang, X. Zhang, and G. Li, “DEN: A new method for SAR and optical image fusion and intelligent classification,” IEEE Trans. Geosci. Remote Sens. , vol. 63, pp. 1–18, 2025. [2] L. Lin, J. Li, H. Shen, L. Zhao, Q. Yuan, and X. Li, “Low-resolution fully polarimetric SAR and high-resolution single-polarization SAR image fusion network,” IEEE Trans. Geosci. Remote Sens. , vol. 60, pp. 1–17, 2021. [3] Y. Ye, W. Liu, L. Zhou, T. Peng, and Q. Xu, “An unsupervised SAR and optical image fusion network based on structure-texture decomposition,” 
+
+IEEE Geosci. Remote Sens. Lett. , vol. 19, pp. 1–5, 2022. [4] P. Rajah, J. Odindi, and O. Mutanga, “Feature level image fusion of optical imagery and synthetic aperture radar (SAR) for invasive alien plant species detection and mapping,” Remote Sens. Appl.: Soc. Environ. ,vol. 10, pp. 198–208, 2018. [5] M. Xu, R. Zhang, S. Liu, X. Jia, Q. Li, and S. Jia, “NAM-CR: Noise-aware multisensor cloud removal for optical remote sensing imagery by fusing SAR data,” Inf. Fusion , vol. 133, p. 104295, 2026. [6] J. Ngiam, A. Khosla, M. Kim, J. Nam, H. Lee, and A. Y. Ng, “Multimodal deep learning,” in Proc. Int. Conf. Mach. Learn. (ICML) ,2011, pp. 689–696. [7] S. Xiao, P. Wang, W. Diao, K. Fu, and X. Sun, “A multimodal semantic segmentation framework for heterogeneous optical and complex SAR data,” IEEE J. Sel. Topics Appl. Earth Observ. Remote Sens. , vol. 18, pp. 8083–8098, 2025. [8] Q. Fang and Z. Wang, “Cross-modality attentive feature fusion for object detection in multispectral remote sensing imagery,” Pattern Recognit. ,vol. 130, p. 108786, 2022. [9] J. Shen, Y. Chen, Y. Liu, X. Zuo, H. Fan, and W. Yang, “ICAFusion: Iterative cross-attention guided feature fusion for multispectral object detection,” Pattern Recognit. , vol. 145, p. 109913, 2023. [10] L. Pan, X. Song, F. Xie, X. Zhang, H. Ji, and Z. Shi, “M3-CR: Multiscale multibranch mamba for SAR-assisted optical image thick cloud removal,” IEEE Trans. Geosci. Remote Sens. , vol. 63, pp. 1–12, 2025. [11] J. Zhou, Y. Liu, B. Peng, L. Liu, and X. Li, “MaDiNet: Mamba diffusion network for SAR target detection,” IEEE Trans. Circuits Syst. Video Technol. , vol. 35, no. 11, pp. 10 787–10 800, 2025. [12] Y. Yan, J. Li, L. Jiang, S. Liu, and Z. Liu, “MMMF: Mask-decoupled multiscale mamba fusion framework for SAR and visible images,” IEEE J. Sel. Topics Appl. Earth Observ. Remote Sens. , vol. 19, pp. 580–598, 2026. [13] R. A. Yeh, C. Chen, T. Yian Lim, A. G. Schwing, M. Hasegawa-Johnson, and M. N. Do, “Semantic image inpainting with deep generative mod-els,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) ,2017, pp. 5485–5493. [14] Z. Guan, J. Jing, X. Deng, M. Xu, L. Jiang, Z. Zhang, and Y. Li, “DeepMIH: Deep invertible network for multiple image hiding,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 1, pp. 372–390, 2022. [15] T. Zhou, S. Canu, P. Vera, and S. Ruan, “Feature-enhanced generation and multi-modality fusion based deep neural network for brain tumor segmentation with missing MR modalities,” Neurocomputing , vol. 466, pp. 102–112, 2021. [16] S. Gupta, J. Hoffman, and J. Malik, “Cross modal distillation for supervision transfer,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2016, pp. 2827–2836. [17] C. Shu, Y. Liu, J. Gao, Z. Yan, and C. Shen, “Channel-wise knowledge distillation for dense prediction,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2021, pp. 5311–5320. [18] Y. Zhuang, M. Liu, W. Bai, Y. Zhang, X. Zhang, J. Deng, and F. Ren, “CMAD: Correlation-aware and modalities-aware distillation for multimodal sentiment analysis with missing modalities,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2025, pp. 4626–4636. 13 
+
+[19] Y. Chen, M. Zhao, and L. Bruzzone, “A novel approach to incomplete multimodal learning for remote sensing data fusion,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–14, 2024. [20] J. Li, D. Hong, L. Gao, J. Yao, K. Zheng, B. Zhang, and J. Chanussot, “Deep learning in multimodal remote sensing data fusion: A compre-hensive review,” Int. J. Appl. Earth Obs. Geoinf. , vol. 112, p. 102926, 2022. [21] R. Zhang, H. Guo, F. Xu, W. Yang, H. Yu, H. Zhang, and G.-S. Xia, “Optical-enhanced oil tank detection in high-resolution SAR images,” 
+
+IEEE Trans. Geosci. Remote Sens. , vol. 60, pp. 1–12, 2022. [22] Z. Wang, X. Wang, W. Wu, and G. Li, “Continuous change detection of flood extents with multisource heterogeneous satellite image time series,” IEEE Trans. Geosci. Remote Sens. , vol. 61, pp. 1–18, 2023. [23] J. Zhang, J. Lei, W. Xie, Z. Fang, Y. Li, and Q. Du, “SuperYOLO: Super resolution assisted object detection in multimodal remote sensing imagery,” IEEE Trans. Geosci. Remote Sens. , vol. 61, pp. 1–15, 2023. [24] Y. Ye, J. Zhang, L. Zhou, J. Li, X. Ren, and J. Fan, “Optical and SAR image fusion based on complementary feature decomposition and visual saliency features,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–15, 2024. [25] H. Yu, Z. Ling, K. Zheng, L. Gao, J. Li, and J. Chanussot, “Unsupervised hyperspectral and multispectral image fusion with deep spectral–spatial collaborative constraint,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–14, 2024. [26] Z. Zhu, X. Wang, G. Li, and Y. Zhong, “A self-supervised spaceborne multispectral and hyperspectral image fusion unrolling network,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–12, 2024. [27] T. Baltrusaitis, C. Ahuja, and L.-P. Morency, “Multimodal machine learning: A survey and taxonomy,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 41, no. 2, pp. 423–443, 2019. [28] A. Eitel, J. T. Springenberg, L. Spinello, M. Riedmiller, and W. Burgard, “Multimodal deep learning for robust RGB-D object recognition,” in 
+
+Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) . IEEE, 2015, pp. 681–687. [29] J. Wang, F. Li, Y. An, X. Zhang, and H. Sun, “Toward robust LiDAR-camera fusion in BEV space via mutual deformable attention and tem-poral aggregation,” IEEE Trans. Circuits Syst. Video Technol. , vol. 34, no. 7, pp. 5753–5764, 2024. [30] P. Xu, X. Zhu, and D. A. Clifton, “Multimodal learning with transform-ers: A survey,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 10, pp. 12 113–12 132, 2023. [31] W. Bao, M. Huang, J. Hu, and X. Xiang, “Dual-dynamic cross-modal interaction network for multimodal remote sensing object detection,” 
+
+IEEE Trans. Geosci. Remote Sens. , vol. 63, pp. 1–13, 2025. [32] C. Yue, Y. Zhang, J. Yan, Z. Luo, Y. Liu, and P. Guo, “Diffusion mechanism and knowledge distillation object detection in multimodal remote sensing imagery,” IEEE Trans. Geosci. Remote Sens. , vol. 63, pp. 1–14, 2025. [33] X. Sun, Y. Yu, and Q. Cheng, “Low-rank multimodal remote sensing object detection with frequency filtering experts,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–14, 2024. [34] Y. Xiao, C. Zhang, Y. Chen, B. Jiang, and J. Tang, “ADRNet: Affine and deformable registration networks for multimodal remote sensing images,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–13, 2024. [35] A. Rahate, R. Walambe, S. Ramanna, and K. Kotecha, “Multimodal co-learning: Challenges, applications with datasets, recent advances and future directions,” Inf. Fusion , vol. 81, pp. 203–239, 2022. [36] M. Ma, J. Ren, L. Zhao, D. Testuggine, and X. Peng, “Are multimodal transformers robust to missing modality?” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 18 177–18 186. [37] X. He, C. Tang, X. Zou, and W. Zhang, “Multispectral object detection via cross-modal conflict-aware learning,” in Proc. ACM Int. Conf. Multimedia , 2023, pp. 1465–1474. [38] Y. Cao, J. Bin, J. Hamari, E. Blasch, and Z. Liu, “Multimodal object detection by channel switching and spatial attention,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. Workshops (CVPRW) , 2023, pp. 403–411. [39] Y. Zeng, T. Liang, Y. Jin, and Y. Li, “MMI-Det: Exploring multi-modal integration for visible and infrared object detection,” IEEE Trans. Circuits Syst. Video Technol. , vol. 34, no. 11, pp. 11 198–11 213, 2024. [40] R. Li, J. Xiang, F. Sun, Y. Yuan, L. Yuan, and S. Gou, “Multiscale cross-modal homogeneity enhancement and confidence-aware fusion for multispectral pedestrian detection,” IEEE Trans. Multimedia , vol. 26, pp. 852–863, 2024. [41] H. Ma, Q. Zhang, C. Zhang, B. Wu, H. Fu, J. T. Zhou, and Q. Hu, “Calibrating multimodal learning,” in Proc. Int. Conf. Mach. Learn. (ICML) , vol. 202, 2023, pp. 23 429–23 450. [42] Z. Han, C. Zhang, H. Fu, and J. T. Zhou, “Trusted multi-view classifica-tion with dynamic evidential fusion,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 2, pp. 2551–2566, 2023. [43] Z. Shao, W. Dou, and Y. Pan, “Dual-level deep evidential fusion: Inte-grating multimodal information for enhanced reliable decision-making in deep learning,” Inf. Fusion , vol. 103, p. 102113, 2024. [44] H. Wang, Y. Chen, C. Ma, J. Avery, L. Hull, and G. Carneiro, “Multi-modal learning with missing modality via shared-specific feature modelling,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2023, pp. 15 878–15 887. [45] Z. Zhang, G. Yang, Y. Zhang, H. Yue, A. Liu, Y. Ou, J. Gong, and X. Sun, “TMformer: Token merging transformer for brain tumor segmentation with missing modalities,” in Proc. AAAI Conf. Artif. Intell. ,vol. 38, no. 7, 2024, pp. 7414–7422. [46] K. Park, Y. Kim, D. Kim, and J. W. Choi, “Resilient sensor fusion under adverse sensor failures via multi-modal expert fusion,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2025, pp. 6720–6729. [47] R. S. Blum, “Robust image fusion using a statistical signal processing approach,” Inf. Fusion , vol. 6, no. 2, pp. 119–128, 2005. [48] S. Wei, Y. Luo, X. Ma, P. Ren, and C. Luo, “MSH-Net: Modality-shared hallucination with joint adaptation distillation for remote sensing image classification using missing modalities,” IEEE Trans. Geosci. Remote Sens. , vol. 61, pp. 1–15, 2023. [49] Y. Zhang, N. He, J. Yang, Y. Li, D. Wei, Y. Huang, Y. Zhang, Z. He, and Y. Zheng, “MMFormer: Multimodal medical transformer for incomplete multimodal learning of brain tumor segmentation,” in Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. (MICCAI) . Springer, 2022, pp. 107–117. [50] Y. Yang, H. Chen, Z. Chang, Y. Xiang, C. Ye, and T. Ma, “Incomplete learning of multi-modal connectome for brain disorder diagnosis via modal-mixup and deep supervision,” in Proc. Med. Imag. Deep Learn. (MIDL) . PMLR, 2024, pp. 1006–1018. [51] C. Dong, G. Yang, Y. Wang, W. Sun, X. Meng, and B. Chen, “Integrating multitemporal SAR and optical information for missing optical imagery generation,” IEEE Trans. Geosci. Remote Sens. , vol. 62, pp. 1–14, 2024. [52] H. Liu, D. Wei, D. Lu, J. Sun, L. Wang, and Y. Zheng, “M3AE: Multimodal representation learning for brain tumor segmentation with missing modalities,” in Proc. AAAI Conf. Artif. Intell. , vol. 37, no. 2, 2023, pp. 1657–1665. [53] C. Liu, J. Wen, Y. Xu, B. Zhang, L. Nie, and M. Zhang, “Reliable representation learning for incomplete multi-view missing multi-label classification,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 47, no. 6, pp. 4940–4956, 2025. [54] Z. Liu, B. Zhou, D. Chu, Y. Sun, and L. Meng, “Modality translation-based multimodal sentiment analysis under uncertain missing modali-ties,” Inf. Fusion , vol. 101, p. 101973, 2024. [55] Y. Shi, G. Li, Z. Shen, H. Meng, and Y. Pang, “BANet: Enhancing weakly aligned multimodal object detection via balanced bidirectional alignment network,” IEEE Trans. Geosci. Remote Sens. , vol. 64, pp. 1–14, 2026. [56] Z. Zhao, Y. Xu, A. Lu, C. Li, and J. Tang, “Toward robust optical– SAR object detection under missing modalities: A dynamic quality-aware fusion framework,” IEEE Trans. Geosci. Remote Sens. , vol. 64, 2026, art. no. 5625915. [57] J. Yan, Y. Liu, J. Sun, F. Jia, S. Li, T. Wang, and X. Zhang, “Cross modal transformer: Towards fast and robust 3D object detection,” in 
+
+Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2023, pp. 18 268– 18 278. [58] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2018, pp. 7132–7141. [59] C. Riquelme, J. Puigcerver, B. Mustafa, M. Neumann, R. Jenatton, A. Susano Pinto, D. Keysers, and N. Kolesnikov, “Scaling vision with sparse mixture of experts,” in Adv. Neural Inf. Process. Syst. (NeurIPS) ,vol. 34, 2021, pp. 8583–8595. [60] Y. Han, G. Huang, S. Song, L. Yang, H. Wang, and Y. Wang, “Dynamic neural networks: A survey,” IEEE Trans. Pattern Anal. Mach. Intell. ,vol. 44, no. 11, pp. 7436–7456, 2022. [61] C. Wang, W. Lu, X. Li, J. Yang, and L. Luo, “M4-SAR: A multi-resolution, multi-polarization, multi-scene, multi-source dataset and benchmark for optical-SAR fusion object detection,” 2025. [62] J. Shermeyer, D. Hogan, J. Brown, A. Van Etten, N. Weir, F. Pacifici, R. Hansch, A. Bastidas, S. Soenen, T. Bacastow et al. , “SpaceNet 6: Multi-sensor all weather mapping dataset,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. Workshops (CVPRW) , 2020, pp. 196– 197. 14 
+
+[63] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-works for biomedical image segmentation,” in Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. (MICCAI) . Springer, 2015, pp. 234–241. [64] F. Isensee, P. F. Jaeger, S. A. Kohl, J. Petersen, and K. H. Maier-Hein, “nnU-Net: A self-configuring method for deep learning-based biomedical image segmentation,” Nat. Methods , vol. 18, no. 2, pp. 203– 211, 2021. [65] S. Li, C. Chen, and J. Han, “SimMLM: A simple framework for multi-modal learning with missing modality,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2025, pp. 24 068–24 077. [66] S. Yun, I. Choi, J. Peng, Y. Wu, J. Bao, Q. Zhang, J. Xin, Q. Long, and T. Chen, “Flex-MoE: Modeling arbitrary modality combination via the flexible mixture-of-experts,” in Adv. Neural Inf. Process. Syst. (NeurIPS) ,vol. 37, 2024, pp. 98 782–98 805. [67] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, “CBAM: Convolutional block attention module,” in Proc. Eur. Conf. Comput. Vis. (ECCV) , 2018, pp. 3–19.

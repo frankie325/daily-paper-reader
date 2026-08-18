@@ -1,0 +1,105 @@
+{
+  "date": "20260818",
+  "date_label": "",
+  "generated_at": "2026-08-18 19:58:05 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.15261v1",
+      "route": "202608/18/2608.15261v1-boundary-aligned-contribution-routing-for-robust-optical--sar-object-detection",
+      "title": "Boundary-Aligned Contribution Routing for Robust Optical--SAR Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "光学-SAR融合目标检测中的任务条件贡献路由",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    },
+    {
+      "paper_id": "2608.15297v1",
+      "route": "202608/18/2608.15297v1-tinydetr-pose-towards-end-to-end-real-time-single-stage-6dof-object-pose-estimation-with-lightweight-transformers",
+      "title": "TinyDETR-Pose: Towards End-to-End Real-Time Single-Stage 6DoF Object Pose Estimation with Lightweight Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于DETR的联合目标检测与6D姿态估计",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    },
+    {
+      "paper_id": "2608.15713v1",
+      "route": "202608/18/2608.15713v1-yolo26-rd-an-end-to-end-road-damage-detection-network-with-learnable-contrast-enhancement-and-edge-guided-downsampling",
+      "title": "YOLO26-RD: An End-to-End Road Damage Detection Network With Learnable Contrast Enhancement and Edge-Guided Downsampling",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于YOLO26的端到端道路损坏检测",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    },
+    {
+      "paper_id": "2608.16632v1",
+      "route": "202608/18/2608.16632v1-drafe-domain-robust-asymmetric-fusion-of-heterogeneous-detection-transformers-for-cross-city-fine-grained-traffic-object-detection",
+      "title": "DRAFE: Domain-Robust Asymmetric Fusion of Heterogeneous Detection Transformers for Cross-City Fine-Grained Traffic Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "检测Transformer用于跨城市交通目标检测",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    },
+    {
+      "paper_id": "2608.16225v1",
+      "route": "202608/18/2608.16225v1-pct-prompt-a-prompt-guided-transformer-framework-for-dense-prediction-tasks-in-point-clouds",
+      "title": "PCT-Prompt: A Prompt-Guided Transformer Framework for Dense Prediction Tasks in Point Clouds",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向点云密集预测的提示引导Transformer框架",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    },
+    {
+      "paper_id": "2608.13141v1",
+      "route": "202608/18/2608.13141v1-mergeover-post-training-token-merging-for-recursive-vision-transformers",
+      "title": "MergeOver: Post-Training Token Merging for Recursive Vision Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "视觉Transformer后训练令牌合并",
+      "first_seen_at": "2026-08-18 19:58:05 UTC",
+      "updated_at": "2026-08-18 19:58:05 UTC"
+    }
+  ]
+}
