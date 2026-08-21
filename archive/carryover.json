@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-08-20T19:39:22.738104+00:00",
-  "updated_date": "20260820",
+  "generated_at": "2026-08-21T20:28:48.460690+00:00",
+  "updated_date": "20260821",
   "carryover_days": 9,
   "tag_states": {
     "obj-detect": {
-      "updated_date": "20260820",
+      "updated_date": "20260821",
       "carryover_days": 9,
       "items": []
     }
