@@ -1,0 +1,122 @@
+Title: Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP–SNAP Discrepancy
+
+URL Source: https://arxiv.org/pdf/2609.32567v1
+
+Published Time: Tue, 29 Sep 2026 01:01:41 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP–SNAP Discrepancy 
+
+Yu-Feng Yen Independent Researcher Taiwan 
+
+ccuhollis@alum.ccu.edu.tw 
+
+Abstract 
+
+LAOD [Mumcu et al., 2025] and similar zero-training LLM+open-vocabulary-detector (OVOD) pipelines score two things separately: class-agnostic localization accuracy (CAAP) and semantic naming accuracy (SNAP). The two consistently diverge, and nobody has asked why. This paper asks why, on the full 5,000-image COCO-Val split [Lin et al., 2014] (27,273 detections) rather than the small subset the original work evaluated on. Object visual complexity turns out not to be the driver — small and oc-cluded objects are, if anything, localized better than large ones. Vocabulary novelty is: once the LLM’s wording falls outside the detector’s native category set, localization accuracy falls from 80.9% to 31.6%. That drop is not spread evenly across unfamiliar phrasing, though. Almost all of it comes from cases where the novel wording actually names a different object than the one COCO annotated (true synonyms still score 89.3%; semantically unrelated “noise” labels score 12.0%). A closer look at a further failure subset tells a similar story: 78–88% of what looks like complete localization failure is really the model correctly finding a real object that COCO’s non-exhaustive 80-category scheme simply never labeled, not hallucination. Swap the detector backbone (YOLO-World [Cheng et al., 2024] for Grounding DINO [Liu et al., 2024]) or the LLM (Gemma-3 [Gemma Team, 2025] for Qwen2.5-VL [Qwen Team, 2025]) and both the effect and its rough size hold up, so this looks like a general property of the pipeline family rather than a quirk of one model pairing. The upshot is that a large share of the apparent CAAP–SNAP gap traces back to closed-category annotation limits rather than a real grounding failure, which matters for how we detect hallucination, analyze failure modes, and design evaluation for grounded multimodal systems meant to work in the open world. 
+
+# 1 Introduction 
+
+A growing share of open-world object detection work skips training altogether: an LLM freely names whatever it sees in an image, and an open-vocabulary object detector (OVOD) localizes each name, with neither component fine-tuned on the target distribution. LAOD [Mumcu et al., 2025] scores this recipe with two separate numbers instead of one — CAAP (class-agnostic localization accuracy) and SNAP (semantic naming accuracy) — and finds they consistently diverge, without explaining why. This paper does not propose a new model, metric, or training recipe; it uses LAOD’s own CAAP/SNAP split as a diagnostic tool to find out what drives that gap, and how much of it is a real capability limit versus an artifact of how the evaluation benchmark happens to be annotated. The gap between localization and naming accuracy is not new territory — TIDE [Bolya et al., 2020] made the general case for decomposing detection errors rather than collapsing them into one mAP number, and COCO’s non-exhaustive annotation has already been flagged as a source of measurement bias by LVIS [Gupta et al., 2019], by Singh et al. [Singh et al., 2024], and, in the image-caption setting, by ECCV Caption [Chun et al., 2022]. Vision-language hallucination benchmarks such as POPE [Li et al., 2023] score models against COCO as if it were exhaustive ground truth, which is exactly the assumption our findings below 1arXiv:2609.32567v1 [cs.CV] 26 Sep 2026 complicate. To our knowledge, no prior work has taken LAOD’s specific localization/naming split and asked what drives the gap between its two halves. Four things come out of this analysis: (1) the CAAP–SNAP asymmetry holds at full corpus scale, 24 ×
+
+the sample size of the original pilot, so it is not a small-sample artifact; (2) the gap is driven overwhelmingly by vocabulary novelty rather than object visual complexity, and that effect is itself concentrated in genuine object misidentification rather than unfamiliar-but-correct phrasing; (3) a large share (78–88%) of apparent localization failures are actually the model correctly finding a real object the benchmark’s fixed 80-category scheme does not cover; (4) both effects reproduce with a different detector backbone and a different LLM, pointing to a general property of the pipeline family rather than a quirk of one model pairing. 
+
+# 2 Setup 
+
+We build on LAOD’s laod_yolo() pipeline: an LLM (Gemma-3 4B [Gemma Team, 2025], later Qwen2.5-VL 7B [Qwen Team, 2025] for a robustness check) names the objects it sees, and an open-vocabulary detec-tor (YOLO-World X [Cheng et al., 2024], later Grounding DINO [Liu et al., 2024]) localizes them; nothing is fine-tuned on our evaluation data. LAOD’s repository has no batch evaluation code and no SNAP imple-mentation, so we wrote both — a batch COCO dataloader and a CLIP-based [Radford et al., 2021] SNAP (cosine similarity between CLIP text embeddings, averaged over four thresholds, no IoU term) matched as closely as possible to the original description and checked against the reported CAAP number before scaling up. CAAP is ordinary IoU-based AP with the label discarded (does the box land right); SNAP is CLIP similarity between predicted and ground-truth labels (is the name right), with no spatial component. Our reproduced SNAP (0.4559) is somewhat below the original paper’s reported 0.54; three CLIP check-points all fail to close that gap (App. A.3), so checkpoint choice is not the explanation, and it does not affect our conclusions either way since those depend on the relative CAAP–SNAP gap rather than matching the original absolute value. We evaluate on the full COCO-Val split [Lin et al., 2014] — 5,000 images, 27,273 detections — rather than the smaller LO/HO subsets the original paper used, specifically to check whether the asymmetry is a real pattern or a small-sample artifact. 
+
+# 3 Findings 
+
+3.1 The CAAP–SNAP gap is robust at full corpus scale 
+
+At full scale, corpus-level CAAP is 0.3831 and SNAP is 0.4559, correlated at r = 0 .758 across images. This is the same asymmetry a 200-image pilot showed (CAAP = 0.252, SNAP = 0.438, r = 0 .785 ), just at 24 × the sample size: localization trails naming everywhere, and the opposite pattern — right box, wrong name — barely shows up ( −0.137 at its largest, against +0 .725 in the other direction). The direction and rough size of the asymmetry do not change with a 24 × jump in sample size, ruling out a small-sample fluke. 
+
+3.2 Localization failure is driven by vocabulary novelty, not object visual complexity 
+
+Four candidate explanations were tested against detection-level TP/FP labels covering all 27,273 detections. 
+
+Object size/shape does not hold up, and not in the expected direction: tiny objects hit a 71.0% TP rate (n = 7 ,659 ) against 49.9% ( n = 5 ,578 ) for large ones, ruling out the standard small-object bottleneck. 
+
+Vocabulary commonness is by far the strongest signal: native COCO-80 labels reach 80.9% CAAP-TP (n = 11 ,557 ) against 31.6% ( n = 13 ,290 ) for out-of-vocabulary labels — a > 2.6× gap, and out-of-vocabulary is the majority case (57%) here, not a tail (Figure 1). Failure-mode decomposition finds “right object, loose box,” not “wrong object”: among 11,981 detections where SNAP calls the label correct but CAAP calls the box wrong, near-misses make up 67.8% ( n = 8 ,127 ); boxes on a genuinely different nearby object are only 0.24% ( n = 29 ); the remaining 31.9% ( n = 3 ,825 ) touch no ground-truth box at all, a subset we examine separately below since that is not the same thing as model failure (Figure 2). Confidence– IoU decoupling is real but small ( r = 0 .322 ; 25.5% of high-confidence detections still land at low IoU). Together, these point to one causal chain: the LLM’s naming is rarely the problem, object complexity is not 2Native COCO-80 Plural of native Out-of-vocabulary 020 40 60 80 100 CAAP true-positive rate (%)  80.9% (n=11,557) 65.6% (n=2,426) 31.6% (n=13,290) 
+
+> Localization accuracy by vocabulary commonness (RQ2)
+
+Figure 1: Localization accuracy by vocabulary commonness. Out-of-vocabulary labels see a > 2.6× drop relative to native COCO-80 vocabulary. Right object, loose box (near-miss) No spatial overlap Boxed a different object (misplaced) 
+
+> 010 20 30 40 50 60 70 80 Share of SNAP-TP / CAAP-FP detections (%)
+> 67.8% (n=8,127) 31.9% (n=3,825) 0.2% (n=29)
+> Failure-mode decomposition (RQ3, n=11,981)
+
+Figure 2: Failure-mode decomposition of the 11,981 detections where SNAP judged the label correct but CAAP judged the box incorrect. The dominant mode is “right object, loose box.” the problem, and what degrades is the detector’s grounding precision once the LLM’s wording drifts from its training distribution. 
+
+3.3 The degradation is concentrated in mis-identified objects, not unfamiliar synonyms 
+
+Treating “out-of-vocabulary” as one bucket hides which kind of novel wording is responsible for the drop. We took the most frequent out-of-vocabulary labels (later extended to 99.3% coverage of all 829 unique labels), matched each to its closest ground-truth category, and classified the relationship into synonym ,
+
+finer_grained , or noise (Table 1; full detail and caveats in App. A.1). Synonyms score 89.3%, matching native vocabulary (80.9%); noise sits near floor at 11.3% and is the majority (63%) of classified detections; full-coverage numbers move by under a point (Figure 3). The drop is not spread evenly across unfamiliar vocabulary: it clusters around labels that name a genuinely different object than the ground truth (a person’s helmet or gloves, a shelf that is part of a larger piece of furniture) that merely happens to spatially overlap the annotated box — the detector finding the wrong thing, not finding the right thing badly. True synonyms localize about as well as native vocabulary does. 
+
+3.4 Manual inspection: most “no overlap” detections are not model failures 
+
+The 3,825 “no overlap” detections from §3.2 admit two readings: genuine hallucination, or COCO never annotated the object the model correctly found. A random sample of 200 cases (Table 2), manually clas-sified by overlaying the predicted box against every COCO ground-truth box, resolves this: 78–88% (95% 3Table 1: Vocabulary deepdive: CAAP-TP rate by semantic relation to ground truth (150 most-frequent out-of-vocabulary labels). Category n (matched detections) Weighted CAAP-TP rate Representative labels synonym 1,876 89.3% man, sofa, phone, television, horses finer_grained 1,582 65.8% table, woman, flowers, boy, faucet noise 5,939 11.3% plate, cabinet, helmet, hat, shoes Synonym Finer-grained Noise (mis-identified object) 
+
+> 020 40 60 80 100 CAAP true-positive rate (%)  89.3% (n=2,143) 65.6% (n=2,156) 12.0% (n=7,179)
+> native COCO-80 (80.9%)
+> Out-of-vocabulary labels by semantic relation to ground truth (full coverage, 99.3%)
+
+Figure 3: Out-of-vocabulary labels by semantic relation to ground truth (full coverage, 99.3%). Dashed line marks the native COCO-80 baseline (80.9%). CI [77.7%, 88.0%]) are cases where the model correctly identified a real object, often high-confidence, that COCO’s non-exhaustive scheme simply does not cover; genuine model failure is only 7.5–13%, concen-trated among low-confidence, very small detections (Figure 4; statistical note in App. A.2). This means the raw 31.9% “no overlap” figure substantially overstates the model’s true failure rate, reinforcing that the pipeline’s semantic judgment is reliable and that much of the apparent failure is a ceiling imposed by closed-vocabulary annotation. 
+
+3.5 Robustness: the asymmetry reproduces across a different detector and a different LLM 
+
+We reran the pipeline swapping one component at a time, holding the other fixed. Both robustness-check scripts originally used a different TP-rate denominator than the rest of the paper; Table 3 reports all three configurations recomputed under the same all-detections convention (see App. A.4 for why this matters). Swapping YOLO-World for Grounding DINO, or Gemma-3 for Qwen2.5-VL, reproduces the same pattern with gap sizes tightly clustered around the original: neither the detector nor the LLM is doing anything special, and novel wording costs localization precision while leaving semantics mostly intact across all three configurations. 
+
+# 4 Discussion 
+
+The naive reading of §3.2 is that uncommon vocabulary just hurts localization; §3.3 shows this is imprecise. The LLM has no constraint tying it to COCO’s 80 categories, so it names whatever it perceives, including objects and parts outside that ontology entirely. Inside the ontology, however oddly phrased, the detector’s grounding holds; outside it, the detector still finds the right thing, but no ground-truth box exists to credit it against, so the evaluation logs a failure that was not really one. This is a mismatch between what the evaluation assumes and what the system does, not a hole in its grounding. Two independent analyses — vocabulary semantics (§3.3) and spatial inspection (§3.4) — converge on the same root cause: COCO’s non-exhaustive, 80-category scheme inflates the apparent failure rate of 4Table 2: Manual classification of the “no overlap” subset. Category n = 60 n = 200 (merged) 
+
+gt_gap (model correct; COCO did not annotate) 46 (76.7%) 167 (83.5%) real_failure (model genuinely mislocalizes) 8 (13.3%) 15 (7.5%) 
+
+ambiguous 6 (10.0%) 18 (9.0%) Annotation gap (gt_gap) Genuine model failure (real_failure) Ambiguous 
+
+> 020 40 60 80 100 Share of manually inspected cases (%)
+> 83.5% (n=167) 7.5% (n=15) 9.0% (n=18)
+> Manual inspection of "no overlap" detections (n=200)
+
+Figure 4: Manual inspection of the “no overlap” subset ( n = 200 ). Error bar shows the Wilson 95% CI for gt_gap. open-vocabulary detection, independent of what the detector or LLM can actually do. This is precisely the problem CAAP and SNAP were built to surface. A large share of what looks like localization failure is evaluation artifact, not capability gap, which reframes the CAAP–SNAP gap itself as partly a sign that the benchmark’s vocabulary is too narrow for a system that was never meant to be confined to it. If the bottleneck were the detector’s text encoder failing to parse unfamiliar phrasing, the fix would be constraining the LLM’s vocabulary — but that would undermine the open-world generality that motivates using an LLM at all, and it would not address the actual mechanism. The more useful directions are down-stream: making the detector more robust to natural phrasing for objects that are in scope, or evaluating against annotation schemes that do not penalize a system for correctly perceiving objects a fixed category list happens to exclude. 
+
+# 5 Limitations 
+
+All conclusions are grounded in COCO’s 80-category, non-exhaustive scheme, and we have not evaluated against a more exhaustive alternative that would measure the residual gap directly rather than inferring it through manual inspection. SNAP’s absolute value gap from the original paper remains unexplained beyond ruling out CLIP checkpoint choice, though this does not affect our relative-gap conclusions. The vocabulary deepdive and no-overlap classifications both rest on judgment calls (LLM-judged and human-judged respectively); we checked these with independent review passes (92.3% agreement on a spot-checked subset) but some classification noise is unavoidable. A two-proportion test on the no-overlap sample-size expansion is not fully decisive ( p ≈ 0.088 ), so we treat the gt_gap rate as an estimate rather than an exact figure. Two things that started as open limitations were resolved during this work: vocabulary deepdive coverage extended from 71–82% to 99.3% without moving any category’s rate by more than a point, and the manual-inspection sample grew from n = 60 to n = 200 , narrowing the CI and strengthening rather than weakening the original conclusion. 5Table 3: Native vs. out-of-vocabulary CAAP-TP rate across detector and LLM swaps (uniform denomina-tor). Metric YOLO-World + Gemma-3 Grounding DINO Qwen2.5-VL 7B native CAAP-TP rate 80.9% 81.1% 80.7% out-of-vocabulary CAAP-TP rate 31.6% 26.0% 29.4% native–OOV gap ∼49.3 pp ∼55.0 pp ∼51.3 pp 
+
+# 6 Conclusion 
+
+LAOD’s CAAP/SNAP split surfaces a systematic gap between localization and naming accuracy without saying why it is there. We show the gap is mostly driven by the LLM naming objects outside the bench-mark’s fixed category ontology, and that in those cases the detector is often not failing at all but correctly seeing something the benchmark cannot credit. The pattern holds across a different detector and a different LLM, pointing to a structural feature of the open-world detection paradigm rather than a quirk of one model pairing. For grounded, faithful vision-language systems meant for real deployment, better reported perfor-mance depends as much on evaluation methodology — annotation exhaustiveness, vocabulary coverage, distinguishing genuine hallucination from benchmark artifact — as on the underlying models. 
+
+# References 
+
+Daniel Bolya, Sean Foley, James Hays, and Judy Hoffman. TIDE: A general toolbox for identifying object detection errors. In Proceedings of the European Conference on Computer Vision (ECCV) , 2020. Tianheng Cheng, Lin Song, Yixiao Ge, Wenyu Liu, Xinggang Wang, and Ying Shan. YOLO-world: Real-time open-vocabulary object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. Sanghyuk Chun, Wonjae Kim, Song Park, Minsuk Chang Chang, and Seong Joon Oh. ECCV caption: Correcting false negatives by collecting machine-and-human-verified image-caption associations for MS-COCO. In Proceedings of the European Conference on Computer Vision (ECCV) , 2022. Gemma Team. Gemma 3 technical report. arXiv preprint arXiv:2503.19786 , 2025. Agrim Gupta, Piotr Dollar, and Ross Girshick. LVIS: A dataset for large vocabulary instance segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019. Yifan Li, Yifan Du, Kun Zhou, Jinpeng Wang, Wayne Xin Zhao, and Ji-Rong Wen. Evaluating object hallucination in large vision-language models. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP) , 2023. Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and C. Lawrence Zitnick. Microsoft COCO: Common objects in context. In Proceedings of the European Conference on Computer Vision (ECCV) , 2014. Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Chunyuan Li, Jianwei Yang, Hang Su, Jun Zhu, and Lei Zhang. Grounding DINO: Marrying DINO with grounded pre-training for open-set object detection. In Proceedings of the European Conference on Computer Vision (ECCV) , 2024. Furkan Mumcu, Michael J. Jones, Anoop Cherian, and Yasin Yilmaz. LLM-guided agentic object detection for open-world understanding. arXiv preprint arXiv:2507.10844 , 2025. 6Qwen Team. Qwen2.5-VL technical report. arXiv preprint arXiv:2502.13923 , 2025. Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In Proceedings of the 38th International Conference on Machine Learning (ICML) , 2021. Anay Singh et al. Benchmarking object detectors with COCO: A new path forward. In Proceedings of the European Conference on Computer Vision (ECCV) , 2024. 
+
+# A Appendix 
+
+A.1 Vocabulary deepdive: caveats 
+
+Three caveats on Table 1, none of which change the result’s direction. First, the full-coverage extension to all 829 unique labels (99.3% of detection volume) gives synonym 89.3% ( n = 2 ,143 ), finer_grained 65.6% (n = 2 ,156 ), noise 12.0% ( n = 7 ,179 ), ruling out long-tail truncation as an explanation. Second, large-area clothing terms ( suit : 90.9%, dress : 60.7%, jacket : 50.0%) are classified as noise on semantic grounds but behave like synonyms in practice, since a coat’s or suit’s box naturally sits inside a full-body person box; this is an expected exception to the noise floor. Third, the finer_grained average of 65.8% hides a bimodal split: person-descriptor terms ( woman , boy , surfer ) score 90–100%, while true part-whole relations ( faucet →sink, 
+
+cushions →couch) score under 25%. 
+
+A.2 No-overlap subset: statistical note 
+
+The gt_gap point estimate rose from 76.7% ( n = 60 ) to 83.5% ( n = 200 , Wilson 95% CI [77.7%, 88.0%]). This falls within the original CI and is not evidence of a real shift, but a direct two-proportion test between the original 60 cases and the newly added 140 gives p ≈ 0.088 — not decisive, reported rather than dismissed as pure sampling noise. 
+
+A.3 SNAP checkpoint comparison 
+
+On a matched 200-image subset: clip-vit-base-patch32 gives SNAP 0.4424, clip-vit-base-patch16 
+
+gives 0.4299, clip-vit-large-patch14 gives 0.3693. None approaches the original paper’s reported 0.54, and the larger ViT-L/14 model is worse, not better, ruling out checkpoint choice as the source of the residual gap. 
+
+A.4 Robustness check: denominator convention 
+
+Both robustness-check scripts, as originally written, computed TP rates only over detections that matched 
+
+some ground-truth box, whereas the rest of this paper (§3.2–§3.4) counts every detection in the vocabulary category, treating zero-overlap cases as failures. Recomputing from raw counts under the all-detections convention (Table 3) changes the reported gaps for Grounding DINO (52.0pp → 55.0pp) and Qwen2.5-VL (47.0pp → 51.3pp) but strengthens rather than weakens the robustness conclusion, since the three config-urations end up more tightly clustered, not less. Two additional notes: Grounding DINO produces 45% more total detections than YOLO-World for the same label set, reflecting a real difference in default con-fidence behavior rather than a bug; Qwen2.5-VL occasionally writes long descriptive phrases instead of short category words (8.7% of labels), which fall naturally into the out-of-vocabulary bucket without special handling. 7

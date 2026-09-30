@@ -41,17 +41,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-29</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 0 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 23:08:37 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 23:03:09 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -62,7 +62,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日无新推荐，系统未产出可展示论文。</p>
+<p>今日共生成 19 篇推荐（精读 11 篇，速读 8 篇）</p>
+<p>精读：《C2FXNet: Coarse-to-Fine Scene Expert for Unified Object Detection across Adverse Weather》（9.0/10）, 《GTR: Gated Token Recurrence for Efficient Dense Prediction》（9.0/10）</p>
+<p>速读：《Semantically-Guided Domain Randomization for Industrial Object Detection in Low-Image-Budget Regimes》（8.0/10）, 《S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection》（8.0/10）, 《Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP--SNAP Discrepancy》（8.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -71,12 +74,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="C2FXNet: Coarse-to-Fine Scene Expert for Unified Object Detection across Adverse Weather">C2FXNet: Coarse-to-Fine Scene Expert for Unified Object Detection across Adverse Weather</span></li><li><span class="dpr-home-dashboard-paper-title" title="GTR: Gated Token Recurrence for Efficient Dense Prediction">GTR: Gated Token Recurrence for Efficient Dense Prediction</span></li><li><span class="dpr-home-dashboard-paper-title" title="Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection">Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>11</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -84,12 +87,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Semantically-Guided Domain Randomization for Industrial Object Detection in Low-Image-Budget Regimes">Semantically-Guided Domain Randomization for Industrial Object Detection in Low-Image-Budget Regimes</span></li><li><span class="dpr-home-dashboard-paper-title" title="S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection">S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection</span></li><li><span class="dpr-home-dashboard-paper-title" title="Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP--SNAP Discrepancy">Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP--SNAP Discrepancy</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">obj-detect <strong>8</strong></span></div>
 </section>
 </div>
 

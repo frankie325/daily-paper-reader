@@ -1,0 +1,266 @@
+Title: MEVL-STP: Multi-Encoder and Vision Language Model for Arbitrarily Shaped Scene Text Spotting
+
+URL Source: https://arxiv.org/pdf/2609.28857v1
+
+Published Time: Fri, 25 Sep 2026 00:23:24 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# MEVL-STP: Multi-Encoder and Vision Language Model for Arbitrarily Shaped Scene Text Spotting 
+
+Aman Anand 1, Partha Pratim Roy 2, and Palaiahnakote Shivakumara 3 
+
+> 1
+
+Rajiv Gandhi Institute of Petroleum Technology, India 
+
+amananand7080@gmail.com  
+
+> 2
+
+Indian Institute of Technology (ISM) Dhanbad, India 
+
+parthapratim@iitism.ac.in  
+
+> 3
+
+University of Salford, UK 
+
+s.palaiahnakote@salford.ac.uk 
+
+Abstract. Scene text spotting remains challenging for arbitrarily shaped text instances such as curved signs and dense multi-oriented characters in natural images, where tightly coupled architectures propagate local-ization errors directly into recognition failures. We present a two-stage pipeline that combines multi-encoder segmentation with vision-language model recognition to address this problem. In the detection stage, six frozen vision encoders (CLIP, DINOv2, SigLIP, EVA-CLIP, SAM, and ConvNeXt) extract complementary features spanning semantic, spatial, and texture spectra, which are fused through a trainable hierarchical Feature Pyramid Network with channel attention and decoded via a deep-supervision Progressive Scale Expansion network to generate pre-cise instance-level text masks. By keeping the encoders frozen, their independently learned feature spaces remain orthogonal during fusion, preventing the feature homogenization that degrades boundary preci-sion in single-backbone detectors. The detection stage produces tight polygon masks that conform to the actual shape of curved and arbi-trarily oriented text, rather than axis-aligned rectangles that inevitably include background content. In the recognition stage, these polygon-masked crops isolate the target text from surrounding clutter, allowing a Qwen3-VL-8B-Instruct model, fine-tuned via Low-Rank Adaptation on polygon-cropped scene text, to focus purely on reading the text with-out interference from neighbouring words or background noise. Without any synthetic pretraining data, our method achieves 91.99% detection F-measure and 85.86% end-to-end H-mean on CTW1500, setting a new state of the art and achieving strong performance on Total-Text and IC-DAR 2015 without any synthetic training data. Code is available at §
+
+MEVL-STP. 
+
+Keywords: Scene Text Detection · Curved Text Recognition · Vision Language Models · Multi Encoder Fusion 
+
+# 1 Introduction 
+
+Text spotting, the joint task of detecting and recognizing text in natural im-ages, has a wide range of real world applications, including autonomous driving, arXiv:2609.28857v1 [cs.CV] 23 Sep 2026 2 A. Anand, P. P. Roy, P. Shivakumara 
+
+augmented reality, document understanding, and multilingual translation ser-vices [1, 2]. Despite recent advances in transformer-based architectures [3, 4], accurately spotting arbitrarily shaped scene text remains challenging. Two par-ticular difficulties stand out: curved text, where character baselines follow non-linear paths along circular signs or arched banners, and dense multi-oriented text, where closely spaced instances at varying angles cause detection overlap and recognition interference. As illustrated in Fig. 1, existing methods frequently produce incomplete detections or misread such instances. Unified end-to-end architectures jointly optimize detection and recognition through a shared backbone [3–6]. By formulating text spotting as a set prediction problem, these methods eliminate many hand crafted components. However, the shared representation creates a tight coupling between localization and recogni-tion, where errors in one task directly degrade the other, making it difficult to optimize each task independently [7]. To mitigate this coupling, two stage de-tect then recognize methods [8–10] decouple the tasks into a dedicated detector followed by a separate recognizer, enabling independent optimization. However, these methods typically rely on a single CNN or ViT backbone that may lack the rich semantic and structural cues needed for challenging curved and dense multi-oriented text instances [11–13]. A critical observation motivating our work is that detection accuracy directly bounds end-to-end performance. Prior studies [14, 15] demonstrate that inaccu-rate localization propagates cumulative errors that recognition modules cannot fully recover, particularly for curved text where tight polygon boundaries are essential to isolate target characters from adjacent instances. Meanwhile, the emergence of large scale vision language models (VLMs) has transformed text recognition. Models pre-trained on millions of image text pairs [16, 17] encode broad world knowledge and linguistic priors, making them naturally effective at reading multi-oriented, partially occluded, and context dependent scene text compared to traditional attention based decoders trained from scratch. To address the challenges of curved and dense multi-oriented text spotting, we propose a decoupled framework that separates multi-encoder segmentation based detection from vision language model based recognition. In the detection stage, six frozen foundation encoders covering semantic, spatial, and texture feature spaces are fused through a trainable hierarchical Feature Pyramid Network with channel attention and decoded via deep-supervision Progressive Scale Expansion to produce precise polygon masks. In the recognition stage, these polygon crops isolate the target text from background clutter, enabling a Qwen3-VL model fine-tuned via Low-Rank Adaptation to read arbitrarily shaped text. Our main contributions are as follows. First, we introduce a multi-encoder segmentation module that fuses six frozen foundation encoders spanning seman-tic, spatial, and texture feature spaces through a trainable hierarchical FPN with channel attention, capturing complementary visual cues for precise curved and dense multi-oriented text detection (91.99% F1) without synthetic data. Second, we demonstrate that tight polygon masking from our detection stage isolates ar-bitrary text shapes from background noise, enabling a LoRA-adapted VLM to Multi-Encoder and VLM Recognition Text Spotting 3
+
+serve as a highly effective recognizer (94.23% accuracy). Third, we achieve state-of-the-art end-to-end text spotting results on CTW1500 (85.86% H-mean), vali-dating that decoupled multi-encoder detection with VLM recognition effectively addresses arbitrarily shaped scene text.  
+
+> Fig. 1: Qualitative comparison on challenging CTW1500 test samples. Each pair shows DeepSolo [3] (left) versus our method (right). In each left image, DeepSolo truncates the curved instance, breaks a single word into fragments, or misreads characters, which the broken and partial polygons and the wrong transcriptions make visible. In the right image of the same pair, our polygons stay tight, follow the full character baseline, and the VLM reads the text correctly. In short, our method finds the full text and reads it correctly.
+
+# 2 Related Work 
+
+Existing scene text spotting methods can be broadly classified into single-stage end-to-end approaches and two-stage detection-recognition approaches. 
+
+2.1 Single-Stage End-to-End Methods 
+
+Early single-stage methods integrate detection and recognition within a shared backbone. OmniParser V2 [18] utilizes Structured Points of Thought prompts to jointly handle text spotting and layout analysis, while SemiETS [19] applies semi-supervised learning to enforce consistency between localization and tran-scription. However, these methods suffer from tight error coupling, where lo-calization errors directly degrade recognition, making independent optimization difficult. Transformer-based architectures address this limitation through set predic-tion mechanisms that improve detection flexibility. DNTextSpotter [7] adopts denoising queries from DETR and represents arbitrary text using Bezier curves, though its iterative refinement increases training cost. SwinTextSpotter v2 [20] introduces a feature-alignment feedback loop between detection and recogni-tion, adding architectural complexity. InstructOCR [21] frames text spotting as 4 A. Anand, P. P. Roy, P. Shivakumara 
+
+an instruction-following task, providing format flexibility at the cost of heavy prompt engineering. While transformers improve detection, these single-stage methods still share a backbone across both tasks, limiting their ability to inde-pendently handle the challenges of curved and dense multi-oriented text. Some methods specifically target curved text. IATS [22] models reading order via thin-plate spline transformations, but its specialized sampling struggles to generalize to standard horizontal text. CRENet [23] detects individual charac-ters before grouping them into words, handling arbitrary shapes at the cost of grouping-stage errors and high model complexity. These methods highlight that curved text remains a persistent challenge for single-stage architectures. 
+
+2.2 Two-Stage Detection and Recognition 
+
+Two-stage approaches decouple detection and recognition into separate mod-ules, enabling independent optimization of each task. Self-Calibrated Two-Stage Spotters [24] apply contrastive learning for detection representations alongside a transformer-based recognizer. TextBlockV2 [25] detects text blocks via seg-mentation before applying pre-trained language models for recognition. While decoupling resolves error coupling, these methods still rely on a single backbone for detection, which may lack the diverse semantic and structural cues needed for curved and dense multi-oriented text. Our approach also adopts a decoupled two-stage pipeline but differs in two key aspects. First, we fuse six frozen foundation encoders through a trainable hi-erarchical FPN with channel attention rather than relying on a single backbone, capturing complementary semantic, spatial, and texture features for detection without synthetic data. Second, we apply parameter-efficient LoRA fine-tuning to a vision-language model for recognition rather than training a recognizer from scratch. This combination directly addresses the two core challenges: the multi-encoder ensemble provides the diverse feature coverage needed for precise curved text boundaries, while the VLM leverages broad linguistic priors to handle dense multi-oriented text where adjacent instances cause recognition interference. 
+
+# 3 Methodology 
+
+We propose a two-stage text spotting pipeline for arbitrarily-shaped scene text. The first stage employs a multi-encoder ensemble with Progressive Scale Ex-pansion (PSE) [11] for instance-level text detection. The second stage utilizes a fine-tuned Vision-Language Model (VLM) for text recognition. Figure 2 illus-trates the overall architecture. 
+
+3.1 Multi-Encoder Feature Extraction 
+
+Single encoders trained on one objective cannot capture the wide variation in font, scale, orientation, and background clutter present in scene text. To address Multi-Encoder and VLM Recognition Text Spotting 5 
+
+> Fig. 2: Overview of our two-stage pipeline. Stage 1 extracts features from six frozen encoders and local features, followed by a PSE Decoder to perform text segmentation at instance level. In Stage 2, we use a fine-tuned Qwen3-VL-8B model along with LoRA adapters to perform text recognition from extracted crops.
+
+this, we use an ensemble of six frozen pre-trained encoders spanning language-image models, self-supervised transformers, segmentation architectures, and hi-erarchical CNNs. Each encoder Ei produces features fi ∈ RCi×Hi×Wi , and the ensemble output is the set {f1, . . . , f6}. Figure 3 summarises the configurations. The six encoders are selected to span three complementary feature spec-tra. CLIP, SigLIP, and EVA-CLIP provide semantic features through language and image pretraining, capturing what visual content represents. DINOv2 and SAM provide spatial features through self supervised and segmentation pretrain-ing, capturing where text boundaries lie. ConvNeXt provides texture features through its hierarchical CNN architecture, preserving local stroke patterns that transformer encoders tend to smooth out. All encoder outputs are projected to a common dimension and concatenated channel-wise. As shown in Table 4, progressively adding encoders from each spectrum consistently improves detec-tion, confirming that each contributes meaningfully. Figure 6 visualizes the per-encoder feature responses. 
+
+Local Feature Extraction: To supply sub-pixel boundary cues that coarse-resolution encoders smooth out, we extract 16 handcrafted channels flocal ∈
+
+R16 ×32 ×32 : Gabor responses at multiple orientations, Sobel edges, stroke-width estimates, CLAHE enhancement, local variance, edge density, and gradient mag-nitude. These channels are processed through a separate convolutional branch and concatenated with the global FPN output. Their primary role is to sharpen polygon vertices during PSE boundary expansion, improving crop quality for downstream recognition. Figure 4 shows sample visualizations. These are pro-cessed through three convolutional blocks to 512 channels and concatenated with the FPN output to form Fcomb ∈ R1024 ×32 ×32 .6 A. Anand, P. P. Roy, P. Shivakumara 
+
+Fig. 3: The six frozen vision encoders spanning semantic (CLIP [17], EVA-CLIP [26], SigLIP [27]), spatial (DINOv2 [28], SAM [29]), and texture (ConvNeXt [30]) feature spectra. 
+
+Fig. 4: Local feature channels: Gabor responses capture stroke texture at multiple orientations, while Sobel edges, stroke width, and gradient magnitude provide sub-pixel boundary cues for polygon refinement. 
+
+3.2 Multi-Scale Feature Pyramid Network 
+
+Text instances span a wide range of sizes, so a fixed-resolution feature map can-not handle both small and large text well. We build a Multi-Scale FPN [31] that fuses encoder outputs at multiple resolutions. Each encoder output is projected to a common dimension d = 512 via 1×1 convolutions, resized to three pyramid scales ( 82, 16 2, 32 2), and fused by concatenation followed by a 1×1 convolution at each scale: 
+
+Fl = Conv 1×1
+
+
+
+Concat Proj i(fi)6
+
+> i=1
+
+
+
+, l ∈ { 1, 2, 3} (1) where Fl is the fused feature map at pyramid level l, Proj i projects encoder i’s output to d = 512 channels, and Conv 1×1 reduces the concatenated channels back to d.Multi-Encoder and VLM Recognition Text Spotting 7           
+
+> (a) Input (b) Features (c) Kernel S1(d) Kernel S6(e) Polygons
+
+Fig. 5: Intermediate outputs of the detection pipeline on a sample from CTW1500. (a) Input image containing the curved sign. (b) Fused multi-encoder feature map showing strong activation on text regions. (c) Smallest PSE kernel S1 highlighting text center seeds. (d) Largest kernel S6 covering the full text extent. (e) Final polygon instances after progressive scale expansion. 
+
+Deformable Attention [32] learns to sample only at task-relevant locations via learnable offsets: 
+
+DeformAttn (q, {Vl}) = 
+
+> L
+
+X
+
+> l=1
+> P
+
+X
+
+> p=1
+
+Al,p · Vl(r + ∆pl,p ) (2) where r is the reference point, ∆pl,p are learned offsets, and Al,p are attention weights. We set L = 3 levels to match our three FPN pyramid scales, P =8 sampling points per level following the default configuration of Deformable DETR [32], and 8 attention heads to balance capacity with computational cost. 
+
+3.3 Progressive Scale Expansion (PSE) 
+
+Adjacent text instances often merge into a single region during segmentation. PSE addresses this by predicting K = 6 kernel maps at increasing scales, where the smallest kernel captures only the text centre and subsequent kernels expand outward without merging neighbours. The PSE decoder maps Fcomb to K kernel maps through an encoder convolu-tion followed by four transposed convolutions (1024, 512, 256, 128, 64 channels), with a final head producing output S ∈ RK×512 ×512 :
+
+S = PSEDecoder (Fcomb ), Sk(x, y ) ∈ [0 , 1]  (3) where Fcomb is the combined global and local feature map, K = 6 is the number of scale kernels, and Sk(x, y ) is the text confidence at pixel (x, y ) for kernel k.The smallest kernel S1 is thresholded at τs = 0 .4 and labelled via connected components. Each subsequent kernel Sk (k = 2 , ..., 6), thresholded at τk = 0 .5, is expanded via breadth-first search while preserving instance boundaries. Contours below 50 pixels are discarded, and the remaining are simplified with Douglas-Peucker ( ϵ = 0 .002 × perimeter) to produce final polygons. Figure 5 illustrates these intermediate outputs on a CTW1500 sample. 8 A. Anand, P. P. Roy, P. Shivakumara  
+
+> Fig. 6: Per-encoder PCA-RGB feature visualizations on a CTW1500 sample. (b–g) show all six encoders’ projected features: semantic patches (CLIP), smooth instance blobs (DINOv2), language-aligned semantics (SigLIP, EVA-CLIP), boundary-aware spatial structure (SAM), and fine texture (ConvNeXt). (h) Handcrafted local features. (i) Full PSE confidence. (j) Final polygons.
+
+3.4 Decoupled Feature Interaction 
+
+A core challenge in arbitrarily shaped scene text spotting is achieving pre-cise boundaries. In traditional single-backbone detectors, an inherent semantic-spatial conflict exists: features optimized to confidently recognize text semantics tend to smooth over the sharp edge gradients required for tight, accurate local-ization. We address this by treating our Progressive Scale Expansion (PSE) process as a decoupled interaction between an expansion cue and a stopping cue. A polygon can be read, qualitatively, as the balance of a total energy in which the expansion force is kept apart from the stopping constraints: 
+
+Etotal = Esemantic (expansion ) + Espatial (stopping ) (4) where Esemantic is the expansive energy from semantic encoders that identifies text cores, and Espatial is the stopping energy from spatial encoders and local features that anchors boundaries to physical edges. Eq. 4 is descriptive and is not a trained objective. We do not minimise any energy term during optimisation, and we add no extra loss or gradient for it. The equation only describes how the decoupled features shape the PSE expansion in our model, with the expansion (semantic) and stopping (spatial) cues coming from frozen feature spaces that stay orthogonal. Our architecture directly implements this decoupling. The semantic encoders (e.g., CLIP, SigLIP) provide the expansive internal energy ( Esemantic ), Simul-taneously, the spatial encoders (e.g., SAM, DINOv2) and low-level handcrafted features provide the external stopping energy ( Espatial ), anchoring the expansion to physical visual boundaries like character strokes and edge gradients. Because our foundation encoders are frozen and independently trained, they maintain orthogonal feature spaces during decoding. This prevents the homogenization of features that degrades boundaries in unified networks, allowing the PSE algo-rithm to halt expansion exactly at the high-frequency text edges. Multi-Encoder and VLM Recognition Text Spotting 9
+
+3.5 Vision-Language Model for Text Recognition 
+
+Traditional OCR engines rely on fixed character dictionaries, limiting general-ization to diverse scripts. VLMs jointly reason over visual and textual features without a predefined lexicon. We select Qwen3-VL-8B-Instruct [16] as the recognition backbone for its strong scene-text visual grounding from large-scale image-text pretraining, which outperformed comparably-sized alternatives in preliminary recognition experi-ments on CTW1500 crops. Fine-tuning all 8B parameters would be expensive and prone to overfitting, so we apply Low-Rank Adaptation (LoRA) [33]: 
+
+W ′ = W + BA, B ∈ Rd×r , A ∈ Rr×k, r = 16 ≪ min( d, k ) (5) with α = 32 and dropout 0.05, applied to query, key, value, and output projec-tions. This adapts ∼0.2% of parameters. Text crops are extracted from polygon annotations with 5-pixel padding, resized to fit a 256 ×256 canvas while preserving aspect ratio, and padded with white background. The VLM is fine-tuned for 4 epochs with AdamW (lr = 10 −4,cosine decay, 5% warmup, batch size 16, bfloat16). The loss is selective cross-entropy on assistant response tokens only: 
+
+Lrec = − 1
+
+|A| 
+
+X
+
+> i∈A
+
+log P (yi | y<i , x) (6) where A is the set of assistant token positions, yi is the i-th target token, y<i 
+
+are preceding tokens, and x is the input crop. 
+
+3.6 End-to-End Training 
+
+The detection and recognition stages are first trained independently and then connected through a three-phase schedule. The total loss is: 
+
+L = Ldet + λrec · L rec , Ldet = LBCE + LDice  (7) where LBCE is binary cross-entropy, LDice is dice loss for segmentation, and 
+
+λrec controls the recognition loss weight. The phased approach stabilises learning by allowing detection to converge before introducing the heavier VLM gradients. Phase 1 (epochs 1–2) trains de-tection only ( λrec = 0 ). Phase 2 (epochs 3–10) introduces sparse VLM supervision every 16 steps with λrec = 0 .2 on 1 crop per batch. Phase 3 (epochs 11–30) in-creases to every 8 steps with λrec = 0 .4 on 2 crops per batch. We use separate learning rates: lr det = 10 −4 and lr vlm = 10 −5, with effective batch size 16 (8 × 2accumulation steps) and bfloat16 throughout. 
+
+Inference: At inference, the input is resized to 512 ×512 , passed through the encoder ensemble and FPN, and the PSE decoder predicts six kernel maps. The PSE algorithm separates instances into polygons, filtering those with area < 200 
+
+pixels or aspect ratio outside [0 .1, 15] . Each polygon crops the corresponding region from the original-resolution image, and the fine-tuned VLM generates the transcription. 10 A. Anand, P. P. Roy, P. Shivakumara 
+
+# 4 Experiments 
+
+4.1 Datasets and Evaluation Metrics 
+
+We evaluate on three benchmarks. CTW1500 [34] (1,000/500 train/test im-ages, 14-point polygon annotations) targets curved text at the line level. IC-DAR 2015 [35] (1,000/500 images, word-level quadrilaterals) contains blurry, multi-oriented text from a wearable camera. Total-Text [36] (1,255/300 im-ages, polygon annotations) covers horizontal, multi-oriented, and curved word instances. We report Precision, Recall, and F1 for detection (IoU ≥ 0.5), and end-to-end H-mean under None (lexicon-free), Full (full test-set lexicon), and Weak (ICDAR 2015 specific) settings. 
+
+4.2 Text Detection Results 
+
+Table 2 compares our detection stage against established methods. Our multi-encoder ensemble achieves 92.0% F1 on CTW1500, 89.6% on Total-Text, and 90.8% on ICDAR 2015, trained exclusively on each benchmark’s training split with no synthetic data. Across all three datasets, our method consistently achieves the highest recall (93.8%, 96.4%, 93.5%), indicating that the multi-encoder en-semble rarely misses text instances regardless of shape or orientation. The high recall is a direct consequence of fusing complementary feature spectra: spatial encoders anchor boundary locations while semantic encoders ensure even low-contrast text is detected. However, precision on Total-Text (83.9%) is noticeably lower than on the other benchmarks, because the high-sensitivity ensemble oc-casionally fires on textured background regions that resemble stroke patterns. This precision-recall trade-off reflects our design choice to favour recall, since missed detections cannot be recovered by the downstream VLM, whereas false positives are discarded when the recognizer produces low-confidence or empty text outputs. 
+
+Fairness of comparison. None of the baselines in Tables 2 and 3 is trained from scratch. They all start from ImageNet-pretrained backbones, so the comparison is really about which pretrained representation a method uses. The methods marked ∗ go further and use large-scale synthetic data together with multi-dataset supervision, which we do not use at all. We train MEVL-STP only on each benchmark’s own split (1,000/1,255/1,000 images), and it still surpasses these baselines on CTW1500. 
+
+Precision–recall sensitivity and false-positive audit. The lower Total-Text precision comes from our recall-favouring default seed threshold τs = 0 .4; a higher 
+
+τs trades recall for precision while F1 stays almost flat (Table 1). Sweeping τs
+
+from 0.3 to 0.7 without retraining, Total-Text precision rises from 83.9% to 87.3% for a 3.1-point recall drop, and CTW1500 behaves the same with F1 near 92%. A false-positive audit on CTW1500 is also reassuring: of 974 false positives, only 0.9% come from texture, while 72.6% are correct text localised at IoU 0.3 to 0.5 (boundary slack, not hallucination), and the recogniser drops a further 5.8% by returning empty text. Multi-Encoder and VLM Recognition Text Spotting 11 
+
+Table 1: Seed-threshold τs sensitivity on CTW1500 and Total-Text, with no retraining. A higher τs raises precision while F1 stays almost flat. 
+
+τs 0.30 0.40 0.50 0.60 0.70 CTW1500 P 87.67 88.99 90.19 91.32 92.39 
+
+R 95.39 94.57 93.69 92.71 91.59 F1 91.37 91.69 91.91 92.01 91.99 Total-Text P 82.58 83.90 85.18 86.30 87.30 
+
+R 97.20 96.40 95.30 94.40 93.30 F1 89.30 89.72 89.96 90.17 90.20 Table 2: Comparison of text detection performance on all three datasets: CTW1500, Total-Text, and ICDAR 2015. * denotes methods trained with synthetic data. Bold 
+
+and underline indicate the best and second-best performance, respectively.                                                                
+
+> Type Method Venue Year CTW1500 Total-Text ICDAR 2015
+> PRF1 PRF1 PRF1 Seg. TextBPN [37] ICCV 2021 88.3 84.7 86.5 92.4 87.9 90.1 –––FSG [38] CVPR 2022 88.1 82.4 85.2 90.7 85.7 88.1 90.9 87.3 89.1 CBNet [39] IJCV 2024 89.0 81.9 85.3 90.1 82.5 86.1 –––ABCNet v2* [40] TPAMI 2022 85.6 83.8 84.7 89.2 84.1 87.0 90.4 86.0 88.1 IAST* [22] TIP 2024 89.2 84.8 86.9 94.7 85.2 89.7 92.5 86.6 89.5 Reg. DPText-DETR [41] AAAI 2023 91.7 86.2 88.8 91.8 86.4 89.0 –––DeepSolo* [3] CVPR 2023 93.2 85.0 88.9 93.1 82.1 87.3 92.8 87.4 90.0 LRANet++ [14] arXiv 2026 89.1 85.3 87.2 91.1 85.2 88.1 89.6 86.7 88.1 LRANet++* [14] arXiv 2026 92.8 88.1 90.3 92.6 89.1 90.8 93.9 88.0 90.9
+> OmniParser* [18] TPAMI 2026 87.9 87.6 87.8 88.4 88.6 88.5 90.3 91.0 90.7
+> MEVL-STP –2026 90.3 93.8 92.0 83.9 96.4 89.6 88.2 93.5 90.8
+
+4.3 End-to-End Text Spotting Results 
+
+Table 3 compares our full pipeline against recent methods. Methods marked * use large-scale synthetic and multi-dataset training. Despite training exclusively on each benchmark’s training split, we achieve a Full H-mean of 85.9 on CTW1500, surpassing the prior best (LRANet++, 85.2) by +0.7 points, and set a new state of the art on CTW1500 None at 75.2 , a +4.5 margin over the previous best with-out any synthetic data. On Total-Text we achieve 81.9/85.6 (None/Full) and on ICDAR 2015 81.7 (Weak), though the remaining gap relative to synthetic-data methods on these benchmarks reflects the advantage of large-scale pretraining on word-level instances, which our method forgoes entirely. 
+
+4.4 Ablation Study 
+
+We conduct experiments on CTW1500 (Table 4) to validate our design choices. 12 A. Anand, P. P. Roy, P. Shivakumara   
+
+> Table 3: End-to-end text spotting results (H-mean %). “None”: lexicon-free evalua-tion; “Full”: full test-set lexicon; “W”: weak lexicon for ICDAR 2015 (all words in test set, equivalent to Full). Methods marked * use large-scale synthetic and multi-dataset external training data. Bold : best; underline: second best.
+
+CTW1500 Total-Text ICDAR 2015 Method Venue Year None Full None Full WTESTR* [4] CVPR 2022 56.0 81.5 73.3 83.9 79.4 TPSNet* [42] ACM MM 2022 59.7 79.2 76.1 82.3 –ABINet++* [43] TPAMI 2023 60.2 80.3 77.6 84.5 80.4 DeepSolo* [3] CVPR 2023 64.2 81.4 82.5 88.7 83.5 ESTextSpotter* [15] ICCV 2023 64.9 83.9 80.8 87.1 83.0 IAST* [22] TIP 2024 62.4 82.9 71.9 83.5 80.0 UNITS* [44] CVPR 2023 66.4 82.3 78.7 86.0 –OmniParser* [18] TPAMI 2026 66.8 85.1 84.0 88.9 84.5 
+
+LSGSpotter* [45] AAAI 2025 68.9 84.4 81.5 87.3 –LRANet++* [14] arXiv 2026 70.7 85.2 84.6 89.7 84.0 
+
+Ours – 2026 75.2 85.9 81.9 85.6 81.7  
+
+> Table 4: Ablation study on CTW1500. Dashes indicate configurations where the met-ric is not applicable.
+
+Configuration E2E Spotting Recognition Only Det. F1 H-mean Raw Acc. Full Acc. 
+
+Feature Spectrum Ablation 
+
+Semantic Only (CLIP, SigLIP, EVA) 0.32 – – –Spatial Only (DINOv2, SAM) 72.88 – – –Semantic + Texture (no Spatial) 64.77 – – –Spatial + Texture (no Semantic) 90.32 – – –Semantic + Spatial (no Texture) 90.63 – – –All Three Spectra (No Local feat.) 91.92 75.20 – –All Three Spectra 91.99 75.20 – –
+
+Training and Generalization 
+
+Joint Training 88.05 56.85 – –Cross-Dataset Eval 91.46 79.60 – –
+
+Recognition under Different Cropping Strategies 
+
+GT Polygons – – 82.25 94.23 Full Image (No Det. Stage) – – 77.56 –Rect. Bounding Box – 51.16 73.65 84.40 Multi-Encoder and VLM Recognition Text Spotting 13 
+
+Feature Spectrum Interdependence: No single feature type is self-sufficient. Semantic encoders alone reach only 0.32% F1: they recognise what is text but give diffuse activations that collapse without spatial grounding. Spatial encoders alone reach 72.88% F1, giving boundary structure but weak content discrimina-tion. Two spectra recover most performance (90.32–90.63%), and the third lifts it to 91.92%, so each spectrum adds complementary information. 
+
+Per-encoder contribution. To check that the gain comes from the architecture and not from raw capacity, we mask one encoder at inference without retraining (Table 5). Dropping a spatial encoder hurts the most (SAM −7.92 , DINOv2 
+
+−4.05 F1), while the three semantic and texture encoders cost less than 1 F1 each, since CLIP and EVA-CLIP cover for each other in the semantic spectrum. A redundant ensemble would lose accuracy slowly under any removal; ours in-stead breaks down on the spatial encoders, as expected when the encoders are complementary. Linear CKA on 100 CTW1500 images supports this: across all 15 pairs the similarity stays near zero (mean 0.002, at most 0.023 for CLIP/EVA-CLIP), far below the roughly 0.4 typical of heads that share a backbone.                          
+
+> Table 5: Per-encoder ablation. Change in CTW1500 detection metrics when one en-coder is masked at inference, with no retraining. The spatial encoders (SAM, DINOv2) contribute the most. Removed CLIP DINOv2 SigLIP EVA-CLIP SAM ConvNeXt
+> ∆F1 +0 .06 −4.05 −0.80 +0 .04 −7.92 −0.89
+> ∆P+0 .66 +1 .92 −1.81 +1 .13 +3 .57 +3 .21
+> ∆R−0.61 −10 .05 +0 .40 −1.18 −18 .21 −5.19
+
+Training Strategy: Joint training collapses end-to-end H-mean to 56.85% despite maintaining 88.05% detection F1, because VLM gradients destabilise the detection stage before polygon quality converges, confirming that phased train-ing is essential. The conflict here is between two objectives. The detector pushes the polygons toward the ground-truth text region, while the recogniser prefers polygons whose crops are easy to read. When the two are trained together while the polygons are still noisy, these objectives pull in different directions. Phasing avoids this by attaching the recogniser only after the polygons have converged. On the same weights this recovers an 85.86% H-mean, a gap of 29 points that turns on a single configuration switch, and it is exactly the error-decoupling benefit that our two-stage design has over tightly coupled end-to-end spotters. Cross-dataset evaluation (train on CTW1500, test on Total-Text) yields 91.46% detection F1 and 79.60% H-mean, demonstrating that the frozen encoder ensem-ble generalises across datasets without domain-specific fine-tuning. Feeding the entire uncropped image directly to the VLM yields only 77.56% accuracy, as it merges adjacent text. Cropping with loose rectangular bounding boxes achieves only 73.65% accuracy because of background noise. Our exact polygon cropping removes this noise entirely, boosting accuracy to 82.25%. 14 A. Anand, P. P. Roy, P. Shivakumara 
+
+Computational Cost. MEVL-STP trains only 27.1 M parameters (16 M of LoRA on Qwen3-VL, 11 M in the FPN, PSE decoder, and channel attention), fewer than DeepSolo’s 42.5 M; the six frozen encoders add 2.2 B parameters at inference. The cost sits in one place and is tunable: at 1024 2 input the detector uses 3601 GFLOPs, of which SAM-ViT-H alone is 2742 (76%), and throughput is 3.18/1.13 FPS (detection/full) on an H100. Replacing SAM-ViT-H with SAM-ViT-L makes that branch about 4× cheaper, and since SAM adds at most 7.92 F1 (Table 5), this trades accuracy for speed directly. Distilling the frozen ensemble into one student backbone, in the line of recent multi-teacher distillation, could remove this overhead while keeping the feature coverage; we leave it to future work. 
+
+4.5 Qualitative Results 
+
+Figure 7 presents end-to-end recognition results across all three benchmarks. Our method handles curved text on signs (CTW1500), dense multi-oriented layouts (ICDAR 2015), and mixed horizontal and curved word instances (Total-Text).       
+
+> (a) CTW1500 (b) Total-Text (c) ICDAR 2015
+> Fig. 7: Qualitative results on standard benchmarks demonstrating strong generaliza-tion across various scene text challenges, including extreme curvature (CTW1500), arbitrary orientations (Total-Text), and cluttered environmental text (ICDAR 2015).
+
+# 5 Conclusion 
+
+We presented MEVL-STP, a decoupled text spotting framework that fuses six frozen foundation encoders across semantic, spatial, and texture spectra for de-tection and applies LoRA-adapted VLM recognition on tight polygon crops. The three spectra are codependent: no single type suffices, yet together they reach 91.99% detection F1 on CTW1500 without synthetic data and a new state of the art of 85.86% Full H-mean, while staying competitive on Total-Text and ICDAR 2015. Limitations. The high-sensitivity ensemble occasionally fires on textured back-grounds, which lowers Total-Text precision; adaptive threshold calibration or a light verification stage would help. Recognition is also sequential per crop, so Multi-Encoder and VLM Recognition Text Spotting 15 
+
+latency grows with the number of instances, which the distillation and batched inference noted above could reduce. 
+
+# Acknowledgments 
+
+The authors thank the anonymous reviewers and the Area Chairs, whose feed-back helped us improve the paper. This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors. 
+
+# References 
+
+1. Z. Tian, W. Huang, T. He, P. He, and Y. Qiao. Detecting text in natural image with connectionist text proposal network. In Proceedings of the European Conference on Computer Vision , pages 56–72, 2016. 2. S. Long, X. He, and C. Yao. Scene text detection and recognition: The deep learning era. International Journal of Computer Vision , 129:161–184, 2021. 3. M. Ye, J. Zhang, S. Zhao, J. Liu, T. Liu, B. Du, and D. Tao. DeepSolo: Let transformer decoder with explicit points solo for text spotting. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 19348–19357, 2023. 4. X. Zhang, Y. Su, S. Tripathi, and Z. Tu. TESTR: Text spotting transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9509–9518, 2022. 5. Y. Kittenplon, I. Lavi, S. Fogel, Y. Bar, R. Manmatha, and P. Perona. Towards weakly-supervised text spotting using a multi-task transformer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 4594–4603, 2022. 6. M. Ye, J. Zhang, S. Zhao, J. Liu, T. Liu, B. Du, and D. Tao. DeepSolo++: Let transformer decoder with explicit points solo for text spotting. arXiv preprint arXiv:2305.19957 , 2023. 7. Y. Xie et al. DNTextSpotter: Arbitrary-shaped scene text spotting via improved denoising training. arXiv preprint arXiv:2408.00355 , 2025. 8. B. Shi, X. Bai, and C. Yao. An end-to-end trainable neural network for image-based sequence recognition and its application to scene text recognition. IEEE Transac-tions on Pattern Analysis and Machine Intelligence , 39(11):2298–2304, 2017. 9. L. Qiao, S. Tang, Z. Cheng, Y. Xu, Y. Niu, S. Pu, and F. Wu. Text perceptron: Towards end-to-end arbitrary shaped text spotting. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 34, pages 11899–11907, 2020. 10. X. Liu, D. Liang, S. Yan, D. Chen, Y. Qiao, and J. Yan. FOTS: Fast oriented text spotting with a unified network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 5676–5685, 2018. 11. W. Wang, E. Xie, X. Li, W. Hou, T. Lu, G. Yu, and S. Shao. Shape robust text detection with progressive scale expansion network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9328– 9337, 2019. 12. S. Long, J. Ruan, W. Zhang, X. He, W. Wu, and C. Yao. TextSnake: A flexible representation for detecting text of arbitrary shapes. In Proceedings of the European Conference on Computer Vision , pages 19–35, 2018. 16 A. Anand, P. P. Roy, P. Shivakumara 13. M. Liao, Z. Wan, C. Yao, K. Chen, and X. Bai. Real-time scene text detection with differentiable binarization. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 34, pages 11474–11481, 2020. 14. Y. Su, Z. Chen, Y. Du, Z. Wu, H. Xie, and Y.-G. Jiang. LRANet: A low-rank approximation network for accurate and efficient text spotting. arXiv preprint arXiv:2511.05818 , 2026. 15. M. Huang, J. Zhang, D. Peng, H. Lu, C. Huang, Y. Liu, X. Bai, and L. Jin. ESTextSpotter: Towards better scene text spotting with explicit synergy in trans-former. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 19438–19448, 2023. 16. Qwen Team. Qwen2.5 technical report. arXiv preprint arXiv:2412.15115 , 2025. 17. A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, G. Krueger, and I. Sutskever. Learning transfer-able visual models from natural language supervision. In Proceedings of the 38th International Conference on Machine Learning , pages 8748–8763, 2021. 18. W. Yu, Z. Yang, J. Wan, S. Song, J. Tang, W. Cheng, Y. Liu, and X. Bai. Om-niParser V2: Structured-points-of-thought for unified visual text parsing and its generality to multimodal large language models. IEEE Transactions on Pattern Analysis and Machine Intelligence , 48(8):9210–9227, 2026. 19. D. Luo, H. Zhu, Z. Zhang, D. Liang, X. Xie, Y. Liu, and X. Bai. SemiETS: Integrating spatial and content consistencies for semi-supervised end-to-end text spotting. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9329–9338, 2025. 20. M. Huang, D. Peng, H. Li, Z. Peng, C. Liu, D. Lin, Y. Liu, X. Bai, and L. Jin. SwinTextSpotter v2: Towards better synergy for scene text spotting. International Journal of Computer Vision , 133(8):5281–5301, 2025. 21. C. Duan, Q. Jiang, P. Fu, J. Chen, S. Li, Z. Wang, and J. Luo. InstructOCR: Instruction boosting scene text spotting. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, pages 2807–2815, 2025. 22. S.-X. Zhang, C. Yang, X. Zhu, H. Zhou, H. Wang, and X.-C. Yin. Inverse-like an-tagonistic scene text spotting via reading-order estimation and dynamic sampling. 
+
+IEEE Transactions on Image Processing , 33:825–839, 2024. 23. Y. Li, Y. Shu, B. Li, and R. Xu. Character can speak directly: An end-to-end character region excavation network for scene text spotting. Electronics , 14(5):851, 2025. 24. Y. Cheng, J. Huang, I. S. Tai, S. K. Mondal, T. Wang, and H. M. D. Kabir. Atwo-stage end-to-end framework for robust scene text spotting with self-calibrated detection and contextual recognition. Electronics , 14(23):4594, 2025. 25. J. Lyu et al. TextBlockV2: Towards precise-detection-free scene text spotting with pre-trained language model. arXiv preprint arXiv:2403.10047 , 2024. 26. Q. Sun, Y. Fang, L. Wu, X. Wang, and Y. Cao. EVA-CLIP: Improved training techniques for clip at scale. arXiv preprint arXiv:2303.15389 , 2023. 27. X. Zhai, B. Mustafa, A. Kolesnikov, and L. Beyer. Sigmoid loss for language image pre-training. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 11941–11952, 2023. 28. M. Oquab, T. Darcet, T. Moutakanni, H. Vo, M. Szafraniec, V. Khalidov, P. Fer-nandez, D. Haziza, F. Massa, A. El-Nouby, et al. DINOv2: Learning robust visual features without supervision. Transactions on Machine Learning Research , 2024. 29. A. Kirillov, E. Mintun, N. Ravi, H. Mao, C. Rolland, L. Gustafson, T. Xiao, S. Whitehead, A. C. Berg, W.-Y. Lo, P. Dollar, and R. Girshick. Segment any-Multi-Encoder and VLM Recognition Text Spotting 17 thing. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 3992–4003, 2023. 30. Z. Liu, H. Mao, C.-Y. Wu, C. Feichtenhofer, T. Darrell, and S. Xie. A ConvNet for the 2020s. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 11966–11976, 2022. 31. T.-Y. Lin, P. Dollar, R. Girshick, K. He, B. Hariharan, and S. Belongie. Feature pyramid networks for object detection. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition , pages 936–944, 2017. 32. X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai. Deformable DETR: Deformable transformers for end-to-end object detection. In Proceedings of the 9th Interna-tional Conference on Learning Representations , 2021. 33. E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, and W. Chen. LoRA: Low-rank adaptation of large language models. In Proceedings of the 10th International Conference on Learning Representations , 2022. 34. Y. Liu, L. Jin, S. Zhang, C. Luo, and S. Zhang. Curved scene text detection via transverse and longitudinal sequence connection. In Pattern Recognition , vol-ume 90, pages 337–345, 2019. 35. D. Karatzas, L. Gomez-Bigorda, A. Nicolaou, S. Ghosh, A. Bagdanov, M. Iwa-mura, J. Matas, L. Neumann, V. R. Chandrasekhar, S. Lu, et al. ICDAR 2015 competition on robust reading. In Proceedings of the 13th International Conference on Document Analysis and Recognition , pages 1156–1160, 2015. 36. C. K. Ch’ng and C. S. Chan. Total-Text: A comprehensive dataset for scene text detection and recognition. In Proceedings of the 14th IAPR International Conference on Document Analysis and Recognition , pages 935–942, 2017. 37. S.-X. Zhang, X. Zhu, C. Yang, H. Wang, and X.-C. Yin. Adaptive boundary pro-posal network for arbitrary shape text detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 1285–1294, 2021. 38. J. Tang, W. Zhang, H. Liu, M. Yang, B. Jiang, G. Hu, and X. Bai. Few could be better than all: Feature sampling and grouping for scene text detection. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 4553–4562, 2022. 39. X. Zhao, W. Feng, Z. Zhang, J. Lv, X. Zhu, Z. Lin, J. Hu, and J. Shao. CBNet: A plug-and-play network for segmentation-based scene text detection. International Journal of Computer Vision , 132(8):3119–3138, 2024. 40. Y. Liu, C. Shen, L. Jin, T. He, P. Chen, C. Liu, and H. Chen. ABCNet v2: Adaptive bezier-curve network for real-time end-to-end text spotting. IEEE Transactions on Pattern Analysis and Machine Intelligence , 44(11):8048–8064, 2021. 41. M. Ye, J. Zhang, S. Zhao, J. Liu, T. Liu, B. Du, and D. Tao. DPText-DETR: Towards better scene text detection with dynamic points in transformer. In Pro-ceedings of the AAAI Conference on Artificial Intelligence , volume 37, pages 3241– 3249, 2023. 42. W. Wang, Y. Zhou, J. Lv, D. Wu, G. Zhao, N. Jiang, and W. Wang. TPSNet: Reverse thinking of thin plate splines for arbitrary shape scene text representation. In Proceedings of the 30th ACM International Conference on Multimedia , pages 5014–5025, 2022. 43. S. Fang, Z. Mao, H. Xie, Y. Wang, C. Yan, and Y. Zhang. ABINet++: Au-tonomous, bidirectional and iterative language modeling for scene text spotting. 
+
+IEEE Transactions on Pattern Analysis and Machine Intelligence , 45(6):7123– 7141, 2023. 18 A. Anand, P. P. Roy, P. Shivakumara 44. T. Kil, S. Kim, S. Seo, Y. Kim, and D. Kim. Towards unified scene text spotting based on sequence generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15223–15232, 2023. 45. J. Lyu, W. Wang, D. Yang, J. Zhong, and Y. Zhou. Arbitrary reading order scene text spotter with local semantics guidance. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, pages 5919–5927, 2025.

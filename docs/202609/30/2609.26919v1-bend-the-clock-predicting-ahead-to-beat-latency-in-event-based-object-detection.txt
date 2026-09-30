@@ -1,0 +1,415 @@
+Title: Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection
+
+URL Source: https://arxiv.org/pdf/2609.26919v1
+
+Published Time: Thu, 24 Sep 2026 00:06:58 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection 
+
+Biswadeep Sen 1,2, Benoit R. Cottereau 2,3, Nicolas Cuperlier 2,4, Terence Sim 1,21 National University of Singapore, Singapore  
+
+> 2
+
+IPAL CNRS IRL 2955, Singapore  
+
+> 3
+
+CerCo, CNRS UMR 5549, Universit´ e de Toulouse, France  
+
+> 4
+
+ETIS UMR8051, CY Cergy Paris Universit´ e, ENSEA, CNRS, Cergy, France 
+
+Abstract — Event cameras promise low-latency perception for high-speed robotic systems, where even short delays can render detections stale by the time they inform downstream robotic decisions. Yet modern event detectors still require tens of milliseconds of computation before their predictions become available. Conventional evaluation ignores this delay by comparing predictions with annotations at the observation timestamp, even though the scene may have changed by the time those predictions are produced. We study this observation– availability mismatch in event-based multi-object detection and show that state-of-the-art event detectors degrade substantially when evaluated at prediction availability rather than observa-tion time. To address this, we introduce ChronoFuse, a causal availability-time detector that predicts object states for when its output becomes available rather than for when its input was observed. ChronoFuse performs causal cross-time fusion over a multi-scale feature hierarchy, combining current repre-sentations with cached temporal features to expose short-term temporal cues without using future observations. The fusion pathway is lightweight, adding only 0.17 million parameters and 0.84 ms of mean end-to-end latency overhead. ChronoFuse recovers 71% of the accuracy lost to latency on 1Mpx driving data and 90 .8% under rapid drone motion on FRED, nearly restoring zero-delay performance. Under the extreme motion of EV-Flying, ChronoFuse reaches 20 .95 sAP, compared with 2.25 
+
+for the strongest standard event detector ( 9.3×). These results show that predicting ahead can be critical for robots operating in fast-changing scenes, including autonomous driving, agile flight, and robotic interception. 
+
+I. I NTRODUCTION 
+
+Event cameras promise perception at the speed of motion. By reporting brightness changes asynchronously rather than capturing complete frames, they offer microsecond-scale temporal resolution, high dynamic range, and little motion blur [1]. These properties make them attractive for high-speed robotic perception, including autonomous driving, ag-ile flight, and robotic interception, where a few milliseconds can separate a useful detection from an obsolete one. Yet low sensing latency does not guarantee timely perception. Events must still be accumulated, encoded, processed, transferred, and post-processed. A detector observing the world at time 
+
+t therefore returns its prediction only at t + ∆ . By then, an accurate box may already describe the past. Conventional detection evaluation conceals this failure mode. Offline AP compares predictions derived from ob-servations at t with annotations at the same timestamp, effectively granting the detector zero computation time. In a deployed robot, however, downstream planning and control receive those predictions only at t + ∆ , after objects may have moved, appeared, or left the scene. Stale localization can therefore propagate into robotic decisions even when the detector was accurate for its original input. As illustrated in Fig. 1, this delay leaves a conventional detector spatially stale at output time, whereas predicting ahead by ∆ aligns the detection with the state of the world available to the robot. Despite their low-latency sensors, modern event detectors still require tens of milliseconds end-to-end (Table I). After only 33 .3 ms , even perfect boxes from time t retain just 72 .96 
+
+mAP on 1Mpx [2]. The central question is therefore not only 
+
+how accurately can we detect the present? , but what will be present when the prediction becomes available? 
+
+This mismatch is not unique to event vision. In the far more mature RGB detection literature, streaming percep-tion exposed the gap between offline evaluation and real-time deployment, motivating detectors that predict ahead to compensate inference delay [3]–[5]. However, these meth-ods are developed for frame-domain inputs; they neither characterize how availability-time error manifests in event detectors nor exploit the recurrent representations formed from asynchronous events. Existing event detectors use tem-poral memory to improve detection, but are still trained and evaluated to describe the latest observation rather than the scene at prediction availability. This gap is especially consequential in event vision. The rapid motion that makes event sensing most valuable also causes observation-time detections to become stale most quickly. Although faster models reduce the delay, they do not change the timestamp the detector is trained to describe. Exploiting the temporal advantage of event cameras therefore requires not only faster detection, but predicting the state that will be available to downstream robotic planning and control. We address this gap with ChronoFuse , which formulates event detection around the time at which a prediction be-comes available: 
+
+ˆYt+∆ = fθ (E≤t) .arXiv:2609.26919v1 [cs.RO] 22 Sep 2026 Conventional Detector 
+
+No latency compensation 
+
+ChronoFuse 
+
+Predicts ahead by Δ
+
+Stale at Output Aligned at Output 
+
+t
+
+t + Δ End to End Latency Δ 
+
+> Displacement during Δ
+
+Input Events             
+
+> Displacement during Δ
+> Motion during ΔMotion during Δ
+> Ground truth Prediction Prediction Ground truth Fig. 1. Computation turns accurate detections stale. An event window ending at tis processed with end-to-end latency ∆. Conventional detection becomes stale as objects move during computation, while ChronoFuse predicts ahead by ∆to align detections with the scene at output time.
+
+Here, E≤t denotes the event history observed through time 
+
+t, and ˆYt+∆ the predicted object classes and bounding boxes at the future availability time. ChronoFuse combines future-target supervision with a causal Cross-Time Fusion Module 
+
+that integrates current and cached multi-scale features, pro-viding the detection head with ordered short-term temporal cues without using future observations. The fused represen-tation is decoded directly into availability-time detections rather than extrapolating already-decoded boxes. The fusion pathway remains lightweight, adding only 0.17M parameters and increasing mean end-to-end latency by 0.84 ms .The benefit is already substantial on 1Mpx driving data, where ChronoFuse recovers 71% of the accuracy lost to latency. The gains become striking for rapid aerial motion: on FRED, ChronoFuse recovers 90 .8% of the latency-induced loss, nearly restoring same-time detection performance. EV-Flying exposes the failure mode at its extreme: observation-time event detectors reach at most 2.25 sAP under streaming evaluation, whereas ChronoFuse reaches 20 .95 sAP— 9.3×
+
+the best standard detector. These results show that predictive compensation becomes increasingly important for robotic perception precisely in the high-speed regimes where event cameras are most valuable. Our contributions are threefold:  
+
+> •
+
+We quantify the observation–availability mismatch in event-based detection, showing that observation-time evaluation overstates the accuracy delivered to a robot.  
+
+> •
+
+We introduce ChronoFuse , combining future-target su-pervision with causal cross-time fusion to align detec-tions with prediction availability.  
+
+> •
+
+We demonstrate its effectiveness across driving, drone, and bird/insect detection, recovering 90 .8% of the latency-induced loss on FRED and achieving 9.3× the sAP of the best observation-time detector on EV-Flying. II. R ELATED WORK 
+
+A. Event-Based Object Detection 
+
+Event-based object detection has progressed from con-volutional recurrence to increasingly efficient Transformer and state-space architectures. Early recurrent models estab-lished temporal memory for event streams [2], while RVT combined recurrence with hierarchical spatial attention to achieve a strong accuracy–runtime trade-off [6]. Subsequent methods targeted the cost of processing long event sequences more aggressively: SAST sparsified attention over infor-mative windows and tokens [7], S5-ViT replaced recurrent aggregation with continuous-time state-space dynamics [8], and SMamba combined sparse event representations with selective state-space modeling [9]. More recently, SSLA-Det further reduced computation through spatially sparse linear attention, though its evaluation was limited to the smaller-scale Gen1 and N-Caltech101 benchmarks [10]. Collectively, these methods have pushed both accuracy and efficiency substantially forward, making event-based detec-tion increasingly attractive for real-time robotic perception. Despite these advances, event detectors remain fundamen-tally observation-time predictors: improving runtime reduces staleness but does not predict through the computation delay. This distinction becomes increasingly important as object motion grows, since even a short delay can displace abox substantially before it reaches the downstream sys-tem. Among related event detectors, RED included one-step-ahead regression only as auxiliary regularization; its actual detection output remained observation-time aligned and therefore did not provide latency-compensated stream-ing detection [2]. ChronoFuse instead performs latency-compensated streaming detection by making availability-time prediction the primary detection objective. 
+
+B. Streaming and Latency-Aware Perception 
+
+Frame-based streaming perception formalized the gap between observation time and prediction availability. Li et al. introduced streaming AP (sAP), which scores the latest available prediction against the scene at the evaluation time rather than against the frame that originally produced it [3]. StreamYOLO showed that inference delay could be compensated by predicting future detections rather than only accelerating the detector [4]. LongShortNet and DAMO-StreamNet extended this idea through short- and long-term temporal feature fusion [11], [12], while Transtreaming further extended prediction across multiple future horizons to accommodate varying inference delay [5]. Together, these works established predictive compensation for RGB video, but were built around regularly sampled frames and frame-centric temporal fusion. Event-only detectors operate on event-derived temporal representations, making direct trans-fer of these streaming designs a poor fit. Event-based work has largely pursued latency reduction rather than prediction through the computation delay. SOD-Former used asynchronous event–frame fusion [13], while DAGr reduced repeated computation through incremental event updates [14]. Both shortened the observation-to-output path, but their detections still described the latest observed scene; finite processing therefore can leave fast-moving ob-jects vulnerable to staleness. STARE studied latency-aware evaluation and prediction in single-object tracking, where a target was initialized from a supplied box rather than discovered and classified by a detector [15]. A complementary approach is to compensate motion af-ter detection. Constant-velocity and Kalman extrapolation are inexpensive [3], [16], but operate only on completed detections, depend on temporal association and motion as-sumptions, and cannot recover objects missed before extrap-olation. Prior event-forecasting methods such as E-Motion and E-TIDE predicted future event representations rather than object detections [17], [18]. Converting these forecasts into detections requires a second inference stage, adding computation and allowing forecasting errors to propagate into the final boxes. ChronoFuse instead predicts object detections directly at availability time, without reconstructing future events or extrapolating completed detections. III. M ETHOD 
+
+ChronoFuse treats detector latency as a temporal-alignment problem. At processing step k, the latest causal observation ends at tk, but the resulting detections become usable only after computation has finished. A conventional detector describes the scene at tk, so its output may already be stale when consumed. ChronoFuse addresses this through two complementary components: future-target supervision shifts the desired output to tk +∆ , while a Cross-Time Fusion Module combines the preceding and current feature pyramids to capture recent scene evolution. Both components use only events observed no later than tk.The complete architecture and the internal structure of the Cross-Time Fusion Module are shown in Fig. 2. A causal event representation is passed through a recurrent encoder to obtain the current feature pyramid. The module then combines each pyramid level with its counterpart cached from the preceding step. The resulting fused pyramid is passed to the detection head. Training pairs each causal input with boxes and classes near tk +∆ ; removing the Cross-Time Fusion Module gives the future-target-only (FT-only) variant. 
+
+A. Latency-Compensated Detection 
+
+An event is represented as ei = (xi, y i, τ i, p i), where 
+
+(xi, y i) is its pixel location, τi its timestamp, and pi ∈{− 1, +1 } its polarity. At each processing cutoff tk, only events observed during the preceding integration window are available. Let R denote the event-representation operator that converts these events into the tensor consumed by the detector. The causal input is therefore 
+
+Xk = R({ei | tk − Twin < τ i ≤ tk}) , (1) where Twin is the integration-window duration. By construc-tion, Xk contains no event occurring after tk.The representation is next processed by a recurrent en-coder and multi-scale feature neck. Denote this network by 
+
+Gϕ, where ϕ comprises its trainable parameters. At step k,it produces the current feature pyramid Fk and updates the recurrent state Sk:
+
+(Fk, S k) = Gϕ(Xk, S k−1),
+
+Fk = {F (ℓ) 
+
+> k
+
+}Lℓ=1 . (2) Here, F (ℓ) 
+
+> k
+
+∈ RCℓ×Hℓ×Wℓ is the feature map at pyramid level ℓ. We instantiate Gϕ using the RVT encoder and feature pyramid [6]. Let Yq (t) denote the ground-truth boxes and classes in sequence q at time t. An observation-time detector is trained to estimate Yq (tk). ChronoFuse instead estimates the scene at tk +∆ , while retaining exactly the same causal observation support. For completeness, let eFk denote the feature pyramid presented to the detection head. It equals Fk in the FT-only variant and is the temporally fused pyramid in ChronoFuse, as defined in Sec. III-C. Let Dψ denote the YOLOX-style detection head with parameters ψ. Its output Zk contains the raw box-regression, objectness, and classification predic-tions. The operator Post subsequently performs decoding, Events  Event representation                              
+
+> Cross -Time Fusion Module Past 𝐹 𝑘−1
+> 1x1 Conv + BN + SiLU
+> Post -
+> processing
+> Cross -Time
+> Fusion
+> Encoder 𝐺 𝜙 Current Pyramid 𝐹 𝑘 Detection head 𝐷 𝜓
+> ..... .....
+> 1x1 Conv + BN + SiLU
+> Current 𝐹 𝑘
+> Ordered
+> Concat
+> Residual 𝑅 𝑘
+> Fused Pyramid
+> ෠𝐹 𝑘
+> Prediction
+> for ( 𝑡 𝑘 + Δ) Fig. 2. Overview of ChronoFuse. Events observed up to the causal cutoff tkare encoded into the current feature pyramid Fk. The Cross-Time Fusion Module combines it with the cached raw pyramid Fk−1to produce the fused representation eFk, which is passed to the YOLOX head. During training, the raw prediction Zkis supervised using the matched future target Y+
+> k; post-processing is used only to obtain the final prediction for tk+ ∆ .
+
+score filtering, and non-maximum suppression: 
+
+Zk = Dψ ( eFk),
+
+bY(∆)  
+
+> k
+
+= Post( Zk) ≈ Y q (tk + ∆) . (3) The horizon ∆ changes only the time represented by the desired output. Events in (tk, t k + ∆] remain unavailable during both training and inference. The integration window, interval between processing cutoffs, prediction horizon, and measured runtime are distinct temporal quantities. Their dataset-specific values are given in Sec. IV-A. 
+
+B. Future-Target Supervision 
+
+Whereas conventional supervision uses the observed con-figuration Yq (tk), we train ChronoFuse against the object configuration one prediction horizon later: 
+
+Y+ 
+
+> k
+
+= Yq (tk + ∆) . (4) Here, Y+ 
+
+> k
+
+denotes the valid annotation temporally closest to 
+
+tk + ∆ within the same sequence. The common prediction horizon and its relation to measured end-to-end detector latency are specified in Sec. IV-A. 
+
+C. Cross-Time Fusion Module 
+
+The Cross-Time Fusion Module exposes recent scene evolution by presenting the detection head with the preced-ing and current feature pyramids. At pyramid level ℓ, the temporal input is 
+
+H(ℓ) 
+
+> k
+
+=
+
+(
+
+F (ℓ)
+
+> k−1
+
+, within a sequence ,F (ℓ) 
+
+> k
+
+, at its first step . (5) Thus, H(ℓ) 
+
+> k
+
+contains only previously computed information, while boundary initialization prevents cross-sequence leak-age. At each pyramid level, the cached and current features are processed by the same projection. Specifically, for U ∈{H(ℓ) 
+
+> k
+
+, F (ℓ) 
+
+> k
+
+}, we define 
+
+Pℓ(U ) = SiLU 
+
+
+
+BN ℓ
+
+
+
+Conv (ℓ)1×1(U )
+
+ 
+
+,Pℓ(U ) ∈ R Cℓ  
+
+> 2×Hℓ×Wℓ
+
+.
+
+(6) The parameters of Pℓ are shared between the cached and current branches but are independent across pyramid levels. The Cross-Time Fusion Module concatenates the projected features in fixed past–present order and adds the result to the current feature: 
+
+R(ℓ) 
+
+> k
+
+=
+
+h
+
+Pℓ(H(ℓ) 
+
+> k
+
+) ∥ Pℓ(F (ℓ) 
+
+> k
+
+)
+
+i
+
+,
+
+eF (ℓ) 
+
+> k
+
+= F (ℓ) 
+
+> k
+
++ R(ℓ) 
+
+> k
+
+,
+
+eFk = { eF (ℓ) 
+
+> k
+
+}Lℓ=1 .
+
+(7) Here, ∥ denotes channel-wise concatenation. Each branch produces Cℓ/2 channels, so R(ℓ) 
+
+> k
+
+has the same dimensions as 
+
+F (ℓ) 
+
+> k
+
+. The fixed ordering preserves temporal direction, while the residual path retains the complete current representation. The Cross-Time Fusion Module does not explicitly estimate flow, velocity, or correspondence; the correction is learned directly from future-target supervision. We zero-initialize the affine BatchNorm parameters: 
+
+γℓ = βℓ = 0 = ⇒ Pℓ(U ) = 0 ,
+
+=⇒ R(ℓ) 
+
+> k
+
+= 0 ,
+
+=⇒ eF (ℓ) 
+
+> k
+
+= F (ℓ) 
+
+> k
+
+.
+
+(8) The initial model therefore preserves the pretrained detection function, after which optimization progressively learns the temporal residual. 
+
+D. Optimization and Causal Execution 
+
+Let ϕ, ω, and ψ denote the parameters of the feature encoder, Cross-Time Fusion Module, and detection head, respectively, and define Θ = ( ϕ, ω, ψ ). Let K∆ be the set of training steps having a valid future target Y+ 
+
+> k
+
+. Training minimizes 
+
+Θ⋆ = arg min 
+
+> Θ
+
+1
+
+|K ∆|
+
+X
+
+> k∈K ∆
+
+Ldet (Zk, Y+ 
+
+> k
+
+). (9) For the YOLOX-style head [19], SimOTA assignment is recomputed using the future boxes; the original regression, objectness, and classification losses remain unchanged. Steps outside K∆ contribute no detection loss but still update the temporal state and feature cache. The FT-only ablation removes the Cross-Time Fusion Module while retaining the same future targets, detector, and training objective, i.e., eFk = Fk. Its comparison with ChronoFuse therefore isolates the contribution of explicit cross-time feature fusion. After prediction, only the unfused current pyramid is cached: 
+
+H(ℓ) 
+
+> k+1
+
+← F (ℓ) 
+
+> k
+
+. (10) Consequently, temporal residuals do not accumulate recur-sively. ChronoFuse requires no additional encoder evaluation and stores only one feature pyramid per stream. The cache and temporal state are reset at sequence boundaries. IV. E XPERIMENTS 
+
+We evaluate whether predicting object locations ahead of the current event timestamp can compensate for the accuracy degradation introduced by inference latency. Our experiments address four questions: (i) how strongly does latency degrade event-based object detection, (ii) can learned future prediction recover the lost accuracy better than simple motion extrapolation, (iii) does the advantage persist under increasingly fast motion, and (iv) which components of the proposed future-fusion architecture contribute to its perfor-mance. 
+
+A. Experimental Setup a) Datasets: We evaluate on 1Mpx [2], FRED [20], and EV-Flying [21], spanning increasingly challenging latency-sensitive regimes. 1Mpx represents autonomous-driving sce-narios with cars and vulnerable road users such as pedestri-ans, cyclists, and motorcyclists, where detection latency can directly induce safety-critical localization errors. FRED shifts to aerial robotics, with small, fast-moving drones exhibiting less constrained motion and requiring timely localization for tracking and navigation. Finally, EV-Flying provides a stringent stress test, with rapidly moving birds and insects whose small size, abrupt trajectories, and large displacements make stale detections particularly severe. This progression tests whether latency compensation remains effective as target motion becomes less constrained and object scale decreases. 
+
+b) Streaming metrics: Following prior work on stream-ing perception [4], [5], we report streaming Average Pre-cision (sAP), which measures detection accuracy at the time predictions become available rather than at the input timestamp. We report COCO-style sAP 50:95 , together with 
+
+sAP 50 and sAP 75 . All values are reported as percentages. 
+
+c) Latency-aware streaming evaluation: Let E≤t de-note all events observed up to time t, and let Bτ denote the ground-truth detections at time τ . For a detector with end-to-end latency ∆, a prediction computed from observations available at t reaches the downstream system only at t + ∆ .Accordingly, streaming evaluation compares the prediction with the scene at its availability time: 
+
+ˆBt = fθ (E≤t), ˆBt ←→ Bt+∆ . (11)                           
+
+> TABLE I END -TO -END DETECTOR LATENCY ON AN NVIDIA RTX 3090 ( MS ). Method Venue Mean Median P90 P95 RVT [6] CVPR’23 29.89 28.81 37.27 41.65 SAST [7] CVPR’24 47.86 47.05 56.36 58.64 S5-ViT [8] CVPR’24 38.38 37.26 46.11 49.84 SMamba [9] AAAI’25 45.17 43.40 58.20 59.48
+
+Thus, even an accurate prediction for the observed scene may become stale during computation. ChronoFuse instead predicts the target state at t + ∆ using only events available up to t, and is evaluated against the same ground truth Bt+∆ .Unless otherwise stated, we evaluate at a common stream-ing horizon of ∆ = 33 .33 ms (one 30 Hz time step), which lies within the measured end-to-end latency range of contemporary event-based detectors (Table I). For RVT, this falls between its mean ( 29 .89 ms) and P90 ( 37 .27 ms) latency. All timings are measured on an NVIDIA RTX 3090 and include representation construction, inference, prediction transfer, decoding, and NMS. Input construction remains dataset-specific: 1Mpx uses 50 ms event-integration windows and processing strides, whereas FRED and EV-Flying use 
+
+33 .33 ms windows and strides. 
+
+d) Computational overhead: Under identical condi-tions on a single NVIDIA RTX 3090, ChronoFuse adds only 0.84 ms (2.84% ) of mean end-to-end latency relative to RVT-B. The fusion pathway adds just 0.17 M parameters (0.93% ) and a 1.64 MiB feature cache per stream, requires no additional encoder pass, and keeps the mean runtime below the 33 .33 ms prediction horizon. 
+
+e) Baselines: We compare against four representative event-based detectors spanning recurrent Transformer, sparse Transformer, state-space, and Mamba-based architectures: RVT [6], SAST [7], S5-ViT [8], and SMamba [9]. We additionally evaluate causal Constant Velocity and Kalman extrapolation on RVT detections. Kalman provides a strong classical baseline by adaptively estimating object-specific motion while suppressing detection noise; its linear formu-lation also makes an EKF unnecessary. All extrapolation variants predict detections at t + ∆ using only information available up to t.
+
+B. Main Results a) 1Mpx: A 33 .33 ms delay reduces RVT from 47 .39 
+
+to 43 .17 sAP, a 4.22 -point loss caused by temporal mis-alignment. Constant Velocity and Kalman recover only part of this loss, reaching 44 .72 and 45 .55 sAP, respectively. ChronoFuse raises performance to 46 .20 sAP, outperforming these baselines by 1.48 and 0.65 points. It gains 3.03 sAP over RVT at prediction availability, recovers 71 .8% of the latency-induced loss, and comes within 1.19 points of the zero-delay reference. ChronoFuse particularly improves precise localization: 
+
+sAP 50 rises from 73 .70 to 74 .93 , whereas sAP 75 increases from 42 .84 to 47 .60 . The larger 4.76 -point gain at the stricter threshold indicates improved spatial alignment. The gains are TABLE II DETECTION PERFORMANCE AT A FIXED ∆ = 33 .33 MS LATENCY , CHOSEN AS A COMMON HORIZON REPRESENTATIVE OF MEASURED END -TO -END DETECTOR RUNTIMES . E XISTING DETECTOR OUTPUTS ARE EVALUATED AT t + ∆ ; MOTION BASELINES EXTRAPOLATE TO THE SAME HORIZON .1Mpx FRED EV-Flying Method sAP sAP 50 sAP 75 sAP sAP 50 sAP 75 sAP sAP 50 sAP 75 
+
+## RVT (CVPR’23) 43.17 73.70 42.84 26.88 76.22 12.25 1.94 10.47 0.06 S5-ViT-B (CVPR’24) 43.37 71.89 44.55 25.29 72.61 10.69 2.01 10.71 0.07 SAST (CVPR’24) 43.43 74.89 43.31 27.17 76.75 12.46 1.86 9.75 0.07 SMamba (AAAI’25) 43.59 75.44 43.00 25.36 73.74 10.40 2.25 11.41 0.06 RVT + Constant Velocity 44.72 73.77 45.33 39.75 81.38 34.40 3.97 14.04 1.30 RVT + Kalman 45.55 74.50 46.43 39.98 84.90 31.30 7.91 21.77 3.50 
+
+## ChronoFuse (Ours) 46.20 74.93 47.60 44.99 87.61 40.93 20.95 54.66 9.87 
+
+Fig. 3. Qualitative comparison across representative motion regimes. Green dashed boxes denote ground truth and solid magenta boxes denote predictions. Compared with RVT and RVT + Kalman extrapolation at the same availability horizon, ChronoFuse maintains tighter spatial alignment across motion regimes, including both the near-static (upper) and the fast-moving drone (lower). 
+
+also consistent across pedestrians, two-wheelers, and cars, with class AP improvements of 3.46 , 3.18 , and 2.45 points, respectively. We further rank matched objects by box-normalized image-plane displacement and partition them into three equal-cardinality motion groups. The RVT loss caused by latency increases from 0.53 sAP for low motion to 2.23 for medium motion and 10 .06 for high motion. For high-motion objects, the corresponding sAP 75 loss reaches 15 .44 points. ChronoFuse recovers 1.83 sAP in the medium-motion group and 7.76 sAP in the high-motion group, restoring 77% of the high-motion loss. This shows that its benefit grows with temporal displacement, where latency compensation is most critical. Moreover, future-target supervision transfers beyond RVT: applying FT-only supervision to SMamba improves availability-time sAP from 43 .59 to 45 .95 (+2 .36 ). b) FRED: FRED exhibits a severe latency penalty owing to the rapid image-plane motion of small drones. RVT achieves 46 .82 sAP under observation-time evaluation, but only 26 .88 sAP at the 33 .33 ms availability horizon, a 19 .94 -point reduction. Constant Velocity and Kalman recover to 
+
+39 .75 and 39 .98 sAP, restoring 64 .5% and 65 .7% of this loss, respectively. ChronoFuse reaches 44 .99 sAP, improving upon RVT at prediction availability by 18 .11 points, recovering 
+
+90 .8% of the lost accuracy, and remaining within 1.83 points of the observation-time reference. The improvement is par-ticularly pronounced under strict localization: ChronoFuse gains 11 .39 points at sAP 50 and 28 .68 points at sAP 75 ,raising sAP 75 from 12 .25 to 40 .93 . This disproportionate gain at the stricter overlap threshold demonstrates its ability to correct detections that would otherwise become spatially stale during computation. 
+
+c) EV-Flying: EV-Flying provides the most demanding stress test, with tiny birds and insects moving by a large fraction of their box size within a single detection interval. Against a same-time RVT reference of 38 .41 sAP, exist-ing event detectors fall to at most 2.25 sAP when evalu-ated at prediction availability, whereas ChronoFuse reaches 
+
+20 .95 sAP— 9.3× the strongest existing-detector result. This regime exposes the failure mode most directly: small tem-poral displacements can destroy IoU when the target itself occupies only a few pixels. Fig. 3 illustrates this progression across road users, drones, and fast biological targets. Overall, the results show a consistent trend: as target motion becomes more severe, stale detection degrades more sharply, while predictive latency compensation becomes in-creasingly valuable, as summarized in Fig. 4(a,b). 
+
+C. Comparison with RGB Streaming Detection 
+
+We compare ChronoFuse against StreamYOLO [4], astrong RGB streaming detector, on the corresponding syn-chronized FRED sequences, using events for ChronoFuse and RGB frames for StreamYOLO under the same streaming evaluation protocol. Because the systems use different sens-ing modalities and architectures, we present this comparison as a matched-timing cross-modal reference rather than a controlled modality ablation. StreamYOLO achieves 22 .76 sAP (59 .6 sAP 50 , 11 .6sAP 75 ), whereas ChronoFuse reaches 44 .88 sAP ( 87 .59 sAP 50 , 40 .72 sAP 75 ), yielding gains of 22 .12 sAP and 29 .12 sAP 75 . The larger margin at the stricter overlap threshold indicates substantially tighter availability-time localization under rapid drone motion. 
+
+D. Motion-speed robustness 
+
+We progressively accelerate FRED from 1× to 4× while keeping the availability horizon fixed (Fig. 4(c) and Ta-ble III). With training only at 1×, ChronoFuse substantially outperforms RVT and SMamba at all unseen speeds, al-though performance degrades under the largest speed shift. Mixed-speed training raises ChronoFuse’s Avg. sAP from 
+
+21 .01 to 33 .39 , versus 12 .10 for RVT and 11 .82 for SMamba. ChronoFuse retains 30 .54 and 23 .21 sAP at 3× and 4×,       
+
+> TABLE III MOTION -SPEED ROBUSTNESS ON FRED AT ∆ = 33 .33 MS . M IX DENOTES JOINT 1×–4×TRAINING ; A VG .SAP AVERAGES ALL FOUR SPEEDS .
+
+Method 1× 2× 3× 4× Avg.sAP RVT 1× 26.86 8.97 4.41 2.78 10.75 SMamba 1× 25.30 9.09 4.90 3.24 10.63 
+
+ChronoFuse 1× 44.88 23.50 10.08 5.57 21.01 
+
+RVT Mix 27.62 11.16 5.83 3.79 12.10 SMamba Mix 26.62 11.07 5.91 3.68 11.82 
+
+ChronoFuse Mix 42.04 37.78 30.54 23.21 33.39              
+
+> TABLE IV ABLATION RESULTS (SAP) ON 1M PX AND EV-F LYING (∆ = 33 .33 ms ).
+> Variant 1Mpx EV-Flying FT-only (w/o fusion) 45.75 16.54 w/o residual connection 44.97 18.82
+> ChronoFuse 46.20 20.95
+
+respectively, with only a modest reduction in nominal-speed accuracy. 
+
+E. Ablation Study 
+
+We ablate ChronoFuse on 1Mpx and EV-Flying under the same future-target protocol, isolating the two central design choices in Fig. 2. FT-only bypasses the Cross-Time Fusion Module while retaining future supervision, separating the supervision shift from temporal fusion. The no-residual variant retains past–present fusion but removes the current-feature identity path, testing the value of preserving the complete current representation. ChronoFuse performs best on both datasets. On 1Mpx, removing fusion and the residual path lowers sAP from 
+
+46 .20 to 45 .75 and 44 .97 , respectively. On EV-Flying, the corresponding scores are 16 .54 and 18 .82 , compared with 
+
+20 .95 for ChronoFuse, confirming that both components remain beneficial under rapid motion (See Table IV). V. C ONCLUSION 
+
+We showed that computation latency is not merely a systems-level detail in event-based robotic perception: even delays of a few tens of milliseconds can leave detections spatially stale when they become available, particularly under fast motion. We introduced ChronoFuse , a causal cross-time fusion framework that predicts object states directly at availability time using only observed events, rather than extrapolating already-stale detections. Across driving, drone, and bird/insect scenarios, ChronoFuse substantially recovers accuracy lost to latency, including approximately 71% and 
+
+91% of RVT’s latency-induced accuracy loss on 1Mpx and FRED, respectively. These gains extend to EV-Flying, where rapid bird and insect motion causes the performance of stan-dard event detectors to degrade sharply. Synthetic high-speed (a) Cross-dataset recovery (b) FRED localization recovery (c) Motion-speed robustness Fig. 4. Complementary analysis of latency compensation. (a) Across 1Mpx, FRED, and EV-Flying, ChronoFuse consistently recovers a larger fraction of the latency-induced accuracy loss than model-based motion extrapolation. (b) On FRED, ChronoFuse produces substantially larger gains at the stricter overlap threshold, indicating improved localization of objects displaced during computation. (c) Under mixed-speed training, ChronoFuse remains substantially more robust than RVT as motion is accelerated from 1× to 4×.
+
+stress tests further expose the vulnerability of observation-time detection as apparent motion increases. On synchro-nized FRED data, ChronoFuse also achieves nearly twice the streaming accuracy of RGB StreamYOLO under the same evaluation protocol. By aligning detections with the world state at prediction availability rather than at observation time, ChronoFuse provides more timely object state estimates for downstream robotic decision-making, including navigation, interception, and multi-robot coordination. Future work can extend the current fixed-horizon formulation to latency-conditioned models that adapt their predictions to changing computational loads and system delays. Taken together, these results establish availability-time prediction as an effective paradigm for latency-aware event-based robotic perception, substantially recovering localization accuracy precisely in the high-speed regimes where stale detections are most damaging. ACKNOWLEDGMENT 
+
+The authors thank the anonymous reviewers for con-structive feedback. The computational work involved in this research was partially supported by NUS IT’s Research Com-puting group under grant NUSREC-HPC-00001. OpenAI Codex was used for coding assistance during implementation and experimental scripting. OpenAI ChatGPT was used for conceptual brainstorming and refinement of diagrams in the Introduction and Method sections. All resulting material was reviewed and validated by the authors. REFERENCES [1] G. Gallego, T. Delbruck, G. Orchard, C. Bartolozzi, B. Taba, A. Censi, S. Leutenegger, A. J. Davison, J. Conradt, K. Daniilidis, and D. Scara-muzza, “Event-based vision: A survey,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 44, no. 1, pp. 154–180, 2022. [2] E. Perot, P. De Tournemire, D. Nitti, J. Masci, and A. Sironi, “Learning to detect objects with a 1 megapixel event camera,” Advances in Neural Information Processing Systems , vol. 33, pp. 16 639–16 652, 2020. [3] M. Li, Y.-X. Wang, and D. Ramanan, “Towards streaming perception,” in Computer Vision – ECCV 2020 , ser. Lecture Notes in Computer Science, vol. 12347. Springer, 2020, pp. 473–488. [4] J. Yang, S. Liu, Z. Li, X. Li, and J. Sun, “Real-time object detection for streaming perception,” in 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . IEEE, 2022, pp. 5375–5385. [5] X. Zhang, Y. Cui, C. Fu, Z. Wang, Y. Sun, X. Liu, and W. Wu, “Transtreaming: Adaptive delay-aware transformer for real-time streaming perception,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 10, 2025, pp. 10 185–10 193. [6] M. Gehrig and D. Scaramuzza, “Recurrent vision transformers for object detection with event cameras,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,2023, pp. 13 884–13 893. [7] Y. Peng, H. Li, Y. Zhang, X. Sun, and F. Wu, “Scene adaptive sparse transformer for event-based object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024, pp. 16 794–16 804. [8] N. Zubic, M. Gehrig, and D. Scaramuzza, “State space models for event cameras,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024, pp. 5819– 5828. [9] N. Yang, Y. Wang, Z. Liu, M. Li, Y. An, and X. Zhao, “Smamba: Sparse mamba for event-based object detection,” Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 9, pp. 9229– 9237, 2025. [10] H. Hao, Z. Sui, R. Zou, Z. Dai, N. Zubi´ c, D. Scaramuzza, and W. Wang, “Low-latency event-based object detection with spatially-sparse linear attention,” in Computer Vision – ECCV 2026 , 2026. [Online]. Available: https://arxiv.org/abs/2603.06228 [11] C. Li, Z.-Q. Cheng, J.-Y. He, P. Li, B. Luo, H. Chen, Y. Geng, J.-P. Lan, and X. Xie, “LongShortNet: Exploring temporal and semantic features fusion in streaming perception,” in IEEE International Conference on Acoustics, Speech and Signal Processing , 2023, pp. 1–5. [Online]. Available: https://arxiv.org/abs/2210.15518 [12] J.-Y. He, Z.-Q. Cheng, C. Li, W. Xiang, B. Chen, B. Luo, Y. Geng, and X. Xie, “DAMO-StreamNet: Optimizing streaming perception in au-tonomous driving,” in Proceedings of the Thirty-Second International Joint Conference on Artificial Intelligence , 2023, pp. 810–818. [13] D. Li, J. Li, and Y. Tian, “SODFormer: Streaming object detection with transformer using events and frames,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 11, pp. 14 020–14 037, 2023. [14] D. Gehrig and D. Scaramuzza, “Low-latency automotive vision with event cameras,” Nature , vol. 629, pp. 1034–1040, 2024. [15] J. Chu, R. Zhang, C. Yang, Z. Yu, Z. Bu, H. Liu, F. R¨ ohrbein, A. Knoll, G. Chen, and C. Jiang, “Bridging the latency gap with a continuous stream evaluation framework in event-driven perception,” 
+
+Nature Communications , vol. 17, no. 1, p. 2441, 2026. [16] R. E. Kalman, “A new approach to linear filtering and prediction problems,” Journal of Basic Engineering , vol. 82, no. 1, pp. 35–45, 1960. [17] S. Wu, Z. Zhu, J. Hou, G. Shi, and J. Wu, “E-Motion: Future motion simulation via event sequence diffusion,” in Advances in Neural Information Processing Systems , vol. 37, 2024. [18] B. Sen, B. R. Cottereau, N. Cuperlier, and T. Sim, “E-TIDE: Fast, structure-preserving motion forecasting from event sequences,” in 
+
+2026 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2026. [19] Z. Ge, S. Liu, F. Wang, Z. Li, and J. Sun, “YOLOX: Exceeding YOLO series in 2021,” arXiv preprint arXiv:2107.08430 , 2021. [20] G. Magrini, N. Marini, F. Becattini, L. Berlincioni, N. Biondi, P. Pala, and A. D. Bimbo, “Fred: The florence rgb-event drone dataset,” in 
+
+Proceedings of the 33rd ACM International conference on multimedia ,2025, pp. 13 170–13 176. [21] G. Magrini, F. Becattini, G. Colombo, and P. Pala, “Ev-flying: an event-based dataset for in-the-wild recognition of flying objects,” in 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW) . IEEE, 2025, pp. 4947–4955.

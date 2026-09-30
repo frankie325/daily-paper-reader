@@ -1,0 +1,1183 @@
+Title: A Unified Framework and Dataset for Oriented Object Visual Grounding in Remote Sensing
+
+URL Source: https://arxiv.org/pdf/2609.28230v1
+
+Published Time: Thu, 24 Sep 2026 01:35:44 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 1
+
+# A Unified Framework and Dataset for Oriented Object Visual Grounding in Remote Sensing 
+
+Zeyu Ding , Yong Zhou , Jiaqi Zhao , Member, IEEE , Wen-Liang Du Member, IEEE ,Xixi Li Member, IEEE , Hancheng Zhu , Rui Yao , Member, IEEE , and Abdulmotaleb El Saddik , Fellow, IEEE 
+
+Abstract —Visual grounding in remote sensing images aims to locate objects described by referring expressions. Most existing methods predict horizontal bounding boxes, which are often inaccurate for objects with arbitrary orientations. To address this limitation, we introduce O 2-VG, a family of models for oriented object visual grounding with three complementary de-signs. Specifically, O 2-VG-Trans is a cross-modality transformer for oriented object visual grounding. It establishes a strong discriminative foundation for the model family. Building upon it, O 2-VG-Uni predicts universal oriented proposals for possible foreground objects without specific text prompts. It also supports object retrieval through cached proposal embeddings. Using these universal oriented proposals as input prompts, O 2-VG-VLM is an autoregressive vision-language model. It generates oriented box token blocks in parallel through multi-token pre-diction. In addition, we construct DIOR-R-RSVG, a dataset for oriented object visual grounding in remote sensing images. It provides image, expression, and oriented box triplets for training and evaluation. Together, the O 2-VG family provides a flexible framework that spans discriminative transformers and generative vision-language models. It achieves superior performance across multiple benchmarks. Code is available at 
+
+@ https://github.com/wokaikaixinxin/ai4rs. 
+
+Index Terms —Visual grounding, remote sensing, oriented ob-ject, dataset. 
+
+I. I NTRODUCTION 
+
+Visual grounding, also known as referring expression com-prehension [1], aims to locate target objects in an image based on referring expressions. It enables language-guided object localization by associating visual regions with textual descrip-tions. Remote sensing images provide rich visual information of geographic scenes and support various applications [2]. Compared with natural images [3], remote sensing images contain objects with scale variations, dense distributions, and arbitrary orientations [4]. Users often need to locate target 
+
+Received September 2026; revised **; accepted **. Date of publication 2026; date of current version 2026. This work was supported in part by the National Natural Science Foundation of China (Grant No. 62272461, 62676414, 62602671, 62671592) (Corresponding author: Yong Zhou.) 
+
+Zeyu Ding, Yong Zhou, Jiaqi Zhao, Wen-Liang Du, Xixi Li, Hancheng Zhu, and Rui Yao are with the School of Computer Science and Technology/School of Artificial Intelligence, the Mine Digitization Engineering Research Center of the Ministry of Education, and Jiangsu Provincial Industrial Technology Engineering Center for Intelligent Sensing and Emergency IoT in Underground Space, China University of Mining and Technology, Xuzhou 221116, China (e-mails: dingzeyu@cumt.edu.cn, yzhou@cumt.edu.cn, jiaqizhao@cumt.edu.cn, wldu@cumt.edu.cn, xixil@cumt.edu.cn, zhuhancheng@cumt.edu.cn, ruiyao@cumt.edu.cn). Abdulmotaleb El Saddik is with the School of Electrical Engineering and Computer Science, University of Ottawa, Ottawa, ON K1N 6N5, Canada (e-mail: elsaddik@uottawa.ca). Digital Object Identifier A tennis court on 
+
+the far right 
+
+horizontal 
+
+box 
+
+horizontal object visual grounding 
+
+O2-VG -Trans: oriented object visual grounding 
+
+O2-VG -Uni: universal oriented  proposal s
+
+oriented 
+
+box 
+
+A tennis court 
+
+on the far right 
+
+objectness  prompt  objectness 
+
+oriented 
+
+object                  
+
+> <box> </box>
+> (536,381,699,616 )
+> (617,500,216,101, -71 )
+> A tennis court on the far
+> right. The foreground
+> oriented boxes: <box>
+> <770><625><270><125>
+> <105></box><box>… <771> <270> <625> <126> <105>
+> <ref> atennis court on the far
+> right </ref> <null> <null> <null> <null> <null>
+
+multi -token prediction 
+
+O2-VG -VLM: generative vision language model 
+
+provide 
+
+proposals 
+
+universal 
+
+proposals 
+
+box 
+
+angle 
+
+Fig. 1. Illustration of oriented object visual grounding in remote sensing images. O 2-VG provides a unified family of complementary solutions for oriented object visual grounding. 
+
+objects through descriptions of their categories, attributes, or locations. Therefore, visual grounding in remote sensing images has become an important task for connecting language descriptions with object localization. Most visual grounding methods return a horizontal bound-ing box (HBB) [5]–[7]. This representation leads to inaccurate localization with excessive background regions for oriented objects. Oriented bounding boxes (OBBs) provide a tighter representation by explicitly modeling the object center, size, and angle [8]–[10], as illustrated in Fig. 1. However, oriented object visual grounding requires the model to understand both the meaning of the expression and the geometric structure of the target. It also requires data that pairs language expressions with oriented annotations. Existing remote sensing visual grounding (RSVG) methods mainly use discriminative architectures [7]. They match text features with image regions and then regress a box. These methods usually depend on horizontal proposals and task specific heads. Generative vision language models offer a more flexible interface [11], [12]. Both visual and text inputs are modeled under the next-token prediction paradigm. Their autoregressive decoding, however, produces coordinate tokens one at a time. This can be slow when an image contains arXiv:2609.28230v1 [cs.CV] 23 Sep 2026 IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 2Image 
+
+Backbone 
+
+Text 
+
+Backbone 
+
+Cross -modality 
+
+Encoder & 
+
+Decoder 
+
+Head 
+
+Image 
+
+Backbone 
+
+Encoder & 
+
+Decoder 
+
+Head 
+
+Contrastive Loss    
+
+> (a) O 2-VG -Trans (b) O 2-VG -Uni (c)O2-VG -VLM
+
+Learnable 
+
+Objectness 
+
+Prompt 
+
+Vision 
+
+Encoder 
+
+Language Decoder 
+
+Projection 
+
+Expression 
+
+Trainable 
+
+Frozen 
+
+Contrastive Loss  Provide 
+
+Proposals 
+
+Universal 
+
+Proposals  
+
+> Fig. 2. Overview of the O 2-VG model family. O 2-VG-Trans is an oriented object visual grounding Transformer. O 2-VG-Uni provides universal oriented proposals with objectness embeddings and supports object retrieval. O 2-VG-VLM is an autoregressive vision-language grounding model that generates oriented box tokens through multi-token prediction within a unified generation framework.
+
+many targets. It may also produce invalid box structures. These limitations motivate a unified study of oriented object visual grounding. In this work, we present O2-VG, a model family for oriented object visual grounding in remote sensing images, as illustrated in Fig. 2. Specifically, we first build O 2-VG-Trans, a strong discriminative end-to-end cross-modality transformer, which serves as the foundation of the O 2-VG family. Building upon it, O 2-VG-Uni produces universal oriented proposals for possible foreground objects without specific text prompts and supports object retrieval with proposal embeddings. O 2-VG-VLM is an autoregressive vision-language model that uses these universal proposals as text prompts. It predicts oriented box tokens in parallel within each block while maintaining a causal order between blocks. A hybrid inference strategy fur-ther combines parallel decoding with token-by-token decoding when invalid blocks are generated. To facilitate oriented object visual grounding, we construct a new dataset, DIOR-R-RSVG. It contains image, expression, and oriented box triplets for training and evaluation. We evaluate the proposed models and dataset on multiple benchmarks to validate their effectiveness for oriented object visual grounding in remote sensing images. The contributions of this paper are summarized as follows.  
+
+> •
+
+We propose O2-VG-Trans, a discriminative cross-modality transformer framework for oriented object vi-sual grounding, which establishes a strong foundation for the O 2-VG family.  
+
+> •
+
+We design O 2-VG-Uni, a universal oriented proposal framework that provides potential foreground proposals without specific text prompts and supports object retrieval through proposal embeddings.  
+
+> •
+
+We develop O2-VG-VLM, an autoregressive vision-language grounding model that generates oriented box tokens through multi-token prediction within a unified generation framework.  
+
+> •
+
+We introduce DIOR-R-RSVG, a new oriented object vi-sual grounding dataset containing remote sensing image, referring expression, and oriented box triplets for training and evaluation. II. R ELATED WORK 
+
+A. Discriminative Remote Sensing Visual Grounding 
+
+Remote sensing visual grounding aims to localize the object referred to by an expression. Existing discriminative methods can be broadly grouped into graph-based, CNN-based, and Transformer-based approaches according to their paradigm. 
+
+Graph-based methods construct geospatial relations among candidate regions to reduce the search space in large-scale scenes. GeoVG [6] represents referring expressions as re-lation graphs and matches them with image regions. CNN-based methods adopt two-stage or one-stage designs. Two-stage methods use CNN-extracted proposals and select the region with the highest visual-text matching score [13], so performance depends on proposal recall and incurs matching cost. One-stage methods inject language features into CNN maps and directly regress horizontal boxes from dense loca-tions [14]. Transformer-based methods use self-attention and cross-attention to capture long-range dependencies between image regions and language tokens. By jointly modeling global context and fine-grained visual-text interactions, they improve grounding robustness in cluttered scenes and under complex referring expressions [5], [7]. Existing discriminative remote sensing visual grounding methods focus on horizontal boxes, which cannot accurately describe objects with arbitrary orientations. Unlike existing methods, our approach performs oriented object visual ground-ing, enabling more accurate localization of arbitrarily rotated targets. 
+
+B. Generative VLM for Remote Sensing Visual Grounding 
+
+Generative autoregressive vision-language models unify vi-sual grounding and textual generation within a single next-token prediction framework. Among existing generative RSVG methods with oriented-box outputs, GeoChat [11] follows the LLaVA-v1.5 [15] architecture, coupling a CLIP-ViT [16] visual encoder with a two-layer MLP adaptor and a Vicuna language decoder. It pioneers instruction-following grounding by treating object localization and orientation prediction as text generation, while IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 3Image 
+
+Backbone 
+
+Image 
+
+Features 
+
+Text 
+
+Backbone 
+
+Encoder 
+
+Text 
+
+Features 
+
+Regression Loss 
+
+The airplane 
+
+on the top 
+
+Contrastive Loss   
+
+> 3H W 
+
+I 
+
+Image  256 tN 
+
+T 
+
+Expression  
+
+> Self -Attention
+> Bi -Attention Block
+> Def -Attention
+> Self -Attention
+> Def -Attention
+> Cross -Attention
+> 256 vN
+
+X V 
+
+> cosine
+> similarity
+> query
+> selection
+> 5K
+> B
+> Top -K
+> The airplane on the top
+
+…
+
+> Queries
+
+Decoder  
+
+> Updated Queries
+> 6×
+> 6×
+> flatten
+> 256 vN
+
+V
+
+> VF
+> TF
+> 256 K
+> Q
+> 256 tNT
+> 
+
+X
+
+> T
+
+X
+
+Q           
+
+> 22
+> VTVT
+> =‖‖‖‖
+> XXMXX
+> 63{}ii=P
+> Fig. 3. Overview of O 2-VG-Trans. O 2-VG-Trans is a discriminative cross-modality Transformer for oriented object visual grounding in remote sensing images.
+
+also supporting diverse remote sensing vision-language tasks. GeoGround [12] similarly adopts a CLIP-ViT visual encoder, a two-layer MLP connector, and a Vicuna decoder. It provides a unified framework for HBB, OBB, and mask grounding, using a Text-Mask representation to support flexible output formats within a single VLM. Unlike these methods, our vlm adopts multi-token predic-tion to generate the complete token block of each oriented box in parallel while preserving causal dependencies across blocks. III. M ETHOD 
+
+In this section, we present the family of models for oriented object visual grounding in remote sensing imagery. O 2-VG-Trans (Sec. III-A) serves as the foundational framework, a cross-modality transformer. Building upon it, O 2-VG-Uni (Sec. III-B) removes the reliance on text prompts, evolving into a universal oriented proposal generator that supports fast retrieval. O 2-VG-VLM (Sec. III-C) leverages the oriented proposals as part of the input prompts to an autoregressive vision-language model with multi-token coordinate prediction. 
+
+A. O 2-VG-Trans: An Oriented Object Visual Grounding Transformer 
+
+In this section, we present O 2-VG-Trans, an oriented object visual grounding transformer for remote sensing images, as illustrated in Fig. 3. 
+
+Image Backbone. Given an RGB input image I ∈ R3×H×W ,we utilize ResNet [17] as the image backbone to extract multi-scale visual features. A convolutional Channel Mapper then projects these features to a unified channel dimension of 256, producing four visual feature maps {Pi}6
+
+> i=3
+
+, where 
+
+Pi ∈ R256 ×Hi×Wi at strides of {8, 16 , 32 , 64 }, respectively. 
+
+Text Backbone. Given an input referring expression of Nt
+
+tokens, we employ a frozen pretrained BERT encoder [18] with 12 layers and a hidden dimension of 768 to extract textual features. Sub-sentence level attention is adopted with a custom mask to restrict self-attention within each sub-sentence. The BERT outputs are then projected to 256 channels via a linear layer, yielding textual embedding T ∈ RNt×256 .
+
+Cross-modality Encoder. The cross-modality encoder con-sists of six stacked blocks that enable visual and textual interaction. Specifically, the visual feature maps {Pi}6
+
+> i=3
+
+are flattened and concatenated to form the visual sequence 
+
+V ∈ RNv ×256 . At each encoder layer, a bidirectional attention block first exchanges information across modalities: 
+
+(FV , FT ) = BiAttnBlock (V , T ). (1) Then, the updated features are independently refined via modality-specific attention layers: 
+
+XV = DefAttn (FV ), XT = SAttn (FT ), (2) where DefAttn (·) and SAttn (·) correspond to deformable attention layer and self-attention layer, respectively. 
+
+Language-Guided Query Selection. Given the visual em-beddings XV ∈ RNv ×256 and the text embeddings XT ∈
+
+RNt×256 , we first compute the region-text matching score matrix M ∈ RNv ×Nt via cosine similarity: 
+
+M = XV · X⊤
+
+> T
+
+∥XV ∥2∥XT ∥2
+
+. (3) Then we execute the max( ·) operation on M along the −1
+
+dimension. The top-K oriented reference boxes B ∈ RK×5,along with learnable queries Q ∈ RK×256 , are initialized for the decoder, where K is set to 900 by default. 
+
+Cross-Modality Decoder. The decoder consists of six stacked blocks that inject textual and visual features into queries through different layers: 
+
+Q = FFN (DefAttn (CAttn (SAttn (Q), XT ) , XV , B)) ,
+
+(4) where CAttn (·) and FFN (·) denote a text cross-attention layer and a feed-forward network, respectively. In the deformable attention layer, sampling points are rotated around the centers of oriented reference proposals B.
+
+Head and Loss. The prediction head consists of a con-trastive classification branch and a regression branch. For classification, cosine similarity scores between the updated queries Q and text embeddings XT are computed as Q ·
+
+X⊤ 
+
+> T
+
+/(∥Q∥2∥XT ∥2) following Eq. 3. For regression, a Multi-Layer Perceptron predicts oriented boxes. We adopt one-to-IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 4Image 
+
+Backbone 
+
+Text 
+
+Encoder 
+
+airplane, 
+
+ship, 
+
+car ...   
+
+> 3H W 
+
+I 
+
+image 
+
+categories 
+
+Hybrid Encoder 
+
+Decoder & Head 
+
+Query Selection 
+
+cosine similarity 
+
+Image 
+
+Backbone   
+
+> 3H W 
+
+I 
+
+Image 
+
+Hybrid Encoder 
+
+Decoder & Head 
+
+Query Selection    
+
+> 0.6 0.8 0.7 0.9
+
+cosine similarity 
+
+objectness 
+
+prompt 
+
+Text 
+
+Encoder    
+
+> airplane
+> 0.9 0.9 …0.1
+
+cosine 
+
+similarity 
+
+O2-VG -Uni     
+
+> obb1 obb2 obb -K…
+> …
+> 3H W 
+
+I 
+
+image  universal proposal 
+
+(b)  training  stage 2 (a)  training  stage 1  (c) object retrieval inference 
+
+retrieval 
+
+obb  obb 
+
+share 
+
+weights 
+
+, ,       
+
+> cN
+> 512 cN
+> C
+> 53{}ii=P53{}ii=P
+> 256 vN
+> V
+
+Q
+
+B 
+
+> 256 vN
+> V
+
+B
+
+Q
+
+> 1 512
+> obj
+> 
+
+E
+
+> Q
+
+EQE 
+
+> Fig. 4. Overview of O 2-VG-Uni. (a) Training stage 1 learns text-visual alignment through contrastive learning. (b) Training stage 2 learns universal oriented proposals with objectness prompts. (c) Object retrieval inference with cached proposal embeddings and text queries.
+
+one Hungarian matching following [19]. The total loss is formulated as: 
+
+L = λcls Lcls + λL1 LL1 + λiou Liou , (5) where Lcls is Focal Loss [20] for contrastive classification, LL1 
+
+is L1 loss, and Liou denotes KLD loss [21]. The loss weights are set to λcls = 1 .0, λL1 = 5 .0, and λiou = 2 .0, respectively. 
+
+B. O 2-VG-Uni: A Universal Oriented Proposal Generator 
+
+Building upon the foundation of O 2-VG-Trans, we introduce O2-VG-Uni, a universal oriented proposal generator without the need for special text prompts, as illustrated in Fig. 4. This design enables two capabilities: (1) extracting univer-sal oriented objects without specific text information, and (2) supporting fast object retrieval through cached proposal embeddings. 
+
+Two-Stage Training Recipe. In the first stage, only the pretrained text encoder is frozen while the entire visual branch is trained, aligning vision and language through contrastive learning. In the second stage, we freeze the entire visual branch with weights inherited from the first stage, and replace the text encoder with the learnable objectness prompt Eobj to extract objects of arbitrary categories. 
+
+Image Backbone. Given an input RGB image I ∈
+
+R3×H×W , we adopt ResNetvd [22] as the image backbone to extract three feature maps. A convolutional Channel Mapper then projects these features into a uniform 256-dimensional space, producing {Pi}5
+
+> i=3
+
+, where Pi ∈ R256 ×Hi×Wi cor-responds to strides of {8, 16 , 32 }, respectively. This design employs one fewer feature layer than O 2-VG-Trans. 
+
+Text Encoder. Given a set of Nc category names, we employ a frozen pretrained RemoteCLIP [23] text encoder to produce category-level semantic embeddings. The encoder processes each prompt as an independent input sequence and outputs a text embedding matrix C ∈ RNc×512 , where each row corresponds to one category. 
+
+Hybrid Encoder. Following the hybrid encoder paradigm from [19], the encoder decouples intra-scale interactions and cross-scale fusion. A self-attention block is applied to the top-level feature map P5, while a CNN module enables efficient fusion of multi-scale features, producing enhanced visual features V ∈ RNv ×256 . Different from the cross-modality encoder in O 2-VG-Trans, it operates only on image features. 
+
+Learnable Objectness Prompt. To obtain universal oriented proposals, we introduce a learnable objectness prompt Eobj ∈
+
+R1×512 . This embedding Eobj represents only objectness, indicating whether a region contains a foreground object. 
+
+Query Selection. To unify dimensions, the visual features 
+
+V are first projected by a weight matrix to obtain visual embeddings XV ∈ RNv ×512 . We then compute a similarity matrix M between XV and the guiding embeddings as: 
+
+M =
+
+
+
+XV · C⊤
+
+∥XV ∥2∥C∥⊤
+
+> 2
+
+∈ RNv ×Nc , stage 1 ,
+
+XV · E⊤
+
+∥XV ∥2∥E∥⊤
+
+> 2
+
+∈ RNv ×1, stage 2 .
+
+(6) By taking the maximum value along the text dimension of M ,we select the top-K candidates to form the oriented reference boxes B ∈ RK×5 and query embeddings Q ∈ RK×256 , which are then fed into the decoder, where K is set to 300 by default. 
+
+Image decoder. Following the decoder paradigm from [19], the image decoder consists of multiple stacked decoder lay-ers, each containing self-attention, cross-attention, and feed-forward networks. Different from the cross-modality decoder in O 2-VG-Trans, it operates only on image modality. 
+
+Head and Loss. The prediction head consists of a contrastive classification branch and a regression branch. For classifica-tion, the updated queries Q are first projected using a weight matrix to obtain proposal embeddings EQ ∈ RK×512 . In training stage 1, cosine similarity scores between the pro-posal embeddings EQ and text embeddings C are computed following Eq. 3, while in training stage 2, cosine similarity scores between the proposal embeddings EQ and objectness embeddings Eobj are computed similarly. For regression, a Multi-Layer Perceptron predicts oriented boxes. The loss settings are similar to those of O 2-VG-Trans. 
+
+Object Retrieval. Unlike other class-agnostic proposal net-works [24], our proposal embeddings retain semantic infor-mation and can therefore be used for object retrieval. The ori-ented proposal embeddings EQ can be cached, while the text IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 5Referring Expression Block       
+
+> <ref> The plane is on the left
+
+Oriented Box Block      
+
+> <box> <272> <308> <380> <183> </box> <468>
+
+Moon -ViT 
+
+Projector 
+
+Qwen2.5 Language Decoder     
+
+> 3H W 3H W 
+
+I
+
+I 
+
+image 
+
+referring expression      
+
+> side of the </ref> <null> image <null>
+
+End Block      
+
+> <im _
+> end> <null> <null> <null> <null> </box> <null>
+> <eos >
+> <ref>
+> red
+> car
+> </ref>
+> <box>
+> <531>
+> <681>
+> <72>
+> <51>
+> <145>
+> </box>
+> <ref>
+> red
+> car
+> </ref>
+> <null>
+> <null>
+> <null>
+> <box>
+> <531>
+> <681>
+> <72>
+> <51>
+> <145>
+> </box>
+
+target  input  next token prediction  multi token prediction  
+
+> image
+> query
+> <ref>
+> red
+> car
+> </ref>
+> <box>
+> <531>
+> <681>
+> <72>
+> <51>
+> <145>
+> </box>
+> query
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> </ref>
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> [mask]
+> Locate a single instance that
+> matches the following description :
+> The plane is on the left side of the
+> image. The foreground oriented
+> boxes:<box><798><588 >< 467 >
+> <378><178></ box>< box><273>
+> <306><468> <379><183></box>
+
+Tokenizer 
+
+> 1152 vNI
+> 
+
+Z
+
+> proj
+
+f
+
+> 2048 vNV
+> 
+
+Z 2048 tNT
+
+> 
+
+Z
+
+Fig. 5. Overview of O 2-VG-VLM. Left: the autoregressive vision-language architecture. Middle: the multi-token prediction block. Right: the attention mask for joint NTP-MTP training. 
+
+embeddings generated by RemoteCLIP are used as retrieval queries. We compute the cosine similarity between the cached proposal embeddings and the text embeddings to realize object retrieval. 
+
+C. O 2-VG-VLM: Vision-Language Grounding with Multi-Token Prediction 
+
+O2-VG-VLM is built upon an autoregressive vision-language model [25] pre-trained on large-scale image-text corpora. The architecture consists of three main components: a Moon-ViT vision encoder [26], an MLP projector, and a Qwen2.5 language decoder [27], as shown in Fig. 5. 
+
+Vision Encoder. The Moon-ViT vision encoder splits the input image I ∈ R3×H×W into 14 × 14 patches and encodes them with a 27-layer Transformer with 16 attention heads and hidden dimension 1152 . The resulting visual features are then merged with a 2 × 2 kernel to reduce the visual token length, yielding ZI ∈ RNv ×1152 before being fed into the projector. 
+
+Projector. The visual tokens produced by MoonViT are first adapted to the language decoder through a lightweight MLP projector fproj . This projector consists of two MLP connector layers and maps MoonViT features from the 1152-dimensional vision space to the 2048-dimensional hidden space of Qwen2.5, giving ZV = fproj (ZI ) ∈ RNv ×2048 .
+
+Language Decoder. The Qwen2.5 language decoder 
+
+serves as the generative core of the model. It has a hidden size of 2048, 36 transformer layers, and 16 attention heads. It receives the projected visual embeddings ZV together with the text embeddings ZT .
+
+Convert Oriented Boxes to Tokens. To align continuous box coordinates with the discrete token-based output space, each component of (cx, cy, w, h, θ ) is discretized into 1000 bins within [0 , 1000] . Specifically, (cx, w ) and (cy, h ) are scaled by the image width W and height H, respectively, while the angle θ is scaled by its predefined range. For instance, the discrete center coordinate is computed as (round(1000 ×
+
+cx/W ), round(1000 × cy/H )) .
+
+Conversation Template. To enable multi-modal instruction tuning, we construct a structured conversation template. An example is illustrated below. 
+
+human : Locate a single instance that matches the following description: The plane is on the left side of the image. The foreground oriented boxes: 
+
+<box><798><588><467><378><178></box><box> <273><306><468><379><183></box> 
+
+gpt : <ref> The plane is on the left side of the image. 
+
+</ref><box><272><308><468><380><183></box> 
+
+image : 12345.png 
+
+Specifically, we extend the vocabulary with special to-kens, including <box> , </box> , <ref> , and </ref> , to delineate bounding box coordinates and textual expressions, respectively. The input foreground oriented boxes are provided by O 2-VG-Uni (Sec. III-B). 
+
+Next-Token Prediction. Let the answer sequence generated by the next-token prediction (NTP) be denoted as x1: Nntp . The NTP objective maximizes the conditional likelihood of each token given all preceding tokens: 
+
+LNTP = −
+
+> Nntp
+
+X
+
+> n=1
+
+log P (xn+1 | x1: n, ZV , ZT ), (7) where the sum ranges over every answer position. 
+
+Causal Attention for NTP. For next-token prediction, O 2-VG-VLM employs a causal attention mechanism, which en-sures that each token can only attend to prior tokens. By masking future positions, the attention preserves the left-to-right order of the generated sequence, making it naturally suited for language decoding tasks. 
+
+Multi-Token Prediction. Each block has a fixed length of seven tokens. A Referring Expression Block encodes the referring expression. When the expression length exceeds the block length, it is split into consecutive blocks. An Oriented Box Block comprises five tokens representing the oriented bounding box (cx, cy, w, h, θ ) and two special tokens, e.g., 
+
+<box> and </box> . An End Block signals the termination of generation. Any unused positions within a block are padded with a <null> token. The MTP objective predicts a future block of 7 tokens in parallel: 
+
+LMTP = − X
+
+> n∈I mtp
+> 7
+
+X
+
+> m=1
+
+log P (xn+m | x1: n, ZV , ZT ) , (8) IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 6word cloud of expression   
+
+> Fig. 6. Statistics of expression length and word cloud visualization for the DIOR-R-RSVG dataset.
+> Fig. 7. Statistics of oriented object size, area, angle, and categories in the DIOR-R-RSVG dataset.
+
+where Imtp contains the token positions that serve as the starting context for MTP blocks. 
+
+Bidirectional Intra-Block Attention. Within each MTP block, we employ bidirectional attention, allowing all seven positions to attend to one another. This design enables the model to jointly capture the structural dependencies among tokens within a block, such as the dependencies between the coordinate tokens and boundary tokens of an oriented box, and to predict the entire block simultaneously. 
+
+Causal Flow Across Blocks. Across MTP blocks, attention follows a causal order. The current block can attend to the visual-textual context and all previously committed tokens, but not to tokens in subsequent blocks. This block-causal design preserves the sequential dependency between different referring-expression, box, and end blocks, while retaining parallel prediction within each block. 
+
+Inference Modes. O2-VG-VLM supports three inference modes. Slow Mode uses standard NTP to generate tokens autoregressively, providing the most reliable decoding. Fast Mode uses MTP to generate seven-token blocks in parallel for maximum throughput. Hybrid Mode performs MTP by default and validates each generated block. When an invalid box structure is detected, the current block is discarded and the model switches to NTP to decode the problematic box token by token. Specifically, an invalid coordinate is identified when the top-1 coordinate token’s probability is below 0.9 and the span of the valid top-5 coordinate tokens exceeds 60 within the [0, 1000] normalized space. After the box is completed, decoding resumes in MTP mode. This design combines the efficiency of parallel block decoding with the robustness of autoregressive generation. IV. DIOR-R-RSVG DATASET 
+
+We designed DIOR-R-RSVG, a new dataset containing 
+
+< image , expression , obb > triplets for oriented object visual grounding in remote sensing imagery. 
+
+A. Data Sources and Foundation Images. Images are sourced from the DIOR-RSVG dataset [4], which is built for the horizontal box visual grounding task in remote sensing. The dataset contains 17,402 RGB images. 
+
+Referring expressions. Referring expressions are also sourced from DIOR-RSVG [4]. The dataset comprises 38,320 text expressions, where each expression corresponds to asingle object instance. 
+
+Oriented Bounding Boxes. Oriented box annotations are sourced from the DIOR-R dataset [28], which is built for the oriented object detection task in remote sensing. It contains 23,463 images and 192,512 annotated object instances. 
+
+B. Construction Pipline 
+
+Images in DIOR [29], DIOR-RSVG [4], and DIOR-R [28] come from the same domain. This allows each object instance to naturally correspond across horizontal boxes, oriented boxes, and referring expressions. We leverage this consistency to connect < image , expression , obb > triplets smoothly. The procedure involves the following steps: 1) Data Sampling: We extract < image , expression , hbb ,
+
+category > tuples from DIOR-RSVG [4] and < image ,
+
+obb , category > tuples from DIOR-R [29]. 2) Automated Matching: For each instance in DIOR-RSVG [4], we calculate the IoU between its HBB and the minimum rectangle of OBBs in the same category and image. If the maximum IoU exceeds a predefined threshold, we select the corresponding OBB as the match. 3) Human Verification and Annotation: We manually check the automatic matching results. All unmatched instances and failure cases are then reviewed and re-annotated to guarantee data quality. 
+
+C. Dataset Statistics and Analysis 
+
+We conduct a statistical analysis of the proposed DIOR-R-RSVG dataset. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 7                               
+
+> TABLE I COMPARISON OF EXISTING REMOTE SENSING VISUAL GROUNDING DATASETS AND OUR PROPOSED DIOR-R-RSVG .
+> Dataset Year Train Val Test Image Size
+> DIOR-RSVG [4] 2023 26,991 3,829 7,500 17,402 (800,800) VRSBench [30] 2024 36,313 -16,159 29,614 (512,512) AVVG [12] 2025 26,482 -6,139 624 (4000,2250) DIOR-R-RSVG 2026 26,991 3,829 7,500 17,402 (800,800)
+
+Images. The proposed dataset contains 17,402 RGB images of size 800 × 800 pixels, with spatial resolutions ranging from 0.5 to 30 meters per pixel, as shown in Table I. 
+
+Referring expressions. The proposed dataset consists of 38,320 expressions, each corresponding to a single object in-stance. It is divided into 26,991 (70%) training samples, 3,829 (10%) validation samples, and 7,500 (20%) testing samples, as shown in Table I. Statistics of expression length and the word cloud visualization for the DIOR-R-RSVG dataset are shown in Fig. 6. The average expression length is 7.5 words, and the majority of expressions contain between 3 and 18 words. 
+
+Oriented Bounding Boxes. Statistics of oriented object size, area, angle, and categories in the DIOR-R-RSVG dataset are shown in Fig. 7. The oriented objects correspond to the expressions, resulting in a total of 38,320 oriented boxes. Each oriented box is defined by four vertices. The objects exhibit large aspect ratios, significant scale variations, and arbitrary orientations. A total of 20 categories are included in the dataset, among which Vehicle is the most frequent category and Harbor is the least frequent. 
+
+Comparison with Other Datasets. Our DIOR-R-RSVG dataset is built upon DIOR [29], DIOR-R [28], and DIOR-RSVG [4]. Their evolution is shown in Fig. 8. DIOR-R-RSVG supports oriented bounding boxes and referring expres-sions. Furthermore, we compare DIOR-R-RSVG with other visual grounding datasets, including VRSBench and AVVG, as shown in Table I. DIOR-R-RSVG contains a larger number of images and expressions, as well as larger image sizes, than these existing datasets. V. E XPERIMENTS 
+
+A. Datasets 
+
+We conduct extensive experiments on three datasets: VRS-Bench [30], AVVG [31], and DIOR-R-RSVG. VRSBench [30] is a versatile vision-language benchmark for remote sensing image understanding, comprising 29,614 images with a fixed resolution of 512 × 512 for image captioning, visual grounding, and visual question answering. In our experiments, we only utilize its oriented object visual grounding annotations, which contain 36,313 expressions in the train set and 16,159 expressions in the test set. Aerial Vehicle Visual Grounding (AVVG) is a dataset in-troduced in GeoGround [31] for visual grounding of objects captured by unmanned aerial vehicles. It contains oriented bounding box annotations and covers diverse flight altitudes and scenarios. The dataset consists of 624 images with an orig-inal resolution of 4000 × 2250 , containing 26,482 expressions ship             
+
+> ship
+> ship
+> ship
+> A ship on
+> the top
+> A ship at
+> the bottom
+> A ship on
+> the top
+> A ship at
+> the bottom
+> horizontal object
+> detection
+> DIOR -RDIOR -RSVG DIOR -R-RSVG DIOR
+> oriented object
+> detection
+> horizontal object
+> visual grounding
+> oriented object
+> visual grounding
+> 2020
+> 2022
+> 2023
+> 2026
+> year
+> Fig. 8. The evolution of datasets. DIOR [29] is a horizontal object detection dataset. DIOR-R [28] is an oriented object detection dataset. DIOR-RSVG [4] is a horizontal object visual grounding dataset. DIOR-R-RSVG is an oriented object visual grounding dataset.
+
+in the train set and 6,139 expressions in the test set. In our experiments, all images are resized to 1204 × 576 .DIOR-R-RSVG is our proposed dataset for oriented object visual grounding, which is introduced in detail in Sec. IV. We use both the train and val sets for training, while the test 
+
+set is used for evaluation. 
+
+B. Evaluation Metrics. Accuracy. Given an IoU threshold τ , the localization ac-curacy is defined as the proportion of samples whose top-1 prediction has an rotated IoU no lower than τ : Pr@ τ =
+
+> 1
+> Neval
+
+PNeval  
+
+> i=1
+
+I [RIoU i ≥ τ ], where Neval is the number of eval-uated samples and RIoU i is the rotated IoU of the top-1 prediction for the i-th sample. 
+
+Mean IoU. Mean IoU is defined as the average of the rotated IoU values across all evaluated samples, i.e., meanIoU = 
+
+> 1
+> Neval
+
+PNeval  
+
+> i=1
+
+RIoU i.
+
+Cumulative IoU. Cumulative IoU sums the intersec-tion and union areas over all evaluated samples be-fore computing their ratio, defined as cumIoU =PNeval  
+
+> i=1
+
+Area( ˆBi ∩ B i)/PNeval  
+
+> i=1
+
+Area( ˆBi ∪ B i), where ˆBi and Bi
+
+denote the top-1 predicted and ground-truth oriented boxes, respectively. 
+
+Recall. At rotated IoU threshold τ , recall is the proportion of ground-truth boxes that are successfully matched by a prediction with rotated IoU at least τ .
+
+C. Implementation Details O2-VG-Trans. The experiments for O 2-VG-Trans are con-ducted on two Á RTX 2080ti with a batch of 8 (4 images per GPU). Models are constructed based on AI4RS with Pytorch 
+
+. We optimize models with the AdamW optimizer. On VRSBench, AVVG, and DIOR-R-RSVG, we train the model for 12 epochs with an initial learning rate of 1 × 10 −4 and a weight decay of 1 × 10 −4, decaying the learning rate at the 11th epoch. 
+
+O2-VG-Uni. We adopt the same GPU settings, batch size, loss weights, and optimizer as O2-VG-Trans. In the first training stage, we train on VRSBench and DIOR-R-RSVG for 24 epochs, and on AVVG for 72 epochs. In the second training stage, we train on all three datasets for 12 epochs. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 8          
+
+> TABLE II RESULTS OF O2-VG-T RANS ON THE DIOR-R-RSVG, VRSB ENCH ,AND AVVG DATASETS . T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .
+
+Method Image Backbone Text Backbone Params Pr@0.5 Pr@0.6 Pr@0.7 Pr@0.8 Pr@0.9 meanIoU cumIoU 
+
+VRSBench 
+
+Rotated GiT-B [32] SAM ViT - 159M 47.23 35.86 22.90 10.56 2.20 41.90 51.02 Rotated GDINO [33] ResNet50 BERT 172M 58.38 49.91 33.02 15.46 3.02 45.73 54.28 Rotated EGDINO [7] ResNet50 BERT 169M 61.57 52.26 36.81 17.74 3.68 48.34 56.97 
+
+O2-VG-Trans (ours) ResNet50 BERT 172M 67.71 60.13 46.53 27.11 7.63 55.01 61.14 
+
+AVVG 
+
+Rotated GiT-B [32] SAM ViT - 159M 2.37 1.23 0.30 0.00 0.00 1.41 2.05 Rotated GDINO [33] ResNet50 BERT 172M 12.64 10.73 8.82 2.91 0.46 9.52 11.74 Rotated EGDINO [7] ResNet50 BERT 169M 14.42 12.26 10.35 4.54 0.53 10.38 12.21 
+
+O2-VG-Trans (ours) ResNet50 BERT 172M 18.00 17.04 14.37 7.83 0.98 14.59 16.64 
+
+DIOR-R-RSVG 
+
+Rotated GiT-B [32] SAM ViT - 159M 43.52 35.93 27.04 15.59 3.49 38.64 55.41 Rotated GDINO [33] ResNet50 BERT 172M 56.84 48.16 38.28 25.63 8.72 47.91 58.42 Rotated EGDINO [7] ResNet50 BERT 169M 60.37 52.84 43.16 29.87 11.94 50.87 61.73 
+
+O2-VG-Trans (ours) ResNet50 BERT 172M 67.23 62.00 54.12 39.47 17.01 56.73 67.33        
+
+> TABLE III RESULTS OF O2-VG-U NI ON THE DIOR-R-RSVG, VRSB ENCH ,AND AVVG DATASETS FOR UNIVERSAL ORIENTED PROPOSALS .
+
+Image VRSBench AVVG DIOR-R-RSVG Method Backbone Params FPS AR 50 AR 75 AR 50:95 AR 50 AR 75 AR 50:95 AR 50 AR 75 AR 50:95 
+
+100 proposals 
+
+Rotated RPN [24] R18 14M 23 83.14 40.78 43.81 54.98 14.86 23.56 85.08 50.36 48.90 Rotated RPN [24] R50 27M 22 88.21 54.65 52.18 60.35 19.02 27.00 85.79 49.03 48.81 
+
+O2-VG-Uni (ours) R50vd 44M/512 83 86.79 58.48 55.48 97.28 86.61 73.61 86.23 64.41 59.76 
+
+300 proposals Rotated RPN [24] R18 14M 23 87.77 45.36 47.50 80.65 23.98 36.29 89.80 54.69 52.38 Rotated RPN [24] R50 27M 22 91.72 58.31 54.98 86.47 30.01 40.67 89.78 53.72 52.07 
+
+O2-VG-Uni (ours) R50vd 44M/512 83 87.89 59.60 56.41 98.35 88.52 75.36 88.53 65.20 60.78 
+
+O2-VG-VLM. The experiments for O 2-VG-VLM are con-ducted on a single Á RTX Pro 6000. We initialize the model from LocateAnything-3B [25] and implement the training pipeline using PyTorch. The entire model is fine-tuned with BF16 mixed precision. The per-device batch size is set to 1 with 16 gradient accumulation steps. We use AdamW with a learning rate of 4 × 10 −5 and a weight decay of 0.01, together with a cosine learning rate scheduler and a 10% warm-up ratio. Gradient checkpointing is enabled, and the maximum sequence length is set to 8,192 tokens. We train the model on VRSBench and AVVG for 300 optimization steps, and on DIOR-R-RSVG for 500 optimization steps, corresponding to approximately two epochs for all datasets. 
+
+D. O 2-VG-Trans Results for Visual Grounding 
+
+Since no small-parameter method has been specifically designed for the oriented object visual grounding task, we adapt three horizontal object visual grounding methods by incorporating angle prediction. GiT [32] is a vision transformer that unifies diverse vision tasks into an autoregressive framework built on the SAM ViT. Rotated GiT-B further introduces an angle token to support ori-ented object prediction. Grounding DINO [34] is a grounded pre-training Transformer. Rotated GDINO further appends an angle prediction branch using CSL [35]. Efficient Grounding DINO [7] improves Grounding DINO for horizontal visual grounding in remote sensing images. Rotated EGDINO further appends an angle prediction branch using CSL [35]. Table II compares O 2-VG-Trans with other methods on VRSBench, AVVG, and DIOR-R-RSVG. O 2-VG-Trans con-sistently outperforms Rotated GiT, Rotated GDINO, and Ro-tated EGDINO across all three datasets and evaluation metrics. On VRSBench, it achieves 67.71% Pr@0.5, 55.01% mean-IoU, and 61.14% cumIoU. On AVVG, O 2-VG-Trans obtains 18.00% Pr@0.5, 14.59% meanIoU, and 16.64% cumIoU. On DIOR-R-RSVG, it further achieves 67.23% Pr@0.5, 56.73% meanIoU, and 67.33% cumIoU. These results demonstrate the effectiveness of O 2-VG-Trans for oriented visual grounding in remote sensing images. 
+
+E. O 2-VG-Uni Results for Universal Oriented Proposals 
+
+Since there are no existing universal proposal methods specifically designed for oriented objects, we adapt the widely used horizontal object proposal method RPN [24] to gener-ate oriented proposals following the design of Oriented R-CNN [36]. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 9       
+
+> TABLE IV COMPARISON OF THE RESULTS OF THE O2-VG-VLM AND OTHER METHODS ON THE DIOR-R-RSVG, VRSB ENCH ,AND AVVG DATASETS .
+
+Method Vision Encoder Decoder #P Pr@0.5 Pr@0.6 Pr@0.7 Pr@0.8 Pr@0.9 meanIoU cumIoU BPS 
+
+VRSBench 
+
+GeoChat w/o ft [11] Clip ViT Vicuna1.5 7B 13.71 7.23 2.72 0.74 0.04 23.14 27.79 1GeoChat [11] Clip ViT Vicuna1.5 7B 25.84 16.32 8.47 2.91 0.46 32.18 37.65 1GeoGround [31] Clip ViT Vicuna1.5 7B 35.76 25.48 15.23 6.87 1.12 39.74 45.83 1
+
+O2-VG-VLM (ours) Moon ViT Qwen2.5 3B 69.67 61.69 50.11 33.38 13.04 59.84 59.36 12 
+
+AVVG 
+
+GeoChat w/o ft [11] Clip ViT Vicuna1.5 7B 0.02 0.00 0.00 0.00 0.00 1.06 1.87 1GeoChat [11] Clip ViT Vicuna1.5 7B 12.48 9.76 7.84 2.52 0.42 9.31 10.86 1GeoGround [31] Clip ViT Vicuna1.5 7B 13.73 11.92 8.96 3.73 0.50 10.08 11.94 1
+
+O2-VG-VLM (ours) Moon ViT Qwen2.5 3B 31.29 29.24 25.47 17.81 4.00 26.44 27.52 12 
+
+DIOR-R-RSVG 
+
+GeoChat w/o ft [11] Clip ViT Vicuna1.5 7B 25.76 15.89 6.57 1.53 0.13 28.74 43.52 1GeoChat [11] Clip ViT Vicuna1.5 7B 50.47 42.31 29.82 17.48 5.91 44.63 56.24 1GeoGround [31] Clip ViT Vicuna1.5 7B 58.28 50.71 40.16 26.84 9.73 48.21 59.37 1
+
+O2-VG-VLM (ours) Moon ViT Qwen2.5 3B 78.35 73.49 65.47 50.74 24.48 67.85 74.66 12                                                        
+
+> TABLE V RESULTS OF O2-VG-U NI ON THE DIOR-R-RSVG, VRSB ENCH ,AND
+> AVVG DATASETS FOR THE OBJECT RETRIEVAL TASK .
+> Method Dataset thre. PRF1
+> Clip [16] VRSBench 0.3 36.77 5.41 7.32 RemoteClip [23] VRSBench 0.3 76.72 30.34 37.69
+> O2-VG-Uni (ours) VRSBench 0.3 70.31 53.11 56.86
+> Clip [16] AVVG 0.3 0.00 0.00 0.00 RemoteClip [23] AVVG 0.3 0.00 0.00 0.00
+> O2-VG-Uni (ours) AVVG 0.3 17.38 2.45 3.65
+> Clip [16] DIOR-R-RSVG 0.3 26.62 6.06 8.11 RemoteClip [23] DIOR-R-RSVG 0.3 60.62 17.65 23.33
+> O2-VG-Uni (ours) DIOR-R-RSVG 0.3 59.62 55.26 49.25
+
+Table III presents the universal oriented proposal results with 100 and 300 proposals. Overall, O 2-VG-Uni achieves superior performance on VRSBench, AVVG, and DIOR-R-RSVG. In particular, with only 100 proposals, O 2-VG-Uni achieves AR 50:95 scores of 55.48, 73.61, and 59.76 on VRSBench, AVVG, and DIOR-R-RSVG, respectively. When increasing the number of proposals to 300, O 2-VG-Uni further improves its recall across all datasets, achieving AR 50:95 
+
+scores of 56.41, 75.36, and 60.78, respectively. In the first training stage, O 2-VG-Uni contains 44M learn-able parameters. In the second stage, only the 512-dimensional objectness prompt is learnable, significantly reducing the num-ber of trainable parameters. Notably, O 2-VG-Uni adopts a real-time end-to-end Trans-former architecture and runs at 83 FPS, faster than the Rotated RPN variants. 
+
+F. O 2-VG-VLM Results for Visual Grounding 
+
+We compare O 2-VG-VLM with GeoChat and GeoGround, two representative LLaVA-based methods [15] that support oriented object visual grounding in remote sensing images. Both methods are fine-tuned following their official guidelines. As shown in Table IV, O 2-VG-VLM consistently outperforms GeoChat and GeoGround across all three datasets and evalua-tion metrics, despite having fewer parameters. On VRSBench, it achieves 69.67% Pr@0.5, 59.84% meanIoU, and 59.36% cumIoU. On AVVG, O 2-VG-VLM obtains 31.29% Pr@0.5, 26.44% meanIoU, and 27.52% cumIoU. On DIOR-R-RSVG, it further achieves 78.35% Pr@0.5, 67.85% meanIoU, and 74.66% cumIoU. These results demonstrate the effectiveness of O2-VG-VLM for oriented visual grounding in remote sensing images. 
+
+G. O 2-VG-Uni Results for Object Retrieval 
+
+We further evaluate the object retrieval capability of O 2-VG-Uni, as shown in Table V. The precision, recall, and F1 scores are first computed within each class and then averaged across different classes. The threshold for CLIP and RemoteCLIP is based on cosine similarity, whereas that for O 2-VG-Uni is based on the prediction score. Overall, O 2-VG-Uni demonstrates strong object retrieval capability across the three datasets. Specifically, it achieves F1 scores of 56.86%, 3.65%, and 49.25% on VRSBench, AVVG, and DIOR-R-RSVG, respectively. Its recall reaches 53.11%, 2.45%, and 55.26% on the three datasets, respectively. 
+
+H. Ablation Study O2-VG-Trans Ablation Study. Table VI presents an ablation study of O 2-VG-Trans on DIOR-R-RSVG. The full model achieves the best performance across all metrics, reaching 67.23% Pr@0.5 and 56.73% meanIoU. ① Removing encoder fusion causes the largest performance drop, reducing mean-IoU by 4.89%, which demonstrates the importance of early vision-language interaction. ② Replacing the proposed query selection with static query selection decreases meanIoU to 53.67%, indicating the effectiveness of language-guided query selection. ③ Removing text cross-attention also leads to a clear performance degradation, highlighting the importance of text-guided instance refinement. ④ Replacing the proposed text IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 10 
+
+TABLE VI ABLATION STUDY OF DIFFERENT COMPONENTS IN O2 -VG-T RANS ON THE DIOR-R-RSVG DATASET .
+
+Method Pr@0.5 Pr@0.6 Pr@0.7 meanIoU 
+
+O2-VG-Trans (Full) 67.23 62.00 54.12 56.73 
+
+① w/o encoder fusion 62.91 56.03 48.18 51.87 
+
+② static query selection 64.31 58.94 50.86 53.67 
+
+③ w/o text cross-attention 63.27 57.82 49.36 52.61 
+
+④ word-level text prompt 64.02 58.61 50.47 53.42 
+
+⑤ axis-aligned points 63.84 58.37 50.11 53.18 TABLE VII ABLATION STUDY OF DIFFERENT COMPONENTS IN O2 -VG-U NI ON THE 
+
+DIOR-R-RSVG DATASET .
+
+Method Param AR 50 F1 
+
+O2-VG-Uni (Full) 44M/512 88.53 49.25 
+
+① w/o stage1, train all params in stage2 44M/44M 89.84 0.00 
+
+② with stage1, train all params in stage2 44M/44M 94.62 0.00 
+
+③ Clip ViT 44M/512 83.71 42.56 
+
+④ static query selection 44M/512 86.27 47.18 
+
+⑤ axis-aligned points 44M/512 85.94 45.63 TABLE VIII ABLATION STUDY OF DIFFERENT COMPONENTS IN O2 -VG-VLM ON THE 
+
+DIOR-R-RSVG DATASET .
+
+Method Pr@0.5 Pr@0.6 Pr@0.7 meanIoU 
+
+O2-VG-VLM (Full) 78.35 73.49 65.47 67.85 
+
+① tokenize box as text 39.84 32.17 13.36 32.72 
+
+② four vertex 45.83 37.26 29.14 40.62 
+
+③ w/o universal proposals 73.24 65.37 53.59 61.90 
+
+④ only NTP + slow mode 76.62 71.71 63.82 66.02 
+
+⑤ only MTP + fast mode 74.21 68.54 60.28 62.91 TABLE IX COMPARISON OF THE SLOW , FAST , AND HYBRID INFERENCE MODES OF 
+
+O2 -VG-VLM ON THE DIOR-R-RSVG, VRSB ENCH , AND AVVG 
+
+> DATASETS
+
+.
+
+Mode Pr@0.5 Pr@0.6 Pr@0.7 Pr@0.8 Pr@0.9 meanIoU BPS 
+
+VRSBench 
+
+slow 69.91 62.26 50.45 33.60 13.32 60.09 2
+
+fast 69.55 61.56 49.99 33.24 12.99 59.77 13 
+
+hybrid 69.67 61.69 50.11 33.38 13.04 59.84 12 
+
+AVVG 
+
+slow 34.07 32.49 29.04 21.70 5.81 28.51 2
+
+fast 29.64 27.49 23.69 16.25 3.48 25.04 13 
+
+hybrid 31.29 29.24 25.47 17.81 4.00 26.44 12 
+
+DIOR-R-RSVG 
+
+slow 79.28 74.77 66.61 51.69 25.14 68.64 2
+
+fast 77.95 73.06 65.16 50.55 24.44 67.57 13 
+
+hybrid 78.35 73.49 65.47 50.74 24.48 67.85 12 
+
+prompt with a word-level prompt reduces the performance, validating the effectiveness of the proposed text representation. 
+
+⑤ Using axis-aligned sampling points in deformable attention also degrades the performance, demonstrating the advantage of the proposed rotated deformable attention representation. 
+
+O2-VG-Uni Ablation Study. Tab. VII conducts ablation studies on different components of O 2-VG-Uni on the DIOR-
+
+TABLE X EFFECT OF UNIVERSAL ORIENTED PROPOSALS ON O2 -VG-VLM ACROSS THE DIOR-R-RSVG, VRSB ENCH , AND AVVG DATASETS .
+
+Universal Proposals Pr@0.5 Pr@0.6 Pr@0.7 Pr@0.8 Pr@0.9 meanIoU cumIoU 
+
+VRSBench 
+
+✗ 68.38 57.64 41.57 21.51 4.77 56.82 56.75 
+
+✓ 69.67 61.69 50.11 33.38 13.04 59.84 59.36 
+
+AVVG 
+
+✗ 31.88 29.04 24.09 14.01 1.87 25.83 26.76 
+
+✓ 31.29 29.24 25.47 17.81 4.00 26.44 27.52 
+
+DIOR-R-RSVG 
+
+✗ 73.24 65.37 53.59 35.82 11.42 61.90 69.33 
+
+✓ 78.35 73.49 65.47 50.74 24.48 67.85 74.66 Training loss of O 2-VG -VLM on 
+
+DIOR -R-RSVG with and without 
+
+universal proposals. 
+
+Cosine learning rate schedules for 
+
+300 and 500 training steps. 
+
+Training loss of O 2-VG -VLM on 
+
+VRSBench  with and without 
+
+universal proposals. 
+
+Training loss of O 2-VG -VLM on 
+
+AVVG with and without universal 
+
+proposals. 
+
+Fig. 9. Training loss of O 2-VG-VLM on the VRSBench, AVVG, and DIOR-R-RSVG datasets with universal proposals (blue) and without universal proposals (orange). The bottom-right plot shows cosine learning rate schedules with 300 and 500 training steps. 
+
+R-RSVG dataset. ① Training all parameters in stage 2 without stage-1 training degrades the model into a binary oriented object detection framework, which achieves a high AR 50 of 89.84% but completely fails in object retrieval. This indi-cates that although further fine-tuning improves the recall of universal oriented proposals, the alignment between visual and textual features is essential for object retrieval. ② Train-ing all parameters in stage 2 after stage-1 training further improves AR 50 to 94.62%, but still fails to perform object retrieval. The reason is similar to that of ①. ③ Replacing the visual encoder from RemoteCLIP with CLIP decreases the performance. This demonstrates that a well-pretrained remote sensing visual encoder is better. ④ Using static query selection leads to decreases in result, verifying that adaptive query selection effectively removes redundant queries and improves the quality of reference oriented boxes. ⑤ Using axis-aligned sampling points in deformable attention results in performance degradation. This verifies that orientation-aware sampling is important. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 11 Locate a single instance that           
+
+> matches the following
+> description: The plane situated
+> at the bottom edge of the image,
+> near the center. The
+> foreground oriented boxes
+> <box>< 968 ><237 ><145 >
+> <123 >< 271></box> <box >
+> <520><665><163><120 >
+> <248></box> <box><819 >< 376
+> ><148><118><271></box>
+> The plane situated at the bottom edge of the image, near the center.
+> ground trut hO2-VG -Trans O2-VG -Uni
+> O2-VG -VLM
+> <ref>The plane situated at the
+> bottom edge of the image, near
+> the center . </ ref><box><522 >
+> <665><160><120><250></box>
+> <ref>The plane situated at the
+> bottom edge of the image, near
+> the center. </ ref> <box ><517 >
+> <661 >< 174><122><260> </ box >
+> User
+> O2-VG -VLM
+> text ground truth
+> The harbor facility located centrally in the image.
+> ground trut hO2-VG -Trans O2-VG -Uni
+> Locate a single instance that
+> matches the following
+> description: The harbor facility
+> located centrally in the image.
+> The foreground oriented boxes
+> <box><961><356><71><28><901
+> ></box><box><164><387><198>
+> <79><27></box> <box><459><43
+> 9><271><109><49></box> <box>
+> <424><404><68><34><913></bo
+> x><box><388><246><77><34><2
+> 12></box> O2-VG -VLM
+> <ref>The harbor facility located
+> centrally in the image.
+> </ref><box><459><438><272>
+> <107><45></box>
+> <ref>The harbor facility located
+> centrally in the image.
+> </ref><box><451><430><284>
+> <79><50></box>
+> User
+> O2-VG -VLM
+> text ground truth
+
+Fig. 10. Visualization of the overall O 2-VG family paradigm for oriented object visual grounding on VRSBench. Specifically, the referring expression, ground-truth oriented box, O 2-VG-Trans output, universal oriented proposals produced by O 2-VG-Uni, input prompt, text ground truth, and O 2-VG-VLM output are shown. A tennis court on the lower left The expressway service area on the top A ship on the lower left A vehicle on the upper right The car farthest from the golden car The black car in the middle-right 
+
+Fig. 11. Top row: Visualization of O 2-VG-Trans results on DIOR-R-RSVG for the oriented object visual grounding task. Bottom row: Visualization of O2-VG-Trans results on AVVG. 
+
+O2-VG-VLM Ablation Study. Table VIII presents the abla-tion study of different components in O 2-VG-VLM on the DIOR-R-RSVG dataset. ① When the oriented box is directly tokenized as text, the performance drops significantly. This is because continuous coordinate values may be split into multiple tokens by the tokenizer, which disrupts the spatial structure. ② Replacing the (cx, cy, w, h, θ ) representation with four vertex coordinates also causes a large performance degra-dation. This is mainly because the vertex-based representation requires predicting longer coordinate sequences (from 5 to 8 tokens) and is sensitive to vertex ordering, which may result in irregular quadrilateral outputs. ③ Removing universal oriented proposals reduces the meanIoU from 67.85% to 61.90%, showing that universal oriented proposals provide more accu-rate spatial priors. Using only NTP ( ④) or MTP ( ⑤) limits the model’s performance, indicating that the combination of NTP and MTP provides complementary supervision and enhances the oriented visual grounding capability. 
+
+O2-VG-VLM Different Inference Modes. Table IX compares the three inference modes of O 2-VG-VLM. The slow mode achieves the best performance on all three datasets due to reliable autoregressive decoding. The fast mode improves decoding efficiency but slightly reduces localization accuracy. The hybrid mode balances localization performance and infer-ence efficiency. These results demonstrate the effectiveness of the proposed hybrid strategy. 
+
+Universal Oriented Proposals for O 2-VG-VLM. Table X evaluates the effect of universal oriented proposals on O 2-VG-VLM. Introducing universal oriented proposals consistently improves localization performance across all three datasets. In particular, the improvements become more significant under higher IoU thresholds, indicating that the proposed proposals provide more accurate oriented object localization. For exam-ple, on DIOR-R-RSVG, the meanIoU improves from 61.90 to 67.85, while the cumIoU increases from 69.33 to 74.66. These results demonstrate that universal oriented proposals effectively enhance the grounding capability of O 2-VG-VLM. Additionally, Fig. 9 presents the training loss curves of O2-VG-VLM on the VRSBench, AVVG, and DIOR-R-RSVG datasets with and without universal oriented proposals. With universal oriented proposals, the training loss converges faster and achieves a more stable optimization process, demon-strating that high-quality oriented proposals facilitate more effective visual grounding learning. 
+
+I. Qualitative Analysis Overall O 2-VG Family. Fig. 10 provides an overview of the O 2-VG family on VRSBench. The figure presents the complete pipeline from referring expressions to oriented object localization. O 2-VG-Trans, as a discriminative Transformer-based model, directly predicts the oriented grounding box. O 2-VG-Uni extends O 2-VG-Trans to generate universal oriented proposals for potential foreground objects. These universal proposals are further incorporated into the input prompts of O 2-VG-VLM for vision-language visual grounding. The examples illustrate the different roles of the three models within the unified O 2-VG framework. 
+
+O2-VG-Trans for Oriented Object Visual Grounding. 
+
+Figs. 11 shows qualitative results of O 2-VG-Trans on DIOR-R-RSVG and AVVG. The predicted oriented boxes closely IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 12 DIOR-R-RSVG DIOR-R-RSVG DIOR-R-RSVG DIOR-R-RSVG VRSBench AVVG AVVG 
+
+Fig. 12. Visualization of the universal oriented object proposals produced by O2-VG-Uni on DIOR-R-RSVG, AVVG, and VRSBench. 00114 02058 02432 20440 00203 02817 01196 00042 00784 00337 01302 01428 00224                                                                                                                                                                                                 
+
+> airplane airport baseball field basketball court bridge chimney expressway service area golf field ground track field harbor overpass ship stadium storage tank tennis court vehicle
+> 0.61 0.04 0.06 0.02 0.05 0.02 0.01 0.01 0.05 0.02 0.05 0.02 0.03 0.08 0.36 0.05 0.02 0.05 0.02 0.01 0.04 0.02 0.03 0.07 0.02 0.01 0.00 0.01 0.49 0.03 0.01 0.01 0.01 0.01 0.00 0.00 0.03 0.03 0.00 0.02 0.01 0.03 0.60 0.01 0.01 0.01 0.02 0.01 0.01 0.06 0.01 0.06 0.05 0.02 0.05 0.02 0.62 0.00 0.04 0.02 0.18 0.04 0.07 0.01 0.03 0.02 0.01 0.01 0.01 0.01 0.41 0.01 0.03 0.01 0.01 0.01 0.07 0.02 0.05 0.04 0.02 0.11 0.03 0.04 0.31 0.09 0.03 0.04 0.02 0.01 0.02 0.03 0.07 0.11 0.12 0.05 0.01 0.01 0.55 0.01 0.01 0.06 0.01 0.02 0.08 0.05 0.72 0.12 0.28 0.01 0.03 0.04 0.09 0.03 0.67 0.07 0.11 0.10 0.03 0.01 0.01 0.08 0.01 0.01 0.01 0.23 0.00 0.02 0.01 0.03 0.12 0.03 0.04 0.02 0.26 0.02 0.14 0.02 0.03 0.32 0.08 0.02 0.09 0.13 0.04 0.09 0.01 0.16 0.01 0.05 0.01 0.63 0.02 0.08 0.07 0.09 0.01 0.05 0.06 0.03 0.01 0.01 0.01 0.03 0.01 0.01 0.43 0.08 0.01 0.02 0.01 0.02 0.02 0.01 0.02 0.01 0.01 0.01 0.01 0.02 0.55 0.02 0.07 0.02 0.04 0.10 0.02 0.01 0.03 0.02 0.04 0.01 0.04 0.02 0.57 0.41 0.01 0.20 0.06 0.07 0.08 0.37 0.02 0.10 0.02 0.06 0.12 0.46
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> score
+
+Fig. 13. Visualization of O 2-VG-Uni object retrieval on DIOR-R-RSVG. 
+
+follow the target objects under different object scales, orien-tations, and spatial distributions. The results also show that O2-VG-Trans can capture detailed information in referring expressions, such as color attributes and relative positions. 
+
+O2-VG-Uni for Universal Oriented Proposals. Fig. 12 vi-sualizes the universal oriented proposals produced by O 2-VG-Uni on DIOR-R-RSVG, AVVG, and VRSBench. The proposals cover potential foreground objects using only an objectness prompt. These category-agnostic proposals provide object-level priors for subsequent O 2-VG-VLM. 
+
+O2-VG-Uni for Object Retrieval. Fig. 13 presents the ob-ject retrieval results of O 2-VG-Uni on DIOR-R-RSVG. The retrieval heatmaps show that the proposal embeddings retain object-level semantic information. Proposals corresponding to the queried object receive higher similarity scores, enabling category-specific objects to be retrieved from the universal proposal set. 
+
+O2-VG-VLM for Oriented Object Visual Grounding. Fig. 14 presents qualitative results of O2-VG-VLM on DIOR-R-RSVG. The input prompt consists of the referring expression and universal oriented proposals. The predicted oriented boxes generally align well with the ground truth, demonstrating the ability of O 2-VG-VLM to perform oriented object visual grounding within an autoregressive vision-language frame-work. VI. C ONCLUSION 
+
+In this paper, we propose the O 2-VG family for oriented object visual grounding in remote sensing images. O 2-VG-Trans introduces a cross-modality Transformer as a strong foundation. O 2-VG-Uni further provides universal oriented Locate a single instance that matches the 
+
+following description: The gray airport in 
+
+the middle The foreground oriented boxes 
+
+<box><483><483><838><149><891></box 
+
+><box><965><718><66><32><396></box 
+
+><box><673><495><57><36><896></box 
+
+><box><108><76><12><8><633></box>< 
+
+box><964><719><64><32><393></box> 
+
+<ref>The gray airport in the 
+
+middle</ref><box><484><484> 
+
+<834><148><891></box> 
+
+<ref>The gray airport in the 
+
+middle</ref><box><479><484> 
+
+<814><123><895></box> 
+
+User 
+
+O2-VG -VLM 
+
+text ground truth 
+
+Locate a single instance that matches the 
+
+following description: A airplane on the 
+
+lower left The foreground oriented boxes 
+
+<box><167><698><259><222><660> 
+
+</box> <box><868><462><258><206> 
+
+<117></box><box><808><756><24><15> 
+
+<240></box><box><508><811><32><15> 
+
+<347></box> 
+
+User 
+
+A airplane on the lower 
+
+left</ref><box><164><699> 
+
+<259><222><655></box> 
+
+<ref>A airplane on the lower 
+
+left</ref><box><170><702> 
+
+<270><233><657></box> 
+
+O2-VG -VLM 
+
+text ground truth 
+
+Fig. 14. Visualization of the O 2-VG-VLM input prompt, output, and text ground truth on DIOR-R-RSVG. The yellow oriented box denotes the ground truth, while the red oriented box denotes the predicted box. 
+
+proposals using only an objectness prompt and supports ef-ficient oriented object retrieval. Based on these proposals, O 2-VG-VLM adopts multi-token prediction in an autoregressive vision-language model for efficient oriented box generation. In addition, we construct DIOR-R-RSVG, a new dataset for oriented object visual grounding containing triplets of images, referring expressions, and oriented bounding boxes. Extensive experiments on multiple benchmarks demonstrate the effec-tiveness of the proposed unified framework. REFERENCES [1] X. Lu, L. Sun, L. Li, L. Jiao, Y. Yang, Z. Huang, J. Chai, X. Liu, F. Liu, W. Ma, and S. Yang, “Rrsecs: Referring remote sensing expres-sion comprehension and segmentation,” IEEE Geoscience and Remote Sensing Magazine , vol. 13, no. 3, pp. 440–467, 2025. [2] J. Zhao, Z. Ding, Y. Zhou, H. Zhu, W.-L. Du, R. Yao, and A. El Saddik, “Rqformer: Rotated query transformer for end-to-end oriented object detection,” Expert Systems with Applications , vol. 266, p. 126034, 2025. [3] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Doll´ ar, and C. L. Zitnick, “Microsoft coco: Common objects in context,” in Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 .Springer, 2014, pp. 740–755. [4] Y. Zhan, Z. Xiong, and Y. Yuan, “Rsvg: Exploring data and models for visual grounding on remote sensing data,” IEEE Transactions on Geoscience and Remote Sensing , vol. 61, no. 5604513, pp. 1–13, 2023. [5] M. Lan, F. Rong, H. Jiao, Z. Gao, and L. Zhang, “Language query-based transformer with multiscale cross-modal alignment for visual grounding on remote sensing images,” IEEE Transactions on Geoscience and Remote Sensing , vol. 62, no. 5626513, pp. 1–13, 2024. [6] Y. Sun, S. Feng, X. Li, Y. Ye, J. Kang, and X. Huang, “Visual grounding in remote sensing images,” in Proceedings of the 30th ACM International conference on Multimedia , 2022, pp. 404–412. [7] Z. Hu, K. Gao, X. Zhang, Z. Yang, M. Cai, Z. Zhu, and W. Li, “Effi-cient grounding dino: Efficient cross-modality fusion and efficient label assignment for visual grounding in remote sensing,” IEEE Transactions on Geoscience and Remote Sensing , vol. 63, no. 5609414, pp. 1–14, 2025. [8] J. Zhao, Z. Ding, Y. Zhou, H. Zhu, W.-L. Du, and R. Yao, “Rediffdet: Rotation-equivariant diffusion model for oriented object detection,” in 
+
+Proceedings of the Computer Vision and Pattern Recognition Confer-ence , 2025, pp. 24 429–24 439. [9] J. Zhao, Z. Ding, Y. Zhou, H. Zhu, W.-L. Du, R. Yao, and A. El Sad-dik, “Orientedformer: An end-to-end transformer-based oriented object detector in remote sensing images,” IEEE Transactions on Geoscience and Remote Sensing , vol. 62, no. 5640816, pp. 1–16, 2024. [10] Z. Ding, J. Zhao, Y. Zhou, W.-l. Du, H. Zhu, and R. Yao, “Gsdet: Gaussian splatting for oriented object detection,” in Proceedings of the Thirty-Fourth International Joint Conference on Artificial Intelligence, IJCAI-25 , 2025, pp. 900–908. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING, VOL. XX, NO. XX, 2026 13 
+
+[11] K. Kuckreja, M. S. Danish, M. Naseer, A. Das, S. Khan, and F. S. Khan, “Geochat: Grounded large vision-language model for remote sensing,” in 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . IEEE, 2024, pp. 27 831–27 840. [12] Y. Zhou, M. Lan, X. Li, L. Feng, Y. Ke, X. Jiang, Q. Li, X. Yang, and W. Zhang, “Geoground: A unified large vision-language model for remote sensing visual grounding,” arXiv preprint arXiv:2411.11904 ,2024. [13] H. Zhu, T. Gao, Z. Li, Z. Chen, Q. Li, K. Miao, B. Hou, and L. Jiao, “Cascaded hierarchical attention with adaptive fusion for visual grounding in remote sensing,” Remote Sensing , vol. 17, no. 17, p. 2930, 2025. [14] Z. Huang, Y. Feng, Z. Liu, S. Yang, Q. Liu, and Y. Wang, “Openrsd: Towards open-prompts for object detection in remote sensing images,” in 
+
+2025 IEEE/CVF International Conference on Computer Vision (ICCV) .IEEE, 2025, pp. 8384–8394. [15] H. Liu, C. Li, Q. Wu, and Y. J. Lee, “Visual instruction tuning,” 
+
+Advances in neural information processing systems , vol. 36, pp. 34 892– 34 916, 2023. [16] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al. , “Learning transferable visual models from natural language supervision,” in International conference on machine learning . PmLR, 2021, pp. 8748–8763. [17] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2016, pp. 770–778. [18] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: Pre-training of deep bidirectional transformers for language understanding,” in Pro-ceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers) , 2019, pp. 4171–4186. [19] Z. Ding, Y. Zhou, J. Zhao, W.-L. Du, X. Li, R. Yao, and A. E. Saddik, “Real-time oriented object detection transformer in remote sensing images,” IEEE Transactions on Geoscience and Remote Sensing , vol. 64, no. 5613014, pp. 1–14, 2026. [20] T.-Y. Lin, P. Goyal, R. Girshick, K. He, and P. Doll´ ar, “Focal loss for dense object detection,” in Proceedings of the IEEE international conference on computer vision , 2017, pp. 2980–2988. [21] X. Yang, X. Yang, J. Yang, Q. Ming, W. Wang, Q. Tian, and J. Yan, “Learning high-precision bounding box for rotated object detection via kullback-leibler divergence,” Advances in Neural Information Process-ing Systems , vol. 34, pp. 18 381–18 394, 2021. [22] T. He, Z. Zhang, H. Zhang, Z. Zhang, J. Xie, and M. Li, “Bag of tricks for image classification with convolutional neural networks,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019, pp. 558–567. [23] F. Liu, D. Chen, Z. Guan, X. Zhou, J. Zhu, Q. Ye, L. Fu, and J. Zhou, “Remoteclip: A vision language foundation model for remote sensing,” 
+
+IEEE Transactions on Geoscience and Remote Sensing , vol. 62, no. 5622216, pp. 1–16, 2024. [24] S. Ren, K. He, R. Girshick, and J. Sun, “Faster r-cnn: Towards real-time object detection with region proposal networks,” Advances in neural information processing systems , vol. 28, 2015. [25] S. Wang, S. Liu, Y. Kuang, X. Wei, Y. Liu, Z. Li, Y. Man, G. Chen, A. Tao, G. Liu, J. Kautz, L. Zhang, and Z. Yu, “Locateanything: Fast and high-quality vision-language grounding with parallel box decoding,” 
+
+arXiv preprint arXiv:2605.27365 , 2026. [26] K. Team, A. Du, B. Yin, B. Xing, B. Qu, B. Wang, C. Chen, C. Zhang, C. Du, C. Wei et al. , “Kimi-vl technical report,” arXiv preprint arXiv:2504.07491 , 2025. [27] S. Bai, Y. Cai, R. Chen, K. Chen, X. Chen, Z. Cheng, L. Deng, W. Ding, C. Gao, C. Ge et al. , “Qwen3-vl technical report,” arXiv preprint arXiv:2511.21631 , 2025. [28] G. Cheng, J. Wang, K. Li, X. Xie, C. Lang, Y. Yao, and J. Han, “Anchor-free oriented proposal generator for object detection,” IEEE Transactions on Geoscience and Remote Sensing , vol. 60, pp. 1–11, 2022. [29] K. Li, G. Wan, G. Cheng, L. Meng, and J. Han, “Object detection in optical remote sensing images: A survey and a new benchmark,” ISPRS journal of photogrammetry and remote sensing , vol. 159, pp. 296–307, 2020. [30] X. Li, J. Ding, and M. Elhoseiny, “Vrsbench: A versatile vision-language benchmark dataset for remote sensing image understanding,” Advances in Neural Information Processing Systems , vol. 37, pp. 3229–3242, 2024. [31] Y. Zhou, M. Lan, X. Li, L. Feng, Y. Ke, X. Jiang, Q. Li, X. Yang, and W. Zhang, “Geoground: A unified large vision-language model for remote sensing visual grounding,” arXiv preprint arXiv:2411.11904 ,2024. [32] H. Wang, H. Tang, L. Jiang, S. Shi, M. F. Naeem, H. Li, B. Schiele, and L. Wang, “Git: Towards generalist vision transformer through universal language interface,” in European Conference on Computer Vision . Springer, 2024, pp. 55–73. [33] H. Zhang, F. Li, S. Liu, L. Zhang, H. Su, J. Zhu, L. Ni, and H. Shum, “Dino: Detr with improved denoising anchor boxes for end-to-end object detection. arxiv 2022,” arXiv preprint arXiv:2203.03605 , 2022. [34] S. Liu, Z. Zeng, T. Ren, F. Li, H. Zhang, J. Yang, Q. Jiang, C. Li, J. Yang, H. Su et al. , “Grounding dino: Marrying dino with grounded pre-training for open-set object detection,” in European conference on computer vision . Springer, 2024, pp. 38–55. [35] X. Yang and J. Yan, “Arbitrary-oriented object detection with circular smooth label,” in Computer Vision–ECCV 2020: 16th European Con-ference, Glasgow, UK, August 23–28, 2020, Proceedings, Part VIII 16 .Springer, 2020, pp. 677–694. [36] X. Xie, G. Cheng, J. Wang, K. Li, X. Yao, and J. Han, “Oriented r-cnn and beyond,” International Journal of Computer Vision , vol. 132, no. 7, pp. 2420–2442, 2024.

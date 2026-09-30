@@ -1,0 +1,229 @@
+Title: S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection
+
+URL Source: https://arxiv.org/pdf/2609.27413v1
+
+Published Time: Thu, 24 Sep 2026 00:38:23 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+## S2A : SEMANTIC-TO-SPATIAL ALIGNMENT FOR ALIGNMENT-FREE RGB-T SALIENT OBJECT DETECTION 
+
+## Qiangqiang Zhou 1, Yang Luo 1* , Yong Chen 1, Jiawei Xu 1*
+
+> 1
+
+## Jiangxi Normal University 
+
+ABSTRACT 
+
+Alignment-free RGB-T salient object detection (RGB-T SOD) aims to identify salient objects from unregistered RGB and thermal image pairs without costly pre-alignment. However, spatial misalignment breaks pixel-wise correspon-dence and causes feature contamination during cross-modal fusion. To address this issue, we propose S2A , a semantic-to-spatial alignment framework for alignment-free RGB-T SOD. Specifically, a global-guided hierarchical fusion module (GGHF) first exploits global semantic guidance to suppress background interference and refine hierarchical intra-modal features. Subsequently, the alignment-free cross-modal chan-nel attention module (AFCA) globally exchanges comple-mentary semantic information through channel-wise interac-tion, effectively overcoming the interference caused by local spatial misalignments. Finally, a spatial deformable cross-attention module (SDCA) predicts adaptive sampling offsets to recover local cross-modal spatial correspondence. Through this semantic-to-spatial paradigm, S2A first enables reliable cross-modal semantic interaction and subsequently performs local spatial calibration, effectively reducing misalignment-induced feature contamination. Without bells and whistles, 
+
+S2A achieves highly competitive performance on multiple public alignment-free RGB-T benchmarks, demonstrating its effectiveness in alleviating misalignment-induced feature contamination. 
+
+Index Terms — Salient Object Detection, Semantic-to-Spatial, Alignment-Free RGB-T 
+
+1. INTRODUCTION 
+
+RGB-T salient object detection (RGB-T SOD) aims to iden-tify and segment salient objects by jointly exploiting RGB and thermal modalities [1–4]. RGB images provide rich appear-ance information, while thermal images offer illumination-invariant responses. However, RGB-T pairs captured in real-world scenarios often suffer from spatial misalignment due to differences in sensor positions, viewpoints, and imaging char-acteristics [5–7]. To address this issue, recent alignment-free RGB-T SOD methods [8–10] have attempted to alleviate geo-metric discrepancies through feature alignment [11, 12], spa- 
+
+> * Corresponding author: {luo yang, jiawei xu }@jxnu.edu.cn
+
+## ×
+
+✔   
+
+> RGB Thermal Thermal SDC AFCA A
+> Previous Methods S2A
+> RGB Semantic Spatial
+> Alignment
+> GGHF
+
+Fig. 1 : Illustration of semantic-to-spatial alignment. Instead of directly matching misaligned RGB-T features in the spa-tial domain [11, 13, 17], S2A first refines intra-modal repre-sentations with GGHF, establishes cross-modal semantic cor-respondence through AFCA, and then recovers spatial corre-spondence via SDCA. tial transformation [13, 14], or cross-modal interaction [15, 16]. Although these methods mitigate misalignment to some extent, their cross-modal fusion processes still rely on explicit spatial correspondence, making feature interaction vulnerable to unreliable local matching. In unaligned RGB-T pairs, features at the same spatial location may originate from different physical regions, mak-ing pixel-level fusion or spatial cross-attention prone to er-roneous cross-modal matching. Such mismatches can prop-agate through the network and degrade multimodal fusion. To address this issue, we propose S2A , a semantic-to-spatial alignment framework for alignment-free RGB-T SOD. As il-lustrated in Fig. 1, S2A avoids premature spatial interaction by first establishing semantic correspondence and then pro-gressively recovering spatial correspondence. Specifically, we first introduce a global-guided hierarchi-cal fusion module (GGHF) to refine intra-modal representa-tions by using high-level semantics to suppress background interference and selectively integrate multi-level features. Based on these refined representations, an alignment-free cross-modal attention module (AFCA) exchanges comple-mentary semantics via macroscopic channel correlations, effectively bypassing strict pixel-wise alignment. After reli-able semantic interaction is established, a spatial deformable cross-attention module (SDCA) further predicts adaptive sampling offsets to recover fine-grained local correspondence between the two modalities. In summary, our main contributions are as follows: arXiv:2609.27413v1 [cs.CV] 23 Sep 2026 F1t 
+
+> Global-Guided Hierarchical Fusion Module SDCA SDCA AFCA AFCA Global-Guided Hierarchical Fusion Module
+> KV
+> Conv1 ×1
+> DWConv
+> fmain
+> fguide
+> F1rgb
+> Conv1 ×1
+> DWConv
+> Conv1 ×1
+> VQ
+> KT
+> Reshape
+> Softmax
+> C×Cfmain
+> Fmain
+> SDCA
+> Conv3 ×3Conv3 ×3Up Up Up
+> DWConv
+> Element-wise Multiplication Element-wise Summation Upsample Supervision Depthwise Convolution
+> F3s
+> F2s
+> F1s
+> Alignment-Free Cross-modal Attention
+> Swin Transformer Block 1
+> Swin Transformer Block 2
+> Swin Transformer Block 3
+> Swin Transformer Block 4
+> Swin Transformer Block 1
+> Swin Transformer Block 2
+> Swin Transformer Block 3
+> Swin Transformer Block 4
+> GT Prediction n
+> F2rgb
+> F2t
+> F3rgb
+> F2rgb
+> F2t
+> F1rgb
+> F1t
+> F3t
+
+Irgb 
+
+It
+
+> ⊗
+
+⊗⊗⊗⊗⊗⊗Fig. 2 : Overall architecture of S2A . The framework employs global-guided hierarchical fusion module (GGHF) for intra-modal feature refinement, alignment-free cross-modal attention module (AFCA) for alignment-free channel-wise cross-modal interaction, and spatial deformable cross-attention module (SDCA) for spatial calibration to produce the prediction map. • We propose S2A , a semantic-to-spatial alignment frame-work for alignment-free RGB-T SOD, which establishes cross-modal semantic correspondence before recovering spatial correspondence, reducing the feature contamina-tion. • We develop a global-guided hierarchical fusion module (GGHF) and an alignment-free cross-modal attention mod-ule (AFCA) to establish reliable cross-modal semantic correspondence before spatial alignment. • We further introduce a spatial deformable cross-attention module (SDCA) to recover local spatial correspondence af-ter semantic interaction, forming a progressive semantic-to-spatial alignment paradigm for robust RGB-T fusion under spatial misalignment. • Extensive experiments across multiple public alignment-free RGB-T benchmarks verify the effectiveness, robust-ness, and generalizability of the proposed S2A .
+
+2. METHOD Overall Architecture. As shown in Fig. 2, given an un-aligned RGB-T image pair {Irgb , I t}, S2A employs two parallel encoders to extract hierarchical features from the two modalities. Global-guided hierarchical fusion module (GGHF) first refines the intra-modal representations under high-level semantic guidance. Alignment-free cross-modal attention module (AFCA) then performs channel-wise cross-modal interaction, effectively alleviating the reliance on strict pixel-wise correspondence. Subsequently, spatial deformable cross-attention module (SDCA) dynamically samples spatial locations to recover local cross-modal alignment. Finally, the refined features are progressively aggregated to produce the final prediction map. 
+
+Global-Guided Hierarchical Fusion Module (GGHF). 
+
+GGHF refines intra-modal representations by exploiting global semantics to suppress background interference and coordinate hierarchical features. Given a low-level feature 
+
+Fl, a high-level feature Fh, and a global feature Fg , we first obtain local and global guidance: 
+
+Ml = SA (Fl), Mh = SA (Fh), Mg = C1×1(Fg ). (1) The global guidance is then combined with local cues for bidirectional hierarchical refinement: 
+
+ˆFh = Fh ⊙ ϕ([ Ml, M g ]) , ˆFl = Fl ⊙ ϕ([ Mh, M g ]) , (2) where ϕ(·) is a 3 × 3 convolution. We then aggregate the refined features into a shared hierarchical attention: 
+
+A = Ψ 
+
+
+
+CBR([ ˆFh, ˆFl]) 
+
+
+
+, (3) where Ψ( ·) consists of strip pooling, depth-wise convolution, CBH, and 1 × 1 convolutions. Finally, A adaptively enhances the hierarchical representations: 
+
+Ff = [CBR( Ml) ⊙ A, CBR( Mh) ⊙ A] , (4) where CBR and CBH denote Conv-BN-ReLU and Conv-BN-Hardswish blocks, respectively. 
+
+Alignment-Free Cross-modal Attention Module (AFCA). 
+
+To enable reliable cross-modal semantic interaction that is highly robust to spatial shifts, we introduce the AFCA mod-ule. Specifically, given fmain and fguide , AFCA uses fmain ⊗ 
+
+> C
+> Fl
+> Fh
+> CCCC
+> Ff
+> DWConv DWConv
+> Conv 1×1Conv 3×3Conv 3×3
+> CBR 1×1CBR 1×1CBR 1×1
+> Conv 1×1Conv 1×1
+> Spatial Attention Spatial Attention
+> Strip Pooling Strip Pooling CBH
+> Fh
+
+⊗
+
+> Fg
+
+⊗⊗
+
+> Fl
+
+⊗(a) The detailed architecture of the proposed GGHF module. Frgb  
+
+> Grid Sample Multi-Head Attention Conv 1×1Conv 3×3GELU Conv 1×1
+> C
+> QKV
+> Fs
+> Conv 3×3Conv 1×1
+> Offsets
+> Ft
+
+(b) The detailed architecture of the proposed SDCA module. 
+
+Fig. 3 : Illustration of the proposed Global-Guided Hierarchical Fusion and Spatial Deformable Cross-Attention modules. for Q, V and fguide for K:
+
+(Q, V ) = DW C d=2 (C1×1(fmain )) , (5) 
+
+K = DW C d=2 (C1×1fguide ), (6) where DW C d=2 denotes depth-wise convolution with dila-tion rate 2. After flattening the spatial dimensions, channel-wise attention is computed as 
+
+A = Softmax  τ QK T  , (7) where τ is a learnable temperature parameter. Since Q ∈
+
+RC×HW and KT ∈ RHW ×C , the resulting A ∈ RC×C cap-tures macroscopic channel correlations via global spatial ag-gregation. The output is then obtained as 
+
+Fmain = fmain + C1×1(AV ). (8) 
+
+Spatial Deformable Cross-Attention Module (SDCA). To recover local spatial correspondence under misalignment, we introduce SDCA to adaptively sample complementary fea-tures for cross-modal spatial calibration. Let Frgb and Ft
+
+denote the features from the RGB and thermal modalities, re-spectively. We first project Frgb through a 1 × 1 convolution to obtain the query feature Q, which is then used to predict spatial sampling offsets: 
+
+∆p = Scale (tanh ( C1×1 (δ (C3×3(Q))))) , (9) where δ denotes GELU activation and Scale( ·) constrains the offset magnitude. The predicted offsets are added to the base sampling grid to resample the thermal feature: 
+
+eFt = G (Ft, p base + ∆ p) , (10) where G(·) denotes bilinear grid sampling. The spatially cal-ibrated feature eFt is further projected to generate the key K
+
+and value V , while Q is directly used as the query for multi-head cross-attention: 
+
+Fatt = MHA( Q, K, V ). (11) Finally, the attended feature is concatenated with the RGB feature and refined by a 3 × 3 convolution: 
+
+Fs = C3×3 ([ Frgb , F att ]) . (12) 
+
+Decoder and Loss Function. The fused multi-scale features are progressively aggregated through a lightweight top-down decoder [9] with bilinear upsampling and convolutional re-finement to generate the final prediction map. For a fair com-parison, following previous methods [8, 18–20], we employ the standard binary cross-entropy loss, smoothness loss, and soft Dice loss as the training objective and optimize the entire network end-to-end. 
+
+3. EXPERIMENTS 3.1. Evaluation Datasets and Metrics. For a comprehensive evaluation of 
+
+S2A , we adopt the same training set [21] as previous meth-ods [8, 21] and conduct testing on both unaligned [9, 21] and weakly aligned [5] datasets. We employ three widely used evaluation metrics to assess model performance, including structure-measure Sm [37], enhanced-alignment measure 
+
+Em [38], and F-measure Fm [39]. 
+
+Implementation Details. S2A is implemented on a single NVIDIA RTX 4090 GPU with Swin-B [23] as the backbone. We use AdamW [40] with a learning rate of 5 × 10 −5 and a batch size of 2 for 200 epochs. All images are resized to 
+
+384 × 384 during training and inference. 
+
+Comparison with State-of-the-arts. Tab. 1 presents the quantitative comparison between S2A and current SOTA methods on two unaligned and three weakly aligned RGB-T SOD datasets. Overall, S2A achieves the best performance on almost all evaluation metrics, demonstrating strong gen-eralization under different degrees of spatial misalignment. Specifically, compared with the recent state-of-the-art method TPS-SCL [8], S2A achieves comprehensively better results across all three metrics on all five evaluated datasets. On the Table 1 : Quantitative comparisons on two unaligned and three weakly aligned datasets. The best results are marked in bold .Method Backbone UVT20K [21] UVT2000 [9] un-VT5000 [5] un-VT1000 [5] un-VT821 [5]                                                                                                                                                                                                                                                              
+
+> Sm↑Em↑Fm↑Sm↑Em↑Fm↑Sm↑Em↑Fm↑Sm↑Em↑Fm↑Sm↑Em↑Fm↑
+> SwinNet [22] SwinB [23] 0.841 0.850 0.728 0.790 0.780 0.592 0.837 0.901 0.767 0.853 0.871 0.802 0.854 0.903 0.783 OSRNet [24] VGG16 [25] 0.807 0.835 0.730 0.741 0.764 0.567 0.800 0.846 0.741 0.871 0.885 0.833 0.814 0.848 0.734 TNet [26] ResNet50 [27] 0.856 0.876 0.783 0.792 0.782 0.610 0.858 0.905 0.807 0.868 0.880 0.827 0.876 0.913 0.829 DCNet [5] VGG16 [25] 0.808 0.853 0.776 0.767 0.808 0.632 0.812 0.879 0.803 0.858 0.880 0.850 0.817 0.869 0.793 HRTrans [28] HRFormer [29] 0.852 0.839 0.710 0.758 0.706 0.525 0.872 0.899 0.780 0.869 0.872 0.785 0.873 0.901 0.782 MCFNet [30] ResNet50 [27] 0.842 0.875 0.800 0.774 0.784 0.621 0.836 0.892 0.809 0.876 0.886 0.850 0.850 0.893 0.818 LSNet [31] MobileNet-v2 [32] 0.834 0.828 0.699 0.763 0.711 0.527 0.847 0.892 0.767 0.868 0.875 0.797 0.842 0.875 0.754 CAVER [33] ResNet50 [27] 0.861 0.876 0.790 0.786 0.782 0.616 0.850 0.893 0.805 0.873 0.881 0.838 0.818 0.856 0.780 LAFB [34] Res2Net50 [35] 0.847 0.858 0.757 0.778 0.774 0.594 0.851 0.908 0.803 0.862 0.880 0.824 0.834 0.889 0.791 SACNet [9] SwinB [23] 0.829 0.819 0.709 0.795 0.792 0.601 0.872 0.899 0.780 0.852 0.868 0.803 0.876 0.916 0.812 PCNet [21] SwinB [23] 0.872 0.897 0.822 0.819 0.851 0.686 0.879 0.936 0.861 0.922 0.947 0.904 0.893 0.936 0.869 RA-SOD [36] Res2Net-50 [35] 0.868 0.888 0.830 0.811 0.825 0.677 0.874 0.917 0.852 0.914 0.935 0.900 0.870 0.915 0.849 TPS-SCL [8] SwinB [23] 0.886 0.897 0.837 0.827 0.834 0.693 0.893 0.940 0.873 0.930 0.948 0.914 0.899 0.936 0.873
+> S2A SwinB [23] 0.888 0.902 0.844 0.835 0.837 0.702 0.901 0.942 0.882 0.937 0.950 0.917 0.911 0.937 0.876
+
+Table 2 : Ablation studies of the proposed modules. Method UVT20K [21] UVT2000 [9] un-VT5000 [5]                      
+
+> Sm↑Em↑Fm↑Sm↑Em↑Fm↑Sm↑Em↑Fm↑
+> w/o GGHF 0.865 0.883 0.788 0.810 0.817 0.650 0.882 0.930 0.840 w/o AFCA 0.866 0.874 0.776 0.803 0.809 0.643 0.873 0.932 0.842 w/o SDCA 0.861 0.843 0.735 0.803 0.799 0.616 0.869 0.925 0.826 Spatial to Semantic 0.885 0.871 0.788 0.830 0.821 0.672 0.894 0.933 0.869
+> S2A 0.888 0.902 0.844 0.835 0.837 0.702 0.901 0.942 0.882
+
+UVT2000 dataset, although the Em score of S2A is second to PCNet [21], it secures the highest Sm and Fm scores, main-taining its overall superiority. The qualitative results in Fig. 4 further demonstrate the effectiveness of S2A under chal-lenging conditions, including cluttered backgrounds, weak alignment, low illumination, degraded thermal signals, ther-mal diffusion, and fine structures. S2A consistently produces more accurate saliency maps with more complete object structures and sharper boundaries, further demonstrating its robustness to cross-modal spatial misalignment. 
+
+3.2. Ablation Studies 
+
+S2A progressively alleviates cross-modal spatial misalign-ment through the complementary effects of intra-modal fea-ture refinement , cross-modal semantic interaction , and spatial correspondence recovery . As shown in Tab. 2, to verify the effectiveness of intra-modal feature refinement,we replace the global-guided hierarchical fusion module (GGHF) with standard convolutional blocks, which leads to noticeably in-creased false-positive responses in cluttered backgrounds. This demonstrates the importance of global semantic guid-ance for suppressing background interference and refining intra-modal representations. Next, replacing alignment-free cross-modal attention module (AFCA) with simple channel-wise concatenation causes a clear performance drop, con-firming the critical role of AFCA in establishing reliable cross-modal semantic interaction. Finally, replacing spa-tial deformable cross-attention module (SDCA) with rigid co-located fusion degrades the performance across all met-Ours PCNet GT RGB Thermal RA-SOD SACNet LAFB CAVER TPS-SCL 
+
+Fig. 4 : Visual comparisons with other SOTA methods. rics, further validating the necessity of SDCA for spatial correspondence recovery. To further validate the semantic-to-spatial paradigm, we reverse the alignment order into spatial-to-semantic. The performance degradation confirms the effectiveness of establishing semantic correspondence before spatial correspondence recovery. 
+
+4. CONCLUSION 
+
+In this paper, we present S2A for alignment-free RGB-T salient object detection (RGB-T SOD). Instead of directly establishing unreliable pixel-wise correspondence, S2A fol-lows a progressive semantic-to-spatial alignment paradigm, where global-guided hierarchical fusion module, alignment-free cross-modal attention module, and spatial deformable cross-attention module sequentially perform intra-modal rep-resentation refinement, cross-modal semantic interaction, and local spatial correspondence recovery. Through this design, S2A effectively alleviates misalignment-induced fea-ture contamination while fully exploiting complementary multimodal information. Extensive experiments on multi-ple public benchmarks demonstrate the effectiveness of S2A 
+
+under varying degrees of spatial misalignment. Overall, our results suggest that semantic-to-spatial alignment provides an effective strategy for robust multimodal perception under im-perfect spatial correspondence, and we hope S2A can further promote the development of alignment-free RGB-T SOD. 5. REFERENCES 
+
+[1] Kunpeng Wang, Zhengzheng Tu, Chenglong Li, Zhengyi Liu, and Bin Luo, “Unified-modal salient object detection via adaptive prompt learn-ing,” IEEE TCSVT , vol. 35, no. 12, pp. 12109–12124, 2025. [2] Qiangqiang Zhou, Jiawei Xu, Yong Chen, et al., “Differseg: Towards diverse multimodal binary segmentation via differential perception and frequency guidance,” IEEE TCSVT , 2026. [3] Jiawei Xu, Qiangqiang Zhou, Zhouping Li, et al., “Hvpnet: A bio-inspired network for general salient and camouflaged object detection,” 
+
+Neural Networks , p. 109340, 2026. [4] Jiawei Xu, Qiangqiang Zhou, Jiacong Yu, Chen Liao, and Dandan Zhu, “Semantic-orthogonal multi-modal attention network for rgb-d salient object detection,” TVC , vol. 41, no. 9, pp. 6917–6929, 2025. [5] Zhengzheng Tu, Zhun Li, Chenglong Li, and Jin Tang, “Weakly alignment-free rgbt salient object detection with deep correlation net-work,” IEEE TIP , vol. 31, pp. 3752–3764, 2022. [6] Kechen Song, Xiaotong Xue, Hongwei Wen, et al., “Misaligned visible-thermal object detection: A drone-based benchmark and base-line,” TIV , vol. 9, no. 11, pp. 7449–7460, 2024. [7] Xiangqing Zhang, Yan Feng, Nan Wang, et al., “Transformer-based person detection in paired rgb-t aerial images with vtsar dataset,” JS-TARS , vol. 18, pp. 5082–5099, 2025. [8] Lupiao Hu, Fasheng Wang, Fangmei Chen, Fuming Sun, and Haojie Li, “Breaking alignment barriers: Tps-driven semantic correlation learning for alignment-free rgb-t salient object detection,” in AAAI , 2026. [9] Kunpeng Wang, Danying Lin, Chenglong Li, Zhengzheng Tu, and Bin Luo, “Alignment-free rgbt salient object detection: Semantics-guided asymmetric correlation network and a unified benchmark,” IEEE TMM ,vol. 26, pp. 10692–10707, 2024. [10] Andong Lu, Yuanzhi Guo, Kunpeng Wang, et al., “Pixel-level rgbt fu-sion tracking via heterogeneous multi-expert distillation and decoupled representation learning,” IEEE TIP , vol. 35, pp. 6775–6788, 2026. [11] Pengfei Lyu, Pak-Hei Yeung, Xiaosheng Yu, et al., “Efficient fourier filtering network with contrastive learning for aav-based unaligned bi-modal salient object detection,” TGRS , vol. 63, pp. 1–12, 2025. [12] Yuanliang Xue, Guodong Jin, Bineng Zhong, et al., “Fmtrack: Frequency-aware interaction and multi-expert fusion for rgb-t track-ing,” IEEE TCSVT , vol. 36, no. 2, pp. 1655–1667, 2026. [13] Chengmei Han, Lei Liu, Kunpeng Wang, Fei Xie, and Bing Wei, “Hierarchical semantics guided multi-scale correlation network for alignment-free red-green-blue and thermal salient object detection,” 
+
+EAAI , vol. 162, pp. 112394, 2025. [14] Tianlu Zhang, Xiaoyi He, Qiang Jiao, Qiang Zhang, and Jungong Han, “Amnet: Learning to align multi-modality for rgb-t tracking,” IEEE TCSVT , vol. 34, no. 8, pp. 7386–7400, 2024. [15] Haixiao Gao, Yimin Zheng, Linyou Xiao, et al., “Thermal-physics inspired cross-modal alignment for aav-based rgb-t salient object de-tection,” JSTARS , vol. 19, pp. 20923–20939, 2026. [16] Lei Liu, Chenglong Li, Yun Xiao, Rui Ruan, and Minghao Fan, “Rgbt tracking via challenge-based appearance disentanglement and interac-tion,” IEEE TIP , vol. 33, pp. 1753–1767, 2024. [17] Heng Zhou, Zhenxi Zhang, Chengyang Li, et al., “Deformation-resilient multigranularity learning for unaligned rgb–t semantic seg-mentation,” TNNLS , vol. 36, no. 10, pp. 18530–18544, 2025. [18] Qiangqiang Zhou, Jiacong Yu, Jiawei Xu, Yong Chen, Xin Huang, and Ping Li, “Tdfnet: Tri-projection deformable fusion network for panoramic salient object detection,” arXiv preprint arXiv:2608.25808 ,2026. [19] Qiangqiang Zhou, Wenjun Tang, Yong Chen, Dandan Zhu, and Jiawei Xu, “Vico-sam3: Vision-conditioned alignment for open-vocabulary camouflaged object segmentation,” arXiv preprint arXiv:2609.15418 ,2026. [20] Jiawei Xu, Qiangqiang Zhou, Dandan Zhu, et al., “Tp-seg: Task-prototype framework for unified medical lesion segmentation,” in 
+
+CVPR , 2026, pp. 5452–5462. [21] Kunpeng Wang, Keke Chen, Chenglong Li, Zhengzheng Tu, and Bin Luo, “Alignment-free rgb-t salient object detection: A large-scale dataset and progressive correlation network,” in AAAI , 2025, vol. 39, pp. 7780–7788. [22] Zhengyi Liu, Yacheng Tan, Qian He, and Yun Xiao, “Swinnet: Swin transformer drives edge-aware rgb-d and rgb-t salient object detection,” 
+
+IEEE TCSVT , vol. 32, no. 7, pp. 4486–4497, 2022. [23] Ze Liu, Yutong Lin, Yue Cao, et al., “Swin transformer: Hierarchical vision transformer using shifted windows,” in ICCV , 2021, pp. 9992– 10002. [24] Fushuo Huo, Xuegui Zhu, Qian Zhang, Ziming Liu, and Wenchao Yu, “Real-time one-stream semantic-guided refinement network for rgb-thermal salient object detection,” TIM , vol. 71, pp. 1–12, 2022. [25] Karen Simonyan and Andrew Zisserman, “Very deep convolutional networks for large-scale image recognition,” in ICLR , 2015. [26] Runmin Cong, Kepu Zhang, Chen Zhang, et al., “Does thermal really always matter for rgb-t salient object detection?,” IEEE TMM , vol. 25, pp. 6971–6982, 2023. [27] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, “Deep residual learning for image recognition,” in CVPR , 2016. [28] Bin Tang, Zhengyi Liu, Yacheng Tan, and Qian He, “Hrtransnet: Hrformer-driven two-modality salient object detection,” IEEE TCSVT ,vol. 33, no. 2, pp. 728–742, 2023. [29] YUHUI YUAN, Rao Fu, Lang Huang, Weihong Lin, Chao Zhang, Xilin Chen, and Jingdong Wang, “Hrformer: High-resolution vision transformer for dense predict,” in NeurIPS , 2021, vol. 34, pp. 7281– 7293. [30] S. Ma, K. Song, H. Dong, H. Tian, and Y. Yan, “Modal complementary fusion network for rgb-t salient object detection,” Appl. Intell. , vol. 53, pp. 9038–9055, 2023. [31] Wujie Zhou, Yun Zhu, Jingsheng Lei, Rongwang Yang, and Lu Yu, “Lsnet: Lightweight spatial boosting network for detecting salient ob-jects in rgb-thermal images,” IEEE TIP , vol. 32, pp. 1329–1340, 2023. [32] Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen, “Mobilenetv2: Inverted residuals and linear bottlenecks,” in CVPR , 2018, pp. 4510–4520. [33] Youwei Pang, Xiaoqi Zhao, Lihe Zhang, and Huchuan Lu, “Caver: Cross-modal view-mixed transformer for bi-modal salient object de-tection,” IEEE TIP , vol. 32, pp. 892–904, 2023. [34] Kunpeng Wang, Zhengzheng Tu, Chenglong Li, Cheng Zhang, and Bin Luo, “Learning adaptive fusion bank for multi-modal salient object detection,” IEEE TCSVT , vol. 34, no. 8, pp. 7344–7358, 2024. [35] Shang-Hua Gao, Ming-Ming Cheng, Kai Zhao, et al., “Res2net: A new multi-scale backbone architecture,” IEEE TPAMI , vol. 43, no. 2, pp. 652–662, 2021. [36] Hongbo Gao, Zhengyu Li, Xueru Nie, et al., “Ra-sod: Reliability-aware rgb-t salient object detection under modality degradation,” arXiv preprint arXiv:2609.12622 , 2026. [37] Deng-Ping Fan, Ming-Ming Cheng, Yun Liu, Tao Li, and Ali Borji, “Structure-measure: A new way to evaluate foreground maps,” in 
+
+CVPR , 2017, pp. 4548–4557. [38] Deng-Ping Fan, Cheng Gong, Yang Cao, et al., “Enhanced-alignment measure for binary foreground map evaluation,” arXiv preprint arXiv:1805.10421 , 2018. [39] Radhakrishna Achanta, Sheila Hemami, Francisco Estrada, and Sabine Susstrunk, “Frequency-tuned salient region detection,” in CVPR , 2009, pp. 1597–1604. [40] Ilya Loshchilov, Frank Hutter, et al., “Fixing weight decay regulariza-tion in adam,” arXiv preprint arXiv:1711.05101 , 2017.

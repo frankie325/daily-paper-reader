@@ -1,0 +1,732 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-30T22:49:05.493337+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 15,
+    "deep_cap": 6,
+    "deep_selected": 11,
+    "quick_candidates": 8,
+    "quick_skim_target": 11,
+    "quick_selected": 8
+  },
+  "deep_dive": [
+    {
+      "id": "2609.25693v1",
+      "source": "arxiv",
+      "title": "C2FXNet: Coarse-to-Fine Scene Expert for Unified Object Detection across Adverse Weather",
+      "abstract": "Object detection in adverse weather remains challenging because severe degradations weaken visual quality and disrupt semantic feature representations across diverse scenes. Existing methods usually rely on condition-specific designs, which limits their ability to generalize within a unified detector. In this paper, we propose a Coarse-to-Fine Scene Expert Network (C2FXNet) that achieves unified detection through hierarchical scene guidance. Specifically, C2FXNet introduces a dual-level guidance mechanism consisting of a Multi-step Reasoning Router (MRR), which performs GRU-based recurrent scene reasoning over compressed multi-scale visual cues and frozen coarse scene prototypes, and a Fine Scene Refinement (FSR) module, which uses image-specific semantic cues to modulate high-level features for local variation handling. Furthermore, a Scene-aware Mixture-of-Experts (SMoE) dynamically combines scene-specific experts under the joint guidance of MRR and FSR. By coupling coarse scene reasoning with fine-grained semantic refinement, C2FXNet enables robust multi-scene detection without scene-specific training. Extensive experiments on RTTS, ExDark, and our newly constructed Adverse Weather Dataset (AWD) demonstrate that C2FXNet consistently outperforms state-of-the-art methods across foggy, dark, and clear conditions, reaching 63.70%, 71.14%, and 54.19% mAP on RTTS, ExDark, and AWD, respectively. The source code will be released at https://github.com/PolarisFTL/C2FXNet.",
+      "authors": [
+        "Tianle Fang",
+        "Zhenbing Liu",
+        "Chong Yin",
+        "Bolun Li",
+        "Haoxiang Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-22T04:53:42+00:00",
+      "link": "https://arxiv.org/pdf/2609.25693v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unified object detection across adverse weather",
+      "llm_evidence_cn": "恶劣天气下的统一目标检测",
+      "llm_evidence": "恶劣天气下的统一目标检测",
+      "canonical_evidence": "恶劣天气下的统一目标检测",
+      "llm_tldr_en": "Proposes C2FXNet, a coarse-to-fine scene expert network that uses hierarchical scene guidance to achieve unified object detection under adverse weather conditions, mitigating visual degradation and feature disruption.",
+      "llm_tldr_cn": "针对恶劣天气下目标检测中严重退化削弱视觉质量和破坏语义特征表示的问题，提出由粗到细场景专家网络C2FXNet，通过多步推理路由器和精细场景细化实现层次化场景引导的统一检测。实验表明C2FXNet在多种恶劣天气条件下提升了检测性能和泛化能力，为鲁棒目标检测提供了有效方案。",
+      "llm_tldr": "针对恶劣天气下目标检测中严重退化削弱视觉质量和破坏语义特征表示的问题，提出由粗到细场景专家网络C2FXNet，通过多步推理路由器和精细场景细化实现层次化场景引导的统一检测。实验表明C2FXNet在多种恶劣天气条件下提升了检测性能和泛化能力，为鲁棒目标检测提供了有效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26590v2",
+      "source": "arxiv",
+      "title": "GTR: Gated Token Recurrence for Efficient Dense Prediction",
+      "abstract": "Self-attention-based vision backbones perform well on dense prediction, but the quadratic computational cost of global softmax attention limits their efficiency as image resolution increases. We introduce Gated Token Recurrence (GTR), a softmax-free recurrent vision backbone that combines gated linear attention, alternating spatial scan directions, and spatially enhanced SwiGLU blocks. GTR is distilled from a detection-specialized DINOv3 teacher using only final-layer patch-token alignment through a linear projection and squared $\\ell_2$ loss, without masked-token prediction or intermediate-layer supervision. With Objects365 detector pre-training, GTR-L achieves 58.9 box AP on COCO \\texttt{val2017} with 1.908\\,ms median batch-one latency under compiled FP16 execution on an RTX~4090. The same backbone also transfers to instance segmentation, pose estimation, oriented detection, semantic segmentation, and monocular depth estimation. In an isolated kernel benchmark, our specialized chunkwise CUDA operator is $4.0\\times$ faster than FLA v0.5.0 at 1.6K tokens on RTX~4090. TensorRT deployment on DRIVE AGX Thor achieves 2.282--8.769\\,ms median batch-one latency across the evaluated models. These results show that recurrent token mixing can provide an efficient alternative to global softmax attention for high-resolution dense prediction and edge deployment. Project page: https://intellindust-ai-lab.github.io/projects/GTR/",
+      "authors": [
+        "Zhe Feng",
+        "Longfei Liu",
+        "Wei Liu",
+        "Kai Chen",
+        "Jiangang Kong",
+        "Wei Zhou",
+        "Yifeng Qian",
+        "Dexiong Chen",
+        "Xuanlong Yu",
+        "Xi Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-22T15:34:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.26590v2",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Detection-specialized DINOv3 teacher, COCO box AP for object detection",
+      "llm_evidence_cn": "针对检测的DINOv3教师，COCO box AP用于目标检测",
+      "llm_evidence": "针对检测的DINOv3教师，COCO box AP用于目标检测",
+      "canonical_evidence": "针对检测的DINOv3教师，COCO box AP用于目标检测",
+      "llm_tldr_en": "To overcome quadratic self-attention cost in dense prediction, GTR proposes a softmax-free recurrent backbone with gated linear attention and spatial scan alternation, distilled from DINOv3. On COCO val2017, GTR-L achieves 58.9 box AP with 1.908ms latency.",
+      "llm_tldr_cn": "针对自注意力在密集预测中计算成本高的问题，提出GTR，一种无softmax的递归视觉骨干，结合门控线性注意力、交替空间扫描和空间增强SwiGLU。通过从DINOv3教师蒸馏，并在Objects365上预训练，GTR-L在COCO val2017上达到58.9 box AP，延迟低至1.908ms，实现了高效目标检测。",
+      "llm_tldr": "针对自注意力在密集预测中计算成本高的问题，提出GTR，一种无softmax的递归视觉骨干，结合门控线性注意力、交替空间扫描和空间增强SwiGLU。通过从DINOv3教师蒸馏，并在Objects365上预训练，GTR-L在COCO val2017上达到58.9 box AP，延迟低至1.908ms，实现了高效目标检测。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26919v1",
+      "source": "arxiv",
+      "title": "Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection",
+      "abstract": "Event cameras promise low-latency perception for high-speed robotic systems, where even short delays can render detections stale by the time they inform downstream robotic decisions. Yet modern event detectors still require tens of milliseconds of computation before their predictions become available. Conventional evaluation ignores this delay by comparing predictions with annotations at the observation timestamp, even though the scene may have changed by the time those predictions are produced. We study this observation-availability mismatch in event-based multi-object detection and show that state-of-the-art event detectors degrade substantially when evaluated at prediction availability rather than observation time. To address this, we introduce ChronoFuse, a causal availability-time detector that predicts object states for when its output becomes available rather than for when its input was observed. ChronoFuse performs causal cross-time fusion over a multi-scale feature hierarchy, combining current representations with cached temporal features to expose short-term temporal cues without using future observations. The fusion pathway is lightweight, adding only 0.17 million parameters and 0.84 ms of mean end-to-end latency overhead. ChronoFuse recovers 71% of the accuracy lost to latency on 1Mpx driving data and 90.8% under rapid drone motion on FRED, nearly restoring zero-delay performance. Under the extreme motion of EV-Flying, ChronoFuse reaches 20.95 sAP, compared with 2.25 for the strongest standard event detector (9.3x gain). These results show that predicting ahead can be critical for robots operating in fast-changing scenes, including autonomous driving, agile flight, and robotic interception.",
+      "authors": [
+        "Biswadeep Sen",
+        "Benoit R. Cottereau",
+        "Nicolas Cuperlier",
+        "Terence Sim"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-09-22T18:15:23+00:00",
+      "link": "https://arxiv.org/pdf/2609.26919v1",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "event-based object detection",
+      "llm_evidence_cn": "基于事件相机的目标检测",
+      "llm_evidence": "基于事件相机的目标检测",
+      "canonical_evidence": "基于事件相机的目标检测",
+      "llm_tldr_en": "Studies observation-availability mismatch in event-based object detection, finds detectors degrade at prediction time, and proposes prediction-ahead methods to beat latency.",
+      "llm_tldr_cn": "针对事件相机目标检测中计算延迟导致预测在可用时已过时、传统评估忽略此延迟的问题，研究观测时间与预测可用时间的错配，发现现有事件检测器在预测可用时评估性能显著下降。提出提前预测方法以补偿延迟，在事件相机多目标检测基准上验证了该方法能有效降低延迟影响，为高速机器人系统的实时目标检测提供了新思路。",
+      "llm_tldr": "针对事件相机目标检测中计算延迟导致预测在可用时已过时、传统评估忽略此延迟的问题，研究观测时间与预测可用时间的错配，发现现有事件检测器在预测可用时评估性能显著下降。提出提前预测方法以补偿延迟，在事件相机多目标检测基准上验证了该方法能有效降低延迟影响，为高速机器人系统的实时目标检测提供了新思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.27671v1",
+      "source": "arxiv",
+      "title": "SGDet3D++: Geometry-Grounded Semantics for 4D Radar and Camera 3D Object Detection",
+      "abstract": "4D radar complements dense image semantics with long-range geometry and radial motion, but existing radar--camera detectors largely solve \\emph{where} to align the modalities while leaving \\emph{whether} a piece of evidence supports an evolving object hypothesis implicit. An image token may describe an occluder, a nearby radar return may belong to another object, and a pose-aligned memory slot may carry incompatible motion. We formulate \\emph{hypothesis-conditioned evidence grounding}, which separates candidate access from evidence use: semantic, geometric, or temporal evidence is filtered or conditioned by the evolving 3D state before updating the corresponding query. \\sgdetpp{} instantiates this principle through Anchor-Grounded Semantic Retrieval (AGR), which conditions deformable image retrieval on pooled anchor-consistent radar support; Geometry-Consistent Anchor Refinement (GCR), which attentively aggregates individual associated returns; and Doppler-Verified Correspondence (DVC), which replaces history only when current radial motion contradicts it. \\sgdetpp{} improves the strongest compared method by 3.82 mAP and 6.82 ODS on OmniHD-Scenes and by 6.82 mAP and 9.22 NDS on ManTruckScenes, while also leading the listed methods in the TJ4DRadSet test comparison. Mechanism-targeted evaluations show that AGR improves strict AP in every projected-occlusion bin, the yaw-aligned box gate raises target-return purity from 29.95\\% to 58.87\\%, and DVC preserves 96.11\\% of motion-consistent history while retaining 75.90\\% contradiction recall. Code will be released.",
+      "authors": [
+        "Xiaokai Bai",
+        "Zhenyu Fan",
+        "Lianqing Zheng",
+        "Songkai Wang",
+        "Si-Yuan Cao",
+        "Hui-liang Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T10:42:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.27671v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "3D object detection from 4D radar and camera",
+      "llm_evidence_cn": "基于 4D 雷达与相机的三维目标检测",
+      "llm_evidence": "基于 4D 雷达与相机的三维目标检测",
+      "canonical_evidence": "基于 4D 雷达与相机的三维目标检测",
+      "llm_tldr_en": "Proposes SGDet3D++ for 3D object detection using geometry-grounded semantics, filtering evidence conditioned on evolving object hypotheses to improve radar-camera fusion.",
+      "llm_tldr_cn": "针对现有雷达-相机检测器主要解决模态对齐位置而忽略证据是否支持目标假设的问题，提出假设条件证据接地方法，将语义、几何和时间证据按演化中的 3D 状态进行过滤或条件化后更新查询。实验表明该方法能更好地利用多模态信息，提升 3D 目标检测性能。该工作为自动驾驶等场景中的可靠 3D 目标检测提供了新思路。",
+      "llm_tldr": "针对现有雷达-相机检测器主要解决模态对齐位置而忽略证据是否支持目标假设的问题，提出假设条件证据接地方法，将语义、几何和时间证据按演化中的 3D 状态进行过滤或条件化后更新查询。实验表明该方法能更好地利用多模态信息，提升 3D 目标检测性能。该工作为自动驾驶等场景中的可靠 3D 目标检测提供了新思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.28077v1",
+      "source": "arxiv",
+      "title": "TEEP-RCNN: Texture-Enhanced Edge-aware Perception for Steel Surface Defect Detection via Improved Convolutional Block Attention in Faster R-CNN",
+      "abstract": "Steel surface defect detection is critical for automated industrial quality control but remains challenging due to subtle inter-class texture differences and pronounced class imbalance. We introduce TEEP-RCNN (Texture-Enhanced Edge-aware Perception Region-based CNN), a two-stage detector built on Faster R-CNN with a Feature Pyramid Network backbone and an improved Convolutional Block Attention Module (CBAM). Our CBAM adds dropout regularization in the channel attention MLP and batch normalization on the spatial attention branch, reducing co-adaptation and stabilizing gating logits. Training uses a differential learning rate protocol with cosine annealing warm-up, separating update rates for the pre-trained ResNet-101 backbone and the detection head. At inference, predictions are refined via Test-Time Augmentation fused with Weighted Box Fusion (WBF), improving localization stability on elongated and boundary-adjacent defects. On the NEU-DET benchmark across six defect categories, TEEP-RCNN achieves 73.3\\% mAP@50 and 37.9\\% mAP@50-95 in only 10 training epochs on a single GPU, competitive with YOLOv11m (76.2\\% mAP@50, 100 epochs) while outperforming it on the rolled-in-scale category under the COCO metric. Per-class analysis shows the spatial attention branch is most effective on elongated texture defects such as patches and scratches, while crazing remains an open challenge across both paradigms due to its distributed non-local texture structure.",
+      "authors": [
+        "Kirtan Rajesh"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T13:21:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.28077v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Faster R-CNN based detector for steel surface defect detection",
+      "llm_evidence_cn": "基于Faster R-CNN的钢材表面缺陷检测器",
+      "llm_evidence": "基于Faster R-CNN的钢材表面缺陷检测器",
+      "canonical_evidence": "基于Faster R-CNN的钢材表面缺陷检测器",
+      "llm_tldr_en": "TEEP-RCNN improves Faster R-CNN with texture-enhanced edge-aware perception and improved CBAM for steel defect detection.",
+      "llm_tldr_cn": "TEEP-RCNN通过纹理增强边缘感知和改进CBAM提升Faster R-CNN在钢材缺陷检测上的性能。",
+      "llm_tldr": "TEEP-RCNN通过纹理增强边缘感知和改进CBAM提升Faster R-CNN在钢材缺陷检测上的性能。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.28230v1",
+      "source": "arxiv",
+      "title": "A Unified Framework and Dataset for Oriented Object Visual Grounding in Remote Sensing",
+      "abstract": "Visual grounding in remote sensing images aims to locate objects described by referring expressions. Most existing methods predict horizontal bounding boxes, which are often inaccurate for objects with arbitrary orientations. To address this limitation, we introduce O$^2$-VG, a family of models for oriented object visual grounding with three complementary designs. Specifically, O$^2$-VG-Trans is a cross-modality transformer for oriented object visual grounding. It establishes a strong discriminative foundation for the model family. Building upon it, O$^2$-VG-Uni predicts universal oriented proposals for possible foreground objects without specific text prompts. It also supports object retrieval through cached proposal embeddings. Using these universal oriented proposals as input prompts, O$^2$-VG-VLM is an autoregressive vision-language model. It generates oriented box token blocks in parallel through multi-token prediction. In addition, we construct DIOR-R-RSVG, a dataset for oriented object visual grounding in remote sensing images. It provides image, expression, and oriented box triplets for training and evaluation. Together, the O$^2$-VG family provides a flexible framework that spans discriminative transformers and generative vision-language models. It achieves superior performance across multiple benchmarks. Code is available at https://github.com/wokaikaixinxin/ai4rs.",
+      "authors": [
+        "Zeyu Ding",
+        "Yong Zhou",
+        "Jiaqi Zhao",
+        "Wen-Liang Du",
+        "Xixi Li",
+        "Hancheng Zhu",
+        "Rui Yao",
+        "Abdulmotaleb El Saddik"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T14:54:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.28230v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "O^2-VG-Trans cross-modality transformer for oriented object visual grounding",
+      "llm_evidence_cn": "O^2-VG-Trans用于定向目标视觉定位的跨模态Transformer",
+      "llm_evidence": "O^2-VG-Trans用于定向目标视觉定位的跨模态Transformer",
+      "canonical_evidence": "O^2-VG-Trans用于定向目标视觉定位的跨模态Transformer",
+      "llm_tldr_en": "Introduces O^2-VG, a family of oriented object visual grounding models with cross-modality transformer, improving oriented object localization in remote sensing.",
+      "llm_tldr_cn": "针对遥感图像定向目标视觉定位中水平框不准的问题，提出O^2-VG模型家族。其中O^2-VG-Trans是跨模态Transformer，建立强判别基础；O^2-VG-Uni预测通用定向提议，支持缓存嵌入检索。在新数据集上验证，定向定位性能优于水平框方法，为遥感目标检测提供了Transformer-based的统一框架。",
+      "llm_tldr": "针对遥感图像定向目标视觉定位中水平框不准的问题，提出O^2-VG模型家族。其中O^2-VG-Trans是跨模态Transformer，建立强判别基础；O^2-VG-Uni预测通用定向提议，支持缓存嵌入检索。在新数据集上验证，定向定位性能优于水平框方法，为遥感目标检测提供了Transformer-based的统一框架。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.28857v1",
+      "source": "arxiv",
+      "title": "MEVL-STP: Multi-Encoder and Vision Language Model for Arbitrarily Shaped Scene Text Spotting",
+      "abstract": "Scene text spotting remains challenging for arbitrarily shaped text instances such as curved signs and dense multi-oriented characters in natural images, where tightly coupled architectures propagate localization errors directly into recognition failures. We present a two-stage pipeline that combines multi-encoder segmentation with vision-language model recognition to address this problem. In the detection stage, six frozen vision encoders (CLIP, DINOv2, SigLIP, EVA-CLIP, SAM, and ConvNeXt) extract complementary features spanning semantic, spatial, and texture spectra, which are fused through a trainable hierarchical Feature Pyramid Network with channel attention and decoded via a deep-supervision Progressive Scale Expansion network to generate precise instance-level text masks. By keeping the encoders frozen, their independently learned feature spaces remain orthogonal during fusion, preventing the feature homogenization that degrades boundary precision in single-backbone detectors. The detection stage produces tight polygon masks that conform to the actual shape of curved and arbitrarily oriented text, rather than axis-aligned rectangles that inevitably include background content. In the recognition stage, these polygon-masked crops isolate the target text from surrounding clutter, allowing a Qwen3-VL-8B-Instruct model, fine-tuned via Low-Rank Adaptation on polygon-cropped scene text, to focus purely on reading the text without interference from neighbouring words or background noise. Without any synthetic pretraining data, our method achieves 91.99% detection F-measure and 85.86% end-to-end H-mean on CTW1500, setting a new state of the art and achieving strong performance on Total-Text and ICDAR 2015 without any synthetic training data. Code is available at https://github.com/doubleblind-afk/MEVL-STP",
+      "authors": [
+        "Aman Anand",
+        "Partha Pratim Roy",
+        "Shivakumara Palaiahnakote"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T23:58:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.28857v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "two-stage scene text spotting includes detection stage for text objects",
+      "llm_evidence_cn": "两阶段场景文本识别包含文本对象检测阶段",
+      "llm_evidence": "两阶段场景文本识别包含文本对象检测阶段",
+      "canonical_evidence": "两阶段场景文本识别包含文本对象检测阶段",
+      "llm_tldr_en": "Proposes a two-stage scene text spotting method combining six frozen vision encoders for detection and a vision-language model for recognition, improving arbitrary-shaped text spotting.",
+      "llm_tldr_cn": "针对任意形状场景文本检测中定位误差传播问题，提出MEVL-STP两阶段流程。检测阶段融合六个冻结视觉编码器的互补特征，经FPN和深度监督渐进尺度扩展解码；识别阶段采用视觉语言模型。实验表明该方法在弯曲和密集多方向文本上表现优异，为文本检测这一目标检测子任务提供了有效方案。",
+      "llm_tldr": "针对任意形状场景文本检测中定位误差传播问题，提出MEVL-STP两阶段流程。检测阶段融合六个冻结视觉编码器的互补特征，经FPN和深度监督渐进尺度扩展解码；识别阶段采用视觉语言模型。实验表明该方法在弯曲和密集多方向文本上表现优异，为文本检测这一目标检测子任务提供了有效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.29235v1",
+      "source": "arxiv",
+      "title": "SARFusion: Scene-Aware Routing Fusion for Robust Camera-LiDAR 3D Object Detection",
+      "abstract": "Camera-LiDAR fusion has become a prevailing paradigm for 3D object detection in autonomous driving. However, existing fusion detectors often establish strong inter-modality dependencies by decoding object queries from tightly coupled multimodal representations. Under corrupted driving conditions, such dependencies make the detector vulnerable to unreliable modalities, where degraded observations may interfere with reliable modality-specific evidence and lead to suboptimal predictions. Moreover, modality reliability can vary across both global driving scenes and individual object queries, requiring adaptive fusion decisions at a finer granularity. To bridge this gap, we reformulate robust camera-LiDAR fusion as a scene-aware branch routing problem and propose SARFusion, a robust 3D object detector. Instead of producing detections from a single fused representation, SARFusion decouples object-query decoding into three parallel reasoning branches: a camera branch, a LiDAR branch, and a camera-LiDAR fusion branch. Guided by a Scene Reliability Prior estimated from the global driving context, SARFusion further incorporates object-level evidence to route each query to the most suitable branch. This query-wise routing strategy alleviates harmful cross-modal interference while preserving the benefits of multimodal fusion when complementary cues are trustworthy. On the nuScenes test set, SARFusion achieves strong performance with 72.5 mAP and 74.4 NDS. Extensive analyses demonstrate its robustness under challenging conditions, including sensor corruptions and environmental changes.",
+      "authors": [
+        "Yuting Zhao",
+        "Ziyi Zheng",
+        "Shuxiao Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-24T08:43:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.29235v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Scene-aware branch routing for robust camera-LiDAR 3D object detection using object queries",
+      "llm_evidence_cn": "基于场景感知分支路由的鲁棒相机-激光雷达3D目标检测，利用对象查询",
+      "llm_evidence": "基于场景感知分支路由的鲁棒相机-激光雷达3D目标检测，利用对象查询",
+      "canonical_evidence": "基于场景感知分支路由的鲁棒相机-激光雷达3D目标检测，利用对象查询",
+      "llm_tldr_en": "SARFusion adaptively routes camera-LiDAR fusion at scene and query level, improving robustness to modality corruption in 3D detection.",
+      "llm_tldr_cn": "SARFusion在场景和查询级别自适应路由相机-激光雷达融合，提升3D检测对模态破坏的鲁棒性。",
+      "llm_tldr": "SARFusion在场景和查询级别自适应路由相机-激光雷达融合，提升3D检测对模态破坏的鲁棒性。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.30395v1",
+      "source": "arxiv",
+      "title": "CSCWD: Cross-Scale Channel-wise Knowledge Distillation for Lightweight Tiny Object Detection on Edge Devices",
+      "abstract": "Real-time tiny object detection in aerial imagery is constrained by the weak spatial evidence of very small objects and the loss of high-resolution detail in lightweight detectors. This study presents Cross-Scale Channel-wise Knowledge Distillation (CSCWD), a training-time framework that transfers high-resolution spatial representations from a YOLO11m-P2 teacher to a compact YOLO11n student without altering the student's inference architecture. Unlike conventional same-scale feature distillation, CSCWD transfers supervision from teacher P2 to student P3 after feature alignment while retaining same-scale distillation at deeper pyramid levels. Under the unified seven-sequence Drone-vs-Bird validation protocol, YOLO11n-CSCWD achieves 50.17% mean average precision at an intersection-over-union threshold of 0.5 (mAP@0.5) and 59.73% recall, improving the matched CA-YOLO11n baseline by 2.92 percentage points in mAP@0.5 and 3.55 points in recall. Cross-scale alignment further increases mAP@0.5 by 2.09 points over the corresponding same-scale channel-wise distillation configuration. In zero-shot evaluation on DUT-Anti-UAV, mAP@0.5 increases from 48.29% to 50.06% without target-domain fine-tuning. This domain was included because its challenging small targets make low-latency, computationally efficient detection particularly relevant. On Raspberry Pi 5 using NCNN-FP16 at 640x640 resolution, the 2.58-million-parameter student achieves 50.32% mAP@0.5 at 82.32 ms mean wall-clock latency, or 12.15 frames per second, while retaining essentially the same runtime and memory requirements as the matched baseline. The results support cross-scale distillation for improving tiny-target detection without increasing inference-time model complexity.",
+      "authors": [
+        "Amir Zamani",
+        "Zeinab Ghasemi-Naraghi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-24T18:02:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.30395v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "lightweight tiny object detection on edge devices",
+      "llm_evidence_cn": "边缘设备上的轻量级微小目标检测",
+      "llm_evidence": "边缘设备上的轻量级微小目标检测",
+      "canonical_evidence": "边缘设备上的轻量级微小目标检测",
+      "llm_tldr_en": "Proposes cross-scale channel-wise knowledge distillation to transfer high-resolution representations from a YOLO11m-P2 teacher to a compact YOLO11n student for tiny object detection.",
+      "llm_tldr_cn": "针对航空图像中微小目标空间证据弱和轻量检测器高分辨率细节丢失的问题，提出跨尺度通道级知识蒸馏框架CSCWD，将YOLO11m-P2教师的高分辨率空间表示迁移到精简的YOLO11n学生，且不改变学生推理架构。在统一七序列Drone-vs-Bird协议下验证，提升了轻量检测器对微小目标的检测性能，为边缘设备实时检测提供了实用蒸馏方法。",
+      "llm_tldr": "针对航空图像中微小目标空间证据弱和轻量检测器高分辨率细节丢失的问题，提出跨尺度通道级知识蒸馏框架CSCWD，将YOLO11m-P2教师的高分辨率空间表示迁移到精简的YOLO11n学生，且不改变学生推理架构。在统一七序列Drone-vs-Bird协议下验证，提升了轻量检测器对微小目标的检测性能，为边缘设备实时检测提供了实用蒸馏方法。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.32163v1",
+      "source": "arxiv",
+      "title": "PQR3D: Progressive Query Refinement over Reference-Conditioned Temporal Windows for Multi-View 3D Object Detection",
+      "abstract": "Temporal context is essential for camera-only multi-view 3D object detection. Existing streaming detectors maintain and propagate query states from one frame to the next, requiring sequence-aware training and chronological inference. We propose PQR3D, which performs progressive query refinement within referenceconditioned temporal windows. This design enables random frame sampling and independent inference without persistent query memory. Within each window, PQR3D progressively transfers motion-aligned high-confidence queries from earlier timestamps toward the target frame. We further introduce masked selfattention to regulate interactions among regular, propagated, and denoising queries while keeping denoising supervision isolated from detection queries. In addition, a stage-decoupled anchor embedding injects position before self-attention and size, orientation, and velocity afterward, reducing interference from temporally inconsistent attributes. With a ViT-L backbone, PQR3D sets a new state of the art on the nuScenes test set, achieving 71.6 NDS and 64.9 mAP. Source code is available at https://github.com/huiyegit/PQR3D",
+      "authors": [
+        "Hui Ye",
+        "Yudong Liu",
+        "Yiran Chen",
+        "Rajshekhar Sunderraman",
+        "Shihao Ji"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-26T02:40:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.32163v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Progressive query refinement with masked self-attention for multi-view 3D object detection",
+      "llm_evidence_cn": "使用渐进式查询优化和掩码自注意力进行多视角3D目标检测",
+      "llm_evidence": "使用渐进式查询优化和掩码自注意力进行多视角3D目标检测",
+      "canonical_evidence": "使用渐进式查询优化和掩码自注意力进行多视角3D目标检测",
+      "llm_tldr_en": "PQR3D achieves streaming 3D detection without sequence-aware training by progressive query refinement within reference-conditioned temporal windows.",
+      "llm_tldr_cn": "PQR3D在参考条件时间窗口内进行渐进式查询优化，实现无需序列感知训练的流式3D目标检测。",
+      "llm_tldr": "PQR3D在参考条件时间窗口内进行渐进式查询优化，实现无需序列感知训练的流式3D目标检测。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.34142v1",
+      "source": "arxiv",
+      "title": "Analytical and Convolutional Neural Network-Based Motion-Vector Propagation for Efficient Video Object Detection",
+      "abstract": "Continuous video analytics requires accurate localization at low latency within embedded power budgets. This paper presents a hardware-software design methodology that reuses codec motion vectors (MVs) between detector invocations. Two alternative models support translation and scale changes: analytical motion-vector propagation (Analytical-MV) and learned propagation using a convolutional neural network (CNN) (CNN-MV). The learned model uses convolutional operations and independent object updates suited to parallel execution on an edge graphics processing unit (GPU). Analytical-MV combines a harmonic-mean precision-recall score (F1) of 0.909 with a mean end-to-end latency of 9.03 ms and an energy consumption of 0.177 J per frame, yielding the lowest latency and energy among the evaluated configurations. Relative to detection on every frame, it reduces mean latency by 25.9% and energy per frame by 36.4%. CNN-MV offers a different trade-off: its fastest configuration raises recall from 0.871 for Analytical-MV to 0.890 and lowers mean power from 19.64 to 17.32 W, while achieving a latency of 18.42 ms and an energy consumption of 0.319 J per frame. It is therefore useful when recall or operating power is more important than minimum latency and energy. Execution on a deep learning accelerator (DLA) further reduces time-averaged GPU utilization relative to GPU execution. Host-processing optimization substantially improves both latency and energy, demonstrating the value of jointly designing temporal models and their execution pipelines.",
+      "authors": [
+        "Ashiyana Abdul Majeed",
+        "Mahmoud Meribout",
+        "Neethu Joseph"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T02:24:42+00:00",
+      "link": "https://arxiv.org/pdf/2609.34142v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "video object detection via motion-vector propagation",
+      "llm_evidence_cn": "基于运动向量传播的视频目标检测",
+      "llm_evidence": "基于运动向量传播的视频目标检测",
+      "canonical_evidence": "基于运动向量传播的视频目标检测",
+      "llm_tldr_en": "Proposes analytical and CNN-based motion-vector propagation for efficient video object detection, reusing codec motion vectors to reduce latency and energy on edge devices.",
+      "llm_tldr_cn": "连续视频分析要求在嵌入式功率预算内实现准确定位和低延迟。该文提出一种硬件-软件设计方法，在检测器调用之间复用编解码器运动向量，支持平移和尺度变化的分析传播与 CNN 学习传播。分析传播实现 F1 0.909、端到端延迟 9.03 ms，学习模型适合边缘 GPU 并行执行。该方法为边缘高效视频目标检测提供了实用方案。",
+      "llm_tldr": "连续视频分析要求在嵌入式功率预算内实现准确定位和低延迟。该文提出一种硬件-软件设计方法，在检测器调用之间复用编解码器运动向量，支持平移和尺度变化的分析传播与 CNN 学习传播。分析传播实现 F1 0.909、端到端延迟 9.03 ms，学习模型适合边缘 GPU 并行执行。该方法为边缘高效视频目标检测提供了实用方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.26505v1",
+      "source": "arxiv",
+      "title": "Semantically-Guided Domain Randomization for Industrial Object Detection in Low-Image-Budget Regimes",
+      "abstract": "Retraining visual perception pipelines in High-Mix, Low-Volume (HMLV) automotive manufacturing must be carried out under tight annotation, energy, and time budgets, yet most Synthetic Data Generation (SDG) strategies still operate in the thousands of images. This work evaluates Semantically-Guided Domain Randomization (S-GDR), an annotation-free adaptation pipeline that couples Vision-Language Model (VLM)-based semantic captioning of a small unannotated real reference set with diffusion-based background synthesis (Stable Diffusion XL (SDXL) conditioned by ControlNet and IP-Adapter) and mask-based object composition. On an automotive multi-object detection benchmark and with a fixed budget of 200 synthetic training images, S-GDR reaches mAP50-95 = 0.739 on a real held-out test set, outperforming a domain-randomized render baseline (mAP50-95 = 0.697) as well as brightness filtering, perceptual hashing, CycleGAN style transfer, and unguided diffusion variants sharing the same 200-image budget. These initial observations position S-GDR as a promising annotation- free alternative for extreme data-scarcity regimes.",
+      "authors": [
+        "Jose Moises Araya-Martinez",
+        "Gautham Mohan",
+        "Jens Lambrecht"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-22T14:36:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.26505v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "industrial object detection with synthetic data",
+      "llm_evidence_cn": "工业目标检测的合成数据方法",
+      "llm_evidence": "工业目标检测的合成数据方法",
+      "canonical_evidence": "工业目标检测的合成数据方法",
+      "llm_tldr_en": "Evaluates semantically-guided domain randomization for industrial object detection under low image budgets, using VLM captioning and diffusion-based background synthesis to generate only 200 training images.",
+      "llm_tldr_cn": "针对高混合低产量汽车制造中视觉感知重训练面临标注、能耗和时间预算紧张的问题，提出语义引导域随机化方法S-GDR，结合视觉语言模型语义标注、扩散背景合成和掩码目标合成，在仅200张合成图像预算下训练目标检测模型。实验在汽车多目标检测基准上验证了该方法在低图像预算下的有效性，为工业场景提供了无标注数据生成方案。",
+      "llm_tldr": "针对高混合低产量汽车制造中视觉感知重训练面临标注、能耗和时间预算紧张的问题，提出语义引导域随机化方法S-GDR，结合视觉语言模型语义标注、扩散背景合成和掩码目标合成，在仅200张合成图像预算下训练目标检测模型。实验在汽车多目标检测基准上验证了该方法在低图像预算下的有效性，为工业场景提供了无标注数据生成方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.25500v1",
+      "source": "arxiv",
+      "title": "mbariml: a curation pipeline for turning deep-sea imagery and video into object-detection training data",
+      "abstract": "Training data quantity and quality greatly affect object detection model performance, regardless of model architecture. When using object detection models on video and images from the deep sea, in which the objects of interest, primarily organisms, are sparse, faint, and hard to identify, incremental improvements to object detector performance may require an iterative approach to data labeling and management. This paper presents mbariml, a python-based video and image analysis pipeline built around the data labeling management process. mbariml uses an Ultralytics YOLO detection model, runs it over still images or video, stores every detection as a reviewable region of interest, groups those regions by visual similarity so that a human can accept or reject them in bulk, and exports the result as training data, statistics, image sidecars, and additional metadata. The human review stage is the centre of the design: an annotator can validate, relabel, resize, delete, and draw entirely new localizations, and every one of those edits is written back to the same database the detector wrote to. Video receives particular attention: the software treats each tracker-produced track as a provisional observation and selects one representative frame instead of retaining every detection in the track. We describe the pipeline stage by stage, including the operational middle-third heuristic used for track observation selection.",
+      "authors": [
+        "Lonny Lundsten",
+        "Kevin Barnard",
+        "Dave Caress"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T23:57:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.25500v1",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Pipeline for creating object detection training data from deep-sea imagery",
+      "llm_evidence_cn": "从深海图像创建目标检测训练数据的流水线",
+      "llm_evidence": "从深海图像创建目标检测训练数据的流水线",
+      "canonical_evidence": "从深海图像创建目标检测训练数据的流水线",
+      "llm_tldr_en": "mbariml provides an iterative labeling and management pipeline using YOLO to build object detection training data from sparse deep-sea imagery.",
+      "llm_tldr_cn": "mbariml是一个基于YOLO的视频图像分析流水线，通过迭代标注和管理生成深海目标检测训练数据。",
+      "llm_tldr": "mbariml是一个基于YOLO的视频图像分析流水线，通过迭代标注和管理生成深海目标检测训练数据。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.34325v1",
+      "source": "arxiv",
+      "title": "DORA: Dynamic Online Reinforcement Agent for Token Pruning in Vision Transformers",
+      "abstract": "Vision Transformers (ViTs) incur quadratic self-attention cost in the number of tokens. Most token-reduction methods adapt token identities within a prescribed layer-wise compression schedule, or search a static mask offline, and thus limit online adaptation of when and how much to prune. We propose DORA (Dynamic Online Reinforcement Agent), which learns an input-adaptive pruning policy itself for frozen ViTs. At each eligible block, a hierarchical actor decides whether to prune, how many tokens to remove, and which tokens to remove from each image's evolving representation. Because early deletions change the states observed by later decisions, DORA formulates pruning as a finite-horizon Markov decision process. Complete-prefix shadow evaluations convert final-prediction fidelity into localized per-step credit, while closed-loop accuracy feedback adjusts the fidelity penalty toward a shared accuracy-drop target. A privileged critic and all shadow computations are training-only. Deployment retains the frozen backbone and a lightweight actor that applies hard deletion and packed variable-length FlashAttention, converting token reduction into measured speedups. On ImageNet-1K with DeiT-Base, DORA reduces FLOPs by 38.4% relative to the uncompressed backbone within one percentage point of accuracy loss. Averaged across four ViT-type backbones at matched accuracy, DORA uses 13.2% fewer FLOPs and achieves 32.4% higher throughput than the corresponding per-backbone baseline means. Under zero-shot transfer to ImageNet-A, these gains widen to 20.3% and 45.6%, respectively.",
+      "authors": [
+        "Kaixuan He",
+        "Song Chen",
+        "Yi Kang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T05:02:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.34325v1",
+      "tags": [
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "token pruning method for Vision Transformers, applicable to ViT-based object detection",
+      "llm_evidence_cn": "针对Vision Transformer的令牌剪枝方法，可应用于基于ViT的目标检测",
+      "llm_evidence": "针对Vision Transformer的令牌剪枝方法，可应用于基于ViT的目标检测",
+      "canonical_evidence": "针对Vision Transformer的令牌剪枝方法，可应用于基于ViT的目标检测",
+      "llm_tldr_en": "Proposes DORA, an online reinforcement learning agent that learns input-adaptive token pruning policies for frozen ViTs, reducing self-attention cost.",
+      "llm_tldr_cn": "针对ViT中二次自注意力成本问题，DORA提出在线强化学习智能体，学习输入自适应的令牌剪枝策略，分层决策是否剪枝、数量及具体令牌，并将剪枝视为有限时域马尔可夫决策过程。该方法在冻结ViT上实现动态剪枝，降低计算开销，为基于ViT的目标检测等任务提供高效推理支持。",
+      "llm_tldr": "针对ViT中二次自注意力成本问题，DORA提出在线强化学习智能体，学习输入自适应的令牌剪枝策略，分层决策是否剪枝、数量及具体令牌，并将剪枝视为有限时域马尔可夫决策过程。该方法在冻结ViT上实现动态剪枝，降低计算开销，为基于ViT的目标检测等任务提供高效推理支持。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.27413v1",
+      "source": "arxiv",
+      "title": "S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection",
+      "abstract": "Alignment-free RGB-T salient object detection (RGB-T SOD) aims to identify salient objects from unregistered RGB and thermal image pairs without costly pre-alignment. However, spatial misalignment breaks pixel-wise correspondence and causes feature contamination during cross-modal fusion. To address this issue, we propose S2A, a semantic-to-spatial alignment framework for alignment-free RGB-T SOD. Specifically, a global-guided hierarchical fusion module (GGHF) first exploits global semantic guidance to suppress background interference and refine hierarchical intra-modal features. Subsequently, the alignment-free cross-modal channel attention module (AFCA) globally exchanges complementary semantic information through channel-wise interaction, effectively overcoming the interference caused by local spatial misalignments. Finally, a spatial deformable cross-attention module (SDCA) predicts adaptive sampling offsets to recover local cross-modal spatial correspondence. Through this semantic-to-spatial paradigm, S2A first enables reliable cross-modal semantic interaction and subsequently performs local spatial calibration, effectively reducing misalignment-induced feature contamination. Without bells and whistles, S2A achieves highly competitive performance on multiple public alignment-free RGB-T benchmarks, demonstrating its effectiveness in alleviating misalignment-induced feature contamination.",
+      "authors": [
+        "Qiangqiang Zhou",
+        "Yang Luo",
+        "Yong Chen",
+        "Jiawei Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T06:29:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.27413v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Alignment-free RGB-T salient object detection",
+      "llm_evidence_cn": "免对齐的RGB-T显著目标检测",
+      "llm_evidence": "免对齐的RGB-T显著目标检测",
+      "canonical_evidence": "免对齐的RGB-T显著目标检测",
+      "llm_tldr_en": "S2A addresses spatial misalignment in RGB-T salient object detection through semantic-to-spatial alignment modules.",
+      "llm_tldr_cn": "S2A通过语义到空间对齐模块解决RGB-T显著目标检测中的空间错位问题。",
+      "llm_tldr": "S2A通过语义到空间对齐模块解决RGB-T显著目标检测中的空间错位问题。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.26325v1",
+      "source": "arxiv",
+      "title": "Leveraging Vision-Based Point Cloud Map Priors for Camera-Based 3D Object Detection and Online Vectorized HD Mapping",
+      "abstract": "Camera-based 3D object detection and online vectorized HD mapping provide compact scene representations for autonomous driving, but both depend on accurate metric geometry and remain limited by depth ambiguity. Over long-term deployment, observations from repeated traversals can be accumulated into persistent point cloud priors that provide geometric context beyond the current observations. Existing explicit point cloud prior approaches, however, rely on LiDAR-based map construction and therefore require expensive 3D ranging sensors. We propose a framework that constructs a static point cloud prior map from previous camera traversals using Pi3X and augments each point with DINOv3 features. At runtime, a local prior patch is retrieved using global localization, encoded with a sparse voxel backbone, and fused in bird's-eye view (BEV) with lifted multi-view camera features. Task-specific sparse transformer heads then predict 3D objects and vectorized map elements from the fused representation. On Argoverse 2, the vision-based prior improves a strong baseline from 0.287 to 0.299 CDS and from 0.669 to 0.750 vectorized mapping mAP. Ablations show that semantic DINOv3 features are particularly important for vectorized mapping. These results demonstrate that vision-built geometric-semantic priors provide an effective form of long-term scene memory for camera-based perception, improving both tasks without LiDAR for prior-map construction or online inference.",
+      "authors": [
+        "Markus Käppeler",
+        "Rohit Mohan",
+        "Abhinav Valada"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-09-22T12:36:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.26325v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Improves camera-based 3D object detection using vision-based point cloud map priors",
+      "llm_evidence_cn": "利用视觉点云地图先验改进相机3D目标检测",
+      "llm_evidence": "利用视觉点云地图先验改进相机3D目标检测",
+      "canonical_evidence": "利用视觉点云地图先验改进相机3D目标检测",
+      "llm_tldr_en": "The paper constructs camera-based point cloud priors with DINOv3 features to provide geometric context for 3D detection and mapping.",
+      "llm_tldr_cn": "本文利用相机轨迹构建静态点云先验地图并附加DINOv3特征，为3D检测和建图提供几何上下文。",
+      "llm_tldr": "本文利用相机轨迹构建静态点云先验地图并附加DINOv3特征，为3D检测和建图提供几何上下文。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.32567v1",
+      "source": "arxiv",
+      "title": "Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP--SNAP Discrepancy",
+      "abstract": "LAOD and similar zero-training LLM+open-vocabulary-detector (OVOD) pipelines score two things separately: class-agnostic localization accuracy (CAAP) and semantic naming accuracy (SNAP). The two consistently diverge, and nobody has asked why. This paper asks why, on the full 5,000-image COCO-Val split (27,273 detections) rather than the small subset the original work evaluated on. Object visual complexity turns out not to be the driver -- small and occluded objects are, if anything, localized better than large ones. Vocabulary novelty is: once the LLM's wording falls outside the detector's native category set, localization accuracy falls from 80.9% to 31.6%. That drop is not spread evenly across unfamiliar phrasing, though. Almost all of it comes from cases where the novel wording actually names a different object than the one COCO annotated (true synonyms still score 89.3%; semantically unrelated \"noise\" labels score 12.0%). A closer look at a further failure subset tells a similar story: 78-88% of what looks like complete localization failure is really the model correctly finding a real object that COCO's non-exhaustive 80-category scheme simply never labeled, not hallucination. Swap the detector backbone (YOLO-World for Grounding DINO) or the LLM (Gemma-3 for Qwen2.5-VL) and both the effect and its rough size hold up, so this looks like a general property of the pipeline family rather than a quirk of one model pairing. The upshot is that a large share of the apparent CAAP--SNAP gap traces back to closed-category annotation limits rather than a real grounding failure, which matters for how we detect hallucination, analyze failure modes, and design evaluation for grounded multimodal systems meant to work in the open world.",
+      "authors": [
+        "Yu-Feng Yen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-09-26T12:42:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.32567v1",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analyzes open-vocabulary object detection pipelines using LLM and detector",
+      "llm_evidence_cn": "分析使用LLM和检测器的开放词汇目标检测流水线",
+      "llm_evidence": "分析使用LLM和检测器的开放词汇目标检测流水线",
+      "canonical_evidence": "分析使用LLM和检测器的开放词汇目标检测流水线",
+      "llm_tldr_en": "The paper investigates why localization and semantic naming accuracy diverge in LLM+OVOD pipelines, finding vocabulary novelty as the key driver.",
+      "llm_tldr_cn": "本文研究LLM+开放词汇检测流水线中定位准确率与语义命名准确率不一致的原因，发现词汇新颖性是关键因素。",
+      "llm_tldr": "本文研究LLM+开放词汇检测流水线中定位准确率与语义命名准确率不一致的原因，发现词汇新颖性是关键因素。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.32922v1",
+      "source": "arxiv",
+      "title": "Precision As You Need: Stochastic Computing Is a Dense Adaptive Quantizer",
+      "abstract": "Matrix multiplications dominate the inference cost of modern transformer-based vision models, yet existing efficiency techniques such as post-training quantization and mixed-precision inference are largely limited to the small set of fixed-width formats (INT4, INT8, BF16, and FP16) supported by conventional accelerators. We revisit stochastic computing (SC) as a way to lift this constraint: viewed as a dense adaptive quantizer, SC controls precision by bit-stream length L rather than a fixed datapath, while each multiplication reduces to a single AND/XNOR gate. We build a GPU library that emulates SC matrix multiplication at scale, exposes stream lengths as first-class kernel arguments, and evaluates SC end-to-end on image classification, object detection and instance segmentation, class-conditional image generation, and visual world-model planning. On top of this substrate, we develop a dynamic per-row mixed-precision policy that assigns stream length per token or group at matched average budget, requires no retraining, and uses the same SC hardware across schedules. Across tasks, SC remains competitive with fixed-format INT quantization at matched bit budgets, while per-row mixed precision helps maintain accuracy at lower average stream lengths. These results provide software-level feasibility evidence that SC can serve as a dense-precision substrate for fine-grained mixed-precision inference on modern vision transformers.",
+      "authors": [
+        "Haoran Jin",
+        "Kangqi Zhang",
+        "Jirong Yang",
+        "Barry Lyu",
+        "Qiuyi Ding",
+        "Ruijie Gao",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-26T20:24:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.32922v1",
+      "tags": [
+        "keyword:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "evaluates stochastic computing on object detection for transformer-based vision models",
+      "llm_evidence_cn": "针对Transformer视觉模型在目标检测上评估随机计算",
+      "llm_evidence": "针对Transformer视觉模型在目标检测上评估随机计算",
+      "canonical_evidence": "针对Transformer视觉模型在目标检测上评估随机计算",
+      "llm_tldr_en": "Reframes stochastic computing as a dense adaptive quantizer for transformer vision models, controlling precision via bit-stream length, and demonstrates on object detection.",
+      "llm_tldr_cn": "针对Transformer视觉模型推理中矩阵乘法成本和固定位宽量化限制，提出将随机计算视为稠密自适应量化器，通过比特流长度动态控制精度，每个乘法缩减为单个AND/XNOR门。构建GPU仿真库并对图像分类、目标检测等任务端到端评估，展示了随机计算作为灵活精度控制的有效性，为高效目标检测推理提供了新方案。",
+      "llm_tldr": "针对Transformer视觉模型推理中矩阵乘法成本和固定位宽量化限制，提出将随机计算视为稠密自适应量化器，通过比特流长度动态控制精度，每个乘法缩减为单个AND/XNOR门。构建GPU仿真库并对图像分类、目标检测等任务端到端评估，展示了随机计算作为灵活精度控制的有效性，为高效目标检测推理提供了新方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.35490v1",
+      "source": "arxiv",
+      "title": "AHMAD: Adaptive Hybrid Multi-task Vision Learning with Assisted Distillation for Keypoint Detection",
+      "abstract": "Generalist multitasking vision models aim to unify multiple vision tasks within a single framework, enabling more efficient and versatile learning. However, handling diverse vision tasks -- spanning dense and sparse predictions -- remains challenging due to their inherently varying output structures. In this paper, we propose AHMAD, a simple yet effective framework for generalist multitask learning that integrates different key vision tasks: semantic segmentation, instance segmentation, depth estimation, keypoint detection, and object detection. Our approach incorporates these five tasks into a unified structure: a shared encoder-decoder with several lightweight task-specific projectors. Under the multitask learning paradigm, we observed a complementary performance gain, achieving a state-of-the-art PQ of 53.1 and an mIoU of 66.5 for COCO-val panoptic and semantic segmentation, respectively. Additionally, for top-down keypoint detection, which typically incurs high computational overhead due to multiple forward passes, we introduce a knowledge distillation-based method that enables a single forward pass over the entire image, greatly improving efficiency. Ultimately, our model delivers a lightweight yet effective generalist multitask learning framework, demonstrating strong performance across five vision tasks.",
+      "authors": [
+        "Mohammad Mahdi",
+        "Nedyalko Prisadnikov",
+        "Yuqian Fu",
+        "Carmelo Scribano",
+        "Danda Pani Paudel",
+        "Luc Van Gool"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T16:00:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.35490v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "integrates object detection within a unified multitask framework",
+      "llm_evidence_cn": "在统一多任务框架中集成了目标检测",
+      "llm_evidence": "在统一多任务框架中集成了目标检测",
+      "canonical_evidence": "在统一多任务框架中集成了目标检测",
+      "llm_tldr_en": "Proposes AHMAD, a unified multitask learning framework integrating five vision tasks including object detection with shared encoder-decoder and assisted distillation.",
+      "llm_tldr_cn": "面向通用多任务视觉学习的挑战，AHMAD将语义分割、实例分割、深度估计、关键点检测与目标检测统一到一个共享编码器-解码器框架，通过轻量级任务特定投影头和辅助蒸馏处理不同输出结构。实验表明该框架在多任务学习中有效，为统一视觉任务提供了高效方案。",
+      "llm_tldr": "面向通用多任务视觉学习的挑战，AHMAD将语义分割、实例分割、深度估计、关键点检测与目标检测统一到一个共享编码器-解码器框架，通过轻量级任务特定投影头和辅助蒸馏处理不同输出结构。实验表明该框架在多任务学习中有效，为统一视觉任务提供了高效方案。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}

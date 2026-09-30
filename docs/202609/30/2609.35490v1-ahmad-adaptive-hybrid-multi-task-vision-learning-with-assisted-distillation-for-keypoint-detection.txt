@@ -1,0 +1,565 @@
+Title: AHMAD: Adaptive Hybrid Multi-task Vision Learning with Assisted Distillation for Keypoint Detection
+
+URL Source: https://arxiv.org/pdf/2609.35490v1
+
+Published Time: Tue, 29 Sep 2026 04:41:19 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# AHMAD: Adaptive Hybrid Multi-task Vision Learning with Assisted Distillation 
+
+## Mohammad Mahdi * Nedyalko Prisadnikov Yuqian Fu Carmelo Scribano Danda Pani Paudel Luc Van Gool 
+
+## {firstname.lastname }@insait.ai 
+
+## Abstract 
+
+Generalist multitasking vision models aim to unify mul-tiple vision tasks within a single framework, enabling more efficient and versatile learning. However, handling diverse vision tasks—spanning dense and sparse predic-tions—remains challenging due to their inherently varying output structures. In this paper, we propose AHMAD, a sim-ple yet effective framework for generalist multitask learning that integrates different key vision tasks: semantic segmen-tation, instance segmentation, depth estimation, keypoint detection, and object detection. Our approach incorporates these five tasks into a unified structure – a shared encoder-decoder with several lightweight task-specific projectors. Under the multitask learning paradigm, we observed a com-plementary performance gain, achieving a state-of-the-art 
+
+PQ of 53.1 and an mIoU of 66.5 for COCO-val panop-tic and semantic segmentation, respectively. Addition-ally, for top-down keypoint detection, which typically in-curs high computational overhead due to multiple forward passes, we introduce a knowledge distillation-based method that enables a single forward pass over the entire image, greatly improving efficiency. Ultimately, our model deliv-ers a lightweight yet effective generalist multitask learning framework, demonstrating strong performance across five vision tasks. 
+
+## 1. Introduction 
+
+Generalist models aim to solve multiple tasks within a sin-gle unified framework, eliminating the need for separate task-specific models. Given the inherently multitask nature, technically, building generalist models is closely aligned with multi-task learning, sharing the goal of optimizing a model to handle diverse tasks efficiently. In the NLP domain, generalist multitask learning has achieved remarkable success, with models such as [1, 16], demonstrating strong performance across diverse language tasks. This success is largely attributed to the shared nature  
+
+> *Corresponding author ViT Encoder Sample a vision task id jBatch Sampler ... Decoder +
+> Projector +
+> Dataset
+> Image patch
+> Image Token
+> Channel-wise stacking
+> Optimization loop
+
+Figure 1. Our Proposed Training Framework . We leverage a powerful vision transformer encoder combined with a CNN-based decoder to generate a rich feature map, which contains represen-tations useful for various tasks. Task-specific projectors are then applied to perform different tasks. 
+
+of text representations, where different language tasks can be formulated within a common sequence-to-sequence or auto-regressive framework. However, developing general-ist multitask learning in vision remains is significantly more challenging due to the inherent diversity in vision tasks. Vi-sion tasks span a broad range of dense and sparse predic-tions, each requiring distinct output structures and optimiza-tion objectives. For example, semantic segmentation oper-ates at the pixel level, depth estimation requires continuous value regression, while object detection involves structured bounding box predictions. These fundamental differences make it difficult to design a generalist framework that seam-lessly accommodates all vision tasks within a single model. To tackle this, some studies focus on task output ho-mogenization, where various task outputs are manually en-coded into a shared format through hand-crafted methods. In this context, Painter [51] approaches many vision tasks as image inpainting problems, encoding task outputs in the RGB space. Pix2Seq-D [6] also leverages the Bit Diffusion model [5] to learn task-specific outputs by converting them into per-pixel representations across separate channels. Al-ternatively, other approaches add components to serialize both the input image and task outputs, treating the prob-arXiv:2609.35490v1 [cs.CV] 28 Sep 2026 lem as a next-token prediction task. For instance, Unified-IO [29] employs a VQ-GAN [13] to serialize dense tasks and adds special tokens for sparse tasks. In this paradigm, the generalist model is trained on the frozen tokens, and the outputs need to be further decoded. However, both these approaches come with trade-offs, as they introduce com-plexity through demanding pre- and post-processing, along with the need for sophisticated training techniques, such as VQ-GAN for serialization. In generalist multitasking, it is also essential to unify different vision tasks under a common problem-solving methodology. Among these tasks, person keypoint detec-tion often follows a top-down strategy, where individuals are cropped from the image, and keypoints are then detected for each cropped person. This approach has become the standard due to the effectiveness of person detectors. How-ever, it requires running the model multiple times, once for each individual in the image, which goes against the core idea of generalist multitasking, where the goal is to process the entire image and perform multiple tasks in a single for-ward pass. This multiple-run process is especially expen-sive in generalist vision models, which rely on large, com-putationally intensive encoder backbones. Despite this, no significant effort has been made to address this issue while still leveraging the strengths of the top-down approach. We propose a simple yet effective training framework, as in Fig. 1, namely AHMAD, for generalist multitasking across different vision tasks: Panoptic Segmentation (Se-mantic Segmentation (SS) and Instance Segmentation (IS)), Depth Estimation (DE), Keypoint Detection (KD), and Ob-ject Detection (OD), demonstrating a complementary boost for the majority of tasks. Additionally, we introduce a novel method to reduce the forward passes required for top-down keypoint detection, achieving a single run for the entire im-age using knowledge distillation techniques. Our contributions are as follows: 1) We present a sim-ple multitask learning paradigm with no restrictions on task output shapes or the need for extra components, allowing the incorporation of each task’s ideal single-task approach within a unified multitask structure. 2) We propose a novel distillation method to perform top-down keypoint detection with just a single forward pass for the entire image. 3) We demonstrate strong performance across various vision tasks, achieving a PQ of 53.1 and an mIoU of 66.5 for COCO panoptic and semantic segmentation among generalist mod-els, while also delivering competitive results in keypoint de-tection and object detection. 
+
+## 2. Related Work 
+
+Vision Transformers. Vision Transformers (ViTs) [21, 37] have emerged as powerful foundations for both multi-task and multimodal learning in computer vision [45]. Swin Transformer [28] introduces hierarchical feature by parti-tioning images into non-overlapping windows and comput-ing self-attention within each. This enables efficient mod-eling of long-range dependencies through a shifting win-dow mechanism. ViTs also excel in self-supervised learn-ing [26, 44, 57], acting as strong backbones for various vi-sion tasks. Methods like DINO [3] and DINOv2 [34] lever-age unsupervised pretraining based on knowledge distilla-tion on large unlabeled data, enabling them to learn trans-ferable representations for different downstream tasks. Fur-thermore, ViTs are effective in multimodal learning [18], particularly in vision-language tasks [56] such as visual question answering [43], where combining visual and tex-tual data enhances overall comprehension. 
+
+Segmentation and Object Detection. Transformer-based models excel in dense tasks like segmentation [31]. MaskFormer [7] frames segmentation as hierarchical mask generation and classification, while Mask2Former [8] re-fines it with multi-scale masked attention. OneFormer [19] extends this with task-conditioned training for handling di-verse segmentation tasks. SAM [22] generates high-quality object masks from both sparse and dense prompts, using a MAE-pretrained Vision Transformer [17] as the encoder and a prompt encoder for boxes, points, and text (encoded using CLIP [36]), with support for dense mask prompts encoded by a CNN network. SAM2 [38] builds on this with a promptable visual segmentation framework, incor-porating a memory bank and attention mechanism for im-proved accuracy. Transformers [47] are also widely used for open-vocabulary object detection [9, 12, 15, 32, 33, 55], leveraging autoregressive next-token prediction. Ground-ing DINO [27] detects objects from language inputs, with a Swin transformer for image encoding, BERT [10] for text, and deformable self-attention [52] for feature en-hancement. It also employs language-guided query selec-tion and a cross-modality decoder for bounding box pre-diction. Grounding DINO 1.5 [41] enhances this with Pro and Edge versions, offering a larger ViT-L backbone and cross-scale feature fusion for improved performance. Grounded SAM [42] merges Grounding DINO and SAM for both segmentation and detection, using BLIP [24, 25] and RAM [58] for vision-language understanding. 
+
+Multitask Generalist Models. Expanding beyond mod-els that are strictly designed for segmentation and detec-tion tasks, Painter [51] frames dense vision tasks as im-age inpainting, with outputs in the same RGB space as in-put images. The task prompt is encoded as a pair of im-ages, and a Masked Vision Transformer is used for train-ing. At inference, Painter offers flexible task adaptation through three types of prompts: random, searched, and learned. Unified-IO [29, 30] introduced an encoder-decoder architecture, using stacked transformer layers to represent all inputs and outputs as discrete tokens. It utilizes VQ-GAN [13] for image serialization and incorporates location tokens and sparse structures like bounding boxes as spe-cial tokens. However, the model has limitations in localiza-tion. Pix2Seq [4] takes an image and task prompts to gener-ate discrete tokens corresponding to desired outputs, while Pix2Seq-D [6] handles semantic and instance segmentation with two channels per task. GiT [48] divides the image into subregions, generating sparse responses for each, which are then merged. DINO-X [40] extends the Grounding DINO encoder-decoder architecture for open-world understand-ing, supporting text, visual, and customized prompts. The DINO-X Pro version uses a pre-trained CLIP model to en-hance performance across multimodal benchmarks, with vi-sual prompts leveraging box and point formats for better segmentation and visual grounding tasks. 
+
+## 3. Method 
+
+Given a set of task IDs T = {1, 2, . . . , k }, each corre-sponding to a specific vision task, we collect datasets Mj ,where j ∈ T , representing either individual datasets or a merged version of multiple datasets associated with task 
+
+j. We then establish a shared encoder backbone network 
+
+Bθ (referred to as the backbone for simplicity) along with a relatively lightweight decoder Dϕ, forming a feature ex-traction pipeline. Additionally, we define k shallow, task-specific projectors Hjψj , each designed to align the output shape with the requirements of task j.Our objective is to train an encoder-decoder network that learns a shared and robust feature map F = Dϕ(Bθ (·)) ,ensuring it captures all the essential information needed to perform various vision tasks. This feature map F is then fed to task-specific projectors, whose main function is to adjust the output shape to match the requirements of each task, rather than extracting additional features from F .Specifically, we iteratively select a random vision task ID 
+
+j ∈ T and sample a training data batch (x, y ) ∈ Mj , where 
+
+x represents the input RGB data and y is the corresponding target. For simplicity, we define Fx = Dϕ(Bθ (x)) . In each iteration, the objective is to optimize the network by min-imizing the task-specific loss function Lj
+
+
+
+Hjψj (Fx), y 
+
+
+
+.Figure 2 illustrates the mechanism, including the network architecture and the training strategy. 
+
+Backbone. Our backbone is built upon ViT-L [11], utilizing weights obtained via the Dino-V2 [34] strategy, which leverages self-supervised learning. This reliance on large-scale pretrained weights enables the model to learn rich, generalizable feature representations that are not tied to any specific task. This is particularly well-suited for our design, where task-specific projectors specialize the learned features for different tasks. This enables the model to effi-ciently share common features while adapting to the unique requirements of each task. 
+
+Decoder. The decoder comprises four transposed con-volutional layers whose goal is to upscale the patch level representations to pixel level representations. Although the decoder is significantly lighter than the backbone, it is con-siderably larger than the task-specific projectors. This is be-cause the task projectors are not intended to focus on deeply extracting new features, but to simply project this represen-tation to the required output format for the task. 
+
+3.1. Task-specific Projectors 
+
+Given an RGB input x of shape H × W × 3, Each inter-mediate layer of the backbone outputs a sequence of tokens with shape   Hs ∗ Ws
+
+ × dim, where s is the patch size of the ViT network and dim is the dimension of the tokens. To construct a latent image representation z, we concatenate tokens from four intermediate layers of the backbone. The upscaling decoder then processes this representation to gen-erate a dense per-pixel feature map Fx of shape H ×W ×O,where the channel dimension O is set to 256 in our exper-iments. Finally, task-specific projectors utilize Fx to opti-mize their respective loss functions based on the given task. For the first three tasks (SS, IS, and DE) involving pixel-wise loss, we do not treat all pixels equally. Instead, we em-ploy Edge Distance Sampling (EDS), which focuses train-ing on pixels near object boundaries. For each pixel (i, j ),we calculate its Euclidean distance dij to the nearest bound-ary. The corresponding weight for that pixel is given by: 
+
+wij = wmin + (1 − wmin )e−d2 
+
+> ij /D 2
+
+,
+
+where wmin represents the minimum weight assigned to pix-els far from boundaries. In our experiments, we set wmin =0. The parameter D controls how rapidly the weight di-minishes with increasing distance from the boundary, with 
+
+D = 20 in our experiments. Edge Distance Sampling addresses two critical issues: (i) Unlabeled regions are effectively excluded, reducing am-biguity. (ii) Loss imbalance between small and large objects is mitigated by concentrating on instance boundaries. 
+
+SS Projector. This projector formulates the semantic segmentation task ( j = 1 ) as per-pixel classification, fol-lowing [34]. Specifically, the loss function is a per-pixel weighted cross-entropy loss, formulated as: 
+
+L1
+
+ H1 
+
+> ψ1
+
+(Fx) := ˆ y, y  =
+
+> H
+
+X
+
+> i=1
+> W
+
+X
+
+> j=1
+
+wij · CE (ˆ yij , y ij ) ,
+
+where the cross-entropy loss CE (·) is applied at each spatial location (i, j ) to refine segmentation accuracy. The 
+
+H1 
+
+> ψ1
+
+(Fx) is a single 3 × 3 convolution layer from channel dimension O to the number of categories in the dataset. 
+
+IS Projector. We tackle class-agnostic instance seg-mentation ( j = 2 ) by encoding instances via their center of mass. Each pixel predicts the coordinates (u, v ) of the ... 
+
+> ...
+> For
+
+*( ) Figure 2. Method Overview . In each iteration, a random vision task—illustrated here with object detection—is selected. After patch tokenization, the backbone processes the tokens, and outputs from four intermediate layers are concatenated to form z. This is then decoded to a shared feature map Fx = Dϕ(z), which is further processed by the corresponding task-specific projector. For the first three tasks, EDS is applied during loss minimization (*). The gradient-colored backbone highlights layer decay in Bθ , where later layers receive stronger updates while earlier layers remain more stable, promoting better feature adaptation. Gray/dim arrows indicate inactive tasks, and for task projectors, input and outer arrows represent the forward and backward propagation, respectively. 
+
+corresponding instance centroid, while unlabeled pixels re-ceive a void encoding. The loss depends on the accuracy of centroid predictions, with higher precision needed in re-gions where centroids are close together (e.g., near object boundaries), as small errors can lead to incorrect instance assignments. To address this, we apply positional embeddings to map centroid coordinates into a higher-dimensional space. The 
+
+u and v coordinates are first normalized to the range [−1, 1] ,then embedded as: 
+
+γ(p) = sin(2 kπp ), cos(2 kπp )L−1 
+
+> k=0
+
+∈ R2L,
+
+where L is the number of harmonics used, controlling the dimensionality of the embedding for coordinate p.For a pixel (i, j ), we define a predictor function P(i, j )
+
+that returns a concatenated positional embedding γ(u) ⊕
+
+γ(v) if pixel (i, j ) belong to an instance with centroid at 
+
+(u, v ), and returns a zero vector Z ∈ R4L if the pixel is unlabeled. Thus, the target pixel output yij is: 
+
+yij = P(i, j ) · (γ(u) ⊕ γ(v)) + (1 − P(i, j )) · Z
+
+The instance segmentation loss is then defined as: 
+
+L2
+
+ H2 
+
+> ψ2
+
+(Fx) := ˆ y, y  =
+
+> H
+
+X
+
+> i=1
+> W
+
+X
+
+> j=1
+
+wij · L(ˆ yij , y ij ),
+
+where the pixel loss L(ˆ yij , y ij ) is computed as the av-erage euclidean distance between prediction and the target embeddings: 
+
+L(ˆ yij , y ij ) = 12
+
+> 2
+
+X
+
+> n=1
+
+(yij − ˆyij )[2( n−1) L+1:2 nL ]
+
+> 2
+
+In our experiments, H2 
+
+> ψ2
+
+(Fx) is a single 3 × 3 convolution layer from channel dimension O to 4L.During inference, the u and v coordinates are retrieved from ˆyij using the nearest neighbor search [35], matching predictions to positions in a discretized uv -grid space. 
+
+Panoptic Segmentation . We split panoptic segmenta-tion into semantic and class-agnostic instance segmentation, solving them independently using the pipeline outlined in the SS and IS projectors sections. 
+
+DE Projector. For monocular depth estimation ( j = 3 ), we minimize a weighted affine-invariant loss in disparity space. We define disparity d as the inverse depth, normal-ized between 0 and 1, with the depth range set from 0 to 10. The projection layer, H4 
+
+> ψ4
+
+(Fx), consists of a single 3×3 convolution with a sigmoid activation. It maps the feature map from channel dimension O to a single-channel output and optimizes the following loss: 
+
+L3
+
+
+
+H3 
+
+> ψ3
+
+(Fx) := ˆd, d 
+
+
+
+=
+
+> H
+
+X
+
+> i=1
+> W
+
+X
+
+> j=1
+
+wij · ˆdij − dij 
+
+OD Projector. For the object detection task ( j = 4 ), we follow a Yolo-style [20, 39] approach but modify the ar-chitecture by replacing fully connected layers with convolu-tional layers for the final predictions. The last layer applies a sigmoid activation function to produce the output. The image is divided into an S × S grid, where each cell predicts B bounding boxes, each defined by (a, b, w, h, p ).Here, a, b are the normalized center coordinates within the grid cell, w, h are normalized to the image, and p represents the predicted IoU with the ground truth. From the B predicted boxes per cell, we select the one with the highest IoU. Each grid cell (i, j ), also predicts a classification vector ˆcij of length C, where C is the number of object categories. The goal is for ˆcij to closely match the ground truth class vector cij , which is a one-hot vector when an object is present in the grid cell and a zero vector otherwise. Thus, H4 
+
+> ψ4
+
+(Fx) produces an output of shape S ×
+
+S × (5 B + C).Specifically, the loss function consists of three main components: confidence loss ( Lp), coordinate loss ( Labwh ), and classification loss ( Lc): 
+
+Lp = λp1
+
+X
+
+> i,j
+
+ˆp2 
+
+> ij
+
+· ⊮noobj + λp2
+
+X
+
+> i,j
+
+
+
+ˆpij − ˆIoU ij 
+
+2
+
+· ⊮obj ,
+
+Labwh = λa
+
+X
+
+> i,j
+
+
+
+∥ˆaij − aij ∥2 + ∥ˆbij − bij ∥2+
+
+∥ ˆw 12 
+
+> ij
+
+− w 12 
+
+> ij
+
+∥2 + ∥ˆh 12 
+
+> ij
+
+− h 12 
+
+> ij
+
+∥2
+
+· ⊮obj ,
+
+Lc = λc
+
+X
+
+> i,j
+
+(ˆ cij − cij )2 · ⊮obj ,
+
+where ⊮obj is the boolean mask that selects the grid cells containing objects, ⊮noobj is the boolean mask for grid cells without objects, and · performs tensor masking. The ˆIoU represents the predicted IoU between the best predicted bounding box and the ground truth bounding box during training. For training, we set the weighting coefficients as 
+
+10 λp1 = 2 λp2 = λa = 5 λc, leading to the following loss: 
+
+L4
+
+ H4 
+
+> ψ4
+
+(Fx), y  = Lp + Labwh + Lc
+
+During inference, we utilize class-aware and DIoU-based Non-Maximum Suppression (NMS) to effectively eliminate duplicate bounding boxes. 
+
+KD Projector. We solve the 17-joint keypoint detec-tion problem (j = 5) using a top-down approach, where cropped instances of individuals are processed indepen-dently. Instead of predicting separate heatmaps for each joint, we generate a single unified heatmap capturing all joints simultaneously, along with 17 classification channels trained exclusively on ground truth keypoints. We found this formulation significantly more efficient than the con-ventional approach of predicting one heatmap per joint. With all but one channel representing discrete class labels, this encoding is particularly well-suited for knowledge dis-tillation, enabling the proposal of KD * (3.2). The projector 
+
+H5 
+
+> ψ5
+
+(Fx) is a single 3 × 3 convolution layer from channel dimension O to 18. To optimize the model, we employ a hybrid loss func-tion combining per-pixel mean squared error (MSE) loss for heatmap regression and cross-entropy loss for joint classifi-cation, applied only at ground truth locations: 
+
+L5
+
+ H5 
+
+> ψ5
+
+(Fx), y  = MSE 
+
+ ˆht, ht σ 
+
++X
+
+> i,j
+
+CE (ˆ cij , c ij )·⊮gt 
+
+The last channel of H5 
+
+> ψ5
+
+(Fx), ˆht , is the predicted heatmap of size hs , and ht σ represents a Gaussian distri-bution palette centered at each keypoint location with stan-dard deviation σ. Additionally, ˆc, the first 17 channels of 
+
+H5 
+
+> ψ5
+
+(Fx), is the predicted class values. cij is the one-hot ground truth class vector at heatmap location (i, j ), and 
+
+⊮gt is a binary mask selecting the pixels that correspond to ground truth class labels. During inference, we apply a class-aware argmax oper-ation to the heatmap, selecting the highest-scoring location for each joint while filtering out low-confidence detections. 
+
+3.2. KD *:Single-pass Top-down Keypoint Detection 
+
+In top-down keypoint detection, the entire network must run repeatedly for each instance in an image, leading to in-creased inference time and resource consumption—an issue exacerbated by the use of a large backbone. This contradicts the essence of efficient multitasking. To overcome this, we leverage knowledge distillation to enable the keypoint de-tection with just one forward pass for the entire image. In our streamlined implementation of the keypoint de-tection task, we found that strong optimization performance could be achieved by directly using a part of the latent image representation 4z = 4Bθ (x), bypassing the decoder (indi-cated by the blue arrows in Figure 3). This approach gener-ates a feature map suitable for cropped RGB images of indi-viduals, but in a much more efficient manner, without being part of the multitasking pipeline. Building on this obser-vation, we propose a knowledge distillation paradigm that Figure 3. KD * Overview. Blue arrows indicate paths that are inactive during inference, while red arrows represent the active in-ference path. By enabling feature cropping, we reduce the number of forward passes from N to 1. In this process, 4z represents the latent image embedding obtained from the last of the four inter-mediate layers, w′ = 4 w, and h′ = 4 h. The green lines indicate contributions to the loss function, while the dashed red line rep-resents the point at which we obtain the final output during the inference stage. 
+
+aligns the feature map of cropped images with the corre-sponding regions of the full-image feature map. This tech-nique allows us to reduce the forward passes from one per individual to a single pass for the entire image, essentially cropping the feature map instead of the RGB input. Let xG be an image containing N individuals, and xiC be the cropped image corresponding to the i-th person. We de-fine a cropping function Q(F, Box) that returns the cropped portion of the feature map F based on the bounding box 
+
+Box , interpolated to the same size as F . It is easy to see that Q(xG, Box i) = xiC . The goal is to minimize the disparity between student S = Q(F ′ 
+
+> xG
+
+, Box i) and teacher 
+
+T = Uγ (4Bθ (Q(xG, Box i))) , as shown in Figure 3, where 
+
+Uγ is a shallow upscaler. In the inference stage, we replace the N forward runs of Dϕ(Bθ (Q(xG, Box i))) Ni=1 with N
+
+cropping operations Q(Dϕ(Bθ (xG)) , Box i)Ni=1 , reducing the computation to a single forward run. A challenge with our feature-cropping strategy in 
+
+Q(FxG , Box i) is that small boxes result in a significant loss of spatial information in FxG , leading to suboptimal fea-tures. To address this, we introduce a training-free upscaler 
+
+T F U that increases the spatial resolution of FxG by a factor of 4, enhancing its robustness to small boxes. The resulted feature map is denoted as F ′ 
+
+> xG
+
+. More specifically, T F U 
+
+processes an H × W × O feature map by dividing the O
+
+channels into O/ 16 subchannels, each containing a 4 × 4
+
+grid of values. The grid then replaces the original pixel at each spatial location, enhancing the spatial resolution by 4x while reducing the number of channels by 1/16 x. We use a hybrid loss to distill information from T to S:
+
+L∗(S, T ) = L5 (ˆ yt, y )
+
+| {z }
+
+> L∗
+> 1
+
++ L5 (ˆ ys, y )
+
+| {z }
+
+> L∗
+> 2
+
++Ld (S, T ) ,
+
+with the distillation loss function defined as: 
+
+Ld (S, T ) = ρ1∥S − T ∥1
+
+| {z }
+
+> Ld
+> 1
+
++ ρ2KL (ˆ y:17  
+
+> t
+
+∥ ˆy:17  
+
+> s
+
+)
+
+| {z }
+
+> Ld
+> 2
+
+,
+
+where ˆyt = H5 
+
+> ψ5
+
+(T ) and ˆys = H′5 
+
+> ψ5
+
+(S). Note that H5
+
+> ψ5
+
+and H′5 
+
+> ψ5
+
+have identical network architectures, but do not share weights. KL denotes the Kullback-Leibler divergence loss, and the superscript :17 indicates the first 17 channels of the corresponding tensor. In our experiments, we set ρ1 =1.0 and ρ = 5 × 10 −5.
+
+## 4. Experiments 
+
+4.1. Setup and Implementation 
+
+Three-Stage Training. We adopt a three-stage training strategy. In the first stage, we train only on the IS task, the most challenging one, for a substantial number of epochs using low-resolution images (280 ×280). In the second stage, we extend training to all tasks while maintaining the same low resolution and training for many epochs. Fi-nally, in the third stage, we fine-tune the pretrained weights on high-resolution images (616 ×616) with significantly re-duced augmentation and for considerably fewer epochs. The idea here is that most of the training occurs on compu-tationally efficient low-resolution data, while fine-tuning on high-resolution images refines the model effectively with-out incurring excessive computational cost. The three training stages run for 280, 150, and 60 epochs, respectively, totaling 5 days. Each stage uses a 5 × 10 −4
+
+learning rate, 0.6 decay, a 1 × 10 −6 minimum learning rate, and 0.6 layer decay for the backbone. A warmup period of 10 epochs is applied. The effective batch sizes are 1024, 512, and 256 for the three stages, respectively. We use 4 intermediate layers of the backbone, specifically layers 4, 11, 17, and 23. We set L = 4 in IS task, as ablated in Ta-ble 3. In the object detection task, we use (B, S ) of (2 , 7) 
+
+and (2 , 10) in the second and third stages, respectively. For KD task, the heatmap size, hs , is set to 4/7 (σ = 10 ) of the image resolution in the second and third stages. For tasks involving EDS, we include an additional total variation loss as a regularizer. Specifically for the IS task, we also incor-porate generalized DICE loss (SupMat 1.2). 
+
+More Training Details. Training is conducted on 8×A100 GPUs, with the ViT-Large backbone Bθ and CNN-based upscaler decoder Dϕ containing 305M and 4M pa-rameters, respectively. We target the COCO benchmark for training all five tasks. For depth estimation, we use pseudo-labels from DepthAnythingV2 [53, 54]. Experi-ments on KD ∗ are conducted only at a low resolution of 280 within the previously stated training setup, using Uγ as a 1M-parameter upscaler, constructed by 3 transposed con-volutional layers. 
+
+4.2. Main Results on COCO 
+
+We evaluate the performance of our multi-task learning pipeline using task-specific metrics on the COCO-val split. Specifically, for panoptic segmentation, we report Panoptic Quality (PQ), and for semantic segmentation, we use mean Intersection over Union (mIoU). For depth estimation, we report Root Mean Squared Error (RMSE), for object detec-tion, we use mean Average Precision (mAP), and for key-point detection, we provide OKS-based mAP. Table 1 com-pares these results with those from other specialized and multi-task generalist vision models, highlighting key per-formance trends. Notably, our approach achieves strong performance in panoptic segmentation, surpassing other models with a PQ of 53.1 and an mIoU of 66.5. This represents a 22.3% boost compared to Painter and a 5.5% boost compared to Pix2Seq-D. As for semantic segmentation, we outperform LDM by a ∆mIoU of 6.4 and significantly surpass GiT with a ∆mIoU of 14.1. For depth estimation, we only compare the results of AHMAD single to AHMAD multi (since other models use different ground truth labels for training, as noted by * in Table 1), highlighting the complementary boost gained from joint training. We also achieve competi-tive results with an OKS-mAP of 68.12 for keypoint detec-tion and an mAP of 44.6 for object detection, demonstrating the effectiveness of our multi-task framework in improving performance through joint training. Figure 4 provides a visualization of our approach. Sev-eral examples with predictions on segmentation masks, depth estimations, object detections, and keypoint predic-tions, demonstrating how our model generalizes across dif-ferent tasks within a unified framework. As for our proposed KD * method, we demonstrate how distilling information from the teacher feature map to the student feature map allows us to reduce the number of for-ward passes by a factor of 2.7x. This makes the entire multi-task paradigm unified, where the model processes the same input image for different tasks and generates the re-sults in a single forward pass. Table 2 presents the statis-tics. The results from Table 4 further demonstrate that, with sufficient engineering effort, performance progressively im-proves, validating the efficacy of the approach. Addition-ally, there is potential for further enhancement as more en-gineering is applied. Beyond the performance gains achieved through knowl-edge distillation, it is noteworthy that the bypassed path alone achieves strong metric scores. This highlights the Semantic Segmentation  RGB image Instance Segmentation Object Detection  Depth Estimation Ground Truth Predicted Heatmap 
+
+> Class-aware Grouping  NMS and Linking
+
+Figure 4. Qualitative Results. We show our results on five differ-ent tasks with diverse examples. 
+
+suitability and effectiveness of the DINO-V2 backbone within our hybrid training framework. To better approxi-mate real-world inference in top-down keypoint detection, we introduce 20% noise into the ground-truth bounding boxes when cropping input images. 
+
+## 5. Ablation Study 
+
+For semantic segmentation, we investigated the impact of the EDS mechanism. In the case of instance segmentation, we also explored the effect of positional embeddings across different values of L, as summarized in Table 3. For keypoint and object detection, we primarily con-ducted ablation studies on various hyperparameters, such as σ in keypoint detection and the number of grids S in ob-ject detection, along with different NMS versions for post-processing. For example, we compared using DBSCAN and KMeans to obtain the final joints from candidates in keypoint detection, as well as IoU/dIoU-based NMS in ob-ject detection. In our post-processing analysis, we found that joint-aware argmax over heatmap values outperforms clustering-based methods, and dIoU-based NMS performs better than IoU-based NMS in object detection. Finally, for the Knowledge Distillation approach, we pri-marily examined the effect of various loss functions and dif-ferent training strategies, as detailed in Table 4. Model Resolution #Params Backbone Segmentation Depth Detection Keypoint PQ ↑ mIoU ↑ RMSE ↓ mAP 50 ↑ mAP all ↑ OKS-mAP 50 ↑ OKS-mAP all ↑
+
+Specialized Models 
+
+MaskFormer 640 × 640 212M SWIN-L 52.7 - × × × × ×
+
+Mask2Former 640 × 640 216M SWIN-L 57.8 - × × × × ×
+
+OneFormer 640 × 640 223M DINAT-L 58.0 67.4 × × × × ×
+
+Faster-RCNN [14] 600 × 1000 60M ResNet-101 × × × - 44.0 × ×
+
+DETR [2] 800 × 800 60M ResNet-101/DC5 45.1 - × 64.7 44.9 × ×
+
+HRNET [49] 256 × 192 28.5M HRNET-V1-W32 × × × × × 90.5 74.4 Multi-Task Models 
+
+LDM [46] 512 × 512 850M UNET 43.3 60.1 0.075 * × × × ×
+
+Pix2Seq-D 1024 × 1024 94.5M ResNet-50 50.3 - × × × × ×
+
+Pix2Seq 1024 × 1024 132M ViT-B × × × - 46.5 - 64.8 Mask-RCNN [50] 320 × 320 43M ResNet-101+FPN × × × 67.8 45.0 87.3 66.5 UViM [23] 1280 × 1280 939M ViT-L 45.8 - - × × × ×
+
+Painter 448 × 448 303.5M ViT-L 43.4 - - × × - 72.1 
+
+GiT † 1120 2|672 2 756M Multi-layer Transformer × 52.4 × 71.0 52.9 × ×
+
+Unified-IO †XL 384 × 384 2.9B ViT-L × 56.5 0.385 * × × - 68.1 AHMAD single 616 × 616 309.5M ViT-L 55.1 66.9 0.331 64.3 43.9 90.8 67.3 AHMAD multi 616 × 616 309.5M ViT-L 53.1 66.5 0.310 62.9 44.6 92.2 68.2 
+
+Table 1. Comparison of multi-task models across various evaluation metrics on the COCO-val split. GiT performs object detection and instance segmentation at a resolution of 1120 ×1120 , while semantic segmentation is conducted at 672 ×672 . Additionally, Unified-IO is evaluated on the GRIT benchmark, which includes the COCO dataset. ” ×” indicates that the model does not support the task, while ”-” means the task is supported, but no performance numbers for the COCO dataset are provided in the paper.                      
+
+> Method Input #Projector Params OKS-mAP ↑Avg Run/Img Decoder
+> Top-down KD C280 ×280 440K 62.6 2.7 ✓
+> Bypassed KD C280 ×280 2.5K 60.1 2.7 ×
+> KnowDist KD G280 ×280 2.5K 41.32 1.0 ✓
+
+Table 2. A comparative analysis of the standard top-down Key-point detection, the decoder-bypassed variant, and our proposed Knowledge Distillation approach. G denotes the global image in-put, while C represents the cropped image input. The last column shows a ✓ for methods that run the decoder, and × otherwise. 
+
+Panoptic Segmentation 
+
+EDS (u,v) Encoding PQ ↑× 2D Regression 38.01 
+
+× PE L=4 44.86 
+
+✓ 2D Regression 41.61 
+
+✓ Cross-Entropy 39.87 
+
+✓ PE L=3 47.38 
+
+✓ PE L=4 48.61 
+
+✓ PE L=5 48.12 
+
+Table 3. Panoptic Segmentation Ablation. Effects of EDS and Positional Embedding (PE). In 2D Regression, we directly re-gressed (u, v ). The ablation is performed on a ViT-Base model with a resolution of 420 × 420 .                                             
+
+> Conf ID Config Loss Function OKS-mAP ↑
+> CID-1 Stand-alone feature cropping L∗
+> 234.2 CID-2 CID-1, RGB concatenation L∗
+> 234.6 CID-3 Distillation, Shared Projector L∗
+> 1+Ld
+> 135.2 CID-4 CID-3 L∗
+> 1+Ld
+> 1+L∗
+> 235.6 CID-5 CID-4, Different Projectors L∗
+> 1+Ld
+> 1+L∗
+> 236.2 CID-6 CID-5, TFU added L∗
+> 1+Ld
+> 1+L∗
+> 239.8 CID-7 CID-6 L∗
+> 1+Ld
+> 1+L∗
+> 2+Ld
+> 241.3
+
+Table 4. KD * Ablation. Comparison of different architectures and loss functions on OKS-mAP performance. For CID-1 and CID-2, no distillation is performed. In CID-2, the cropped image is directly concatenated with the feature map from the input. In CID-3, both the student and teacher utilize the same projector, H5 
+
+> ψ5
+
+.Conversely, in CID-5, the student and teacher employ different but architecturally identical projectors, H5 
+
+> ψ5
+
+and H′5 
+
+> ψ5
+
+. Observe how our TFU function effectively enhances performance. 
+
+## 6. Conclusion 
+
+In this paper, we introduce AHMAD, a general-ist multitasking framework that integrates five key vi-sion tasks—semantic segmentation, instance segmentation, depth estimation, keypoint detection, and object detec-tion—within a unified model. Our approach efficiently han-dles heterogeneous task outputs without complex serializa-tion or pre/post-processing. To further improve efficiency, we propose a knowledge distillation strategy for keypoint detection, enabling a single forward pass instead of multi-ple passes required by traditional top-down methods. Ex-periments demonstrate strong performance across all tasks, with state-of-the-art results in panoptic and semantic seg-mentation. AHMAD offers a simple yet effective multi-task framework, balancing efficiency and flexibility for real-world applications. Future work includes refining distil-lation techniques, incorporating higher-resolution training, and expanding to additional vision tasks. 
+
+## References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 ,2023. 1 [2] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In European confer-ence on computer vision , pages 213–229. Springer, 2020. 8 [3] Mathilde Caron, Hugo Touvron, Ishan Misra, Herv´ e J´ egou, Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerg-ing properties in self-supervised vision transformers. In Pro-ceedings of the IEEE/CVF international conference on com-puter vision , pages 9650–9660, 2021. 2 [4] Ting Chen, Saurabh Saxena, Lala Li, Tsung-Yi Lin, David J Fleet, and Geoffrey E Hinton. A unified sequence interface for vision tasks. Advances in Neural Information Processing Systems , 35:31333–31346, 2022. 3 [5] Ting Chen, Ruixiang Zhang, and Geoffrey Hinton. Analog bits: Generating discrete data using diffusion models with self-conditioning. arXiv preprint arXiv:2208.04202 , 2022. 1 [6] Ting Chen, Lala Li, Saurabh Saxena, Geoffrey Hinton, and David J Fleet. A generalist framework for panoptic segmen-tation of images and videos. In Proceedings of the IEEE/CVF international conference on computer vision , pages 909– 919, 2023. 1, 3 [7] Bowen Cheng, Alex Schwing, and Alexander Kirillov. Per-pixel classification is not all you need for semantic segmen-tation. Advances in neural information processing systems ,34:17864–17875, 2021. 2 [8] Bowen Cheng, Ishan Misra, Alexander G Schwing, Alexan-der Kirillov, and Rohit Girdhar. Masked-attention mask transformer for universal image segmentation. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , pages 1290–1299, 2022. 2 [9] Tianheng Cheng, Lin Song, Yixiao Ge, Wenyu Liu, Xing-gang Wang, and Ying Shan. Yolo-world: Real-time open-vocabulary object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 16901–16911, 2024. 2 [10] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional trans-formers for language understanding. In Proceedings of the 2019 conference of the North American chapter of the asso-ciation for computational linguistics: human language tech-nologies, volume 1 (long and short papers) , pages 4171– 4186, 2019. 2 [11] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Syl-vain Gelly, et al. An image is worth 16x16 words: Trans-formers for image recognition at scale. arXiv preprint arXiv:2010.11929 , 2020. 3 [12] Yu Du, Fangyun Wei, Zihe Zhang, Miaojing Shi, Yue Gao, and Guoqi Li. Learning to prompt for open-vocabulary ob-ject detection with vision-language model. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 14084–14093, 2022. 2 [13] Patrick Esser, Robin Rombach, and Bjorn Ommer. Taming transformers for high-resolution image synthesis. In Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12873–12883, 2021. 2 [14] Ross Girshick. Fast r-cnn. In Proceedings of the IEEE inter-national conference on computer vision , pages 1440–1448, 2015. 8 [15] Xiuye Gu, Tsung-Yi Lin, Weicheng Kuo, and Yin Cui. Open-vocabulary object detection via vision and language knowledge distillation. arXiv preprint arXiv:2104.13921 ,2021. 2 [16] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025. 1 [17] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Doll´ ar, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 16000– 16009, 2022. 2 [18] Yu Huang, Chenzhuang Du, Zihui Xue, Xuanyao Chen, Hang Zhao, and Longbo Huang. What makes multi-modal learning better than single (provably). Advances in Neural Information Processing Systems , 34:10944–10956, 2021. 2 [19] Jitesh Jain, Jiachen Li, Mang Tik Chiu, Ali Hassani, Nikita Orlov, and Humphrey Shi. Oneformer: One transformer to rule universal image segmentation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 2989–2998, 2023. 2 [20] Peiyuan Jiang, Daji Ergu, Fangyao Liu, Ying Cai, and Bo Ma. A review of yolo algorithm developments. Procedia computer science , 199:1066–1073, 2022. 5 [21] Salman Khan, Muzammal Naseer, Munawar Hayat, Syed Waqas Zamir, Fahad Shahbaz Khan, and Mubarak Shah. Transformers in vision: A survey. ACM computing surveys (CSUR) , 54(10s):1–41, 2022. 2 [22] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-thing. In Proceedings of the IEEE/CVF international confer-ence on computer vision , pages 4015–4026, 2023. 2 [23] Alexander Kolesnikov, Andr´ e Susano Pinto, Lucas Beyer, Xiaohua Zhai, Jeremiah Harmsen, and Neil Houlsby. Uvim: A unified modeling approach for vision with learned guiding codes. Advances in Neural Information Processing Systems ,35:26295–26308, 2022. 8 [24] Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation. In Interna-tional conference on machine learning , pages 12888–12900. PMLR, 2022. 2 [25] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In In-ternational conference on machine learning , pages 19730– 19742. PMLR, 2023. 2 [26] Shikun Liu, Edward Johns, and Andrew J Davison. End-to-end multi-task learning with attention. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 1871–1880, 2019. 2 [27] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Qing Jiang, Chunyuan Li, Jianwei Yang, Hang Su, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. In 
+
+European Conference on Computer Vision , pages 38–55. Springer, 2024. 2 [28] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In 
+
+Proceedings of the IEEE/CVF international conference on computer vision , pages 10012–10022, 2021. 2 [29] Jiasen Lu, Christopher Clark, Rowan Zellers, Roozbeh Mot-taghi, and Aniruddha Kembhavi. Unified-io: A unified model for vision, language, and multi-modal tasks. arXiv preprint arXiv:2206.08916 , 2022. 2 [30] Jiasen Lu, Christopher Clark, Sangho Lee, Zichen Zhang, Savya Khosla, Ryan Marten, Derek Hoiem, and Aniruddha Kembhavi. Unified-io 2: Scaling autoregressive multimodal models with vision language audio and action. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 26439–26455, 2024. 2 [31] Shervin Minaee, Yuri Boykov, Fatih Porikli, Antonio Plaza, Nasser Kehtarnavaz, and Demetri Terzopoulos. Image seg-mentation using deep learning: A survey. IEEE transactions on pattern analysis and machine intelligence , 44(7):3523– 3542, 2021. 2 [32] Matthias Minderer, Alexey Gritsenko, Austin Stone, Maxim Neumann, Dirk Weissenborn, Alexey Dosovitskiy, Aravindh Mahendran, Anurag Arnab, Mostafa Dehghani, Zhuoran Shen, et al. Simple open-vocabulary object detection. In 
+
+European conference on computer vision , pages 728–755. Springer, 2022. 2 [33] Matthias Minderer, Alexey Gritsenko, and Neil Houlsby. Scaling open-vocabulary object detection. Advances in Neu-ral Information Processing Systems , 36:72983–73007, 2023. 2[34] Maxime Oquab, Timoth´ ee Darcet, Th´ eo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without supervision. 
+
+arXiv preprint arXiv:2304.07193 , 2023. 2, 3 [35] Nedyalko Prisadnikov, Wouter Van Gansbeke, Danda Pani Paudel, and Luc Van Gool. A simple and general-ist approach for panoptic segmentation. arXiv preprint arXiv:2408.16504 , 2024. 4 [36] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PmLR, 2021. 2 [37] Ren´ e Ranftl, Alexey Bochkovskiy, and Vladlen Koltun. Vi-sion transformers for dense prediction. In Proceedings of the IEEE/CVF international conference on computer vision ,pages 12179–12188, 2021. 2 [38] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, et al. Sam 2: Segment anything in images and videos. arXiv preprint arXiv:2408.00714 , 2024. 2 [39] Joseph Redmon, Santosh Divvala, Ross Girshick, and Ali Farhadi. You only look once: Unified, real-time object de-tection. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 779–788, 2016. 5 [40] Tianhe Ren, Yihao Chen, Qing Jiang, Zhaoyang Zeng, Yuda Xiong, Wenlong Liu, Zhengyu Ma, Junyi Shen, Yuan Gao, Xiaoke Jiang, et al. Dino-x: A unified vision model for open-world object detection and understanding. arXiv preprint arXiv:2411.14347 , 2024. 3 [41] Tianhe Ren, Qing Jiang, Shilong Liu, Zhaoyang Zeng, Wen-long Liu, Han Gao, Hongjie Huang, Zhengyu Ma, Xiaoke Jiang, Yihao Chen, et al. Grounding dino 1.5: Advance the” edge” of open-set object detection. arXiv preprint arXiv:2405.10300 , 2024. 2 [42] Tianhe Ren, Shilong Liu, Ailing Zeng, Jing Lin, Kunchang Li, He Cao, Jiayu Chen, Xinyu Huang, Yukang Chen, Feng Yan, et al. Grounded sam: Assembling open-world models for diverse visual tasks. arXiv preprint arXiv:2401.14159 ,2024. 2 [43] Sagar Soni, Akshay Dudhane, Hiyam Debary, Mustansar Fiaz, Muhammad Akhtar Munir, Muhammad Sohail Danish, Paolo Fraccaro, Campbell D Watson, Levente J Klein, Fa-had Shahbaz Khan, et al. Earthdial: Turning multi-sensory earth observations to interactive dialogues. arXiv preprint arXiv:2412.15190 , 2024. 2 [44] Trevor Standley, Amir Zamir, Dawn Chen, Leonidas Guibas, Jitendra Malik, and Silvio Savarese. Which tasks should be learned together in multi-task learning? In International conference on machine learning , pages 9120–9132. PMLR, 2020. 2 [45] Kim-Han Thung and Chong-Yaw Wee. A brief review on multi-task learning. Multimedia Tools and Applications , 77 (22):29705–29725, 2018. 2 [46] Wouter Van Gansbeke and Bert De Brabandere. A simple la-tent diffusion approach for panoptic segmentation and mask inpainting. In European Conference on Computer Vision ,pages 78–97. Springer, 2024. 8 [47] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems , 30, 2017. 2 [48] Haiyang Wang, Hao Tang, Li Jiang, Shaoshuai Shi, Muham-mad Ferjad Naeem, Hongsheng Li, Bernt Schiele, and Liwei Wang. Git: Towards generalist vision transformer through universal language interface. 2024. 3 [49] Jingdong Wang, Ke Sun, Tianheng Cheng, Borui Jiang, Chaorui Deng, Yang Zhao, Dong Liu, Yadong Mu, Mingkui Tan, Xinggang Wang, et al. Deep high-resolution repre-sentation learning for visual recognition. IEEE transactions on pattern analysis and machine intelligence , 43(10):3349– 3364, 2020. 8 [50] Xiaolong Wang, Ross Girshick, Abhinav Gupta, and Kaim-ing He. Non-local neural networks. In Proceedings of the IEEE conference on computer vision and pattern recogni-tion , pages 7794–7803, 2018. 8 [51] Xinlong Wang, Wen Wang, Yue Cao, Chunhua Shen, and Tiejun Huang. Images speak in images: A generalist painter for in-context visual learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 6830–6839, 2023. 1, 2 [52] Zhuofan Xia, Xuran Pan, Shiji Song, Li Erran Li, and Gao Huang. Vision transformer with deformable attention. In 
+
+Proceedings of the IEEE/CVF conference on computer vi-sion and pattern recognition , pages 4794–4803, 2022. 2 [53] Lihe Yang, Bingyi Kang, Zilong Huang, Xiaogang Xu, Jiashi Feng, and Hengshuang Zhao. Depth anything: Unleashing the power of large-scale unlabeled data. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10371–10381, 2024. 7 [54] Lihe Yang, Bingyi Kang, Zilong Huang, Zhen Zhao, Xiao-gang Xu, Jiashi Feng, and Hengshuang Zhao. Depth any-thing v2. Advances in Neural Information Processing Sys-tems , 37:21875–21911, 2025. 7 [55] Alireza Zareian, Kevin Dela Rosa, Derek Hao Hu, and Shih-Fu Chang. Open-vocabulary object detection using captions. In Proceedings of the IEEE/CVF conference on computer vi-sion and pattern recognition , pages 14393–14402, 2021. 2 [56] Jingyi Zhang, Jiaxing Huang, Sheng Jin, and Shijian Lu. Vision-language models for vision tasks: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence ,2024. 2 [57] Yu Zhang and Qiang Yang. An overview of multi-task learn-ing. National Science Review , 5(1):30–43, 2018. 2 [58] Youcai Zhang, Xinyu Huang, Jinyu Ma, Zhaoyang Li, Zhaochuan Luo, Yanchun Xie, Yuzhuo Qin, Tong Luo, Yaqian Li, Shilong Liu, et al. Recognize anything: A strong image tagging model. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 1724–1732, 2024. 2

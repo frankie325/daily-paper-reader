@@ -1,0 +1,453 @@
+Title: TEEP-RCNN: Texture-Enhanced Edge-aware Perception for Steel Surface Defect Detection via Improved Convolutional Block Attention in Faster R-CNN
+
+URL Source: https://arxiv.org/pdf/2609.28077v1
+
+Published Time: Thu, 24 Sep 2026 01:13:06 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# TEEP-RCNN: Texture-Enhanced Edge-aware Perception for Steel Surface Defect Detection via Improved Convolutional Block Attention in Faster R-CNN 
+
+Kirtan Rajesh 
+
+AI Researcher and Engineer Independent Researcher 
+
+kirtanrajesh@gmail.com 
+
+Abstract —Steel surface defect detection is critical for auto-mated industrial quality control but remains challenging due to subtle inter-class texture differences and pronounced class imbalance. We introduce TEEP-RCNN (Texture-Enhanced Edge-aware Perception Region-based CNN), a two-stage detector built on Faster R-CNN with a Feature Pyramid Network backbone and an improved Convolutional Block Attention Module (CBAM). Our CBAM adds dropout regularization in the channel attention MLP and batch normalization on the spatial attention branch, reducing co-adaptation and stabilizing gating logits. Training uses a differential learning rate protocol with cosine annealing warm-up, separating update rates for the pre-trained ResNet-101 backbone and the detection head. At inference, predictions are refined via Test-Time Augmentation fused with Weighted Box Fusion (WBF), improving localization stability on elongated and boundary-adjacent defects. On the NEU-DET benchmark across six defect categories, TEEP-RCNN achieves 73.3% mAP@50 and 37.9% mAP@50-95 in only 10 training epochs on a single GPU, competitive with YOLOv11m (76.2% mAP@50, 100 epochs) while outperforming it on the rolled-in-scale category under the COCO metric. Per-class analysis shows the spatial attention branch is most effective on elongated texture defects such as patches and scratches, while crazing remains an open challenge across both paradigms due to its distributed non-local texture structure. 
+
+Index Terms —steel surface defect detection, convolutional block attention module, Faster R-CNN, feature pyramid network, weighted box fusion, test-time augmentation, NEU-DET, industrial quality control, differential learning rate 
+
+I. I NTRODUCTION 
+
+Hot-rolled steel strip is one of the most widely manufactured structural materials globally, with annual production volumes exceeding one billion metric tons. Surface defects introduced during the rolling, cooling, and descaling stages, such as crazing, inclusions, patches, pitted surfaces, rolled-in scale, and scratches, represent a persistent quality problem. Industry estimates suggest that surface defects account for a significant fraction of downstream manufacturing rejects and rework costs, and that even a modest improvement in detection accuracy at the strip inspection stage can prevent material wastage and reduce recalls of formed components. Traditional online inspection relies on human operators visually monitoring steel strips at line speeds between 5 and 30 meters per second, a task where fatigue-induced missed detections are well documented. Automated machine vision systems therefore represent a practical necessity rather than an optional optimization. Early automated methods used hand-crafted feature extrac-tors tailored to specific defect morphologies. Local Binary Patterns (LBP) [1], Gabor filter banks, and wavelet-based texture descriptors capture periodic and directional surface structure and have been shown to discriminate several defect types under controlled conditions. However, these representa-tions require separate parameter tuning for each defect category and mill configuration, and they fail systematically when the illumination conditions or surface finish distribution shifts from the calibration environment. This fragility motivates learning-based approaches that derive representations directly from annotated examples. Deep convolutional neural networks introduced a paradigm shift in this space. Two-stage detectors based on Faster R-CNN [2], which pairs a Region Proposal Network (RPN) with a classification-regression head over a shared convolutional backbone, achieved strong localization accuracy on natural image benchmarks and transferred well to industrial inspection tasks via fine-tuning. Feature Pyramid Networks (FPN) [3] strengthened this pipeline by constructing a top-down multi-scale feature hierarchy, allowing the detection head to simulta-neously leverage high spatial resolution from shallow layers and strong semantic content from deep layers. Single-stage detectors such as the YOLO family [4] removed the proposal generation stage and demonstrated competitive accuracy at substantially higher throughput, making them attractive for real-time deployment. Despite these advances, a key gap remains: standard two-stage detectors apply the same generic feature representations to all object categories without differentiating between the distinct texture signatures of different defect types. Crazing, for example, produces a fine-grained crack network that activates arXiv:2609.28077v1 [cs.CV] 23 Sep 2026 across many spatial locations, while scratches produce a narrow high-contrast linear response that is spatially concentrated. A detector that treats these patterns identically at the feature level will necessarily spend proposal capacity and classification confidence on irrelevant background regions. Attention mechanisms offer a principled solution. The Convolutional Block Attention Module (CBAM) [5] applies learned channel and spatial recalibration within each convolu-tional block, allowing the network to suppress uninformative feature channels and focus spatial activation on defect-relevant regions. However, the original CBAM design does not include regularization within the channel attention MLP, which can lead to over-reliance on a small subset of dominant channels, and it applies the spatial attention convolution without normalization, which can produce saturated binary gates early in training. Both issues are particularly consequential on a small-scale industrial dataset like NEU-DET, where the training set contains only 1,224 images after validation splitting. This paper presents TEEP-RCNN , which addresses both gaps through two minimal but measurable modifications to the CBAM module, combined with a carefully designed training and inference strategy. The improved CBAM inserts a Dropout layer with rate 0.1 between the compression and expansion layers of the channel attention MLP, and adds Batch Normalization after the spatial attention convolution. These changes add a negligible number of parameters while providing the regularization needed to train a robust attention module on limited industrial data. The training protocol uses differential learning rates with cosine annealing warm-up, and the inference pipeline fuses predictions across test-time augmented views using Weighted Box Fusion. The primary contributions of this paper are: 1) An improved CBAM with dropout in the channel attention MLP and batch normalization in the spatial attention branch, applied to the Layer4 bottleneck blocks of a ResNet-101 backbone within a Faster R-CNN two-stage detector. 2) A differential learning rate training protocol combining AdamW with distinct learning rates for the pre-trained backbone and the task-specific detection head, preventing feature degradation in ImageNet-pretrained weights. 3) A WBF-TTA inference pipeline that fuses predictions over test-time augmented views using Weighted Box Fusion, improving localization consistency on elongated defects with variable aspect ratios. 4) A comprehensive comparative evaluation on NEU-DET against YOLOv8l, YOLOv11m, and a vanilla Faster R-CNN baseline, including epoch-by-epoch convergence profiling, per-class breakdown, and model efficiency analysis. The remainder of the paper is organized as follows. Section II reviews related work. Section III describes the dataset and augmentation strategy. Section IV details the proposed method. Section V presents experimental results. Section VI analyzes findings. Section VII states limitations. Section VIII concludes. II. R ELATED WORK 
+
+A. Traditional Defect Detection 
+
+Early vision-based inspection systems built representations from image processing primitives. Morphological operations combined with adaptive thresholding identified macro-scale defects on relatively uniform backgrounds but were not robust to surface reflectance variation. Song and Yan [1] proposed a completed LBP descriptor for hot-rolled steel and demonstrated improved illumination robustness by encoding both sign and magnitude transitions of the local texture pattern. Gabor filter banks at multiple orientations captured directional texture energy and found application in distinguishing directional defects such as scratches from isotropic patterns such as pitting. Despite the elegance of these interpretable descriptors, they require separate calibration per defect type and per production line, and their fixed feature vocabulary offers no mechanism for adaptation when the data distribution shifts. 
+
+B. Two-Stage CNN Detectors 
+
+Girshick et al. introduced R-CNN [6], the first method to apply CNN features to object proposals derived from selective search, achieving a substantial accuracy improvement over prior art on the PASCAL VOC benchmark. Fast R-CNN [7] eliminated redundant convolutions by computing features once over the full image and projecting proposal regions via RoI pooling. Faster R-CNN [2] replaced selective search with a convolutional RPN that shares features with the detection head, enabling end-to-end training and reducing inference time to near real-time. Feature Pyramid Networks [3] added lateral connections and a top-down pathway to the backbone, constructing a multi-resolution feature hierarchy that captures both fine-grained edge information in shallow layers and semantically rich representations in deep layers. Mask R-CNN [8] extended this family with a pixel-level segmentation branch and introduced RoI Align, replacing the quantized RoI pooling with bilinear interpolation for improved spatial precision. These developments collectively established the Faster R-CNN family as the dominant two-stage detection framework and motivated its application to industrial inspection. 
+
+C. Single-Stage Detectors 
+
+SSD [9] removed the proposal stage by predicting class probabilities and bounding box offsets directly from multiple feature map scales, achieving a favorable accuracy-speed trade-off. RetinaNet [10] introduced focal loss to address the severe foreground-background class imbalance inherent in dense single-stage detection, down-weighting easy nega-tives so that rare, hard foreground instances dominate the gradient. The YOLO line [4] evolved through numerous architectural revisions. YOLOv8 introduced an anchor-free detection head with decoupled classification and regression branches, a reparameterized convolutional stem, and a refined Mosaic augmentation strategy. YOLOv11 further improved the backbone with C3k2 blocks and SPPF pooling, and the medium variant (YOLOv11m) achieves 76.2% mAP@50 on NEU-DET with only 20 million parameters and 67.7 GFLOPs at inference. 
+
+D. Attention Mechanisms in Detection 
+
+Hu et al. proposed SENet [11], which recalibrates channel-wise responses by learning a global descriptor via global average pooling and a squeeze-and-excitation MLP. This module demonstrated consistent improvements when inserted into residual backbone architectures. BAM [12] combined channel and spatial attention in a parallel bottleneck design and added the result as a residual to the feature map, providing both local and global refinement. CBAM [5] applied channel and spatial attention sequentially: first recalibrating feature channels based on global statistics, then refining the spatial activation map using a 7 ×7 convolutional gate. The sequential design is computationally lightweight and showed consistent gains over the base architecture on both classification and detection benchmarks including MS COCO. Non-local networks [13] extended attention to long-range spatial dependencies through self-attention computation, at higher cost. Our work directly extends CBAM by identifying two regular-ization weaknesses, specifically the absence of dropout in the channel MLP and the absence of normalization in the spatial branch, and correcting them with minimal architectural change. This improves training stability on small datasets without altering the fundamental design philosophy of sequential lightweight attention. 
+
+E. Transformer-Based and Anchor-Free Detectors 
+
+DETR [14] replaced the detection head and post-processing pipeline with a Transformer encoder-decoder and set-based bipartite matching, eliminating anchors and NMS entirely. Subsequent variants such as Deformable DETR [15] improved convergence speed by restricting cross-attention to a small set of sampled reference points, making transformer-based detection practical at standard training budgets. Swin Transformer [16] introduced a hierarchical vision backbone with shifted-window self-attention that computes local attention at multiple scales, enabling its use as a drop-in replacement for CNN backbones in two-stage pipelines. On NEU-DET, transformer-based ap-proaches offer strong performance at the cost of larger training budgets and typically require larger datasets for their attention layers to converge meaningfully. DSAT [17] reports 83.1% mAP@50 on NEU-DET using a dynamic sparse attention mechanism combined with a transformer decoder, establishing the current benchmark state of the art. Our approach achieves 73.3% mAP@50 with a two-stage CNN-based model trained for 10 epochs, which represents a substantially more accessible computational budget. 
+
+F. Deep Learning for Surface Defect Detection 
+
+Tao et al. [18] demonstrated that CNN-based architectures can reliably classify and localize metallic surface defects across diverse categories when trained with appropriate augmentation, establishing an early baseline for the CNN era of industrial inspection. Bergmann et al. [19] introduced MVTec AD, a widely adopted anomaly detection benchmark covering 15 industrial object and texture categories, driving advances in unsupervised defect detection and segmentation. Tabernik et al. [20] proposed a segmentation-based framework that trains end-to-end on weak annotations and demonstrated precise defect boundary localization on the DAGM dataset. He et al. [21] introduced NEU-DET and showed that hierarchical feature fusion within Faster R-CNN outperforms single-scale detectors for the six-class steel defect task. Subsequent work on NEU-DET has explored deformable convolutions [22] in the RoI head to improve geometric alignment, graph convolutional rea-soning over detected regions, and data augmentation strategies specifically designed for periodic texture patterns. A recurring finding across these works is that crazing and rolled-in scale are consistently harder to detect than patches and scratches, a result our experiments confirm and attribute to the non-local distributed nature of the former defect types. III. D ATASET AND PREPROCESSING 
+
+A. NEU-DET Dataset 
+
+The NEU-DET surface defect database [21] provides images of hot-rolled steel strips annotated with axis-aligned bounding boxes across six defect categories: crazing (Cr), inclusion (In), patches (Pa), pitted surface (PS), rolled-in scale (RS), and scratches (Sc). Images are captured under industrial line-scan conditions at 200 ×200 pixels with controlled but variable illumination. We resize all images to 640 ×640 pixels to align with the anchor scales and the ImageNet pre-training resolution of the backbone. The dataset is split into 1,440 training images and 360 test images; we further hold out 15% of training images as a validation set, yielding 1,224 training, 216 validation, and 360 test images. Table I shows the per-class bounding box counts in the training split. The dataset exhibits notable imbalance: the inclusion class provides 856 instances while pitted surface has only 351, a ratio of approximately 2.4:1. For context, the six defect categories span distinct morphological regimes. Crazing produces a network of fine surface cracks distributed uniformly across the image. Inclusions are compact, rounded dark spots embedded in the surface. Patches are large irregular regions of surface roughness with diffuse boundaries. Pitted surfaces show small, dense circular cavities arranged in irregular clusters. Rolled-in scale manifests as elongated irregular flakes partially pressed into the surface. Scratches are narrow, high-contrast linear tracks of varying length and orientation. The bounding box statistics reflect these morphological differences. The mean bounding box area is 6,868 pixels 2
+
+with a median of 4,619 pixels 2 on the 640 ×640 scale. The mean aspect ratio across all classes is 1.06 with a median of 0.64, indicating a slight skew toward horizontally elongated boxes, driven by scratch and rolled-in-scale instances. Under the COCO object size taxonomy, all boxes in this dataset fall in the medium-to-large range (area > 32 2 pixels), which explains why the size-stratified metrics in Section V report non-zero values only for medium and large categories. TABLE I: NEU-DET Instance Distribution (Training Split)                         
+
+> Class Instances Fraction (%) Morphology
+> Crazing 537 15.7 Distributed cracks Inclusion 856 25.1 Compact spots Patches 674 19.8 Diffuse regions Pitted Surface 351 10.3 Dense cavities Rolled-in Scale 506 14.8 Elongated flakes Scratches 420 12.3 Linear tracks
+> Total 3,410 100.0 –
+
+B. Data Augmentation 
+
+We use Albumentations [23] for all augmentation operations, applied only during training with bounding box coordinates transformed consistently. Table II details the full pipeline. Geometric augmentations include flips, 90-degree rotations, and shift-scale-rotate transforms, which address the rotational and positional symmetry of defects during manufacturing. Photometric augmentations, including brightness and contrast jitter, gamma randomization, and CLAHE, handle illumination variability common in line-scan cameras. CLAHE with a clip limit of 3.0 is particularly important for pitted surface instances, where low-contrast cavity boundaries benefit from adaptive local contrast enhancement. Structural augmentations such as elastic transform and grid distortion simulate the surface deformation that can occur under different rolling tensions. Coarse dropout and grid dropout train the model to detect partially occluded defects, which arise when one defect overlaps another in dense surface regions. A minimum bounding box visibility threshold of 0.3 ensures that boxes with less than 30% of their area remaining after spatial transforms are discarded rather than retained as noise. All images are normalized with ImageNet mean and standard deviation, consistent with the ResNet-101 pre-training regime. For the extended 200-epoch run, we additionally apply class-conditional loss weights: crazing receives weight 3.0, rolled-in scale 2.5, and scratches 1.5, with the remaining classes at the default weight of 1.0, to partially offset the instance imbalance described above. IV. P ROPOSED METHOD : TEEP-RCNN 
+
+A. Architecture Overview 
+
+TEEP-RCNN is built on the Faster R-CNN two-stage detec-tion framework [2] with three targeted additions: an improved CBAM module inserted into the ResNet-101 backbone, an anchor configuration tuned to the morphology of steel defects, and a WBF-TTA inference pipeline. Figure 1 shows the complete forward pass. Given an input image I ∈ R3×H×W with H = W = 640 ,the backbone produces a hierarchy of feature maps at four spatial resolutions. The FPN aggregates these into four pyramid levels {P2, P 3, P 4, P 5}, each with 256 channels, covering strides of {4, 8, 16 , 32 } relative to the input. The RPN generates class-agnostic proposals from each level by applying a shared 
+
+3×3 convolutional head. Proposals are mapped to 7×7 feature TABLE II: Training Augmentation Pipeline                                  
+
+> Transform Probability Key Parameters
+> Horizontal Flip 0.50 –Vertical Flip 0.50 –Random Rotate 90 0.50 –Shift-Scale-Rotate 0.70 shift=0.1, scale=0.15, rot=15° Brightness/Contrast 0.60 ±0.2 Random Gamma 0.40 (80, 120) CLAHE 0.50 clip=3.0, tile=(8,8) Gaussian/Motion Blur 0.30 limit=3 Gaussian Noise 0.30 var=(5, 25) Random Shadow 0.30 –Coarse Dropout 0.40 8 holes, 32 ×32 Grid Distortion 0.20 steps=5, limit=0.1 Elastic Transform 0.20 α=1, σ=50 Grid Dropout 0.20 –Normalize 1.00 ImageNet mean/std
+
+grids via Multi-Scale RoI Align [8], and the box head produces classification scores and regression offsets. At inference, Soft-NMS and WBF over TTA views refine the final detections. 
+
+B. ResNet-101 Backbone with FPN 
+
+The backbone is a ResNet-101 [24] pre-trained on ImageNet [25], with all five residual stage groups set trainable. ResNet-101 provides 23 bottleneck blocks in Layer4 (versus 6 in ResNet-50), giving the CBAM module more activation sites to modulate and a richer semantic feature space at the deepest level. The FPN [3] builds a top-down pathway by upsampling the Layer4 output and adding it to Layer3 via a lateral 1 × 1
+
+convolution, then repeating this for Layer2 and Layer1. This produces pyramid levels P2 through P5, each with 256 channels. 
+
+P2 carries the finest spatial resolution (stride 4) and is most useful for detecting small defect details, while P5 carries the coarsest but most semantically meaningful representation (stride 32) useful for coarse defect localization and size estimation. The FPN design is visualized in Figure 2. 
+
+C. Improved CBAM Module 
+
+The original CBAM [5] applies a channel attention gate followed by a spatial attention gate to the feature map of each convolutional block. Our improved version introduces two targeted modifications. Figure 3 illustrates the full module design with both new components highlighted. 
+
+Dropout in Channel Attention. The channel attention path compresses the spatial dimensions via global average pooling and global max pooling, then passes both through a shared two-layer MLP: 
+
+Mc(F) = σ
+
+
+
+W1
+
+ Drop (ReLU (W0 ¯favg )) 
+
++ W1
+
+ Drop (ReLU (W0 ¯fmax )) 
+
+(1) where F ∈ RC×H×W is the input feature map, W0 ∈ RC/r ×C
+
+with r=16 is the compression layer, W1 ∈ RC×C/r is the expansion layer, and Drop (·) denotes dropout with rate 0.1. Input     
+
+> 640 ×640
+> ResNet-101 Layers 1–3 Layer 4 + Impr. CBAM FPN
+> P2–P5
+> 256 ch RPN 5 scales 4 ratios MS-RoI Align
+> 7×7
+> Box Head
+> 2×FC-1024 Cls + Reg Soft-NMS WBF-TTA Final Detections
+> Backbone (ResNet-101) Region Proposals Post-processing
+> (proposed)
+
+Fig. 1: TEEP-RCNN forward pipeline. The improved CBAM is injected into the Layer 4 bottleneck blocks of ResNet-101. FPN constructs a four-level feature pyramid fed to both the RPN and the RoI head. Soft-NMS and WBF-TTA post-process the final predictions at inference time. 
+
+C2 H/4 
+
+C3 H/8 
+
+C4 H/16 
+
+C5 H/32 +CBAM 1×11×11×11×1
+
+P5
+
+256 
+
+P4
+
+256 
+
+P3
+
+256 
+
+P2
+
+256 3×33×33×33×3   
+
+> ↑× 2
+> ↑× 2
+> ↑× 2
+> L1 L2 L3
+> L4
+> Backbone Lateral FPN levels Output
+
+Fig. 2: Feature Pyramid Network construction in TEEP-RCNN. Bottom-up path (solid) builds a feature hierarchy; the improved CBAM is applied at Layer 4 ( C5). Lateral 1 × 1 projections normalize each level to 256 channels. The top-down dashed path adds ×2 upsampled features to shallower lateral maps. Each P2–P5 passes a 3 × 3 conv before feeding the RPN and RoI head. Both pooling paths share weights for the MLP, consistent with the original CBAM design; the dropout is inserted after the ReLU activation and prevents the attention module from consistently routing information through the same dominant channels during training. On a small dataset like NEU-DET, this regularization guards against the attention module collapsing onto a few high-activation channels in the very first training batches, which would leave the rest of the feature representation underutilized. 
+
+Batch Normalization in Spatial Attention. The spatial attention branch concatenates the channel-wise average and maximum projections of the channel-recalibrated feature: 
+
+Ms(F′) = σ BN  f 7×7([ AvgPool (F′) ; MaxPool (F′)])  
+
+(2) where f 7×7 is a single-channel convolution with kernel size 7, [ ; ] denotes channel concatenation, and BN is Batch Normalization [26]. Without normalization, the spatial attention logits can vary widely in magnitude across training batches, causing the sigmoid to saturate into near-binary activation maps early in training when the spatial statistics have not yet been learned. Adding BN normalizes these logits before the sigmoid, allowing the gating weights to remain in a soft, gradient-productive regime throughout training. This is especially beneficial on NEU-DET, where batches of size 8 may contain predominantly background-heavy images that produce low-magnitude activations. The full TEEP-RCNN attention computation proceeds in two sequential steps: 
+
+F′ = Mc(F) ⊗ F (3) 
+
+F′′ = Ms(F′) ⊗ F′ (4) where ⊗ denotes element-wise multiplication with broadcasting. Channel attention is applied first to suppress uninformative feature channels; the resulting F′ then passes through spatial attention to localize defect-relevant positions. The final output 
+
+F′′ is the spatially and channel-recalibrated feature map. The improved CBAM is injected after the conv3 layer in each of the 23 bottleneck blocks in ResNet-101 Layer4 by replacing the block’s forward function via a hook. No structural change is made to the pre-trained weights; only the hook adds the CBAM computation as an additional forward pass branch. The total parameter overhead is 4C = 4 × 2048 = 8 ,192 
+
+trainable BN parameters per block, which is negligible relative to the 61.8M parameter model. 
+
+D. Region Proposal Network and Anchor Design 
+
+The RPN applies a shared 3 × 3 convolutional head over each of the four FPN levels. We define five anchor scales 
+
+{16 , 32 , 64 , 128 , 256 } across the pyramid levels and four aspect ratios {0.5, 1.0, 2.0, 3.0} per level, yielding 20 anchor configurations per spatial position. The fourth aspect ratio (3.0) is a deliberate addition for this dataset: scratches and rolled-in-scale instances frequently produce bounding boxes with aspect ratios between 2.0 and 5.0, and covering this range with an explicit anchor avoids the regression head needing to extrapolate far from the nearest anchor template. RPN training assigns foreground labels to anchors with IoU 
+
+≥ 0.7 against any ground-truth box, and background labels to anchors with IoU ≤ 0.3. Proposals are filtered with an NMS threshold of 0.4 and a classification score threshold of 0.3, yielding a manageable set of high-confidence proposals that feed the RoI head without excessive noise. 
+
+E. RoI Head and Post-Processing 
+
+Multi-Scale RoI Align [8] maps each proposal to a 7 × 7
+
+feature grid using bilinear interpolation with a sampling ratio of 2. The FPN level for each proposal is selected based on the proposal area following the formula in [3]. The box head consists of two fully connected layers of 1024 dimensions each, followed by parallel classification ( K+1 = 7 outputs) and box Input F (C ×H ×W )                        
+
+> AvgPool
+> →1×1
+> MaxPool
+> →1×1
+> Shared MLP( ÷16) Shared MLP( ÷16) Dropout (0.1) Dropout (0.1)
+> σ(sum) →Mc
+> channel gate
+> F′=Mc⊗F
+> Ch-Avg pool Ch-Max pool
+> Concat →2×H×W
+> Conv2d 7×7
+> BatchNorm (new)
+> σ→Ms
+> spatial gate
+> F′′ =Ms⊗F′
+> new new
+> Channel Attn. Spatial Attn.
+
+Fig. 3: Improved CBAM module (Section IV-C). Channel attention branch (orange) uses a shared MLP with Dropout after ReLU to reduce co-adaptation. Spatial attention branch (teal) adds Batch Normalization after the 7 × 7 convolution. Components marked new are additions over the original CBAM [5]. regression ( 4K = 24 outputs) branches. Detection confidence is thresholded at 0.5, and the per-class box NMS threshold is 0.3, with a maximum of 30 detections per image. 
+
+Soft-NMS. During both validation and test evaluation, we replace standard hard NMS with Soft-NMS using Gaussian weighting [27]. For a detection di that overlaps a higher-scoring detection dj with IoU oij , Soft-NMS rescales its score: 
+
+si ← si · exp − o2
+
+> ij
+
+σ
+
+!
+
+, σ = 0 .5 (5) This smooth score decay preserves nearby detections in densely defective regions where hard NMS would prune true positives, at the cost of a slight increase in false positives that is controlled by the final score threshold. 
+
+WBF-TTA. At test time, we run the model on the original image with confidence weight 1.0 and one augmented view (horizontal flip + slight scale jitter) with weight 0.8. The pre-dictions from both forward passes are merged using Weighted Box Fusion [28]. Given N box proposals {b1, . . . , b N } with scores {s1, . . . , s N } and source weights {w1, . . . , w N }, WBF assigns each box to a cluster Ck by iterating over boxes sorted by score and merging any box with IoU ≥ 0.6 against the current cluster representative. The fused box ˆbk and fused score 
+
+ˆsk are computed as: 
+
+ˆbk =
+
+P 
+
+> j∈Ck
+
+sj wj bj
+
+P 
+
+> j∈Ck
+
+sj wj
+
+, ˆsk =
+
+P 
+
+> j∈Ck
+
+sj wj
+
+|Ck| (6) Unlike ensemble box selection methods that choose the highest-scoring box as the representative, WBF averages box coordinates weighted by confidence, producing a box that is pulled toward the consensus of all overlapping predictions. For elongated defects such as scratches that span image boundaries or partially occlude, this coordinate averaging reduces localization variance compared to either a single-view prediction or hard NMS across views. 
+
+F. Training Strategy 
+
+Differential Learning Rate. The model parameters are split into two groups: the ResNet-101 backbone (all layers) and the task-specific components (FPN, RPN, box head). The backbone group receives a learning rate of ηbackbone = 10 −4
+
+and the task group receives ηhead = 10 −3, a 10:1 ratio. This asymmetry prevents over-writing the rich spatial and texture representations encoded in the ImageNet-pretrained backbone weights during the early training iterations, when the randomly initialized detection head weights produce large gradient signals that, if propagated uniformly, would disturb the backbone representations before the head has stabilized. 
+
+Cosine Annealing with Warm-Up. We use AdamW [29] with weight decay 10 −4 and a cosine annealing schedule [30] with a linear warm-up over the first Tw = 2 epochs: 
+
+ηt =
+
+
+
+ηmax · tTw
+
+t < T w
+
+ηmax 
+
+2
+
+
+
+1 + cos 
+
+
+
+π t − Tw
+
+T − Tw
+
+ 
+
+t ≥ Tw
+
+(7) where T = 10 is the total number of primary training epochs and ηmax is the peak learning rate for each parameter group. The warm-up prevents the AdamW momentum and variance estimates from driving large weight updates in the first two epochs before the gradient statistics are meaningful. 
+
+Mixed Precision. All forward and backward passes use au-tomatic mixed precision via PyTorch’s GradScaler , halving the memory footprint and enabling a batch size of 8 on a single Tesla T4 GPU with 15.8 GB VRAM. The full training procedure is summarized in Algorithm 1. Table III summarizes all training hyperparameters. V. E XPERIMENTS 
+
+A. Experimental Setup and Baselines 
+
+All experiments use the same NEU-DET split described in Section III. We compare TEEP-RCNN against four baselines: i. Faster R-CNN (ResNet-50-FPN): A standard two-stage detector without attention, trained for 25 epochs. This baseline isolates the contribution of the attention module and backbone depth. Algorithm 1 TEEP-RCNN Training Procedure 
+
+Require: Dataset D, epochs T , warm-up Tw, batch size B
+
+Require: Pre-trained ResNet-101 weights θbb , random θhead  
+
+> 1:
+
+Inject ImprovedCBAM into Layer4 of backbone  
+
+> 2:
+
+Split parameters: G1 ← θbb (lr= 10 −4), G2 ← θhead 
+
+(lr= 10 −3) 
+
+> 3:
+
+Initialize AdamW with weight decay 10 −4, GradScaler  
+
+> 4:
+
+for t = 0 to T − 1 do  
+
+> 5:
+
+Update ηt using cosine annealing with warm-up  
+
+> 6:
+
+for each mini-batch {(Ii, yi)}Bi=1 do  
+
+> 7:
+
+Apply Albumentations augmentation to Ii 
+
+> 8:
+
+Forward: extract features, generate proposals, compute detections  
+
+> 9:
+
+Compute total loss L = Lcls + Lreg + Lrpn  
+
+> 10:
+
+Backward with GradScaler (AMP)  
+
+> 11:
+
+Update parameters: G1, G 2 ← AdamW step  
+
+> 12:
+
+end for  
+
+> 13:
+
+Evaluate mAP on validation set, save checkpoint  
+
+> 14:
+
+end for  
+
+> 15:
+
+Evaluate best checkpoint on test set with Soft-NMS + WBF-TTA TABLE III: Training Hyperparameters                                
+
+> Parameter Value
+> Backbone ResNet-101 (ImageNet pretrained) Input resolution 640 ×640
+> Batch size 8Primary epochs 10 Optimizer AdamW LR (head) 1×10 −3
+> LR (backbone) 1×10 −4
+> Weight decay 1×10 −4
+> LR schedule Cosine annealing + linear warm-up Warm-up epochs 2CBAM reduction r= 16
+> CBAM dropout 0.1 Confidence thr. 0.5 NMS threshold 0.3 Soft-NMS σ0.5 WBF IoU thr. 0.6 Max detections 30 Mixed precision AMP (GradScaler) GPU Tesla T4 (15.8 GB) Random seed 42
+
+ii. YOLOv8l: The large variant (43.7M parameters) of the YOLOv8 line, trained for 200 epochs at 640 × 640 using the official Ultralytics pipeline [4]. iii. YOLOv11m: The medium variant of the YOLO11 line (20.1M parameters, 67.7 GFLOPs), from the same Ultralytics framework [4], trained for 100 epochs. We additionally report the TTA-augmented variant (YOLOv11m+TTA). iv. TEEP-RCNN (extended): A 200-epoch variant of our proposed model with class-conditional loss weights (craz-ing ×3.0, rolled-in scale ×2.5, scratches ×1.5), included TABLE IV: Model Efficiency Comparison                              
+
+> Model Params GFLOPs Epochs mAP@50
+> F-RCNN (R50-FPN) 41.8M ∼134 25 –YOLOv8l 43.7M 165 200 0.719 YOLOv11m 20.1M 67.7 100 0.762 YOLOv11m + TTA 20.1M 67.7 100 0.770 TEEP-RCNN (ours) 61.8M ∼170 10 0.733
+> TEEP-RCNN (ext.) 61.8M ∼170 200 0.685 GFLOPs at 640 ×640 . R-CNN/TEEP include RPN and RoI head. YOLOv11m from Ultralytics docs.
+
+to assess the impact of prolonged training and imbalance correction. All models are evaluated with the COCO detection metric suite: mAP@50, mAP@50-95, and mean Average Recall (mAR). We use PyTorch torchvision for the Faster R-CNN variants and the Ultralytics library for YOLO models. 
+
+B. Model Efficiency Analysis 
+
+Table IV summarizes the computational characteristics of each model. TEEP-RCNN’s ResNet-101 backbone carries a heavier parameter count (61.8M) than the YOLO variants due to the depth of the residual network and the FPN head. Its estimated backbone FLOPs at 640 ×640 are approximately 170 GFLOPs, higher than YOLOv11m’s 67.7 GFLOPs, reflecting the trade-off between depth-driven feature quality and compute efficiency. However, in terms of training epochs to reach 70% mAP@50 , TEEP-RCNN requires only 6 epochs, while YOLOv11m requires approximately 50-60 epochs to reach the same level. This training efficiency matters in practice when labeled data is expensive to collect or GPU-time is limited, as is the case in specialized industrial inspection deployments. 
+
+C. Quantitative Comparison 
+
+Table V shows the full comparison including mAP@50-95 and mAR. TEEP-RCNN achieves mAP@50 of 0.733 and mAP@50-95 of 0.379 in 10 training epochs, a training budget 10 × smaller than YOLOv11m. This rapid convergence is consistent with the pre-trained ResNet-101 backbone providing strong initial representations and the improved CBAM reducing the number of gradient updates needed before the RPN stabilizes on discriminative defect features. YOLOv11m achieves the highest mAP@50 (0.762) and mAP@50-95 (0.450) after 100 epochs. The gap in mAP@50-95 (0.379 vs. 0.450) indicates that TEEP-RCNN produces slightly looser boxes at tighter IoU thresholds, a pattern consistent with the shorter training duration leaving the regression branch with fewer gradient updates. Notably, the extended 200-epoch TEEP-RCNN run (with class-weighted loss) achieves only mAP@50 of 0.685, below the primary 10-epoch model, suggesting that the aggressive class weighting schedule biases the gradient flow and destabilizes the well-initialized backbone representations. This result demonstrates that the primary model with 10 epochs is already near the optimum for this training configuration. TABLE V: Comparison with Baselines on NEU-DET Test Set                             
+
+> Model Epochs mAP@50 mAP@50-95 mAR
+> F-RCNN (R50-FPN) 25 –––YOLOv8l 200 0.719 0.458 –YOLOv11m 100 0.762 0.450 –YOLOv11m + TTA 100 0.770 ––
+> TEEP-RCNN (ours) 10 0.733 0.379 0.478
+> TEEP-RCNN (extended) 200 0.685 0.375 –TEEP-RCNN (ours): primary model with WBF-TTA at inference. Extended: best checkpoint at epoch 42 with class-conditional loss weights.
+
+Size-stratified analysis shows mAP medium = 0.307 and mAP large = 0.383 for the primary TEEP-RCNN model, with no small-object detections because all NEU-DET boxes fall in the medium-to-large range at the 640-pixel input scale. The slightly higher mAP for large objects is expected: larger defect regions provide more activation signal to the attention module and better overlap with the anchor templates. 
+
+D. Training Dynamics 
+
+Table VI traces the epoch-by-epoch progression of training loss and evaluation metrics for the primary TEEP-RCNN model. The total loss drops sharply from 2.755 in epoch 0 to 0.386 in epoch 1 as the RPN begins generating meaningful proposals from the pre-trained backbone features. By epoch 3, mAP@50 reaches 0.429, and by epoch 6 it crosses 0.700. Figure 4 visualizes the loss and mAP@50 curves. The parallel trends of steadily decreasing loss and steadily increasing mAP suggest that the model is consistently improving without signs of the loss-mAP decoupling that can occur when class imbalance causes the regression loss to drive training while classification accuracy stagnates. The mAP@50 plateau between epochs 8 (0.736) and 9 (0.733) suggests the model is near convergence for this learning rate and epoch budget. The small decrease at the final epoch is within the measurement noise of the COCO evaluation and does not indicate overfitting, as the training loss continues to decline monotonically. This behavior confirms that the cosine annealing schedule successfully reduces the learning rate to a level where the model makes only small, stable weight updates in the final epochs. 
+
+E. Per-Class Analysis 
+
+Table VII reports per-class mAP (COCO, averaged over IoU thresholds 0.50:0.95) for TEEP-RCNN and YOLOv11m, enabling a metric-consistent comparison between the two frameworks. Figure 5 provides a visual comparison across all six defect categories. TEEP-RCNN achieves its strongest per-class scores on patches (0.537) and scratches (0.486). Patches produce large, spatially contiguous activation regions that the channel attention readily identifies as dominant texture channels, while the spatial attention focuses on the extended boundary of the patch region. Scratches produce narrow, high-contrast linear activations with a specific directionality that the 7 ×7 spatial TABLE VI: TEEP-RCNN Epoch-by-Epoch Training Progres-sion 
+
+Epoch Loss mAP@50 mAP@50-95 mAR 
+
+0 2.755 0.000 0.000 0.000 1 0.386 0.053 0.014 0.066 2 0.294 0.209 0.063 0.187 3 0.246 0.429 0.153 0.321 4 0.245 0.547 0.103 0.383 5 0.243 0.546 0.159 0.379 6 0.215 0.700 0.273 0.464 7 0.192 0.701 0.266 0.461 8 0.164 0.736 0.303 0.471 
+
+9 0.145 0.733 0.322 0.478           
+
+> 00.511.522.53
+> Training Loss
+> 012345678900.20.40.60.8Final 0.733
+> Epoch mAP@50
+
+Fig. 4: TEEP-RCNN training loss (top) and mAP@50 (bottom) across 10 epochs. The model crosses mAP@50 = 0 .70 at epoch 6 and stabilizes at 0.733 by epoch 9. The dashed reference line marks the final mAP@50. attention convolution captures efficiently due to its elongated receptive field. Inclusion (0.406) and pitted surface (0.457) achieve mid-range scores consistent with their spatially compact but visually distinctive morphology. On rolled-in scale, TEEP-RCNN (0.287) marginally outper-forms YOLOv11m (0.277), which is a notable result given the 10:1 training epoch ratio. Rolled-in scale produces irregular elongated regions with variable contrast against the background, a structure that appears well-suited to the CBAM spatial attention branch with its aspect-ratio-aware 7 ×7 receptive field. This marginal advantage over a single-stage detector trained for 10 × more epochs suggests that two-stage detection with targeted spatial attention may have a specific advantage on defect classes with irregular elongated morphology. Crazing achieves the lowest per-class score for both models (TEEP-RCNN: 0.099, YOLOv11m: 0.148). The structural reason is that crazing fills the entire image with a fine crack network rather than occupying a compact spatial region. The ground-truth annotations for crazing are tight bounding boxes around individual crack clusters, while the model’s proposals TABLE VII: Per-Class mAP (COCO, IoU 0.50:0.95) on NEU-DET Test Set                  
+
+> Class TEEP-RCNN YOLOv11m
+> Crazing 0.099 0.148 Inclusion 0.406 0.453 Patches 0.537 0.644 Pitted Surface 0.457 0.557 Rolled-in Scale 0.287 0.277 Scratches 0.486 0.621
+> Mean 0.379 0.450
+> Bold indicates best per-class result. Mean is the arithmetic average over six classes (macro-averaged mAP). TEEP-RCNN outperforms YOLOv11m on rolled-in scale despite 10 ×fewer training epochs.
+> Crazing Inclusion Patches Pit.Surf. R.-in-Sc. Scratches
+> 00.10.20.30.40.50.60.7
+> mAP (50:95)
+> TEEP-RCNN (10 ep) YOLOv11m (100 ep)
+
+Fig. 5: Per-class mAP (IoU 0.50:0.95) comparison on NEU-DET. TEEP-RCNN outperforms YOLOv11m on rolled-in scale (R.-in-Sc.) in only 10 training epochs. Crazing is the hardest class for both methods owing to its distributed texture that lacks a compact spatial centroid. and attention maps tend to activate over the full image. This mismatch between the distributed texture and the localized bounding box annotation format is a fundamental challenge for both anchor-based and anchor-free detectors. 
+
+F. Qualitative Detection Results 
+
+Figure 6 shows six representative test images with ground-truth boxes (solid green) overlaid against TEEP-RCNN pre-dictions (dashed red) at the final epoch. The model localizes scratches (Image 1) and crazing (Images 2, 4) with good spatial coverage, and correctly places multiple proposals on rolled-in-scale regions (Images 3, 5, 6) where the irregular elongated morphology produces overlapping ground-truth boxes. Con-fidence scores visible on prediction labels range from 0.44 to 0.99, indicating that the classification head assigns high confidence to well-localized defects across classes. The most common failure mode visible in these samples is over-proposal on crazing images (Images 2 and 4), where the model generates multiple partially overlapping boxes across the crack network rather than a single tight enclosure. This aligns with the low per-class mAP for crazing (0.099) and confirms that the challenge is localization precision, not class discrimination. Figure 7 shows the per-class mAP heatmap over the extended training run, providing insight into which classes stabilize early versus which fluctuate throughout training. Patches and scratches (warm colors from epoch 10 onward) converge early and remain stable, while rolled-in scale shows persistent variability. Crazing (consistently blue throughout) confirms that no training duration resolves its localization challenge within this architecture. VI. D ISCUSSION 
+
+Training Efficiency as a First-Class Result. A notable property of TEEP-RCNN observed in this study is its conver-gence rate. Reaching mAP@50 = 0.700 by epoch 6 and 0.733 by epoch 9 represents a training budget that is 10 × smaller than YOLOv11m. This efficiency has two sources. First, the ResNet-101 backbone pre-trained on ImageNet provides strong initial feature representations that immediately generalize to the low-level texture statistics of steel defects, requiring far fewer updates before the RPN starts generating clean proposals. Second, the improved CBAM recalibrates the feature map from the first forward pass, focusing the detection head on defect-relevant spatial positions rather than spending early epochs learning which spatial regions are worth proposing. This combination of transfer learning and targeted attention shortens the effective warm-up period for the detection task itself. 
+
+Interpretation of the CBAM Attention. While explicit attention map visualization is left for future work, the per-class results provide indirect evidence about what the attention mod-ule learns. The strong performance on patches and scratches relative to other classes, and the marginal advantage on rolled-in scale over YOLOv11m, suggests that the 7 ×7 spatial attention convolution acquires orientation-selective responses well-suited to elongated and directional defect textures. In contrast, the near-random performance on crazing is consistent with the spatial attention activating broadly across the full image and providing no localization signal above the RPN prior. The qualitative detection examples in Figure 6 confirm this: crazing images show scattered over-proposals rather than a single tight localization, consistent with diffuse spatial attention. A qualitative attention map analysis would either confirm this hypothesis or reveal that the attention module finds a compact proxy signal for crazing (for example, the boundary of the strip rather than the crack texture itself) that is currently insufficient for tight localization. 
+
+The Extended Training Paradox. The 200-epoch TEEP-RCNN run with class-conditional loss weights achieves a best mAP@50 of 0.685 at epoch 42, which is below the primary 10-epoch model at 0.733. This counter-intuitive result has a plausible explanation: the crazing weight of 3.0 redirects gradient updates toward a class that the attention module fundamentally struggles with (as evidenced by the 0.099 per-class mAP), causing the model to spend gradient budget on signals that do not improve detection quality. Meanwhile, the well-performing classes (patches, scratches, pitted surface) Fig. 6: Qualitative detection results on NEU-DET test images. Solid green boxes are ground-truth annotations; dashed red boxes are TEEP-RCNN predictions with confidence scores. The model accurately localizes scratches (Image 1), crazing regions (Images 2, 4), and multiple rolled-in-scale instances (Images 3, 5, 6). Over-proposal on distributed crazing textures is the primary failure mode, consistent with the low per-class mAP for this category. 
+
+Fig. 7: Per-class mAP heatmap over training epochs (extended run). Warm colors indicate higher mAP. Patches and scratches stabilize early; crazing remains near zero throughout, indicating a structural challenge beyond training duration. receive relatively lower effective gradients, causing their class-specific heads to slightly deteriorate. The takeaway is that class weighting strategies need to be proportional to the model’s trainable capacity for each class, not just the class frequency imbalance. 
+
+Localization Precision and the mAP@50-95 Gap. The difference in mAP@50-95 between TEEP-RCNN (0.379) and YOLOv11m (0.450) is real but partially attributable to training duration. The regression branch of Faster R-CNN typically requires more epochs than the classification branch to converge, because tight box coordinates require the model to learn fine-grained offsets from anchor templates rather than just binary class decisions. At 10 epochs, the regression head has not fully exploited the precision afforded by RoI Align. Deformable convolutions [22] in the RoI head could partially compensate by learning geometric offsets that better fit non-rectangular defect shapes such as rolled-in scale and elongated scratches. 
+
+The Case for Two-Stage Detectors in Industrial Inspec-tion. The debate between two-stage and single-stage detectors in industrial settings often centers on inference speed. However, for offline quality control (post-production inspection rather than real-time line monitoring), inference speed is secondary to detection accuracy and false-negative rate. Two-stage detectors offer an interpretable proposal-then-classify pipeline where the RPN score distribution can be monitored independently of the classification confidence, and where the spatial attention module provides a natural mechanism for visualizing which regions the network considers defect-relevant. These properties are valuable in regulated manufacturing contexts where model decisions need to be auditable. VII. L IMITATIONS 
+
+Parameter Count. TEEP-RCNN has 61.8 million param-eters, substantially more than YOLOv11m’s 20.1 million. The majority of this overhead comes from the ResNet-101 backbone depth. For edge deployment scenarios where memory and latency matter, a lighter backbone such as ResNet-50 or MobileNetV3 would be necessary, and the impact of the improved CBAM in a lighter backbone setting is an open question. 
+
+Crazing Detection. The per-class mAP of 0.099 for crazing is well below the other five classes. The standard bounding box annotation format does not naturally represent the distributed texture structure of crazing, and the anchor-based proposal mechanism of Faster R-CNN is poorly suited to defects that have no compact spatial centroid. A segmentation-based auxiliary branch or a texture-specific detection head is likely needed to address this class adequately. 
+
+Absence of Ablation. The primary contribution is the improved CBAM module, but a controlled ablation com-paring standard CBAM against improved CBAM on the same backbone and training schedule was not performed. The improvement over the vanilla Faster R-CNN baseline is demonstrated, but the specific contribution of the dropout versus the BatchNorm modification is not isolated. Such an ablation would require at least four experimental runs, which is left for a follow-up study. 
+
+Single Dataset. All experiments are conducted on NEU-DET. The generalizability of the improved CBAM module to other industrial defect datasets, such as magnetic tile defects or printed circuit board inspection, has not been verified. The module’s behavior may differ on datasets with finer spatial resolution, more complex background textures, or a larger number of defect classes. 
+
+No Inference Timing. Inference throughput on the test hardware was not measured in this study. Two-stage detectors are generally slower than single-stage ones, and a rigorous latency comparison on the Tesla T4 platform would be necessary before claiming deployment parity with YOLO-based solutions. VIII. C ONCLUSION 
+
+This paper presented TEEP-RCNN, a two-stage steel surface defect detector that integrates an improved Convolutional Block Attention Module into the Faster R-CNN framework. The improved CBAM adds dropout regularization to the channel attention MLP and batch normalization to the spatial attention branch, addressing two regularization weaknesses in the original design that are especially consequential on small industrial datasets. A differential learning rate protocol with cosine annealing warm-up preserves the ImageNet-pretrained backbone representations throughout training, and a WBF-TTA inference pipeline improves localization consistency on elongated defects. Evaluated on NEU-DET, TEEP-RCNN achieves 73.3% mAP@50 in only 10 training epochs, closing to within 3 percentage points of YOLOv11m trained for 100 epochs. On the rolled-in-scale class, TEEP-RCNN (0.287 mAP) outperforms YOLOv11m (0.277 mAP), providing evidence that the spatial attention branch is particularly suited to elongated industrial defect morphology. The counter-intuitive result that the 200-epoch run with class weighting performs below the 10-epoch baseline highlights a practical lesson about the interaction between class weighting and pre-trained attention modules. Looking ahead, there are three concrete directions for extending this work. First, a formal ablation study isolating the dropout and BatchNorm contributions would clarify which modification drives the improvement. Second, integrating a segmentation auxiliary branch for the crazing class specifically, where bounding box localization is fundamentally ill-posed, would address the single largest per-class performance gap. Third, exploring the improved CBAM module within a lighter backbone such as ResNet-50 or MobileNetV2 would expand the practical applicability of the approach to resource-constrained edge devices common in production environments. ACKNOWLEDGMENT 
+
+The author thanks the creators of the NEU-DET dataset for making the benchmark publicly available, and the open-source communities behind PyTorch, torchvision, Ultralytics YOLO, and Albumentations. REFERENCES [1] K. Song and Y. Yan, “A noise robust method based on completed local binary patterns for hot-rolled steel strip surface defects,” Applied Surface Science , vol. 285, pp. 858–864, 2013. [2] S. Ren, K. He, R. B. Girshick, and J. Sun, “Faster R-CNN: Towards real-time object detection with region proposal networks,” in Advances in Neural Information Processing Systems (NeurIPS) , 2015, pp. 91–99. [3] T.-Y. Lin, P. Doll´ ar, R. Girshick, K. He, B. Hariharan, and S. Belongie, “Feature pyramid networks for object detection,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2017, pp. 936–944. [4] G. Jocher, A. Chaurasia, and J. Qiu, “Ultralytics YOLOv8,” 2023. [Online]. Available: https://github.com/ultralytics/ultralytics [5] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, “CBAM: Convolutional block attention module,” in Proceedings of the European Conference on Computer Vision (ECCV) , 2018, pp. 3–19. [6] R. Girshick, J. Donahue, T. Darrell, and J. Malik, “Rich feature hierarchies for accurate object detection and semantic segmentation,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2014, pp. 580–587. [7] R. Girshick, “Fast R-CNN,” in Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2015, pp. 1440–1448. [8] K. He, G. Gkioxari, P. Doll´ ar, and R. Girshick, “Mask R-CNN,” in 
+
+> Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2017, pp. 2961–2969.
+
+[9] W. Liu, D. Anguelov, D. Erhan, C. Szegedy, S. E. Reed, C.-Y. Fu, and A. C. Berg, “SSD: Single shot MultiBox detector,” in Proceedings of the European Conference on Computer Vision (ECCV) , 2016, pp. 21–37. [10] T.-Y. Lin, P. Goyal, R. Girshick, K. He, and P. Doll´ ar, “Focal loss for dense object detection,” in Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2017, pp. 2980–2988. [11] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in 
+
+Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2018, pp. 7132–7141. [12] J. Park, S. Woo, J.-Y. Lee, and I. S. Kweon, “BAM: Bottleneck attention module,” in British Machine Vision Conference (BMVC) , 2018. [13] X. Wang, R. Girshick, A. Gupta, and K. He, “Non-local neural networks,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2018, pp. 7794–7803. [14] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and S. Zagoruyko, “End-to-end object detection with transformers,” in 
+
+Proceedings of the European Conference on Computer Vision (ECCV) ,2020, pp. 213–229. [15] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai, “Deformable DETR: Deformable transformers for end-to-end object detection,” in 
+
+International Conference on Learning Representations (ICLR) , 2021. [Online]. Available: https://openreview.net/forum?id=gZ9hCDWe6ke [16] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo, “Swin transformer: Hierarchical vision transformer using shifted windows,” in Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2021, pp. 10 012–10 022. [17] Z. Ye, B. Wang, X. Guo, Y. Wen, C. Xie, and Y. Pu, “DSAT: Dynamic sparse attention transformer for steel surface defect detection,” Scientific Reports , vol. 15, 2025, reports mAP@50 of 83.14% and mAP@50-95 of 47.37% on NEU-DET. [18] X. Tao, D. Zhang, W. Ma, X. Liu, and D. Xu, “Automatic metallic surface defect detection and recognition with convolutional neural networks,” 
+
+Applied Sciences , vol. 8, no. 9, p. 1575, 2018. [19] P. Bergmann, M. Fauser, D. Sattlegger, and C. Steger, “MVTec AD – a comprehensive real-world dataset and benchmark for anomaly detection,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2019, pp. 9592–9600. [20] D. Tabernik, S. ˇSela, J. Skvareˇ c, and D. Skoˇ caj, “Segmentation-based deep-learning approach for surface-defect detection,” Journal of Intelligent Manufacturing , vol. 31, no. 3, pp. 759–776, 2020. [21] Y. He, K. Song, Q. Meng, and Y. Yan, “An end-to-end steel surface defect detection approach via fusing multiple hierarchical features,” IEEE Transactions on Instrumentation and Measurement , vol. 69, no. 4, pp. 1493–1504, 2020. [22] J. Dai, H. Qi, Y. Xiong, Y. Li, G. Zhang, H. Hu, and Y. Wei, “Deformable convolutional networks,” in Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2017, pp. 764–773. [23] A. Buslaev, V. I. Iglovikov, E. Khvedchenya, A. Parinov, M. Druzhinin, and A. A. Kalinin, “Albumentations: Fast and flexible image augmenta-tions,” Information , vol. 11, no. 2, p. 125, 2020. [24] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2016, pp. 770–778. [25] J. Deng, W. Dong, R. Socher, L.-J. Li, K. Li, and L. Fei-Fei, “ImageNet: A large-scale hierarchical image database,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2009, pp. 248–255. [26] S. Ioffe and C. Szegedy, “Batch normalization: Accelerating deep network training by reducing internal covariate shift,” in Proceedings of the 32nd International Conference on Machine Learning (ICML) , 2015, pp. 448– 456. [27] N. Bodla, B. Singh, R. Chellappa, and L. S. Davis, “Soft-NMS: Improving object detection with one line of code,” in Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2017, pp. 5562– 5570. [28] R. Solovyev, W. Wang, and T. Gabruseva, “Weighted boxes fusion: Ensembling boxes from different object detection models,” Image and Vision Computing , vol. 107, p. 104117, 2021. [29] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in 
+
+International Conference on Learning Representations (ICLR) , 2019. [Online]. Available: https://openreview.net/forum?id=Bkg6RiCqY7 [30] ——, “SGDR: Stochastic gradient descent with warm restarts,” in 
+
+International Conference on Learning Representations (ICLR) , 2017.

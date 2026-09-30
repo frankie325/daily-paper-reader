@@ -1,0 +1,313 @@
+{
+  "date": "20260930",
+  "date_label": "",
+  "generated_at": "2026-09-30 23:03:09 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.25693v1",
+      "route": "202609/30/2609.25693v1-c2fxnet-coarse-to-fine-scene-expert-for-unified-object-detection-across-adverse-weather",
+      "title": "C2FXNet: Coarse-to-Fine Scene Expert for Unified Object Detection across Adverse Weather",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "恶劣天气下的统一目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.26590v2",
+      "route": "202609/30/2609.26590v2-gtr-gated-token-recurrence-for-efficient-dense-prediction",
+      "title": "GTR: Gated Token Recurrence for Efficient Dense Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "针对检测的DINOv3教师，COCO box AP用于目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.26919v1",
+      "route": "202609/30/2609.26919v1-bend-the-clock-predicting-ahead-to-beat-latency-in-event-based-object-detection",
+      "title": "Bend the Clock: Predicting Ahead to Beat Latency in Event-Based Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于事件相机的目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.27671v1",
+      "route": "202609/30/2609.27671v1-sgdet3d-geometry-grounded-semantics-for-4d-radar-and-camera-3d-object-detection",
+      "title": "SGDet3D++: Geometry-Grounded Semantics for 4D Radar and Camera 3D Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于 4D 雷达与相机的三维目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.28077v1",
+      "route": "202609/30/2609.28077v1-teep-rcnn-texture-enhanced-edge-aware-perception-for-steel-surface-defect-detection-via-improved-convolutional-block-attention-in-faster-r-cnn",
+      "title": "TEEP-RCNN: Texture-Enhanced Edge-aware Perception for Steel Surface Defect Detection via Improved Convolutional Block Attention in Faster R-CNN",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于Faster R-CNN的钢材表面缺陷检测器",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.28230v1",
+      "route": "202609/30/2609.28230v1-a-unified-framework-and-dataset-for-oriented-object-visual-grounding-in-remote-sensing",
+      "title": "A Unified Framework and Dataset for Oriented Object Visual Grounding in Remote Sensing",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "O^2-VG-Trans用于定向目标视觉定位的跨模态Transformer",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.28857v1",
+      "route": "202609/30/2609.28857v1-mevl-stp-multi-encoder-and-vision-language-model-for-arbitrarily-shaped-scene-text-spotting",
+      "title": "MEVL-STP: Multi-Encoder and Vision Language Model for Arbitrarily Shaped Scene Text Spotting",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "两阶段场景文本识别包含文本对象检测阶段",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.29235v1",
+      "route": "202609/30/2609.29235v1-sarfusion-scene-aware-routing-fusion-for-robust-camera-lidar-3d-object-detection",
+      "title": "SARFusion: Scene-Aware Routing Fusion for Robust Camera-LiDAR 3D Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于场景感知分支路由的鲁棒相机-激光雷达3D目标检测，利用对象查询",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.30395v1",
+      "route": "202609/30/2609.30395v1-cscwd-cross-scale-channel-wise-knowledge-distillation-for-lightweight-tiny-object-detection-on-edge-devices",
+      "title": "CSCWD: Cross-Scale Channel-wise Knowledge Distillation for Lightweight Tiny Object Detection on Edge Devices",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "边缘设备上的轻量级微小目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.32163v1",
+      "route": "202609/30/2609.32163v1-pqr3d-progressive-query-refinement-over-reference-conditioned-temporal-windows-for-multi-view-3d-object-detection",
+      "title": "PQR3D: Progressive Query Refinement over Reference-Conditioned Temporal Windows for Multi-View 3D Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "使用渐进式查询优化和掩码自注意力进行多视角3D目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.34142v1",
+      "route": "202609/30/2609.34142v1-analytical-and-convolutional-neural-network-based-motion-vector-propagation-for-efficient-video-object-detection",
+      "title": "Analytical and Convolutional Neural Network-Based Motion-Vector Propagation for Efficient Video Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于运动向量传播的视频目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.26505v1",
+      "route": "202609/30/2609.26505v1-semantically-guided-domain-randomization-for-industrial-object-detection-in-low-image-budget-regimes",
+      "title": "Semantically-Guided Domain Randomization for Industrial Object Detection in Low-Image-Budget Regimes",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "工业目标检测的合成数据方法",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.27413v1",
+      "route": "202609/30/2609.27413v1-s2asemantic-to-spatial-alignment-for-alignment-free-rgb-t-salient-object-detection",
+      "title": "S2A:Semantic-to-Spatial Alignment for Alignment-Free RGB-T Salient Object Detection",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "免对齐的RGB-T显著目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.32567v1",
+      "route": "202609/30/2609.32567v1-attribution-gaps-in-zero-training-llmovod-pipelines-a-fine-grained-analysis-of-the-caap--snap-discrepancy",
+      "title": "Attribution Gaps in Zero-Training LLM+OVOD Pipelines: A Fine-Grained Analysis of the CAAP--SNAP Discrepancy",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "分析使用LLM和检测器的开放词汇目标检测流水线",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.35490v1",
+      "route": "202609/30/2609.35490v1-ahmad-adaptive-hybrid-multi-task-vision-learning-with-assisted-distillation-for-keypoint-detection",
+      "title": "AHMAD: Adaptive Hybrid Multi-task Vision Learning with Assisted Distillation for Keypoint Detection",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "在统一多任务框架中集成了目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.25500v1",
+      "route": "202609/30/2609.25500v1-mbariml-a-curation-pipeline-for-turning-deep-sea-imagery-and-video-into-object-detection-training-data",
+      "title": "mbariml: a curation pipeline for turning deep-sea imagery and video into object-detection training data",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "从深海图像创建目标检测训练数据的流水线",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.26325v1",
+      "route": "202609/30/2609.26325v1-leveraging-vision-based-point-cloud-map-priors-for-camera-based-3d-object-detection-and-online-vectorized-hd-mapping",
+      "title": "Leveraging Vision-Based Point Cloud Map Priors for Camera-Based 3D Object Detection and Online Vectorized HD Mapping",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "利用视觉点云地图先验改进相机3D目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.32922v1",
+      "route": "202609/30/2609.32922v1-precision-as-you-need-stochastic-computing-is-a-dense-adaptive-quantizer",
+      "title": "Precision As You Need: Stochastic Computing Is a Dense Adaptive Quantizer",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "针对Transformer视觉模型在目标检测上评估随机计算",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    },
+    {
+      "paper_id": "2609.34325v1",
+      "route": "202609/30/2609.34325v1-dora-dynamic-online-reinforcement-agent-for-token-pruning-in-vision-transformers",
+      "title": "DORA: Dynamic Online Reinforcement Agent for Token Pruning in Vision Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "针对Vision Transformer的令牌剪枝方法，可应用于基于ViT的目标检测",
+      "first_seen_at": "2026-09-30 23:03:09 UTC",
+      "updated_at": "2026-09-30 23:03:09 UTC"
+    }
+  ]
+}
