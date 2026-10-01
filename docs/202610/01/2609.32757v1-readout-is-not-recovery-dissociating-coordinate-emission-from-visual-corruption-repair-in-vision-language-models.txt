@@ -1,0 +1,772 @@
+Title: Readout is not Recovery: Dissociating Coordinate Emission from Visual-Corruption Repair in Vision-Language Models
+
+URL Source: https://arxiv.org/pdf/2609.32757v1
+
+Published Time: Tue, 29 Sep 2026 01:14:24 GMT
+
+Number of Pages: 29
+
+Markdown Content:
+# Readout ̸ = Recovery: Dissociating Coordinate Emission from Visual-Corruption Repair in Vision-Language Models 
+
+Drandreb Earl Juanico 
+
+Abstract. VLM bounding-box localization is both language generation and spatial commitment. Parseable fields such as bbox_2d make local-ization easy to score, but dimensions that emit coordinate tokens need not repair localization after visual evidence is damaged. We study this readout/recovery separation in Qwen3-VL-4B-Instruct on single-object COCO grounding. We compare clean coordinate-token readout rankings with corruption-derived repair rankings, using object-mask endpoint re-placement for recovery and clean-input flooring for depth localization. In Qwen3-VL, coordinate-token rankings are inert through layer 24, load-bearing from layers 32–35, and peak at layer 34; corruption-derived rank-ings harm layers 16–24 but become beneficial near layer 35/final. A Kimi-VL-A3B diagnostic shows a matching output-proximal transition despite a different box format. Object-mask recovery separates rank budgets: 
+
+k = 250 shows necessity, k = 500 shows Top-k restoration above random, and k = d/ 2 is largely capacity-driven. Partial-occlusion sweeps reveal that high-overlap coordinate-token sets can hurt at k = 1000 and help mainly at half-width, while population corruption-derived sets provide no reliable fixed repair set. Edge-attribution patching shows coordinate-token paths are high precision but low recall for detection recovery, and RMSNorm quasi-layer controls do not close the endpoint-repair gap. Endpoint coordinate triage is therefore a useful circuit prior, but oc-clusion recovery requires a separate benchmark. 
+
+Keywords: Vision-language models · Visual grounding · Mechanistic interpretability · Causal intervention · Occlusion robustness 
+
+1 Introduction 
+
+Modern VLMs increasingly express localization through language-like structured outputs. In object-detection-as-generation systems, boxes and labels can be seri-alized as token sequences; in grounded multimodal LLMs, object references can be linked to coordinate or location tokens; and in instruction-tuned VLMs, a response may contain a parseable field such as bbox_2d followed by numeric co-ordinates [3–5,14,20]. This makes grounding measurable: a generated box can be parsed, projected into image coordinates, and scored against annotated objects with COCO-style localization metrics [11]. It also creates a mechanistic ambigu-ity. The model must say a box, but saying a box is not identical to preserving the visual evidence that makes the box correct. arXiv:2609.32757v1 [cs.AI] 26 Sep 2026 2 D. E. Juanico 
+
+This paper studies that ambiguity as a circuit-tracing problem. Endpoint-based mechanistic work often begins with a behavior, defines a metric, and then corrupts or patches activations to identify components that preserve or restore the endpoint [6, 12, 19]. For VLM grounding, the final hidden state before the LM head is a natural endpoint because it is the last internal representation from which the localization tokens are emitted. A dimension that contributes to the logit of bbox_2d or to a coordinate token is therefore a plausible readout-facing reference. The open question is whether that readout reference is also a repair-bearing substrate when the object evidence in the image is damaged. We separate three ranking signals. The first, bbox_2d readout triage, is the motivation: the field token is stable across examples and provides a convenient endpoint for identifying dimensions that help enter the structured localization format. The second, coordinate-token triage, is the main clean endpoint ranking: it scores final-site dimensions by their contribution to the actual numeric coor-dinate tokens emitted for each sample. This ranking is closer to spatial content than the field token, although it is still derived from clean readout behavior. The third, corruption-derived ranking, is repair-aware: it aggregates dimensions that repeatedly align with clean-to-object-mask repair displacements across the ranking population. The first two rankings ask about output-interface leverage; the third asks about object-mask repair leverage. Object masking supplies the primary counterfactual for the repair question. We replace the ground-truth object region with a mean-color patch, damaging local evidence for the queried object while preserving the prompt and much of the surrounding scene. We also include partial occlusion as a softer corruption: a constant-valued rectangular or elliptical patch covers only a fraction of the object box, leaving part of the object visible. This is a practically motivated ex-tension because many real occlusion failures involve partial visibility rather than complete erasure, although the synthetic patch remains an occlusion-like probe rather than a full naturalistic occluder. These corruptions are not intended as full naturalistic occlusion benchmarks. They are occlusion-like mechanistic probes: after object evidence is degraded to different degrees, do selected endpoint di-mensions from the clean trace recover localization behavior more efficiently than arbitrary dimensions, and does clean coordinate-token triage become more useful when some object evidence remains? Object-mask endpoint recovery uses clean endpoint replacement. The image is first object-masked and the model is run on the corrupted input. At the endpoint, selected dimensions in the corrupted hidden state are then replaced by the corresponding clean values from the uncorrupted-image trace. Recovery therefore tests whether the chosen endpoint dimensions are sufficient to transfer clean localization information into the corrupted run. Elementwise flooring is reserved for clean-input depth triage, where no upstream corruption is present and the goal is to determine where a fixed ranking becomes load-bearing across decoder depths. In the primary Qwen3-VL-4B-Instruct experiments, the results support a readout/recovery separation rather than a single global ranking. Coordinate-Readout ̸ = Recovery 3
+
+token rankings are inert through layer 24, load-bearing from layers 32–35, and null at the final readout site. Corruption-derived rankings are also non-monotonic: the same half-width set (Top-1280 of 2560 hidden dimensions) that helps near layer 35 (the penultimate layer for this architecture) and the final site is harmful across layers 16–24. Endpoint recovery further shows a rank-budget dissociation, where rank budget means the number k of endpoint dimensions replaced by clean values. For coordinate-token rankings under object masking, k = 250 shows ne-cessity without stand-alone restoration, k = 500 shows a Top-k restorative effect above random, and k = 1280 = d/ 2 is largely capacity-driven. The popula-tion corruption-derived curve is asymmetric: exclusion costs appear already at 
+
+k = 250 , inclusion evidence emerges at k = 500 , and half-width recovery is capacity-dominated. Thus, clean coordinate-token triage identifies a meaning-ful coordinate-generation subspace, whereas corruption-derived rankings remain the direct benchmark for hard object-mask repair. A targeted Kimi-VL-A3B-Instruct check strengthens the model-generality of the coordinate-token result: despite emitting normalized bracketed boxes rather than bbox_2d JSON, Kimi’s coordinate-token-ranked half-width subspace is inert or mildly helpful at ob-served early-to-mid sites, begins to separate at layer 24, and becomes selec-tively load-bearing at layer 26 and final. Partial occlusion then refines the prac-tical message: when object evidence is degraded but not erased, high-overlap coordinate-token index sets do not automatically become useful recovery sets; under partial occlusion they are sub-random at k = 1000 and become helpful mainly at half-width. An edge-attribution patching diagnostic under the same partial-occlusion setting then asks where the readout-targeted gap is routed: the top readout-targeted edges are most concentrated at small ablation bud-gets, but detection-critical paths extend beyond that subspace. Finally, a RM-SNorm quasi-layer control shows that transporting bbox_2d endpoint directions through the final RMSNorm Jacobian does not make endpoint rankings substan-tially more repair-like, ruling out final normalization as the main source of the readout/recovery gap. Our contributions are threefold. First, we formulate VLM grounding inter-pretability as a distinction between coordinate-emission geometry and visual-corruption recovery geometry. Second, we define object-mask repair as clean endpoint replacement, while reserving flooring for clean-input depth localiza-tion. Third, we report main-text evidence that coordinate-token and corruption-derived rankings have distinct, non-monotonic depth profiles, add a targeted Kimi-VL-A3B coordinate-token depth-triage check, show that partial occlusion separates cross-split index-set overlap from behavioral recovery, and add a RM-SNorm control with explicit normalization showing that the dissociation is not removed by transporting endpoint attribution across the final normalization boundary. 4 D. E. Juanico 
+
+2 Related Work 
+
+Structured localization in VLMs. Vision-language systems have increasingly moved from implicit region-language alignment toward explicit localization in generated language. Pix2Seq casts object detection as sequence generation [5]; Kosmos-2 represents grounded spans with bounding boxes and location tokens [14]; Shikra supports spatial coordinate inputs and outputs in natural language [4]; and Fer-ret combines discrete coordinates with continuous region features for referring and grounding at variable granularity [20]. Qwen3-VL continues this trend in an instruction-tuned VLM family with explicit spatial reasoning capabilities [3]. Kimi-VL provides a complementary efficient VLM setting with a different local-ization output format, which we use only as a targeted cross-model check rather than as the primary experimental platform [7]. We use this structured-output setting to ask whether dimensions that support coordinate emission also support repair when object evidence is damaged. 
+
+Endpoint tracing and causal intervention. Mechanistic interpretability commonly starts from a behavioral endpoint and asks which internal components causally affect it. Causal mediation and causal tracing intervene on hidden states or me-diators to identify components implicated in a prediction [12,17]. Path patching and the IOI circuit study use clean/corrupt distributions and causal interventions to trace a language behavior through residual-stream components [19]. ACDC systematizes this endpoint-driven workflow by choosing a dataset and metric, then pruning the computational graph to preserve behavior [6]. Our study fol-lows the endpoint tradition but adds a transfer test: a localization endpoint is useful for tracing only if it is separately evaluated against visual-corruption repair. 
+
+Faithfulness, corruption, and normalization. Attribution-like signals can iden-tify output-facing sensitivity without proving that the highlighted components implement the behavior [9,10,16]. Visual corruptions and occlusion similarly re-veal that recognition can depend on evidence not captured by a clean endpoint alone [8,13,18]. Finally, RMSNorm and LayerNorm compute shared sample-wise normalizers across dimensions [2, 21], which can complicate dimension-level in-terventions. We therefore include a quasi-layer RMSNorm control in the broader evaluation suite, but the readout/recovery account does not rely on RMSNorm as the explanation for the separation. 
+
+3 Method 
+
+Model, data, and endpoint. We study Qwen3-VL-4B-Instruct on single-object grounding prompts from COCO val2017. The text decoder has hidden width d =2560 and 36 decoder layers in the released 4B configuration [3,15]. Each prompt names one object category and asks the model to localize it with a prompt of the form Detect <object>. Provide correct bounding boxes. The model is ex-pected to return a structured localization response, e.g., {"bbox_2d": [357, Readout ̸ = Recovery 5
+
+216, 708, 549], "label": "spoon"} . We parse the generated bbox_2d coor-dinate list and evaluate localization by R50 , recall at IoU ≥ 0.50 , using one-to-one bipartite matching between predicted and ground-truth boxes. Parseability is re-ported separately, unparseable outputs contribute zero recall, and Supp. Table 8 decomposes representative effects into parseability and conditional localization (Supp. Methods A.2). The primary endpoint is the final readout site: the output of the final RM-SNorm immediately before the LM head. Decoder-depth analyses hook decoder-block outputs, with ℓ reserved for decoder-layer indices. All interventions are decode-only: they fire during autoregressive generation of localization-related tokens and do not alter the image/prompt prefill pass (Supp. Methods A.3). 
+
+Cross-model Kimi-VL diagnostic. We also run a targeted clean-input depth-triage diagnostic on Kimi-VL-A3B to test whether coordinate-token triage is tied to Qwen3-VL’s output schema. Kimi-VL emits plain normalized boxes of the form [x1, y1, x2, y2] rather than a bbox_2d JSON object. We therefore construct a Kimi-specific coordinate-token ranking directly from the LM head and generated coordinate tokens, then floor the Top-1024 dimensions, i.e., half of Kimi’s d = 2048 hidden width, at proportional decoder-depth sites and the final norm output (Supp. Methods A.4). This diagnostic is a cross-model readout-triage check, not a second full recovery benchmark. 
+
+Readout directions and rankings. Let i index samples, t localization-related de-code positions, j hidden dimensions, and q vocabulary tokens. Let hi,t ∈ Rd be the hidden state and Wq ∈ Rd the LM-head vector for token q. For target token 
+
+yi,t , we use a contrastive readout direction 
+
+wi,t = Wyi,t − W −
+
+> i,t
+
+, (1) where W − 
+
+> i,t
+
+averages negative alternatives for the same output position (Supp. Methods A.5). Readout-based rankings use the per-dimension score ∆h i,t,j wi,t,j ,with ∆h i,t,j = Fθ (hclean  
+
+> i,t,j
+
+) − hclean  
+
+> i,t,j
+
+and θ = −0.5 (Eq. 2; Supp. Methods A.7). The 
+
+bbox_2d ranking aggregates this score at field-token positions; the coordinate-token ranking aggregates it at numeric coordinate-token positions. Because coordinate-token rankings depend on the negative-token pool, Supp. Table 9 reports alternative-pool overlaps; we treat the chosen pool as part of the ranking definition and ground claims in held-out interventions rather than exact dimension identity. Corruption-derived rankings are different: they start from per-sample clean-to-object-mask endpoint displacement orderings, and the population corruption-derived ranking averages the resulting disruption scores across ranking samples before freezing it for evaluation. In local-set recovery, a fixed global set reuses one Top-k set for every test sample; a sample-local readout set is recomputed from the clean trace; and a sample-specific corruption-derived set is recomputed from the clean–corrupt pair. Thus fixed population rows are out-of-sample tests of a population-level repair ranking, not clean-readout rankings or per-sample oracle rankings (Supp. Methods A.6; A.12). 6 D. E. Juanico 
+
+Clean-input depth triage. Depth triage does not use object-mask corruption. It uses an elementwise final-layer probing intervention motivated by prior anonymized work [1]: the clean image/prompt input is run and selected hidden dimensions are floored at a specified decoder layer or the final site (Supp. Methods A.7): 
+
+Fθ (hj ) = max( hj , θ ), θ = −0.5, (2) with all unselected dimensions left unchanged. Flooring is an elementwise clamp, not zero ablation, quantile clipping, or batch normalization: coordinates above the threshold are unchanged, and only below-threshold coordinates are lifted to the fixed floor. We use θ = −0.5 as a non-collapsing final-site operating point mo-tivated by the final-layer probing intervention; we do not claim that this thresh-old is layer-calibrated. When raw-layer full flooring collapses performance, we therefore interpret that cell as a site-calibration warning rather than as evidence of rank selectivity. In this paper, flooring is used for clean-input depth local-ization; visual-corruption recovery is evaluated separately with clean endpoint replacement. For a fixed rank size k, we compare Top-k, complement, random-
+
+k, complement-random, and full flooring conditions. A negative top-random z
+
+means the ranked Top-k set is more damaging to floor than a size-matched random set; a positive value means it is less damaging or more beneficial than random. These clean-input experiments localize where a ranking is load-bearing, but they are not recovery experiments. 
+
+Endpoint recovery under visual corruptions. Recovery experiments use a different operator. The image is first corrupted either by masking the full ground-truth object region with the per-image mean color or by applying partial occlusion inside the ground-truth box. For partial occlusion, the patch area is a fixed fraction of the box area, its position is sampled inside the box, and the rest of the object remains visible (Supp. Methods A.8). We use object masking as the hard repair benchmark and partial occlusion as the practical softer-corruption extension (Figure 1), designed to test whether coordinate-token readout remains a useful transferable index-set prior when the target is degraded but not removed. The model is then run on the corrupted input. At the endpoint and localization-related decode positions, selected dimensions in the corrupted hidden state are replaced by their corresponding clean values: 
+
+hpatch  
+
+> t,I
+
+= hclean  
+
+> t,I
+
+, hpatch   
+
+> t, ¯I
+
+= hmask   
+
+> t, ¯I
+
+. (3) Here I is a hidden-dimension set (Supp. Methods A.9), not a token-position set. This clean endpoint replacement is the recovery intervention used for k-scaling endpoint recovery and local-set endpoint recovery tests. It asks whether a selected subset transfers clean localization information into the corrupted run. Object mask is the harder primary corruption; partial occlusion is the softer occlusion-like extension in which residual visible-object evidence can make clean coordinate-token readout more informative as an index-set prior. Full endpoint recovery replaces all endpoint dimensions and serves as the recovery ceiling. Readout ̸ = Recovery 7Original   
+
+> cup
+> Masked Original person Masked
+> Hard corruption: object evidence removed
+
+(a) Object mask Original    
+
+> laptop
+> Occluded Original pizza Occluded
+> Softer corruption: object evidence degraded but partly visible
+> 40% of bbox area 40% of bbox area
+
+(b) Partial occlusion Fig. 1: Illustration of the two corruption settings. Object mask is the hard corruption: the queried object region is blanked, removing most local evidence for the target. Partial occlusion is the softer corruption: a patch is sampled inside the ground-truth box, leaving part of the queried object visible. This distinction motivates treating object mask as the hard repair benchmark and partial occlusion as the more practical occlusion-like sensitivity setting. 
+
+Evaluation suite. We use five complementary tests. First, layer-resolved selective flooring moves the same ranked dimension sets across decoder depths and final readout to determine where a ranking is load-bearing. Second, k-scaling end-point recovery replaces Top-k, Bottom-k, complement, random-k, complement-random, and full dimension sets with their clean endpoint values to separate ranking-enriched repair from generic dimensional capacity, using object mask as the primary corruption and partial occlusion as a softer sensitivity check. Third, local-set endpoint recovery compares fixed global, split-local, sample-local read-out, sample-specific corruption-derived, bottom-ranked, and random index sets under the same paired-corruption convention. The partial-occlusion version is read as a practical transfer test for coordinate-token triage rather than as a weaker copy of the object-mask benchmark. In all local-set tables, fixed global set means one fixed Top-k set reused for every test sample; split-local set is fixed per split; sample-local readout set is recomputed from the current clean sam-ple trace; sample-specific corruption-derived set is recomputed from the current clean–corrupt sample pair; and bottom-ranked set is the Bottom-k set from the corresponding fixed ranking (Supp. Methods A.12). Fourth, an edge-attribution patching diagnostic scores attention and MLP edges under partial occlusion against a coordinate-token readout-ranked Top-k objective, its complement, and a random-k endpoint objective, then validates the resulting edge rankings by zero-ablation (Supp. Methods A.13). Fifth, a quasi-layer RMSNorm control maps post-norm endpoint and repair directions through the RMSNorm Jacobian to test whether final normalization alone manufactures the readout/recovery dis-sociation (Supp. Methods A.10–A.14). 
+
+4 Results 
+
+This section summarizes the submitted evaluation. Single-split rows are effect-size diagnostics. Tables 1–3 report clean-input depth triage; Tables 4–5 report 8 D. E. Juanico 
+
+Table 1: Clean-input depth triage on Qwen3-VL using coordinate-token rankings. The Qwen Top-1280 set is null or protective through layer 17, complement-load-bearing at layers 21–24, and top-load-bearing from layers 32–35, with peak specificity at layer 34. The schema mirrors Table 2.                                                                                         
+
+> Layer nBase ∆Full ∆Top ∆Comp ztop zcomp Interpretation
+> 83741 .5871 −.0014 +.0022 −.0002 +1 .34 −.07 null; controls near baseline
+> 16 3741 .5871 −.0595 +.0014 −.0112 +.41 −2.19 complement harmful
+> 17 3741 .5871 −.0435 +.0036 −.0061 +.20 −1.95 mild complement harm
+> 21 3741 .5871 −.2243 +.0004 −.0540 +.97 −3.70 complement-load-bearing
+> 24 2997 .5904 −.2692 +.0101 −.0368 +.87 −3.98 complement-load-bearing
+> 32 2984 .5899 −.4603 −.0340 +.0006 −11 .84 −.83 top load-bearing; full collapse
+> 33 3003 .5871 −.0293 −.0691 −.0252 −20 .72 −17 .26 broad sensitivity; top worse
+> 34 3006 .5871 −.0044 −.1722 −.0235 −40 .79 −2.59 peak top specificity
+> 35 2974 .5841 +.0010 −.0051 −.0039 −10 .31 −1.57 weak top-specific effect final 3741 .5871 +.0021 +.0029 −.0009 +1 .04 −.69 final-site null
+
+Table 2: Clean-input depth triage on Kimi-VL-A3B using coordinate-token rankings. The Kimi Top-1024 set is the half-width analogue of Qwen’s Top-1280 set. The schema mirrors Table 1; entries are split-mean values. 
+
+Layer n Base ∆Full ∆Top ∆Comp ztop zcomp Interpretation 
+
+6 1502 .210 +.006 +.002 +.003 −.75 +.75 early null 
+
+12 1502 .210 +.006 +.008 +.004 +1 .51 +.12 mild/nonselective benefit 
+
+13 1502 .210 +.004 +.005 +.003 +.70 −.44 early null 
+
+16 1502 .210 −.001 +.005 +.007 +.56 +.88 nonselective helpful 
+
+18 1502 .210 +.011 +.007 +.004 +1 .18 −.25 early null 
+
+24 1502 .210 +.005 −.008 +.011 −.94 +1.42 transition onset 
+
+25 1502 .210 +.008 −.006 +.011 −1.43 +.11 transition; complement mixed 
+
+26 1502 .210 +.002 −.022 +.015 −6.01 +1 .32 top load-bearing final 1502 .210 +.005 −.031 +.014 −9.17 +.54 terminal top load-bearing 
+
+object-mask endpoint recovery; Table 6 reports the partial-occlusion sensitivity check; and Table 7 reports the RMSNorm quasi-layer control. ztop compares Top-
+
+k with random-k, and zcomp compares complement with complement-random. Supp. Table 11 and Supp. Fig. 2 report the partial-occlusion edge-attribution patching diagnostic. Supp. Tables 8 and 9 report parseability and negative-pool sensitivity controls. 
+
+Coordinate-token rankings separate whole-layer fragility from Top-k selectivity. 
+
+Table 1 separates broad layer fragility from Top-k selectivity. Full flooring severely damages layers 21, 24, and 32, but Top-vs-random statistics identify which half of the hidden state carries the effect. The final site, layer 8, and layers 16–17 are null or weak for Top-1280. Layers 21–24 form a complement-load-bearing middle band: Top flooring is near random ( ztop = + .97 and +.87 ), while com-plement flooring is strongly harmful ( zcomp = −3.70 and −3.98 ). The coordinate-token Top-1280 set becomes specifically load-bearing from layer 32 onward, with broad sensitivity at layer 33 and peak top specificity at layer 34. Thus, the clean coordinate-token subspace is not uniformly active; it shifts from complement-dominated mid-depth fragility to top-specific late load-bearing. Readout ̸ = Recovery 9
+
+Table 3: Clean-input depth triage using population corruption-derived rankings. The Top-1280 set is null at layer 8, harmful across layers 16–24, transitional at layer 32, necessary before sufficient at layers 33–34, and dual-criterion load-bearing at layer 35; the final site retains a weaker sufficiency signal. S is the number of held-out splits con-tributing to the row. Parse(full) reports parseability under full flooring. The selectivity gap is ∆Top −∆Comp.                                                                                                               
+
+> Layer SnBase ∆Full Parse(full) ∆Top ztop ∆Comp zcomp Selectivity gap
+> 853741 .5871 −.0014 .974 +.0001 −1.26 +.0010 +.67 −.0009 16 53741 .5871 −.0595 .881 −.0731 −8.78 +.0019 +.60 −.0750
+> 17 53741 .5871 −.0435 .882 −.0623 −8.02 −.0001 −.28 −.0623
+> 21 42997 .5904 −.2279 .587 −.3412 −44 .68 −.0015 +.68 −.3397
+> 24 32240 .5952 −.2704 .476 −.2590 −20 .69 +.0006 +.88 −.2597
+> 32 42984 .5899 −.4603 .216 −.0043 −2.19 +.0008 −.56 −.0051 33 43003 .5953 −.0290 .932 +.0036 +.53 −.0016 −2.10 +.0053 34 32239 .5681 +.0007 .979 +.0022 +1 .58 −.0037 −1.92 +.0059 35 42974 .5841 +.0010 .978 +.0084 +17 .22 −.0057 −2.27 +.0141
+> final 53741 .5871 +.0017 .977 +.0050 +2.02 −.0013 −.75 +.0062
+
+Kimi-VL shows an early-to-terminal coordinate-token transition. Table 2 mirrors the Qwen depth-triage columns in Table 1 so the two readout-depth diagnostics can be compared directly. Layers 6–18 remain null or mildly helpful: Top-1024 
+
+flooring stays close to random controls and parseability is flat. Layers 24–25 mark the transition. Top flooring is weakly negative, while complement flooring often helps more, indicating that complement noise appears before the coordinate-token Top half becomes irreplaceable; the mixed complement control at layer 25 is the only local exception. At layer 26 the pattern crystallizes in both splits, with a step change to large negative Top-vs-random statistics, followed by an even stronger final-site effect. The full-floor rows nearly cancel the Top penalty with the complement benefit, indicating a late functional polarity: coordinate-token Top-half dimensions carry signal, while the complement behaves partly like re-movable noise. The associated parseability drop is also depth-gated, emerging around layers 24–25 and growing to about 3–5 percentage points at layer 26/fi-nal. Thus, Kimi-VL shows a single-step functional transition at the penultimate decoder layer, with organizational restructuring beginning slightly earlier. 
+
+Population corruption-derived rankings show a separate multi-phase depth pro-file. Table 3 uses the same clean-input flooring operator but a population corruption-derived ranking. Each site now has at least three held-out splits. Layer 8 is null. Layers 16–24 form a strong harmful band in which Top-1280 flooring is much worse than random, peaking at layer 21, while complement flooring re-mains near baseline. Layer 32 is transitional: full flooring is catastrophic and Parse(full) falls to .216 , but Top-1280 flooring is only weakly negative and the complement is near random. Layers 33–34 show necessity before sufficiency: com-plement flooring becomes harmful or borderline harmful, but Top flooring is not yet beneficial. Layer 35 is the sole dual-criterion site, with Top flooring above random ( ztop = +17 .22 ) and complement flooring below complement-random (zcomp = −2.27 ). The final site keeps only a weaker sufficiency signal. Thus, the 10 D. E. Juanico 
+
+Table 4: k-scaling endpoint recovery under clean endpoint replacement. Entries are recovery percentages relative to the object-mask baseline and full-recovery ceiling; ±
+
+reports standard deviation across per-seed means where shown. ztop and zcomp compare Top-k and complement against matched random controls. For k = 1280 = d/ 2, Bottom-
+
+k and complement are identical.                                                                                                                                    
+
+> Ranking source kTop Random Bottom Complement Comp-random ztop /zcomp Interpretation Coordinate-token 250 3.27 ±1.31 2.97 ±.76 2.02 ±.73 90 .31 ±.81 94 .79 ±.96 +.92 /−5.60 necessity only Coordinate-token 500 10 .60 ±2.05 8.77 ±1.67 6.00 ±1.57 90 .60 ±.61 91 .04 ±.64 +2.35 /−.37 Top-krestoration emerges Coordinate-token 1280 76 .67 ±2.74 73 .73 ±2.41 72 .15 ±3.80 72 .15 ±3.80 74 .44 ±2.57 +1 .19 /−1.00 capacity-dominated Corruption-derived 250 2.89 ±0.84 2.93 ±0.72 3.58 ±1.08 89 .01 ±0.87 94 .31 ±0.96 −.17 /−8.41 exclusion cost only Corruption-derived 500 10 .95 ±1.68 8.76 ±1.49 9.40 ±1.32 88 .64 ±0.77 91 .04 ±0.57 +2.62 /−2.09 sufficiency and necessity Corruption-derived 1280 69 .80 ±2.75 69 .00 ±2.66 68 .29 ±4.27 68 .29 ±4.27 69 .76 ±2.45 +.31 /−.79 capacity-dominated
+
+Table 5: Object-mask endpoint recovery with local index sets under the primary clean endpoint-replacement operator. Entries report R50 ; parentheses give the z statis-tic against the matched random control. Fixed global means one Top-k set reused for all test samples; split-local means one fixed set per split; sample-local readout is re-computed from the current clean test trace; sample-specific corruption is recomputed from the current clean–corrupt pair; bottom-ranked is the Bottom-k set from the cor-responding fixed ranking.                                                                                    
+
+> Ranking source kRandom Fixed global Split-local range Sample-local readout Sample-specific corruption Bottom-ranked Coordinate-token 500 .1200 ±.0035 .1300 (+ 2.87 ).1283 –.1316 (+ 2.38 –+3.35 ).1236 (+1 .04) .1501 (+ 8.66 ).1064 ( −3.91)
+> Coordinate-token 1000 .3542 ±.0600 .2423 (−1.86 ).2294 –.2533 (−2.08 –−1.68 ).2480 ( −1.77) .4106 (+ 0.94 ).3124 ( −0.69)
+> Coordinate-token 1280 .4547 ±.0122 .4730 (+1 .49) .4651 –.4777 (+0 .85 –+ 1 .88) .4671 (+1 .01) .4685 (+1 .13) .4483 ( −0.53)
+> Corruption-derived 500 .119 ±.0035 .130 (+ 2.95 ).128 –.141 (+ 2.34 –+6.30 ).124 (+1 .17) .149 (+ 8.64 ).123 (+0 .92)
+> Corruption-derived 1000 .356 ±.0590 .401 (+ 0.77 ).391 –.408 (+ 0.59 –+0.88 ).253 ( −1.75) .412 (+ 0.94 ).273 ( −1.40)
+> Corruption-derived 1280 .456 ±.0118 .465 (+0 .76) .456 –.471 ( −0.03 –+ 1 .28) .472 (+1 .32) .471 (+1 .25) .449 ( −0.64)
+
+population corruption-derived set is dormant early, destructive when perturbed mid-computation, and most coherently load-bearing at the last decoder layer before final normalization. 
+
+k-scaling endpoint recovery separates necessity, restoration, and capacity. Ta-ble 4 shows the rank-budget logic. For coordinate-token rankings, k = 250 shows necessity only: Top-k restoration is random-like ( 3.27% versus 2.97% ), but with-holding them lowers complement recovery ( 90 .31% versus 94 .79% , z = −5.60 ). At k = 500 , Top-k restoration beats random ( 10 .60% versus 8.77% , z = +2 .35 )and the complement penalty vanishes. At k = 1280 = d/ 2, Bottom-k equals complement and recovery is capacity-dominated. Population corruption-derived rankings show the stronger asymmetric signature: exclusion hurts at k = 250 ,inclusion and exclusion both hold at k = 500 , and modes converge near 69 –70% 
+
+at half-width. Coordinate-token recovery moves from necessity to sufficiency to capacity, whereas corruption-derived recovery directly targets hard-mask repair at k = 500 .
+
+Local-set recovery separates repair-derived indices from clean readout indices. 
+
+Table 5 shows that clean coordinate-token rankings transfer at k = 500 , fall below the high-variance random baseline at k = 1000 , and converge with other non-oracle sets near half-width. The parenthesized z values tie each fixed, split-local, sample-local, sample-specific, or bottom-ranked row to the matched ran-dom baseline. Bottom-ranked controls are useful negative controls: they do not Readout ̸ = Recovery 11 
+
+Table 6: Partial-occlusion local-set recovery with explicit index-set terminology. A rectangular mean-color patch covers 40% of the ground-truth box. Entries report mean 
+
+R50 and mean within-split z against ten random controls; Panel A also reports Jaccard overlap J with the fixed global coordinate-token Top-k set. A fixed global or fixed population set is reused for every test sample; only the score used to construct that fixed set differs by panel.                                                                                                                              
+
+> Panel A: coordinate-token ranking family and matched alternatives under partial occlusion
+> kRandom-kFixed global Split-local mean Sample-local readout Sample-specific corruption Bottom-ranked
+> 500 .5101 .5072 ( −1.00; J= 1 .000) .5088 ( −.48; J=.968) .5140 (+ 1.32 ;J=.072 ).5073 ( −1.05; J=.257) .5078 ( −.78; J=.000) 1000 .5208 .5032 (−2.53 ;J=1.000 ).5022 (−2.64 ;J=.982 ).5232 (+ .37; J=.223) .5108 (−1.41 ;J=.398 ).5241 (+ .50; J=.000) 1280 .5212 .5289 (+ 2.42 ;J=1.000 ).5279 (+ 2.00 ;J=.982 ).5313 (+ 3.24 ;J=.314 ).5202 ( −.43; J=.470) .5227 (+ .85; J=.000)
+> Panel B: population corruption-derived ranking family and matched alternatives under partial occlusion
+> kRandom-kFixed population Sample-local readout Sample-specific corruption Bottom-ranked
+> 500 .5008 .4972 ( −1.30 ±1.57) .5075 (+ 2.12 ±.97 ).4994 ( −.57 ±.87) .5038 (+ 1.06 ±1.01 )1000 .5169 .5059 (−1.47 ±.88 ).5259 (+ 1.37 ±1.14 ).5061 (−1.52 ±.70 ).5206 (+ .51 ±.39) 1280 .5179 .5178 (+ .02 ±.76) .5338 (+ 3.77 ±1.48 ).5196 (+ .50 ±.83) .5232 (+1 .20 ±.52)
+
+Set definitions. Panel A uses coordinate-token readout rankings: the fixed global set is one Top-k set reused for every test sample, the split-local set is fixed per split, the sample-local readout set is recomputed from each clean test-sample coordinate-token trace, the sample-specific corruption set is recomputed from that sample’s partial-occlusion clean–corrupt disruption, and the bottom-ranked set is the Bottom-k set from the fixed global coordinate-token ranking. Panel B uses population corruption-derived rankings: the fixed population set is the Top-k set from the population average of per-sample disruption scores; the sample-specific corruption set uses the same underlying score but recomputes it for each sample from 
+
+Fθ (hclean ) − hcorrupt (here θ = −∞ , so Fθ (hclean ) = hclean ); and the bottom-ranked set is the Bottom-k set from the same population ranking. 
+
+explain the strong k = 500 sample-specific corruption result or the k = 1000 
+
+corruption-derived recovery. The corruption-derived block is cleaner for hard ob-ject masking: the fixed population ranking is above random at k = 500 , nearly matches the sample-specific corruption-derived row at k = 1000 , and then enters the same capacity-dominated regime. 
+
+Partial occlusion separates index-set overlap from recovery. Table 6 shows budget-dependent recovery rather than a simple overlap story. In Panel A, fixed global and split-local coordinate-token sets have near-perfect overlap with the global set, yet both are below random at k = 1000 ; the sample-specific corruption-derived row is also sub-random. This deficit is not merely parseability: for the fixed global row at k = 1000 , parseability is lower than random ( 92 .7% versus 
+
+95 .2% ), but conditional localization is also lower ( R50 | parse = .5425 versus 
+
+.5470 ). At k = 1280 , fixed global, split-local, and sample-local readout rows turn positive, while the sample-specific corruption-derived row is effectively neu-tral. The J entries explain why this is not a rank-overlap story: high-overlap fixed/split sets can be sub-random, while low-overlap sample-local readout can be positive. 12 D. E. Juanico 
+
+Panel B contrasts a fixed population-average disruption ranking with the corresponding sample-specific disruption ranking. Both fail to beat random at 
+
+k = 500 , both are sub-random at k = 1000 , and both return to near-null at k =1280 . Across both panels, sample-local readout is the most consistently positive condition, with the strongest effect at half-width. Bottom-ranked controls are weakly positive for the population corruption-derived family, suggesting that avoiding highly disrupted dimensions can be safer than restoring them under partial occlusion. Supp. Table 10 compares occlusion fractions at k = 1000 and 
+
+k = 1280 and shows the same regime change directly: coordinate-token fixed and split-local sets are negative at k = 1000 but nonnegative at k = 1280 , while random restoration flips from positive at 20% –40% occlusion to nonpositive at half-width. 
+
+Edge-attribution patching gives a path-level precision/recall check. Supp. Ta-ble 11 ablates the top scored attention and MLP edges under the 40% partial-occlusion setting. Up to 100 ablated edges, coordinate-token Top-k edges are slightly more behaviorally concentrated than the complement and random con-trols ( ∆R 50 = −.034 versus −.029 and −.032 ), supporting high precision for the coordinate-token endpoint objective. At 200 edges the ordering reverses: com-plement and random edge sets damage detection more ( −.192 and −.166 ) than the coordinate-token Top-k set ( −.097 ), even though the coordinate-token Top-k
+
+set produces the largest change in J∆. Supp. Fig. 2 is consistent with this inter-pretation: coordinate-token Top-k paths concentrate more on output-proximal MLP structure, while broader detection-critical partial-occlusion behavior also uses complement and random-controlled pathways. Thus, edge attribution rein-forces the dimension-level conclusion: endpoint readout is a useful circuit prior, but not a high-recall recovery explanation. Supplementary Table 8 shows that the main effects are not merely parseabil-ity artifacts. Qwen layer-34 Top flooring lowers both parseability and condi-tional localization, while Kimi-VL layer-26 and final-site effects mostly reflect formatting because R50 | parse stays near .62 across interventions. Object-mask endpoint recovery shows the strongest format collapse: the corrupted baseline is only 62% parseable, but any k = 500 restoration raises parseability to about 
+
+97% , indicating a global activation-repair effect rather than ranked-set-specific formatting. Partial occlusion shows only mild formatting degradation, and the 
+
+k = 1000 coordinate-token deficit persists after conditioning on parseable out-puts. 
+
+The quasi-layer control does not close the endpoint-repair gap. Table 7 tests whether the final RMSNorm boundary explains the readout/recovery gap. Re-pair rankings are almost unchanged across the boundary: pre/post repair overlap is .942 ± .008 at k = 500 and .970 ± .003 at k = 1280 . Transporting endpoint attribution through the RMSNorm Jacobian changes endpoint-repair overlap by only +.008 , +.001 , and −.004 at k = 500 , 1000 , 1280 . The dissociation therefore remains visible in both post-norm and pre-norm spaces. Readout ̸ = Recovery 13                                      
+
+> Table 7: Quasi-layer RMSNorm control using bbox_2d readout rankings. The ta-ble compares repair rankings before/after making RMSNorm explicit, and endpoint-readout rankings against repair rankings in post-norm and transported pre-norm spaces.
+> kRepair pre/post overlap Post endpoint-repair Pre endpoint-repair Pre-post
+> 500 .942 ±.008 .705 ±.013 .713 ±.015 +.008
+> 1000 .961 ±.004 .843 ±.008 .843 ±.009 +.001
+> 1280 .970 ±.003 .882 ±.006 .877 ±.004 −.004
+
+5 Limitations and Future Work 
+
+This study is endpoint-centered. The interventions test whether selected residual-stream dimensions are load-bearing for coordinate emission or can transfer clean localization behavior into a corrupted decode trace; they do not identify the full upstream visual pathway. Vision-encoder representations, cross-modal attention, and intermediate MLP computations may contain repair-relevant structure. The depth grid is targeted rather than exhaustive: Tables 1 and 3 cover ten Qwen sites spanning early, mid, late, and final regimes, while Table 2 covers proportional Kimi sites. Layer 8 in Table 1 shows that z values must be read against the random-control baseline, not raw ∆R 50 alone. Full-flooring drops at layers 16, 17, 21, 24, and 32 show that fixed θ = −0.5, calibrated as a non-collapsing final-site operating point, can be destructive at mid-network sites. We therefore separate full-flooring collapse, random-control shifts, and Top-k selectivity rather than treating every depth effect as a discovered circuit. The corruption settings are probes, not complete robustness benchmarks. Object masking removes local evidence, but is harder and less naturalistic than many real occlusions. Partial occlusion is closer to deployment because visible object evidence remains, but it is still synthetic: each occluded image is gener-ated once per sample and held fixed across all k, mode, and split conditions. Conclusions should therefore be read as mechanistic evidence under occlusion-like damage, not as deployment claims about natural occluders, clutter, motion, or multi-instance scenes. Future work can turn endpoint recovery into an annotation-free test-time repair module. One route is visible-region-conditioned pseudo-clean completion: an occlusion trigger detects likely partial visibility from box instability, low lo-calization confidence, partial-object cues, or hidden-state anomaly scores; a com-pletion stage generates candidates from visible object regions using symmetry, patch propagation, retrieval, inpainting, or feature-space completion; and a sta-bility filter patches or reweights only recovery-relevant dimensions. The results suggest this module should be gated and conservative. Coordinate-token rank-ings are useful circuit priors, especially when some object evidence remains, but not universal repair sets. Future work should test whether pseudo-clean activa-tion sourcing plus occlusion triggers and stability filtering across completions improves recovery without ground-truth boxes at deployment time. 14 D. E. Juanico 
+
+6 Discussion and Conclusion 
+
+Endpoint readout is a useful starting point for VLM grounding analysis, but it is not a repair explanation by itself. The bbox_2d field gives a stable, parseable localization endpoint, and coordinate-token triage targets the emitted coordinate values more directly. Corruption-derived rankings answer a different question: which dimensions repeatedly support recovery when object evidence is damaged. The results make this separation concrete. Coordinate-token rankings are load-bearing for clean coordinate generation only after the layer-24-to-layer-32 transition in Qwen3-VL, with peak specificity at layer 34, and the Kimi-VL diagnostic shows a matching output-proximal transition in a second VLM, with onset at layer 24 and full selectivity by layer 26/final. Population corruption-derived rankings follow a different trajectory, with harmful mid-layer selectivity across layers 16–24 and a late beneficial regime at layer 35/final. Yet hard object-mask recovery is not explained by either clean readout geometry alone: half-width restoration is largely capacity-driven, while the strongest lower-budget repair evidence comes from corruption-derived indices. Partial occlusion adds the caution that high-overlap readout-derived dimension lists can still fail as recovery interventions: coordinate-token fixed and split-local sets fall below random at 
+
+k = 1000 but become beneficial at half-width, while population corruption-derived sets remain null or sub-random across the tested budgets. The edge-attribution patching diagnostic strengthens the same caution at the path level: readout-targeted edges are precise at small budgets but do not cover the broader set of detection-critical pathways. The RMSNorm control further narrows the explanation, since making the final normalization boundary explicit does not make endpoint readout substantially more repair-like. The central contribution is therefore methodological. Endpoint rankings are principled circuit priors for localization, not sufficient evidence that the visual grounding pathway has been identified. Recovery from damaged visual evidence requires corruption-specific causal tests rather than endpoint-readout evidence alone. 
+
+References          
+
+> 1. Anonymous: An anonymized final-layer probing method for vision-language models (2026), anonymized manuscript supplied as supplementary material 2. Ba, J.L., Kiros, J.R., Hinton, G.E.: Layer normalization. arXiv preprint arXiv:1607.06450 (2016) 3. Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., Cheng, Z., Deng, L., Ding, W., Gao, C., Ge, C., et al.: Qwen3-VL technical report. arXiv preprint arXiv:2511.21631 (2025) 4. Chen, K., Zhang, Z., Zeng, W., Zhang, R., Zhu, F., Zhao, R.: Shikra: Unleash-ing multimodal LLM’s referential dialogue magic. arXiv preprint arXiv:2306.15195 (2023) 5. Chen, T., Saxena, S., Li, L., Fleet, D.J., Hinton, G.: Pix2Seq: A language modeling framework for object detection. In: International Conference on Learning Repre-sentations (2022)
+
+Readout ̸ = Recovery 15 6. Conmy, A., Mavor-Parker, A., Lynch, A., Heimersheim, S., Garriga-Alonso, A.: Towards automated circuit discovery for mechanistic interpretability. Advances in Neural Information Processing Systems 36 , 16318–16352 (2023) 7. Du, A., Yin, B., Xing, B., Qu, B., Wang, B., Chen, C., Zhang, C., Du, C., Wei, C., et al.: Kimi-VL technical report. arXiv preprint arXiv:2504.07491 (2025) 8. Hendrycks, D., Dietterich, T.: Benchmarking neural network robustness to common corruptions and perturbations. In: International Conference on Learning Represen-tations (2019) 9. Jacovi, A., Goldberg, Y.: Towards faithfully interpretable nlp systems: How should we define and evaluate faithfulness? In: Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics. pp. 4198–4205 (2020) 10. Jain, S., Wallace, B.C.: Attention is not explanation. In: Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers). pp. 3543–3556 (2019) 11. Lin, T.Y., Maire, M., Belongie, S., Hays, J., Perona, P., Ramanan, D., Dollár, P., Zitnick, C.L.: Microsoft COCO: Common objects in context. In: European Conference on Computer Vision. pp. 740–755. Springer (2014) 12. Meng, K., Bau, D., Andonian, A., Belinkov, Y.: Locating and editing factual asso-ciations in GPT. In: Advances in Neural Information Processing Systems. vol. 35, pp. 17359–17372 (2022) 13. Michaelis, C., Mitzkus, B., Geirhos, R., Rusak, E., Bringmann, O., Ecker, A.S., Bethge, M., Brendel, W.: Benchmarking robustness in object detection: Au-tonomous driving when winter is coming. arXiv preprint arXiv:1907.07484 (2019) 14. Peng, Z., Wang, W., Dong, L., Hao, Y., Huang, S., Ma, S., Wei, F.: Kosmos-2: Grounding multimodal large language models to the world. arXiv preprint arXiv:2306.14824 (2023) 15. Qwen Team: Qwen3-VL-4B-Instruct configuration. Hugging Face model repository (2025), configuration file for Qwen/Qwen3-VL-4B-Instruct. Accessed 2026-06-20 16. Serrano, S., Smith, N.A.: Is attention interpretable? In: Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics. pp. 2931–2951 (2019) 17. Vig, J., Gehrmann, S., Belinkov, Y., Qian, S., Nevo, D., Singer, Y., Shieber, S.: Investigating gender bias in language models using causal mediation analysis. Ad-vances in Neural Information Processing Systems 33 , 12388–12401 (2020) 18. Wang, A., Sun, Y., Kortylewski, A., Yuille, A.: Robust object detection under occlusion with context-aware compositionalnets. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 12645–12654 (2020) 19. Wang, K., Variengien, A., Conmy, A., Shlegeris, B., Steinhardt, J.: Interpretabil-ity in the wild: A circuit for indirect object identification in GPT-2 small. In: International Conference on Learning Representations (2023) 20. You, H., Zhang, H., Gan, Z., Du, X., Zhang, B., Wang, Z., Cao, L., Chang, S.F., Yang, Y.: Ferret: Refer and ground anything anywhere at any granularity. In: International Conference on Learning Representations (2024) 21. Zhang, B., Sennrich, R.: Root mean square layer normalization. In: Advances in Neural Information Processing Systems. vol. 32 (2019) 16 D. E. Juanico 
+
+A Supplementary Methods 
+
+A.1 Notation summary 
+
+We use i for sample index, t for autoregressive decode-token position, q for vocabulary-token index, j and p for hidden-dimension indices, and ℓ for decoder-layer index. The hidden width is d = 2560 . A ranking of hidden dimensions is denoted by r = ( r1, . . . , r d). A selected intervention set of hidden dimensions is denoted by I ⊆ { 1, . . . , d }. For projector-based visualization, we use S ⊆{1, . . . , d } to denote a selected dimension set. Intervention conditions are denoted by c.
+
+Supplementary code. The anonymized supplementary material includes code for reproducing the intervention pipelines, table aggregation, and figure generation. 
+
+A.2 Parseability convention 
+
+Because the model expresses localization through generated text, we separate output-format validity from geometric localization accuracy. A response is con-sidered parseable if it contains an identifiable bbox_2d field followed by a coor-dinate list that can be converted into one or more four-coordinate boxes. Co-ordinates must be numeric after token detokenization and must define a valid box after the same post-processing used for all conditions, including coordinate conversion, coordinate ordering, and clipping to image bounds where applicable. Parseability is imposed at two points. First, examples used to construct clean readout rankings are required to have a parseable clean localization response, because the ranking procedure needs localization-related target positions, such as the bbox_2d field tokens or the generated coordinate tokens. Second, during intervention evaluation, parseability is not imposed by constrained decoding and outputs are not filtered post hoc. If an intervention causes the model to omit the bbox_2d field, produce malformed coordinates, or generate a coordinate list that cannot be converted into a valid box, that trial is counted as unparseable. We report 
+
+Parseability = 1
+
+|D eval |
+
+X
+
+> i∈D eval
+
+1{parseable( i)}. (4) For R50 evaluation, unparseable outputs receive no successful match and there-fore contribute zero localization recall. This convention prevents format collapse from being mistaken for a spatial error while also ensuring that endpoint recovery methods are not credited unless they recover a usable localization output. Table 8 applies this convention to representative regimes by reporting overall 
+
+R50 , parseability, and R50 | parse . The table covers clean-input depth triage, cross-model Kimi-VL depth triage, object-mask endpoint recovery, and partial-occlusion local-set recovery, separating output-format failure from spatial local-ization error. Cells with one held-out split are treated as effect-size diagnostics. Table 8 is intended to separate output-format failure from spatial localization degradation Readout ̸ = Recovery 17 
+
+Table 8: Parseability decomposition for representative intervention regimes. R50 
+
+counts unparseable outputs as zero; R50 | parse evaluates only parseable genera-tions. Kimi-VL-A3B uses a bracketed normalized-coordinate format rather than Qwen’s 
+
+bbox_2d JSON convention, so its baseline parseable rate is lower than Qwen’s in these diagnostics.                                                                                                                  
+
+> Experiment Condition R50 Parse % R50 |parse Evaluation cells Qwen coordinate-token depth triage, layer 34 ( k= 1280 ,n≈750 per split)
+> Baseline (no flooring) .568 97 .9.580 3held-out splits Top coordinate-token floored .408 89 .5.456 3held-out splits Complement floored .558 97 .0.575 3held-out splits Random, size-matched .568 97 .9.580 3held-out splits
+> Kimi-VL-A3B coordinate-token depth triage ( k= 1024 ,n= 735 –767 )
+> Baseline (no flooring) .211 33 .5.628 2held-out splits Layer 26 Top .186 29 .9.622 1held-out split Layer 26 random .226 36 .1.626 1held-out split Final Top .179 29 .4.610 2held-out splits Final random .223 35 .6.627 2held-out splits
+> Object-mask endpoint recovery ( k= 500 ,n≈767 per split)
+> Corrupted baseline (no restoration) .074 62 .0.120 5held-out splits Coordinate-token k= 500 restored .540 97 .0.557 5held-out splits Population corruption-derived k= 500 restored .530 97 .3.545 5held-out splits Random k= 500 restored .542 97 .1.558 5held-out splits
+> Partial occlusion, local index-set recovery ( k= 1000 ,n= 720 per split)
+> Fixed global coordinate-token .503 92 .7.5425 5held-out splits Sample-local readout .523 94 .5.5538 5held-out splits Random, size-matched .521 95 .2.5470 5held-out splits
+
+among parseable generations, not to replace the primary R50 metric used in the main results. The object-mask recovery rows show that restoring any k = 500 
+
+endpoint set largely repairs parseability, whereas the partial-occlusion rows show that localization error dominates once the object remains partly visible. 
+
+A.3 Sites, token positions, and hook convention 
+
+The final readout site is the output of the final RMSNorm immediately before the LM head. Decoder-layer sites are the outputs of the corresponding decoder blocks. For decoder layer ℓ, the hook is attached to the output of layers[ ℓ]; for the final site, it is attached after final RMSNorm and before the LM head. Hooks are decode-only. They fire during autoregressive generation steps with sequence length one and do not alter the image/prompt prefill pass. Target positions are generated tokens associated with localization: the token sequence spelling bbox_2d , the coordinate-value tokens that follow it, or both, depend-ing on the ranking being constructed. Thus, t always indexes generated decode positions, not image-token positions. 
+
+A.4 Kimi-VL coordinate-token depth-triage diagnostic 
+
+Kimi-VL-A3B does not use Qwen3-VL’s bbox_2d JSON convention in the evalu-ated generations. We prompt the model to localize the named object and return bounding boxes inside brackets; the evaluated generations use plain normal-ized boxes of the form [x1, y1, x2, y2] . The Kimi diagnostic therefore uses 18 D. E. Juanico 
+
+coordinate-token triage directly. At each bounding-box decode step, we construct a token-specific contrast direction from the untied language-model head, 
+
+wt = Wlm [: , y t] − 1
+
+|N t|
+
+X
+
+> n∈N t
+
+Wlm [: , n ], (5) and score each hidden dimension by 
+
+sKimi  
+
+> t,j
+
+= |Fθ (ht,j ) − ht,j | | wt,j |, θ = −0.5. (6) Scores are aggregated hierarchically from decode step to coordinate value, box, sample, and global split ranking. The resulting coordinate-value ranking has 2048 dimensions and supplies the Top-k input for Kimi-VL depth triage. The reported Kimi-VL experiment uses k = 1024 , the half-width counter-part of Qwen3-VL’s k = 1280 , and evaluates proportional depth sites in Kimi’s 27-layer decoder, including layers 6, 12, 13, 16, 18, 24, 25, 26, and the final norm output. The intervention is applied at decoder-block outputs for layer sites and at the final norm output for the final site. The Kimi table in the main text re-ports coordinate-token depth triage only. A Kimi population corruption-derived ranking would require a corrected, variance-normalized repair score because the naive donor-minus-corrupt displacement is dominated by outlier channels; this recovery-side extension is outside the reported Kimi diagnostic. 
+
+A.5 Contrast readout directions 
+
+Let hi,t ∈ Rd be the hidden state for sample i at localization-related decode position t. Let Wq ∈ Rd denote the LM-head, or unembedding, vector associated with vocabulary token q. We orient Wq so that the token-q logit contribution from hidden state hi,t is h⊤
+
+> i,t
+
+Wq up to any token-specific bias. For a target token yi,t , let 
+
+Ni,t = {ni,t, 1, . . . , n i,t,M i,t } (7) be a set of Mi,t negative alternative tokens appropriate to the same output position. The index m below is only a counter over these negative alternatives. The average negative-token direction is 
+
+W − 
+
+> i,t
+
+= 1
+
+Mi,t Mi,t 
+
+X
+
+> m=1
+
+Wni,t,m . (8) The contrast readout direction is then 
+
+wi,t = Wyi,t − W −
+
+> i,t
+
+. (9) Thus, wi,t points toward the target token relative to the average competing-token direction. The scalar wi,t,j is the contrastive logit-facing direction for hidden dimension j. For bbox_2d rankings, yi,t is drawn from the stable field-token Readout ̸ = Recovery 19 
+
+Table 9: Negative-set sensitivity of coordinate-token rankings. Entries report Jaccard overlap between Top-k hidden-dimension sets produced by the main position-specific negative pool and rankings produced by alternative negative-token pools. The check uses one held-out split with n = 147 valid generations. The first row compares a small-sample replica of the main-pool ranking with the corresponding full-scale main-pool ranking, isolating negative-pool effects from sample-size noise. Pool comparison k = 500 k = 1000 k = 1280 
+
+main pool replica vs. full ranking .953 .970 .966 
+
+main pool vs. digit-only pool .244 .410 .502 
+
+main pool vs. coordinate-format pool .439 .548 .614 
+
+digit-only pool vs. coordinate-format pool .247 .428 .492 
+
+positions. For coordinate-token rankings, yi,t is the sample-specific coordinate token generated for the particular image and object. Table 9 directly tests sensitivity to the negative-token pool in the contrastive readout direction. The main-pool replica closely matches the full-scale main-pool ranking (Jaccard at least .95 at every reported k), so the alternative-pool differ-ences are not explained by the smaller sensitivity-check sample. The alternative pools yield moderate rather than near-total Top-k overlap ( .24 –.61 , increasing with k). Thus, coordinate-token dimension identities are partly negative-pool-dependent. We therefore treat the negative pool as part of the ranking specifi-cation and rely on held-out intervention behavior in the main depth-triage and recovery tables, rather than exact rank identity alone, for the paper’s causal claims. 
+
+A.6 Corruption-derived ranking 
+
+The corruption-derived ranking is built from object-mask repair displacements rather than clean-only readout contributions. For sample i, the corruption-derived score for hidden dimension j is 
+
+sder  
+
+> i,j
+
+= 1
+
+TiTiX
+
+> t=1
+
+ hclean  
+
+> i,t,j
+
+− hmask 
+
+> i,t,j
+
+ wi,t,j , (10) where hmask is the trace under object-mask corruption. Each sample produces a full d-dimensional corruption-derived ordering. Unlike the readout score, sder 
+
+> i,j
+
+does not involve the flooring operator Fθ ; it uses the raw clean-to-object-mask endpoint displacement projected onto the readout direction, so θ is not calibrated or used for this ranking. When raw scores are available, we aggregate them by mean score over the ranking population. When only rank order is retained, we aggregate sample-level orderings by average rank position: 
+
+Sder  
+
+> j
+
+= 1
+
+|D rank |
+
+X
+
+> i∈D rank
+
+rank i(j). (11) 20 D. E. Juanico 
+
+Dimensions persistently appearing near the top of sample-level corruption-derived rankings become high-ranked in the corruption-derived ranking. This distin-guishes two kinds of global ranking: clean readout rankings capture output-interface leverage, whereas corruption-derived rankings capture recurring object-mask recovery leverage. 
+
+A.7 Flooring motivation and readout-ranking score 
+
+Elementwise flooring supplies the dimensionwise perturbation used to define readout scores and clean-input depth triage. For hidden coordinate hj , the op-erator 
+
+Fθ (hj ) = max( hj , θ ), θ = −0.5 (12) induces the displacement 
+
+∆h i,t,j = Fθ (hclean  
+
+> i,t,j
+
+) − hclean  
+
+> i,t,j
+
+. (13) Thus, dimensions already above the threshold are unchanged, whereas below-threshold coordinates are lifted to the calibrated floor. The threshold θ = −0.5
+
+is used as a non-collapsing operating point for Qwen3-VL-4B and Kimi-VL-A3B: it perturbs localization behavior while largely preserving parseable generation. The readout-triage score projects this flooring displacement onto the contrast direction for the target localization token. For a clean readout ranking, the per-position contribution of hidden dimension j is 
+
+sread  
+
+> i,t,j
+
+= |∆h i,t,j wi,t,j | . (14) Scores are averaged over samples and target positions in the ranking split: 
+
+Sread  
+
+> j
+
+= 1
+
+|D rank |
+
+X
+
+> i∈D rank
+
+1
+
+TiTiX
+
+> t=1
+
+sread  
+
+> i,t,j
+
+. (15) Sorting dimensions by Sread  
+
+> j
+
+yields a global final-site readout ranking. In the initial triage that motivated this study, the ranking was computed from a small diagnostic subset with balanced outcome types and then evaluated on larger image-cluster bootstrap splits by comparing Top-k, random-k, and complement-
+
+k selective flooring conditions. For that diagnostic check, let Rfull -floor 50 denote the score after flooring all dimensions at the final site, and let Rclean 50 denote the unmodified clean baseline. For a selective flooring condition c, the fraction of the full final-site gain recovered is 
+
+GainFrac floor (c, k ) = 100 · Rfloor 50 (c, k ) − Rclean 50 
+
+Rfull -floor 50 − Rclean 50 
+
+. (16) The observed pattern motivates the ranking as a final-readout triage prior: Top-
+
+k dimensions recover more of the full final-site gain than size-matched random sets across rank sizes, while complement flooring removes or reverses the gain Readout ̸ = Recovery 21 
+
+once the withheld Top-k set is large enough. At very small k, complement sets can outperform Top-k because the complement still contains most hidden dimen-sions; this is expected and does not by itself imply that the smallest Top-k set is sufficient. These checks justify using the ranking as a stable endpoint reference, but they do not assume that endpoint-ranked dimensions are also sufficient for object-mask repair. 
+
+A.8 Partial-occlusion corruption 
+
+Partial occlusion is implemented as a softer visual corruption than object mask-ing and is used as a synthetic occlusion-like probe for the practically common case in which the target remains partly visible. For each ground-truth box, the corruption samples a patch inside the box whose area equals a specified fraction of the box area. With occlusion fraction ρ, the square-side fraction is √ρ; for example, ρ = .4 covers approximately 40% of the box area rather than 40% of each side. The patch location is sampled uniformly subject to remaining inside the ground-truth box, so part of the target object remains visible. The patch is drawn as either a rectangle or ellipse and filled with a constant value, using the image mean in the reported experiments. Partial occlusion is included as a corruption condition alongside full object masking, background corruption, and image shuffling. In k-scaling recovery and local-set recovery, each corrupted image is constructed once per sample and then held fixed. The same partial-occlusion image is reused across all rank sizes, index-set modes, random seeds, and split-transfer conditions for that sample. The cor-ruption is therefore paired within an experiment: differences among modes reflect the activation restoration condition, not a different occlusion draw. The reported partial-occlusion sensitivity analyses use θ = −∞ with the same restoration operator, so floored restoration is algebraically equivalent to clean endpoint re-placement. Exact replication across separate invocations requires holding the generated corruptions fixed or fixing the external image-generation seed. 
+
+A.9 Dimension sets and intervention operators 
+
+Let r = ( r1, . . . , r d) be a ranking of hidden dimensions. For rank size k, define 
+
+Itop (k) = {r1, . . . , r k}, (17) 
+
+Ibottom (k) = {rd−k+1 , . . . , r d}, (18) 
+
+Icomp (k) = {rk+1 , . . . , r d}. (19) Random controls sample size-k sets uniformly from {1, . . . , d }, and complement-random controls sample size-(d − k) sets. All sets are hidden-dimension sets, not token-position sets. 22 D. E. Juanico 
+
+Table 10: Final partial-occlusion severity sweep comparing k = 1000 and k = 1280 .Entries are ∆R 50 offsets relative to the corresponding no-restoration partial-occlusion baseline over five held-out splits with 150 samples per split. The ablation varies both restoration budget and occlusion area fraction while using the same generic index-set scopes as Table 6.                                                          
+
+> Condition k= 1000 k= 1280 20% 40% 60% 20% 40% 60%
+> Fixed population corruption-derived −.004 +.007 +.077 †+.002 −.010 †+.010
+> Fixed global coordinate-token −.032 †−.043 †−.097 †+.010 +.007 +.012
+> Split-local population corruption-derived −.010 +.011 +.043 †+.002 −.009 ‡+.008
+> Split-local coordinate-token −.026 †−.043 †−.032 †+.015 ‡+.007 +.001
+> Sample-local readout +.016 +.006 +.088 †+.002 +.019 +.013
+> Sample-specific corruption-derived −.013 −.000 −.049 −.008 −.013 †+.002
+> Random-k+.015 †+.015 †−.002 −.007 †−.002 −.007
+> Bottom-ranked +.025 †+.006 −.044 +.001 +.022 ‡−.007
+
+† marks a bootstrap 95% confidence interval excluding zero; ‡ marks a very tight confidence interval excluding zero. The final sweep shows two coupled regime changes. First, coordinate-token fixed and split-local rows are consistently negative at 
+
+k = 1000 but nonnegative at k = 1280 . Second, random restoration is positive at 
+
+k = 1000 for 20% –40% occlusion but nonpositive at k = 1280 , indicating that the identity of restored dimensions matters once the restoration budget reaches half-width. At 40% occlusion and k = 1280 , bottom-ranked dimensions are the strongest positive condition, while population corruption-derived and sample-specific corruption-derived sets are reliably harmful. 
+
+In clean selective flooring, selected dimensions are floored while all other dimensions are left unchanged: 
+
+h′ 
+
+> t,I
+
+= Fθ (ht,I ), h′  
+
+> t, ¯I
+
+= ht, ¯I . (20) In endpoint recovery experiments, the image is first corrupted by masking the ground-truth object region with the per-image mean color. Selected corrupted dimensions are then replaced with their clean values: 
+
+hpatch  
+
+> t,I
+
+= hclean  
+
+> t,I
+
+, hpatch   
+
+> t, ¯I
+
+= hmask   
+
+> t, ¯I
+
+. (21) This convention is important: in clean flooring experiments, a set label denotes the dimensions perturbed; in endpoint recovery experiments, a set label denotes the dimensions replaced by clean endpoint values. 
+
+A.10 Layer-resolved selective flooring 
+
+To determine where ranked dimensions become load-bearing, we hold a ranking fixed and move the clean selective-flooring hook across decoder layers and the final site. For decoder layer ℓ, the hook is attached to the output of layers[ ℓ];Readout ̸ = Recovery 23 
+
+for the final site, it is attached after final RMSNorm and before the LM head. We compare the flooring intervention conditions 
+
+Cfloor = {full , top -k, comp , rand -k, rand -comp }, (22) where top -k floors the Top-k dimensions, comp floors the complement of the Top-k set, rand -k floors a size-k random set, and rand -comp floors a size-(d − k)
+
+random set. We evaluate selected rank sizes, including k = 500 , 1000 , and 1280 .For flooring condition c ∈ C floor , decoder layer ℓ, and rank size k, we report 
+
+∆R floor 50 (c, ℓ, k ) = Rfloor 50 (c, ℓ, k ) − Rclean 50 . (23) We also compute the selectivity gap 
+
+gap floor (ℓ, k ) = ∆R floor 50 (top -k, ℓ, k ) − ∆R floor 50 (comp , ℓ, k ). (24) A depth at which complement flooring becomes disruptive indicates that non-top dimensions are load-bearing at that site. Cross-k comparisons localize whether the disruptive information lies inside the top ranks, outside them, or diffusely across the residual stream. 
+
+A.11 k-scaling endpoint recovery 
+
+To test whether visual-corruption endpoint recovery is ranking-enriched or capacity-driven, we replace selected dimension sets at the final site over a wide range of 
+
+k values, including the tested k = 500 budgets, the half-width point k = d/ 2 = 1280 , and near-full endpoint recovery. We compare the endpoint-recovery inter-vention conditions 
+
+Crec = {top -k, bottom -k, comp , rand -k, rand -comp , full }. (25) Here, top -k replaces the Top-k dimensions with their clean-trace values, bottom -k
+
+replaces the Bottom-k dimensions, comp replaces the complement of the Top-k
+
+set, rand -k replaces a size-k random set, rand -comp replaces a size-(d−k) random set, and full replaces all endpoint dimensions with their clean-trace values. For endpoint-recovery condition c ∈ C rec , recovery is measured relative to the selected corruption baseline, object mask or partial occlusion, and the full-endpoint-recovery ceiling: 
+
+∆R rec 50 (k, c ) = Rrec 50 (k, c ) − Rmask 50 , (26) 
+
+Recovery( k, c ) = 100 · Rrec 50 (k, c ) − Rmask 50 
+
+Rrec 50 (k, full) − Rmask 50 
+
+. (27) We summarize each curve by area under the k-curve, the smallest k reaching half-maximal recovery, and slopes under log-capacity and linear-capacity fits. A posi-tive Top-minus-random gap indicates ranking-enriched recovery. Top/random/bottom parity indicates that endpoint recovery depends mainly on how many endpoint dimensions are replaced rather than which endpoint-ranked dimensions are se-lected. 24 D. E. Juanico 
+
+A.12 Local-set endpoint recovery 
+
+To test whether a global ranking transfers to individual corrupted examples, we compare five generic index-set scopes at k ∈ { 500 , 1000 , 1280 }: fixed global, split-local, sample-local readout, sample-specific corruption-derived, bottom-ranked, and random. A fixed global or fixed population set always means that the same Top-k hidden dimensions are restored for every test sample. A split-local set is fixed within a split but may differ across split-specific rankings. A sample-local readout set or sample-specific corruption-derived set varies by test sample. For coordinate-token local-set recovery, the fixed global set is the Top-k set from the global coordinate-token readout ranking, computed once on a triage/ranking split and reused for all test samples. The split-local set uses a coordinate-token ranking recomputed on one split and then held fixed for the corresponding eval-uation. The sample-local readout set recomputes the coordinate-token readout ranking from the current test sample’s own clean readout trace. The sample-specific corruption-derived set selects the Top-k dimensions most disrupted by that same sample’s visual corruption, and the bottom-ranked set is the Bottom-k
+
+set from the fixed global coordinate-token ranking. For population corruption-derived local-set recovery, the fixed population set is the Top-k set under the population average of per-sample disruption scores, so it is fixed for every held-out test sample. The sample-specific corruption-derived set uses the same underlying clean–corrupt disruption score but recomputes it from the current sample’s traces, and therefore varies per sample. With the re-ported partial-occlusion setting, this score is computed from Fθ (hclean )−hcorrupt ;because θ = −∞ , this reduces to hclean − hcorrupt . The bottom-ranked set is the Bottom-k set from the same population corruption-derived ranking. This exper-iment asks whether knowing which dimensions were disrupted on the current sample beats using the dimensions most often disrupted across the held-out population. We compute Jaccard overlap between local Top-k sets and global Top-k sets to quantify rank heterogeneity. To avoid overloading J with Jacobian or objective notation, we denote this set-overlap score by Jac :
+
+Jac( Ii, I global ) = |Ii ∩ Iglobal ||Ii ∪ Iglobal | . (28) Low overlap indicates that a fixed global clean-readout ranking may not capture the dimensions needed by individual corrupted examples. 
+
+A.13 Edge-attribution patching under partial occlusion 
+
+This diagnostic complements endpoint dimension replacement by asking which attention and MLP edges route the coordinate-token endpoint clean–corrupt gap under partial occlusion. It is not a new recovery operator; it is a path-level vali-dation of whether the coordinate-token endpoint objective isolates behaviorally important edges. Readout ̸ = Recovery 25 
+
+Table 11: Edge-attribution patching validation under 40% partial occlusion. The top-
+
+n edges from each endpoint objective are zero-ablated at inference on 300 held-out examples. ∆R 50 is relative to the unablated partial-occlusion run, and ∆J ∆ is the change in the corresponding endpoint-gap objective. Bold entries mark the most diag-nostic cells discussed in the main text.                                           
+
+> nedges ∆R 50 Coordinate-token Top-k∆R 50 Complement ∆R 50 Random-k∆J ∆Coordinate-token Top-k∆J ∆Complement ∆J ∆Random-k
+> 10 −.002 −.021 −.010 +3621 +3208 +3888 25 −.019 −.018 −.016 +2321 +2216 +3618 50 −.020 −.022 −.019 −5140 −3763 +2315 100 −.034 −.029 −.032 −10906 −8799 −13078 200 −.097 −.192 −.166 −33548 −16025 −15411
+
+For a clean trace and a partial-occlusion trace, let hclean  
+
+> t
+
+and hocc  
+
+> t
+
+denote the final residual stream at localization-related decode position t. Let S ⊂ R2560 
+
+be a half-width endpoint subspace with k = 1280 directions, and let PS be the corresponding coordinate projector. The endpoint-gap objective is 
+
+J∆(S) = X
+
+> t∈T box
+
+PS
+
+ hclean  
+
+> t
+
+− hocc 
+
+> t
+
+ 22 . (29) We compare three controlled endpoint subspaces: the coordinate-token readout-ranked Top-k dimensions, the complementary half of the residual stream, and a size-matched random half. The coordinate-token Top-k and complement sub-spaces partition the full hidden width, while the random subspace is an orthog-onal size-matched control. The three objectives share the same partial-occlusion forward pass for each sample before separate backward objectives score the same candidate edge pool. For an edge activation ae, the edge-attribution patching score is the first-order clean-to-corrupt contribution 
+
+EAP( e; S) ≈  aclean  
+
+> e
+
+− aocc 
+
+> e
+
+⊤ ∇ae J∆(S). (30) The diagnostic evaluated 100 candidate examples; 27 met the validity criteria for edge-gradient scoring, yielding 37 ,800 scored edges for each endpoint objective. The coordinate-token Top-k, complement, and random-k objectives respectively produced 15 ,235 , 14 ,883 , and 14 ,860 positive-score edges. For visualization, each score ranking is converted into a directed graph with scored edges plus bridge edges for connectivity. Boundary paths are extracted from visual and prompt source positions to the highest-scoring localization answer positions; the top paths are overlaid on layer-by-token heatmaps. Table 11 shows two regimes. Up to 100 ablated edges, the three edge rankings have similar behavioral impact, and the coordinate-token Top-k objective gives the largest R50 drop at 100 edges. This is the high-precision regime: the strongest coordinate-token-targeted edges are also behaviorally concentrated. From 100 to 
+
+200 edges, the behavioral ordering reverses. The coordinate-token Top-k edge set causes only an additional −.063 R50 drop, while the complement and random edge sets add −.163 and −.134 . At the same time, the coordinate-token Top-
+
+k objective dominates the endpoint-gap change in absolute magnitude. Thus, 26 D. E. Juanico 0 100 200 300 400 500                          
+
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Top-k attn
+> 250 500 750 1000 1250 1500 1750 2000
+> |EAP score| 0100 200 300 400 500
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Comp attn
+> 250 500 750 1000 1250 1500 1750 2000
+> |EAP score| 0100 200 300 400 500
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Rand-k attn
+> 250 500 750 1000 1250 1500 1750 2000
+> |EAP score| 0100 200 300 400 500
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Top-k mlp
+> 500 1000 1500 2000 2500
+> |EAP score| 0100 200 300 400 500
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Comp mlp
+> 500 1000 1500 2000 2500
+> |EAP score| 0100 200 300 400 500
+> Token position
+> 0510 15 20 25 30 35
+> Layer
+> Rand-k mlp
+> 500 1000 1500 2000 2500
+> |EAP score|
+
+Fig. 2: Circuit heatmaps with boundary-path overlays for the edge-attribution patch-ing diagnostic. Columns show coordinate-token Top-k, complement, and random-k end-point objectives; the top row shows attention heatmaps and the bottom row shows MLP heatmaps. The six panels use the individual heatmap PDFs for each objective and component type, preserving their titles, axes, overlays, and colorbars. The shared colorscale is anchored to the coordinate-token Top-k condition, making the comple-ment and random objectives visibly dimmer when their absolute edge scores are lower. 
+
+the coordinate-token Top-k EAP circuit is highly specific to J∆ but has limited recall for the full detection circuit under partial occlusion. The heatmaps in Figure 2 add structural detail to the ablation result. All three attention circuits share their two strongest layers, layers 24 and 34 , but the layer-24 dominance over layer 34 is weaker for the coordinate-token Top-k ob-jective ( 319 ,330 /177 ,209 = 1 .80 ×) than for the complement ( 252 ,487 /120 ,057 = 2.10 ×) and random-k (265 ,690 /132 ,345 = 2 .01 ×) objectives. The clearest sepa-ration appears in MLP edges: the coordinate-token Top-k circuit peaks at layer 
+
+35 (262 ,061 ) with layer 32 second ( 224 ,151 ), whereas complement and random-k
+
+objectives peak at layer 32 and distribute more mass across layers 32 –35 . The top visual source positions also shift: all objectives use positions 297 and 302 ,but the coordinate-token Top-k circuit next emphasizes position 138 , whereas complement and random-k objectives elevate neighboring positions 301 and 303 .Endpoint answer positions similarly shift by one token at the boundary. This Readout ̸ = Recovery 27 
+
+supports the precision/recall interpretation from Table 11: coordinate-token-targeted edges concentrate near output-proximal coordinate-generation path-ways, while detection-critical partial-occlusion behavior also uses broader late-layer routes. 
+
+A.14 Quasi-layer RMSNorm control 
+
+Final RMSNorm can globally couple dimensions because each normalized coor-dinate depends on a shared denominator. Abstractly, 
+
+zj = γj
+
+hj
+
+R(h) , R(h) = 
+
+vuut 1
+
+d
+
+> d
+
+X
+
+> p=1
+
+h2 
+
+> p
+
++ ϵ.  (31) Here p indexes hidden dimensions inside the RMSNorm denominator; ℓ is re-served for decoder-layer indices (Supp. Methods A.1). Changing one pre-norm coordinate can therefore rescale every post-norm coordinate. In principle, this shared denominator could convert a broad upstream magnitude change into a sharper final readout direction. To test whether this coupling manufactures the endpoint/repair dissociation, we treat RMSNorm as an activation-conditioned quasi-layer and map post-norm directions back to the pre-norm residual stream by vector-Jacobian product. For a post-norm direction gpost , the transported direction is 
+
+gpre = JRMSNorm (h)⊤gpost , (32) which can be computed without constructing the dense d × d Jacobian. For coordinate j,
+
+gpre ,j = γj gpost ,j 
+
+R(h) − hj
+
+dR (h)3
+
+> d
+
+X
+
+> p=1
+
+gpost ,p γphp. (33) We use this transported direction to compute pre-norm endpoint and repair rankings, then compare them with their post-norm counterparts. The control asks whether making final RMSNorm explicit changes which dimensions look repair-relevant or makes endpoint readout rankings more similar to corruption-derived repair rankings. Table 12 shows that repair-relevant rankings are almost unchanged by cross-ing the final RMSNorm boundary: pre/post repair overlap is .942 ± .008 at 
+
+k = 500 and .970 ± .003 at k = 1280 . The VJP-transported endpoint ranking also does not close the endpoint-repair gap. The endpoint-repair overlap changes by only +.008 at k = 500 , +.001 at k = 1000 , and −.004 at k = 1280 . Thus, the dissociation is already present in the pre-norm residual representation and is not produced solely by the final shared normalizer. A companion diagnostic using the original global bbox_2d triage ranking gives repair-vs-readout overlaps of .114 , .252 , and .344 at k = 500 , 1000 , and 
+
+1280 , respectively. These values are reported separately because they compare 28 D. E. Juanico 
+
+Table 12: Supplementary detail for the quasi-layer RMSNorm ranking control us-ing bbox_2d readout rankings. The pre/post repair column compares repair-relevant rankings across the RMSNorm boundary. Endpoint-repair columns compare endpoint readout rankings with repair rankings before and after VJP transport. All values are means ± standard deviations across five bootstrap seeds. 
+
+k Pre/post repair overlap Post endpoint-repair overlap Pre endpoint-repair overlap ∆ pre-post 
+
+500 .942 ± .008 .705 ± .013 .713 ± .015 +.008 
+
+1000 .961 ± .004 .843 ± .008 .843 ± .009 +.001 
+
+1280 .970 ± .003 .882 ± .006 .877 ± .004 −.004 
+
+Table 13: Supplementary-only thresholded clean-replacement ablation for local-set endpoint recovery at θ = −0.5. Entries report R50 ; parentheses give the z statistic against the matched random control. Short column headers follow the same index-set definitions as Tables 5 and 6. These results are not the primary endpoint-recovery results in Table 5.                                                                             
+
+> Ranking source kRandom Fixed global Split-local range Sample-local readout Sample-specific corruption Bottom-ranked Coordinate-token 500 .1003 ±.0034 .0943 ( −1.75) .0910 –.0970 ( −2.74 –−0.96) .0945 ( −1.71) .1021 (+0 .54) .0965 ( −1.13)
+> Coordinate-token 1000 .1734 ±.0046 .1447 (−6.27 ).1396 –.1491 (−7.38 –−5.31 ).1456 ( −6.07) .2631 (+ 19 .65 ).1637 ( −2.11)
+> Coordinate-token 1280 .3196 ±.0748 .2013 ( −1.58) .1967 –.2076 ( −1.64 –−1.50) .2963 ( −0.31) .3925 (+0 .98) .3441 (+0 .33)
+> Corruption-derived 500 .100 ±.0034 .098 ( −0.69) .095 –.099 ( −1.52 –−0.44) .094 ( −1.71) .102 (+0 .53) .100 ( −0.04)
+> Corruption-derived 1000 .174 ±.0046 .179 (+1 .20) .171 –.176 ( −0.48 –+ 0 .49) .146 ( −6.07) .263 (+ 19 .65 ).191 (+ 3.72 )
+> Corruption-derived 1280 .320 ±.0748 .376 (+0 .75) .368 –.393 (+0 .65 –+ 0 .98) .297 ( −0.31) .393 (+0 .98) .250 ( −0.93)
+
+the original field-token triage prior against repair dimensions, whereas Table 12 isolates the effect of transporting the same endpoint or repair signal through RM-SNorm. The pre-norm intervention version of this control, in which selected pre-RMSNorm dimensions are patched and RMSNorm is recomputed downstream, is outside the reported scope; this result is therefore interpreted as a ranking-comparison control. 
+
+A.15 Floored-clean endpoint recovery ablation 
+
+As a supplementary-only ablation, we also evaluate a thresholded clean-replacement variant in which selected corrupted endpoint dimensions are replaced by the floored-clean value rather than the clean value: 
+
+hpatch -floor 
+
+t,I = Fθ (hclean 
+
+t,I ), hpatch -floor 
+
+t, ¯I = hmask 
+
+t, ¯I . (34) This ablation keeps the endpoint replacement set fixed while changing only the value inserted into the object-mask trace. It is not the primary recovery operator. The primary endpoint-recovery results use clean endpoint replacement as defined in Supp. Methods A.9 and A.11. The ablation is useful only for separating failures of index selection from failures caused by thresholding the inserted clean value. The ablation changes both the absolute recovery level and the relative or-dering of several index sets. For the corruption-derived ranking family, every reported R50 cell is lower under thresholded clean replacement than under the primary clean endpoint-replacement condition in Table 5. The effect is espe-cially important at k = 1000 : the gap between the fixed population corruption-Readout ̸ = Recovery 29 
+
+derived ranking and the sample-specific corruption-derived set is much larger un-der thresholded replacement, whereas clean endpoint replacement nearly closes it. The ablation therefore confirms that thresholding the inserted clean value can become the limiting factor and should not be conflated with the quality of the selected index set. 
+
+A.16 Reporting and interpretation 
+
+All hidden-state intervention studies report R50 , parseability where relevant, random-seed means, and size-matched controls. We interpret a dimension rank-ing as recovery-enriched only if its Top-k sets outperform random and bottom-ranked controls at matched size and if withholding those dimensions dispro-portionately blocks endpoint recovery. We interpret an edge ranking as path-recovery-enriched only if ablating its top edges disrupts detection more than matched control edge rankings at the same edge budget. Otherwise, the ranking is treated as readout-informative but recovery-incomplete. This reporting convention preserves the central distinction of the study: end-point rankings can be useful references for circuit tracing without being sufficient explanations of visual-corruption repair.

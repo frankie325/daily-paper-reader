@@ -1,0 +1,54 @@
+{
+  "label": "2026-10-01",
+  "date": "2026-10-01",
+  "generated_at": "2026-10-01T22:59:29",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202610/01/2609.29125v1-focal-frequency-oriented-cross-modal-interaction-and-spectral-calibration-for-aerial-visible-infrared-object-detection",
+      "section": "deep",
+      "title_en": "FoCal: Frequency-Oriented Cross-Modal Interaction and Spectral Calibration for Aerial Visible-Infrared Object Detection",
+      "authors": "Ben Liang, Chao Sui, Junqi Bai, Yuan Liu, Chunlai Li, Xiubao Sui, Qian Chen",
+      "date": "2026-09-24",
+      "pdf": "https://arxiv.org/pdf/2609.29125v1",
+      "score": "9.0",
+      "evidence": "航空可见光-红外目标检测的频率导向跨模态交互",
+      "tldr": "航空可见光-红外目标检测中，现有方法对跨模态不同频率成分的交互模式探索不足，且无差别融合光谱差异易引入不可靠响应。FoCal提出频率导向框架：FADC模块显式建模低频共享结构共识与高频选择性跨模态交换，DGSM模块利用置信度加权幅度差异生成有界符号门自适应调制光谱。在DroneVehicle、ESCVehicle和ATR-UMOD上mAP50分别达83.5%、54.8%和64.6%，仅3.0M参数下实现113.6 FPS。该工作为跨模态频率交互与光谱校准提供了高效方案，代码已开源。",
+      "tags": "query:obj-detect",
+      "abstract_en": "In aerial RGB--IR object detection, effectively exploiting complementary information across modalities is critical for robust perception under complex illumination and environmental conditions. Existing multimodal detectors mainly focus on spatial-domain interaction or frequency-specific feature enhancement, while the cross-modal interaction patterns of different frequency components remain insufficiently explored. Moreover, spectral discrepancy itself may contain both useful complementary cues and unreliable modality-specific responses, making indiscriminate frequency fusion suboptimal. To address these issues, we propose FoCal, a frequency-oriented framework for aerial RGB--IR object detection. First, a Frequency-Aware Dual-Domain Calibration (FADC) module is developed to explicitly model frequency-dependent cross-modal interaction. Low-frequency components are collaboratively consolidated into a shared structural consensus, whereas high-frequency components preserve modality-specific information through selective cross-modal exchange. The resulting frequency-aware cues are further transferred to the original feature domain to regulate cross-modal calibration. Second, we introduce a Discrepancy-Guided Spectral Modulation (DGSM) module, which characterizes cross-modal spectral imbalance using confidence-weighted relative amplitude discrepancy and transforms it into a bounded signed gate for adaptive enhancement, preservation, or attenuation of the joint multimodal spectrum. Extensive experiments on DroneVehicle, ESCVehicle, and ATR-UMOD demonstrate the effectiveness of FoCal, yielding $\\mathrm{mAP}_{50}$ values of 83.5\\%, 54.8\\%, and 64.6\\%, respectively. Meanwhile, with only 3.0M parameters, FoCal achieves 113.6 FPS while preserving leading detection accuracy, highlighting a favorable accuracy--efficiency trade-off. Code is available at {https://github.com/universeliang/FoCal.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/01/2609.32757v1-readout-is-not-recovery-dissociating-coordinate-emission-from-visual-corruption-repair-in-vision-language-models",
+      "section": "quick",
+      "title_en": "Readout is not Recovery: Dissociating Coordinate Emission from Visual-Corruption Repair in Vision-Language Models",
+      "authors": "Drandreb Earl Juanico",
+      "date": "2026-09-26",
+      "pdf": "https://arxiv.org/pdf/2609.32757v1",
+      "score": "7.0",
+      "evidence": "视觉语言模型（transformer）边界框定位分析",
+      "tldr": "视觉语言模型中，可解析坐标字段虽便于评分，但坐标token读出未必能修复视觉损坏后的定位。本研究对比干净坐标token排名与对象掩码端点替换的损坏修复排名，并在Qwen3-VL与Kimi-VL上验证。发现坐标token排名在32至35层承重、34层峰值，损坏衍生排名在16至24层有害而35层附近有益；部分遮挡下无可靠固定修复集，路径高精度低召回。端点坐标分诊是有用电路先验，但遮挡恢复需单独基准。",
+      "tags": "query:obj-detect",
+      "abstract_en": "VLM bounding-box localization is both language generation and spatial commitment. Parseable fields such as bbox_2d make localization easy to score, but dimensions that emit coordinate tokens need not repair localization after visual evidence is damaged. We study this readout/recovery separation in Qwen3-VL-4B-Instruct on single-object COCO grounding. We compare clean coordinate-token readout rankings with corruption-derived repair rankings, using object-mask endpoint replacement for recovery and clean-input flooring for depth localization. In Qwen3-VL, coordinate-token rankings are inert through layer 24, load-bearing from layers 32-35, and peak at layer 34; corruption-derived rankings harm layers 16-24 but become beneficial near layer 35/final. A Kimi-VL-A3B diagnostic shows a matching output-proximal transition despite a different box format. Object-mask recovery separates rank budgets: $k=250$ shows necessity, $k=500$ shows Top-$k$ restoration above random, and $k=d/2$ is largely capacity-driven. Partial-occlusion sweeps reveal that high-overlap coordinate-token sets can hurt at $k=1000$ and help mainly at half-width, while population corruption-derived sets provide no reliable fixed repair set. Edge-attribution patching shows coordinate-token paths are high precision but low recall for detection recovery, and RMSNorm quasi-layer controls do not close the endpoint-repair gap. Endpoint coordinate triage is therefore a useful circuit prior, but occlusion recovery requires a separate benchmark.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/01/2609.34895v1-lvmt-video-mask-transformer-for-long-term-video-segmentation",
+      "section": "quick",
+      "title_en": "LVMT: Video Mask Transformer for Long-term Video Segmentation",
+      "authors": "Narges Norouzi, Niccol`o Cavagnero, Idil Esen Zulfikar, Bastian Leibe, Gijs Dubbelman, Daan de Geus",
+      "date": "2026-09-28",
+      "pdf": "https://arxiv.org/pdf/2609.34895v1",
+      "score": "6.0",
+      "evidence": "基于transformer的视频目标分割与长时传播",
+      "tldr": "针对长视频分割中长时遮挡和训练困难问题，提出LVMT模型，采用轻量GRU时间传播模块自适应选择记忆信息，并引入截断查询传播策略实现分块训练与长时监督。在六个基准上取得最优性能，同时保持高效推理，比先前最优方法快10倍。该工作为长视频分割提供了高效准确的解决方案。",
+      "tags": "query:obj-detect",
+      "abstract_en": "Existing online video segmentation methods struggle to track objects in long, complex videos with long-term occlusions. We hypothesize that this limitation is caused by (i) the inability of their temporal propagation mechanism to adaptively select the object information that is propagated across time, and (ii) their inability to be trained on long videos due to memory requirements and vanishing gradients. To address the first limitation, we propose to use a lightweight GRU-based temporal propagation module that can learn to select which information it keeps in memory and propagates across time. Second, to allow training on long videos, we introduce Truncated Query Propagation (TQP), a training strategy in which the model processes a video in chunks of frames, where information about tracked objects is propagated between chunks but backpropagation is only conducted in individual chunks, enabling longer temporal supervision without out-of-memory issues, inference overhead, or vanishing gradients. The resulting model is called the Long-term Video Mask Transformer (LVMT). Extensive experiments on six benchmarks show that LVMT sets a new state of the art across a range of video segmentation tasks, while retaining the speed of the highly efficient model it is based on, making it 10X faster than the prior state of the art. Code: https://www.tue-mps.org/lvmt",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

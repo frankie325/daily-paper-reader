@@ -1,0 +1,57 @@
+{
+  "date": "20261001",
+  "date_label": "",
+  "generated_at": "2026-10-01 22:59:22 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.29125v1",
+      "route": "202610/01/2609.29125v1-focal-frequency-oriented-cross-modal-interaction-and-spectral-calibration-for-aerial-visible-infrared-object-detection",
+      "title": "FoCal: Frequency-Oriented Cross-Modal Interaction and Spectral Calibration for Aerial Visible-Infrared Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "航空可见光-红外目标检测的频率导向跨模态交互",
+      "first_seen_at": "2026-10-01 22:59:22 UTC",
+      "updated_at": "2026-10-01 22:59:22 UTC"
+    },
+    {
+      "paper_id": "2609.32757v1",
+      "route": "202610/01/2609.32757v1-readout-is-not-recovery-dissociating-coordinate-emission-from-visual-corruption-repair-in-vision-language-models",
+      "title": "Readout is not Recovery: Dissociating Coordinate Emission from Visual-Corruption Repair in Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉语言模型（transformer）边界框定位分析",
+      "first_seen_at": "2026-10-01 22:59:22 UTC",
+      "updated_at": "2026-10-01 22:59:22 UTC"
+    },
+    {
+      "paper_id": "2609.34895v1",
+      "route": "202610/01/2609.34895v1-lvmt-video-mask-transformer-for-long-term-video-segmentation",
+      "title": "LVMT: Video Mask Transformer for Long-term Video Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于transformer的视频目标分割与长时传播",
+      "first_seen_at": "2026-10-01 22:59:22 UTC",
+      "updated_at": "2026-10-01 22:59:22 UTC"
+    }
+  ]
+}

@@ -1,0 +1,424 @@
+Title: FoCal: Frequency-Oriented Cross-Modal Interaction and Spectral Calibration for Aerial Visible-Infrared Object Detection
+
+URL Source: https://arxiv.org/pdf/2609.29125v1
+
+Published Time: Fri, 25 Sep 2026 00:40:33 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 1
+
+# FoCal: Frequency-Oriented Cross-Modal Interaction and Spectral Calibration for Aerial Visible-Infrared Object Detection 
+
+Ben Liang, Graduate Student Member, IEEE , Chao Sui, Junqi Bai, Yuan Liu, Member, IEEE , Chunlai Li, Xiubao Sui, and Qian Chen 
+
+Abstract —In aerial RGB–IR object detection, effectively ex-ploiting complementary information across modalities is crit-ical for robust perception under complex illumination and environmental conditions. Existing multimodal detectors mainly focus on spatial-domain interaction or frequency-specific feature enhancement, while the cross-modal interaction patterns of different frequency components remain insufficiently explored. Moreover, spectral discrepancy itself may contain both useful complementary cues and unreliable modality-specific responses, making indiscriminate frequency fusion suboptimal. To address these issues, we propose FoCal, a frequency-oriented framework for aerial RGB–IR object detection. First, a Frequency-Aware Dual-Domain Calibration (FADC) module is developed to explic-itly model frequency-dependent cross-modal interaction. Low-frequency components are collaboratively consolidated into a shared structural consensus, whereas high-frequency components preserve modality-specific information through selective cross-modal exchange. The resulting frequency-aware cues are further transferred to the original feature domain to regulate cross-modal calibration. Second, we introduce a Discrepancy-Guided Spectral Modulation (DGSM) module, which characterizes cross-modal spectral imbalance using confidence-weighted relative amplitude discrepancy and transforms it into a bounded signed gate for adaptive enhancement, preservation, or attenuation of the joint multimodal spectrum. Extensive experiments on DroneVehicle, ESCVehicle, and ATR-UMOD demonstrate the effectiveness of FoCal, yielding mAP 50 values of 83.5%, 54.8%, and 64.6%, respectively. Meanwhile, with only 3.0M parameters, FoCal achieves 113.6 FPS while preserving leading detection accuracy, highlighting a favorable accuracy–efficiency trade-off. Code is available at https://github.com/universeliang/FoCal. 
+
+Index Terms —object detection, multimodal, cross-modal inter-action, frequency fusion, modality-specific. 
+
+This work was supported in part by the National Natural Science Foundation of China under Grant 62427818, Grant U25A20502, and Grant 62301253, and in part by the Fundamental Research Funds for the Central Universities under Grant 30925010511. (Ben Liang and Chao Sui contributed equally to this work.) (Corresponding authors: Yuan Liu and Xiubao Sui.) Ben Liang, Chao Sui, Yuan Liu, Xiubao Sui, and Qian Chen are with the School of Electronic and Optical Engineering, Nanjing University of Science and Technology, Nanjing 210094, China (e-mail: benliang@njust.edu.cn; suichao@njust.edu.cn; lyuan90 eo@njust.edu.cn; sxb@njust.edu.cn; chen-qian@njust.edu.cn). Chunlai Li is with the School of Electronic Science and Technology, Shanghai Institute of Technical Physics, Chinese Academy of Sciences, Shanghai 200083, China (e-mail: lichunlai@mail.sitp.ac.cn). Junqi Bai is with the 28th Institute of China Electronics Technology Group Corporation, Nanjing 210007, China (baijunqi@cetc.com.cn). Xiubao Sui is also with the State Key Laboratory of Extreme Environment Optoelectronic Dynamic Measurement Technology and Instrument, Nanjing University of Science and Technology, Nanjing 210094, China. (a) Spatial fusion (b) FreFusion (c) FoCal (ours)         
+
+> Full spectrum
+> RGB IR
+> F
+> No decomposition
+> Low
+> LRGB LIR
+> C
+> FL
+> L′
+> High
+> HRGB HIR
+> C
+> FH
+> H′
+> Different fusion modules
+> Low High
+> LRGB LIR
+> F
+> L′
+> HRGB HIR
+> H′ RGB H′ IR
+> Different interaction
+
+Fig. 1. Comparison of cross-modal fusion paradigms. (a) Spatial-domain fusion directly combines RGB and IR features. (b) FreFusion combines same-frequency components before applying band-specific fusion modules. (c) FoCal differentiates the interaction itself: low-frequency components form a shared structural consensus, whereas high-frequency components undergo selective exchange while preserving modality-specific details. 
+
+I. I NTRODUCTION 
+
+In recent years, single-modality object detection based on visible (RGB) imagery has achieved remarkable progress and has been widely applied in various scenarios, including intelligent transportation [1], [2], disaster rescue [3], [4], and remote sensing [5]–[7]. Nevertheless, RGB imaging is highly dependent on external illumination, and its visual quality can deteriorate substantially under low illumination, strong light interference, and adverse weather conditions, leading to severe detail loss and contrast degradation [8], [9]. In contrast, infrared (IR) sensors capture the thermal radiation emitted by objects and are therefore less sensitive to illumination vari-ations, while also providing complementary object contours and structural cues under challenging environments [10], [11]. These complementary imaging characteristics make RGB–IR multimodal fusion an effective paradigm for robust all-weather visual perception [12]–[14]. Multimodal fusion detection (MFD) aims to exploit both shared and modality-specific information from heterogeneous sensors to construct robust representations for object detection [15]. Most existing approaches perform cross-modal interac-tion primarily in the spatial domain, where semantic align-ment, feature enhancement, or attention-based aggregation is employed to improve multimodal complementarity [14], [16]. However, spatial-domain interaction alone does not explicitly distinguish structural information from fine-grained modality-dependent responses. Recent studies have therefore introduced frequency-domain decomposition to separate low-frequency structures from high-frequency details and assign different arXiv:2609.29125v1 [cs.CV] 24 Sep 2026 JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 2Params ↓ FLOPs ↓ mAP₅₀ ↑ FPS ↑      
+
+> 5.4M 6.5M 3.0M 19.5G 25.5G 8.4G 80.6 81.2 83.5 31.2 64.5 113.6
+> CrossWeaver COMO FoCal (Ours)
+> Fig. 2. Comparison of model accuracy and computational efficiency. Petal lengths are linearly scaled to the original values within each metric, with the maximum value assigned the longest petal. FoCal achieves the highest
+> mAP 50 and FPS while requiring the fewest parameters and FLOPs.
+
+enhancement operators to individual frequency bands [17], [18]. Despite their effectiveness, these approaches mainly fo-cus on how different frequency components are processed after decomposition, while a more fundamental question remains underexplored: should cross-modal components at different frequencies follow the same interaction pattern in the first place? As shown in Fig. 1, we argue that frequency characteristics should determine not only the subsequent processing opera-tors, but also the cross-modal information-flow topology. Low-frequency components mainly encode coarse contours, object layouts, and large-scale structures, which generally exhibit stronger correspondence between RGB and IR modalities. They are therefore more suitable for consensus formation, where both modalities collaboratively establish a shared struc-tural representation. High-frequency components, in contrast, contain fine edges and local textures together with modality-dependent responses and sensor-specific noise. Prematurely collapsing them into a single representation may suppress useful modality-specific details or propagate unreliable re-sponses across modalities. From this perspective, low- and high-frequency components require fundamentally different cross-modal interaction patterns: a many-to-one consensus for low-frequency structures and an individuality-preserving two-to-two exchange for high-frequency details. More importantly, frequency-domain interaction should not be regarded as the endpoint of multimodal fusion. We consider the frequency domain as an auxiliary space for estimating the reliability of cross-modal interaction. The resulting frequency-conditioned cues are transferred back to the original feature domain to regulate information injection between RGB and IR streams. In this manner, frequency-specific interaction and original-domain feature calibration are explicitly coupled while serving different purposes: the former determines how the modalities should interact, whereas the latter determines where and to what extent counterpart information should be introduced. Based on these observations, we propose FoCal, afrequency-oriented framework for aerial RGB–IR object de-tection. First, we propose a Frequency-Aware Dual-Domain Calibration (FADC) module that explicitly models frequency-dependent cross-modal interaction. It promotes structural con-sensus in low-frequency components while preserving modal-ity individuality through selective high-frequency exchange, and further transfers the learned frequency cues to calibrate the original feature streams. Second, we propose a Discrepancy-Guided Spectral Modulation (DGSM) module that exploits confidence-weighted spectral discrepancy as a control signal to adaptively regulate the joint multimodal spectrum. It converts the learned discrepancy cues into a signed spectral gate, enabling frequency-wise enhancement, preservation, or atten-uation of the joint representation. Extensive experiments are conducted on three aerial-view multimodal datasets, including DroneVehicle [8], ESCVehicle [19], and ATR-UMOD [20]. FoCal achieves mAP 50 values of 83 .5% , 54 .8% , and 64 .6% 
+
+on the three datasets, respectively, consistently delivering state-of-the-art performance across all three benchmarks. As illus-trated in Fig. 2, FoCal further achieves 113.6 FPS with only 3.0M parameters and 8.4G FLOPs, highlighting its favorable accuracy–efficiency trade-off. Overall, our main contributions are summarized as follows: (1) We propose FoCal, a lightweight frequency-oriented framework for aerial RGB–IR object detection. Rather than merely assigning different processing operators to differ-ent frequency bands, FoCal explicitly models frequency-dependent cross-modal interaction and further exploits spectral discrepancy to regulate multimodal representation learning. (2) We propose a Frequency-Aware Dual-Domain Calibra-tion (FADC) module that differentiates the cross-modal inter-action patterns of low- and high-frequency components. Low-frequency representations are collaboratively consolidated to establish structural consensus, whereas high-frequency rep-resentations preserve modality individuality through selective cross-modal exchange. The resulting frequency-aware cues are further transferred to the original feature domain for cross-modal calibration. (3) We propose a Discrepancy-Guided Spectral Modulation (DGSM) module that characterizes cross-modal spectral im-balance using confidence-weighted relative amplitude discrep-ancy. Instead of directly treating discrepancy as informative content, DGSM converts it into a bounded signed control signal to adaptively enhance, preserve, or attenuate the joint multimodal spectrum. II. R ELATED WORK 
+
+A. Multimodal Object Detection 
+
+Multimodal fusion aims to exploit complementary informa-tion from different modalities to produce high-quality fused representations [21], thereby improving the performance of MFD. For example, CDDFuse [22] and MambaDFuse [23] employ Transformer- and Mamba-based architectures, respec-tively, to enhance pixel-level fusion through global contextual modeling, and subsequently transfer the fused representations to downstream detection tasks. Owing to the complementary properties of different modalities, there has been growing interest in using RGB–IR image pairs for multispectral pedes-trian and vehicle detection. UA-CMDet [8] introduces Dron-eVehicle, an RGB–IR vehicle detection benchmark captured from UAV viewpoints, and improves detection performance JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 3
+
+by leveraging illumination estimation to model cross-modal uncertainty. CFT [24] and YOLOFusion [25] enhance mul-tispectral object detection by modeling global feature inter-actions both across and within modalities. ICAFusion [14] proposes a query-guided iterative cross-attention mechanism to capture cross-modal complementary information and improve feature discriminability. FusionMamba [26] further projects cross-modal features into a hidden state space via Mamba for enhanced representation learning, thereby suppressing pseudo-target responses. Although these methods have achieved promising performance, there remains substantial room for im-provement. In particular, frequency-domain disentanglement provides a promising route to separate informative components for more refined cross-modal fusion, which is especially ben-eficial for small-object detection in complex aerial scenarios. 
+
+B. Frequency in computer vision 
+
+Frequency-domain analysis has been increasingly explored in recent vision tasks due to its ability to disentangle low-and high-frequency components for more effective represen-tation learning [27], [28]. Among representative frequency-domain techniques, Fast Fourier Transform (FFT) and Discrete Wavelet Transform (DWT) exhibit complementary characteris-tics: FFT is particularly effective at modeling global frequency interactions, whereas DWT is better suited for local multi-scale decomposition. DFFormer [29] replaces conventional MHSA with an FFT-based token mixer to enhance global modeling, achieving excellent performance on high-resolution images with lower computational cost. SFDFusion [30] employs FFT to fuse the amplitude and phase of infrared and visible images, and further cascades the spectral representations with spatial-domain features, thereby effectively improving multimodal image fusion quality. WTConv [31] effectively enlarges the effective receptive field through cascaded wavelet transforms. HaarFuse [32] decomposes features into high- and low-frequency subbands using wavelet transform, and then applies CNNs and Transformers to finely refine different components, resulting in improved fusion quality. In multimodal detection, WaveMamba [18] efficiently combines wavelet decomposition with Vision Mamba, enhancing the capability of multimodal object detection. DEPFusion [33] leverages Mamba and FFT to enhance multi-scale context and texture details in RGB low-frequency components, thereby improving UAV multispectral object detection performance. Despite recent progress, most existing multimodal detection methods still assume equal contributions of frequency components from different modal-ities, while overlooking the trade-off relationships between same-frequency components across modalities. Consequently, frequency-dependent cross-modal interaction and discrepancy-aware spectral modeling remain insufficiently explored for refined multimodal fusion. Moreover, these methods usually treat frequency-enhanced features as the final fusion outputs, without further exploiting them to regulate the subsequent interaction of the original feature streams. III. M ETHODS 
+
+In this section, we first present the overall architecture of the proposed FoCal network, as shown in Fig. 3. We then elaborate on the design rationale of the FADC and DGSM modules, respectively. 
+
+A. Frequency-Aware Dual-Domain Calibration 
+
+RGB and infrared sensors exhibit substantially different imaging characteristics, resulting in distinct cross-modal be-haviors across frequency bands. Existing frequency-aware fusion methods typically distinguish low- and high-frequency components by assigning them different enhancement oper-ators after decomposition. However, such a strategy mainly focuses on how frequency components are processed after in-teraction, while paying less attention to a more fundamental is-sue: whether different frequency bands should follow the same cross-modal interaction pattern in the first place. We argue that frequency specificity should determine not only the subsequent processing operator, but also the cross-modal information-flow topology. In particular, low-frequency components mainly encode coarse structures and semantic layouts that exhibit rel-atively strong cross-modal correspondence, and are therefore suitable for establishing a shared structural consensus. In con-trast, high-frequency components contain modality-dependent contours, textures, and local details, together with sensor-specific noise. Prematurely collapsing them into a single fused representation may suppress useful modality-specific cues or propagate unreliable responses across modalities. Motivated by this observation, we propose a Frequency-Aware Dual-Domain Calibration (FADC) module. FADC ex-plicitly assigns different interaction topologies to different frequency bands: low-frequency representations are collabora-tively consolidated into a shared structural consensus, whereas high-frequency representations remain modality-specific and interact through recipient-conditioned selective exchange. The resulting frequency-conditioned representations are further used to estimate cross-modal reliability and calibrate infor-mation transfer over the original feature streams. Given the feature maps Xrgb , X ir ∈ RC×H×W from the RGB and IR branches, we first employ a Discrete Wavelet Transform (DWT) with the Haar basis to separate coarse structures from directional details. Specifically, each input feature is decomposed into one low-frequency approximation component and three directional high-frequency components: 
+
+{A , Hh, Hv , Hd} = W(X), (1) where W(·) denotes the Haar-based DWT, A represents the low-frequency approximation, and Hh, Hv , and Hd denote horizontal, vertical, and diagonal high-frequency responses, respectively. For each modality, the directional high-frequency components are aggregated as 
+
+Hm = X
+
+> k∈{ h,v,d }
+
+Hkm, m ∈ { rgb, ir }. (2) Accordingly, each modality is represented by a low-frequency structural component Am and a high-frequency detail compo-nent Hm.JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 4𝜔 2 𝜔 3 𝜔 4𝜔 1                     
+
+> FADC DGSM FADC DGSM
+> 𝑿 𝒓𝒈𝒃 𝑿 𝒊𝒓 𝑿 𝒓𝒈𝒃
+> 𝑿 𝒓𝒈𝒃
+> 𝑿 𝒓𝒈𝒃
+> 𝑿 𝒊𝒓
+> 𝑿 𝒊𝒓
+> 𝑿 𝒊𝒓
+> 𝑯 𝟐 × 𝑾 𝟐
+> 𝑯 𝟒 × 𝑾 𝟒
+> 𝑯 𝟖 × 𝑾 𝟖
+> 𝑯 𝟏𝟔 × 𝑾 𝟏𝟔
+> 𝑷 𝟑 𝑷 𝟒
+> Input
+> Freq.
+> Decomp.
+> 𝑿 𝒊𝒏 𝒓𝒈𝒃
+> 𝑿 𝒊𝒏 𝒊𝒓
+> Input RGB RGB -LF
+> IR -LF
+> RGB -HF
+> Freq.
+> Decomp.
+> ෩𝓛 𝒔𝒉𝒂𝒓𝒆
+> ෪𝓗 𝒓𝒈𝒃
+> ෪𝓗 𝒊𝒓
+> Spatial
+> Channel
+> C
+> 𝒪 𝑗𝑜𝑖𝑛𝑡
+> 𝑿 𝒂𝒖𝒈 𝒊𝒓
+> 𝑿 𝒂𝒖𝒈 𝒓𝒈𝒃
+> ℋ𝑟𝑔𝑏
+> ℋ𝑖𝑟
+> ℒ𝑟𝑔𝑏
+> ℒ𝑖𝑟
+> ෩𝒳 𝑖𝑟
+> ෩𝒳 𝑟𝑔𝑏
+> MLP 𝑿 𝒐𝒖𝒕 𝒓𝒈𝒃
+> Input IR
+> DWT
+> IR -HF
+> LF Cooperative Enhance HF Competitive Enhance
+> RGB -LF
+> IR -LF
+> Conv
+> ReLU
+> Conv
+> S＋Share -LF
+> RGB -HF
+> IR -HF
+> Max ℳ𝑖𝑟
+> ℳ𝑟𝑔𝑏
+> ＋
+> ＋
+> S
+> Avg
+> Conv
+> RGB -HF
+> IR -HF
+> HF Competitive Enhance LF Cooperative Enhance
+> HF Competitive
+> LF Cooperative
+> DWT 𝑿 𝒐𝒖𝒕 ir
+> 𝑿 𝒊𝒏 𝒊𝒓
+> 𝑿 𝒊𝒏 𝒓𝒈𝒃
+> 𝜂 𝑟𝑔𝑏
+> 𝜂 𝑖𝑟
+> 𝑺𝒊𝒈 ∆𝑿 ⨀ 𝑿 𝒂𝒖𝒈
+> 𝑿 𝒓𝒆𝒇 𝒓𝒈𝒃
+> 𝑿 𝒓𝒆𝒇 𝒊𝒓
+> 𝜂 𝑖𝑟
+> 𝜂 𝑟𝑔𝑏
+> 𝜔 1Downsample Operation
+> CChannel Concatenation
+> SSoftmax Activation
+> SSigmoid Activation
+> Element -wise Product Add Operation
+> FPN
+> Head
+> 𝑷 𝟒
+> 𝑷 𝟑
+> 𝑷 𝟓
+> Output
+> 𝑊 𝑠
+> 𝑊 𝑐
+> ෩ℋ𝑟𝑔𝑏
+> ෩ℋ𝑖𝑟 ሚℒ𝑠ℎ𝑎𝑟𝑒
+
+Fig. 3. Overall architecture of the proposed FoCal. The upper part presents the macroscopic detection pipeline, which consists of a Backbone for feature extraction, a Path Aggregation Network (PAN) for multi-scale feature fusion, and a Detection Head. 
+
+1) Frequency-Dependent Interaction Topology : A key design principle of FADC is that low- and high-frequency components should not simply adopt different post-fusion operators; instead, they should follow different cross-modal interaction topologies according to their information charac-teristics. 
+
+Low-Frequency Consensus Formation. Low-frequency re-sponses primarily describe object layouts, coarse contours, and large-scale semantic structures, which generally exhibit stronger cross-modal correspondence than fine-grained details. Therefore, instead of independently enhancing Argb and Air 
+
+after direct aggregation, we explicitly establish a shared struc-tural anchor before subsequent feature calibration. Specifically, the two low-frequency components are concatenated and fed into a lightweight convolutional gating function followed by Softmax normalization to obtain complementary weights ηrgb 
+
+and ηir . The shared low-frequency consensus is formulated as 
+
+Ashared = ηrgb ⊙ A rgb + ηir ⊙ A ir , ηrgb + ηir = 1 . (3) This operation implements a many-to-one interaction topology, 
+
+(Argb , Air ) → A shared , (4) where both modalities collaboratively determine a common structural representation. The adaptive weighting prevents the shared representation from degenerating into a fixed average and allows the network to dynamically adjust the contribution of each modality according to local observation quality. 
+
+High-Frequency Selective Exchange. High-frequency com-ponents exhibit a fundamentally different cross-modal rela-tionship. They contain useful modality-specific edges and tex-tures, but also sensor-dependent noise and local disturbances. Directly collapsing Hrgb and Hir into a single high-frequency representation may therefore discard modality-specific details or allow unreliable responses from one modality to dominate the other. Instead of forming a shared high-frequency repre-sentation, FADC preserves both modality-specific streams and performs recipient-conditioned selective exchange . We first derive channel-aggregated spatial descriptors using channel-wise average and max pooling. The descriptors from the two modalities are jointly encoded by a lightweight convolution-Sigmoid gating function to generate two modality-specific reception masks, Mrgb and Mir . The high-frequency com-ponents are then updated as 
+
+˜Hrgb = Hrgb +Mrgb ⊙H ir , ˜Hir = Hir +Mir ⊙H rgb . (5) Unlike winner-take-all selection or direct high-frequency ag-gregation, Eq. (5) follows a two-to-two interaction topology, 
+
+(Hrgb , Hir ) → ( ˜Hrgb , ˜Hir ), (6) where each modality preserves its intrinsic high-frequency responses while selectively absorbing complementary details JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 5
+
+from its counterpart. Importantly, Mrgb and Mir characterize the reception preference of the corresponding target modalities rather than the standalone saliency of the source modality. This recipient-conditioned interaction prevents premature modality collapse and reduces the propagation of modality-specific noise. The low- and high-frequency representations are subse-quently recomposed into two frequency-conditioned features: 
+
+˜Xrgb = Ashared + ˜Hrgb , ˜Xir = Ashared + ˜Hir . (7) Therefore, the two modalities share the same low-frequency structural anchor while retaining individually calibrated high-frequency details. 
+
+2) Frequency-Guided Reliability Calibration : The frequency-conditioned features in Eq. (7) are not directly regarded as the final fused representation. Instead, they serve as auxiliary cues for estimating where and what information can be reliably transferred between the two original modality streams. Specifically, we derive spatial and channel reliability masks from ˜Xrgb and ˜Xir :
+
+Ws = S( ˜Xrgb , ˜Xir ), Wc = C( ˜Xrgb , ˜Xir ), (8) 
+
+W = Ws ⊙ Wc, (9) where W = {Wrgb , W ir }. The spatial weighting function 
+
+S(·) extracts position-sensitive reliability from channel-wise average and maximum responses, whereas the channel weight-ing function C(·) models channel dependencies from pooled bimodal statistics through a shared MLP. Their combination provides modality-specific frequency-conditioned reliability estimates. Meanwhile, the original RGB and IR features are jointly encoded to obtain a bimodal contextual prior: 
+
+Ojoint = G([ Xrgb , X ir ]) , (10) where G(·) denotes a lightweight gating function. We then combine the joint bimodal prior with the frequency-conditioned reliability masks to obtain modality-specific cali-bration masks: 
+
+Rk = Ojoint ⊙ Wk, k ∈ { rgb, ir }. (11) Based on Rk, complementary information is selectively injected into each original modality stream: 
+
+Xaug k = Xk + Rk ⊙ X¯k, k ∈ { rgb, ir }, (12) where ¯k denotes the counterpart modality. In this formulation, frequency-domain interaction does not directly replace the original modality representation; instead, it determines the reliability of cross-modal information transfer. To further regulate the augmented representation, we con-struct a reliability-conditioned reference feature: 
+
+Xref k = Xaug k ⊙ R k, ∆Xk = Xref k − Xaug k , (13) and perform residual calibration as 
+
+Xout k = σ(∆ Xk) ⊙ Xaug k + Xref k , (14) where σ(·) denotes the Sigmoid function. This residual cal-ibration further adjusts the contribution of the cross-modally augmented responses according to the learned reliability ref-erence. Overall, FADC differs from conventional frequency-aware fusion in that frequency decomposition is not merely used to assign different enhancement modules to different frequency bands. Instead, it explicitly imposes frequency-dependent cross-modal interaction topologies: low-frequency compo-nents undergo structural consensus formation, whereas high-frequency components preserve modality individuality and perform recipient-conditioned selective exchange. The result-ing frequency-conditioned representations are then converted into reliability cues to regulate cross-modal transfer over the original feature streams, thereby avoiding premature modality collapse while retaining complementary information from both modalities. 
+
+B. Discrepancy-Guided Spectral Modulation 
+
+Although FADC regulates cross-modal interaction accord-ing to frequency characteristics, the resulting modality rep-resentations may still exhibit spectral imbalance caused by heterogeneous imaging mechanisms and modality-dependent degradation. Simply aggregating the two modalities may consequently weaken complementary responses or propagate modality-specific interference. To address this issue, we in-troduce a Discrepancy-Guided Spectral Modulation (DGSM) module. DGSM employs cross-modal spectral discrepancy to guide the modulation of an independently constructed joint spectrum. A confidence-weighted relative discrepancy is first derived from the RGB and IR spectra and then converted into a signed gate for adaptive spectral regulation. The resulting modulation selectively enhances, preserves, or attenuates joint spectral responses according to the learned discrepancy cues, thereby improving spectral complementarity while reducing unreliable modality-specific interference. Given the modality-specific features Xrgb , X ir ∈
+
+RC×H×W , we first map them into a common comparison space using a shared projection function P(·). During training, the RGB and IR features are jointly normalized to reduce modality-dependent feature-scale bias before spectral comparison: 
+
+Xprgb , X pir = P(Xrgb , X ir ). (15) The projected features are then transformed into the frequency domain using the Fast Fourier Transform (FFT): 
+
+Zrgb = F(Xprgb ), Zir = F(Xpir ), (16) where F(·) denotes the orthonormally normalized FFT. Their amplitude spectra are given by 
+
+Argb = |Zrgb |, Air = |Zir |. (17) We therefore define a scale-normalized relative spectral dis-crepancy as 
+
+Drel = |Argb − Air |
+
+Argb + Air + ϵ , (18) where ϵ is a small constant for numerical stability. In this formulation, Drel characterizes the relative spectral imbalance between the two modalities rather than their absolute energy JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 6Shared          
+
+> Projector
+> (1 ×1 Conv, BN,
+> LeaklyReLU)
+> ℱ
+> |· |
+> |· |
+> ÷𝑮 𝒅𝒊𝒇𝒇
+> Branch 1: Discrepancy Branch
+> Amp rgb
+> Amp ir
+> CCompress
+> (1 ×1 Conv)
+> [𝑿 𝒓𝒈𝒃 , 𝑿 𝒊𝒓 ]
+> ℱ
+> [ℜ ∙ , ℌ(∙) ]
+> (Concat)
+> [𝚽 ∙]
+> (Freq Process)
+> Complex
+> Restore ℱ−1
+> 1×1 Conv
+> 1+ 𝜸 𝑮 𝒅𝒊𝒇𝒇
+> 𝓕 𝒋𝒐𝒊𝒏𝒕
+> Branch 2: Main Fusion Branch Spectral
+> Modulation
+> ＋
+> 𝑿 𝒐𝒖𝒕
+> 𝑿 𝒐𝒖𝒕 𝒓𝒈𝒃
+> 𝑿 𝒐𝒖𝒕 𝒊𝒓
+> 𝑿 𝒐𝒖𝒕 𝒓𝒈𝒃
+> 𝑿 𝒐𝒖𝒕 𝒊𝒓
+> 2D FFT Energy
+> Confidence
+> 1×1 Conv
+> + Tanh
+> 2D IFFT
+> Fig. 4. Overall architecture of the proposed DGSM
+
+difference. However, a large relative discrepancy does not necessarily imply useful complementarity. In particular, two nearly inactive spectral responses may still yield a large Drel 
+
+due to their small denominator. To avoid overemphasizing such unreliable differences, we further introduce an energy confidence term. Let 
+
+AΣ = Argb + Air , (19) and normalize its spectral energy as 
+
+E = AΣ
+
+Mean Ω(AΣ) + ϵ , (20) where Mean Ω(·) denotes averaging over the frequency plane. The corresponding confidence is defined as 
+
+Ce = E
+
+1 + E . (21) The final discrepancy descriptor is therefore 
+
+D = Drel ⊙ Ce. (22) Consequently, relative differences occurring at nearly inactive spectral locations receive lower confidence, whereas discrep-ancies supported by meaningful spectral responses are retained for subsequent modulation. Importantly, DGSM does not directly inject the discrepancy descriptor D into the multimodal representation. Instead, D is transformed into a learnable signed modulation gate: 
+
+Gd = tanh ( Gd(D)) , Gd ∈ [−1, 1] , (23) where Gd(·) denotes a lightweight 1 × 1 convolution. The signed formulation allows the model to learn different re-sponses to cross-modal spectral imbalance. Therefore, spectral discrepancy itself is not assumed to be intrinsically infor-mative; instead, the detection objective determines how each discrepancy pattern should affect multimodal representation learning. In parallel with the discrepancy branch, the original RGB and IR features are concatenated and projected into a compact joint representation: 
+
+Xjoint = Pj ([ Xrgb , X ir ]) , (24) where Pj (·) denotes a lightweight channel compression oper-ator. Its joint spectrum is obtained as 
+
+Zjoint = F(Xjoint ). (25) We then use the signed discrepancy gate to perform bounded residual modulation: 
+
+Zmod = Zjoint ⊙ (1 + γG d) , (26) where γ controls the maximum modulation magnitude and is empirically set to 0.5. In this way, the original joint spectrum serves as a stable information basis, while cross-modal spectral discrepancy only controls an additional residual adjustment. To further model interactions between the real and imagi-nary components, we convert the modulated complex spectrum into a real-valued representation: 
+
+Q = [Re( Zmod ), Im( Zmod )] . (27) A lightweight spectral transformation Φ( ·) is then applied in a residual manner: 
+
+Qout = Q + Φ( Q). (28) The resulting real and imaginary components are recombined into a complex spectrum and transformed back to the spatial domain: 
+
+Xf f t = F−1  Complex( Qout real , Q out imag ) . (29) Finally, the reconstructed feature is projected back to the original multimodal dimensionality and combined with the concatenated input through a residual connection. Overall, DGSM separates discrepancy estimation from mul-timodal content fusion: the discrepancy branch identifies where cross-modal spectral imbalance occurs, while the joint branch independently preserves the content to be fused. The former serves only as a learned control signal for the latter. This discrepancy-as-control formulation allows DGSM to ex-ploit complementary spectral differences while reducing the risk of indiscriminately amplifying modality-specific noise. IV. E XPERIMENTS 
+
+A. Datasets and Evaluation Metrics 
+
+Datasets. We evaluate our model on three commonly used drone-based visible–infrared object detection datasets: Dron-eVehicle [8], ESCVehicle [19], and ATR-UMOD [20]. (1) DroneVehicle Dataset. The DroneVehicle dataset is a large-scale RGB–IR benchmark captured from aerial perspec-tive, containing 953,087 vehicle instances across 28,439 RGB– IR image pairs. It covers diverse scenarios, including urban roads, residential areas, and parking lots, under both daytime and nighttime conditions. The dataset provides annotations for five vehicle categories: car, bus, truck, van, and freight car. Following the official data split, we use 17,990 image pairs for training, 1,469 for validation, and 8,980 for testing. (2) ESCVehicle dataset. The ESCVehicle dataset is a drone-based visible-infrared benchmark containing 10,727 aligned RGB–IR image pairs with 369,714 annotated vehicle in-stances. It covers seven vehicle categories and diverse sce-narios, including urban areas, parking lots, roads, tree-covered regions, rain, fog, snow, lakes, and hills. Following the official split, we use 6,983 image pairs for training, 507 for validation, and 3,237 for testing. The diverse scene annotations make ESCVehicle particularly suitable for evaluating the robustness JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 7                                                                                                                                                                                        
+
+> TABLE I COMPARISON OF FOCAL WITH OTHER METHODS ON THE DRONE VEHICLE TEST SET . T HE TERMS “RGB” AND “IR” DENOTE DETECTION OUTCOMES FROM VISIBLE IMAGES AND INFRARED IMAGES ,RESPECTIVELY ,WHILE “RGB+IR” REFLECTS COMBINED DETECTION OUTCOMES FROM FUSED INFRARED AND VISIBLE IMAGES . T HE BEST AND SECOND -BEST RESULTS IN EACH CATEGORY ARE HIGHLIGHTED IN RED AND BLUE ,RESPECTIVELY .†
+> DENOTES THE RESULTS REPRODUCED BY OURSELVES UNDER THE SAME TRAINING AND EVALUATION SETTINGS .Methods Pub. Modality mAP 50 mAP Car Truck Bus Van Freight car Param# S2ANet [35] TGRS’21 RGB 61.0 31.4 80.0 54.2 84.9 43.8 42.2 70.7M YOLO11n †[34] Ultralytics’24 RGB 69.1 47.9 93.6 62.0 90.4 50.4 49.2 2.7M S2ANet [35] TGRS’21 IR 67.5 40.4 89.9 54.5 88.9 48.4 55.8 70.7M YOLO11n †[34] Ultralytics’24 IR 79.2 63.3 98.3 76.8 95.0 60.4 65.7 2.7M YOLO11n-Dual †[34] Ultralytics’24 RGB+IR 80.8 65.2 98.5 80.5 95.8 62.2 67.0 4.0M C2Former [36] TGRS’24 RGB+IR 74.2 47.5 90.2 68.3 89.8 58.5 64.4 118.5M CALNet [37] ACM MM’23 RGB+IR 75.4 48.2 90.3 76.2 89.1 58.5 63.0 39.5M OAFA [38] CVPR’24 RGB+IR 77.1 50.1 90.1 75.4 89.8 61.8 68.2 -M2D-LIF [39] ICCV’25 RGB+IR 81.4 68.1 97.8 81.0 96.0 64.6 67.9 37.1M FusionMamba [26] TMM’25 RGB+IR 79.2 56.0 96.7 80.2 95.3 64.0 59.8 287.6M WaveMamba [18] ICCV’25 RGB+IR 79.8 60.5 95.0 80.4 90.6 64.5 68.5 69.1M C2DFF-Net †[40] TGRS’25 RGB+IR 82.0 66.7 98.6 82.2 95.9 64.0 69.5 6.6M COMO †[41] Inf. Fusion’26 RGB+IR 81.2 66.7 97.8 81.3 94.8 63.9 68.4 6.5M CrossWeaver †[42] CVPR’26 RGB+IR 80.6 57.3 98.4 79.2 95.0 63.2 67.3 5.4M FoCal (Ours) –RGB+IR 83.5 68.6 98.6 83.6 96.2 66.9 72.0 3.0M
+
+of multimodal vehicle detection methods under challenging environmental conditions. (3) ATR-UMOD Dataset. The ATR-UMOD dataset is a high-diversity UAV-based RGB–IR benchmark containing 13,353 aligned image pairs across 11 object categories. It covers diverse imaging conditions, including flight altitudes from 80 m to 300 m, camera angles from 0◦ to 75 ◦, all-day and all-year acquisition, as well as various weather, illumina-tion, and scenario conditions. Each image pair is additionally annotated with six condition attributes, including altitude, angle, time, weather, illumination, and scenario, providing a comprehensive benchmark for evaluating multimodal detection under complex conditions. Following the official split, we use 11,850 image pairs for training and 1,503 for testing. 
+
+Evaluation Metrics. We adopt standard evaluation metrics, including mAP 50 and mAP, to assess model performance on different datasets. Specifically, mAP 50 denotes the mean Average Precision at an IoU threshold of 0.50, while mAP is averaged over IoU thresholds from 0.50 to 0.95 with a step size of 0.05. 
+
+B. Implementation Details 
+
+All experiments are conducted on a single NVIDIA RTX 4090 GPU with 24 GB memory, using CUDA 12.1 and PyTorch 2.5.1. Our model is implemented by extending the Ultralytics [34] single-modal framework into a dual-stream multimodal architecture. To ensure a fair evaluation of the proposed architectural designs, all models are trained entirely from scratch without relying on any pre-trained weights. We train all models using the SGD optimizer with a momentum of 0.937, a weight decay of 0.0005, and an initial learning rate of 0.01. For DroneVehicle, ESCVehicle, and ATR-UMOD, the batch size is set to 16, and the number of training epochs is set to 150. Unless otherwise specified, the loss functions, other hyperparameters, and data augmentation settings follow the default configuration. 
+
+C. Comparisons with State-of-the-Art Methods 
+
+Comparison on DroneVehicle. Table I reports the com-parison with representative single-modal and RGB–IR object detectors on the DroneVehicle test set. FoCal achieves the best overall performance, reaching 83.5% mAP 50 and 68.6% mAP. Specifically, it surpasses the second-best C 2DFF-Net by 1.5 percentage points in mAP 50 and M 2D-LIF by 0.5 percentage points in mAP. Compared with the YOLO11n-Dual baseline, FoCal further improves mAP 50 from 80.8% to 83.5% and mAP from 65.2% to 68.6%, corresponding to gains of 2.7 and 3.4 percentage points, respectively. This demonstrates the effectiveness of the proposed cross-modal interaction and spectral calibration beyond conventional dual-stream fusion. At the category level, FoCal achieves APs of 98.6%, 83.6%, 96.2%, 66.9%, and 72.0% for car, truck, bus, van, and freight car, respectively. It ranks first on four of the five categories and ties for the best result on car. Particularly, FoCal improves the second-best AP by 1.4, 2.3, and 2.5 percentage points for truck, van, and freight car, respectively, indicating consistent improvements across object categories. FoCal also maintains high computational efficiency. With only 3.0M parameters, it has the smallest model size among the compared RGB–IR methods with reported parameter counts, while outperform-ing substantially larger models such as M 2D-LIF (37.1M), WaveMamba (69.1M), and FusionMamba (287.6M). More-over, FoCal reduces the parameter count by 25% relative to YOLO11n-Dual (4.0M) while achieving higher detection ac-curacy, demonstrating a favorable accuracy–complexity trade-off. 
+
+Comparison on ESCVehicle. Table II reports the compar-ison with representative single-modal and RGB–IR detectors on the ESCVehicle dataset. FoCal achieves the best overall performance, reaching 54.8% mAP 50 and 41.7% mAP. Com-pared with the second-best C 2-VeD, FoCal improves mAP 50 
+
+and mAP by 2.4 and 3.1 percentage points, respectively. It also consistently outperforms other representative RGB– IR methods, demonstrating the effectiveness of the proposed JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 8
+
+TABLE II COMPARISON OF FOCAL WITH OTHER METHODS ON THE ESCV EHICLE DATASET .Method Modality mAP 50 mAP Param# FLOPs RoI Transformer [43] RGB 37.2 19.3 87.2M 148.7G S2ANet [35] RGB 35.5 17.5 70.7M 120.6G Oriented R-CNN [44] RGB 39.3 20.6 73.2M 134.8G KLD [45] RGB 32.9 16.2 41.9M 131.2G RoI Transformer [43] IR 22.0 10.5 87.2M 148.7G S2ANet [35] IR 21.1 9.7 70.7M 120.6G Oriented R-CNN [44] IR 24.3 11.4 73.2M 134.8G OSIV-Net [46] IR 37.0 19.1 10.8M 29.38G CFT [24] RGB+IR 41.7 23.9 44.7M 44.0G ICAFusion [14] RGB+IR 45.0 30.3 24.5M 39.2G CALNet [37] RGB+IR 48.8 31.8 39.5M 52.9G C2Former [36] RGB+IR 48.7 30.8 36.8M 80.3G CMA-Det [47] RGB+IR 47.6 27.9 28.9M 39.8G C2-VeD [19] RGB+IR 52.4 38.6 16.5M 13.1G COMO † [41] RGB+IR 49.5 37.8 6.5M 25.5G CrossWeaver † [42] RGB+IR 45.4 31.0 5.4M 19.5G FoCal (Ours) RGB+IR 54.8 41.7 3.0M 8.4G TABLE III COMPARISON OF FOCAL WITH OTHER METHODS ON THE ATR-UMOD DATASET . A LL METHODS PERFORM LOCALIZATION AND CLASSIFICATION USING ORIENTED BOUNDING BOX (OBB) HEADS . T HE CATEGORIES , CAR , SUV, VAN , BUS , FREIGHT CAR , TRUCK , MOTORCYCLE , TRAILER , EXCAVATOR ,
+
+> CRANE
+
+, AND TANK TRUCK , ARE ABBREVIATED AS CR, SV, VN, BS, FC, TK, ME, TR, ER, CE, AND TT, RESPECTIVELY .Detectors Modality CR SV VN BS FC TK TT TR CE ER ME mAP 50 
+
+S2ANet [35] RGB 34.2 44.9 45.9 69.2 24.4 37.4 5.6 22.5 49.5 31.2 25.6 35.5 ReDet [48] 36.9 52.5 51.6 74.8 33.5 48.1 16.7 40.7 61.4 36.8 32.9 41.1 RoI Transformer [43] 37.2 53.3 51.9 71.5 30.1 46.8 18.2 36.3 58.9 38.3 25.3 42.5 Oriented R-CNN [44] 36.9 52.5 51.6 74.8 33.5 48.1 16.7 40.7 61.7 36.8 32.9 44.2 YOLOv5s [34] 45.8 60.7 57.5 75.2 41.6 52.1 18.2 42.3 68.7 47.5 47.4 50.7 S2ANet [35] IR 50.2 35.9 31.8 59.9 35.5 24.3 31.4 16.0 10.8 1.0 32.0 29.9 ReDet [48] 57.4 42.6 38.8 70.4 42.3 31.5 52.0 15.9 33.7 8.7 23.1 37.9 RoI Transformer [43] 54.6 41.8 38.7 64.0 43.1 33.6 61.0 23.4 32.8 7.0 23.4 38.5 Oriented R-CNN [44] 57.5 41.6 36.8 63.8 43.5 28.6 64.3 28.5 44.2 6.9 23.9 40.0 YOLOv5s [34] 65.8 51.2 51.6 75.3 53.1 38.9 83.3 46.2 57.9 12.0 42.7 52.5 UA-CMDet [8] RGB+IR 50.9 43.3 47.9 75.8 51.4 44.5 42.8 40.1 54.8 39.6 23.2 46.8 C2Former [36] 60.5 53.3 51.6 81.6 46.1 44.7 46.6 29.3 56.3 36.8 40.0 49.7 TINet [49] 60.2 51.4 54.4 74.5 50.2 46.0 44.6 39.7 59.0 47.5 27.0 50.4 CALNet [37] 71.9 65.5 71.0 78.4 53.6 51.2 37.7 35.3 56.3 31.9 38.6 53.8 OAFA [38] 70.4 59.6 63.1 81.5 60.1 47.5 80.1 32.4 59.0 33.0 50.1 57.9 YOLOrs [50] 73.2 62.6 66.3 81.8 61.1 48.2 70.3 37.6 64.3 41.8 52.9 60.0 CrossWeaver † [42] 74.2 59.8 62.3 87.3 61.8 48.6 81.6 43.5 67.5 34.9 56.6 61.7 PCDF [20] 70.8 60.6 65.4 84.3 62.1 51.3 86.1 42.5 71.1 49.0 51.2 63.1 COMO † [41] 76.0 62.9 67.6 87.1 63.8 47.6 82.8 47.6 75.4 42.2 59.2 64.2 FoCal (Ours) 68.3 60.7 64.6 91.1 61.5 46.4 82.3 52.1 78.3 58.5 47.0 64.6 
+
+cross-modal interaction and spectral calibration. Notably, Fo-Cal achieves these improvements with only 3.0M parameters and 8.4G FLOPs, both being the lowest among all compared methods. Compared with C 2-VeD, FoCal reduces the model size from 16.5M to 3.0M and the computational cost from 13.1G to 8.4G while achieving higher accuracy. These results demonstrate that FoCal simultaneously improves detection effectiveness and computational efficiency. 
+
+Comparison on ATR-UMOD. Table III presents the com-parison with representative single-modal and RGB–IR detec-tors on the ATR-UMOD dataset. FoCal achieves the best over-all performance with an mAP 50 of 64.6%. It also consistently outperforms other representative multimodal methods, includ-ing OAFA, COMO, and CrossWeaver, demonstrating the ef-fectiveness of the proposed frequency-dependent cross-modal interaction and discrepancy-guided spectral modulation. At the category level, FoCal achieves the best AP on bus, trailer, crane, and excavator, reaching 91.1%, 52.1%, 78.3%, and 58.5%, respectively. The pronounced gains on these categories indicate that FoCal can effectively exploit complementary RGB–IR information across objects with diverse appearance, contributing to its superior overall detection performance. 
+
+D. Ablation Studies 
+
+To validate the effectiveness of the proposed components in FoCal, we conduct ablation studies on DroneVehicle to examine the contributions of the architectural redesign, FADC, and DGSM, followed by a comparison of frequency interaction strategies. JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 9                                           
+
+> TABLE IV ABLATION STUDY OF INDIVIDUAL COMPONENTS IN FOCAL ON THE
+> DRONE VEHICLE DATASET .RR FADC DGSM mAP 50 mAP 75 mAP Param# FLOPs
+> ✗✗✗80.8 76.6 65.2 4.01M 9.5G
+> ✓✗✗81.9 78.5 67.3 2.63M 6.8G
+> ✓✓✗82.9 79.5 68.2 2.75M 7.3G
+> ✓✗✓82.6 79.1 68.0 2.84M 7.9G
+> ✓✓✓83.5 79.9 68.6 2.96M 8.4G
+
+Redundancy Reduction. Considering the structural redun-dancy of dual-stream feature extraction, we adopt a lightweight redundancy reduction (RR) strategy. Specifically, the modality-specific branches are retained up to P4, while a shared P5 representation is constructed from the fused P4 feature through parameter-free downsampling followed by high-level semantic encoding, thereby avoiding duplicated deep feature extraction. In addition, RR employs a compact two-scale prediction hierarchy on P4 and P5. The high-resolution P3 representation remains involved in bidirectional multi-scale aggregation and continuously supplies fine-grained spatial cues to subsequent features, while final predictions are concentrated on the semantically stronger P4 and P5 levels. This design decouples feature-scale aggregation from prediction-scale al-location and provides a compact detection architecture without discarding high-resolution information. As shown in Table IV, RR improves mAP 50 , mAP 75 , and mAP from 80.8%, 76.6%, and 65.2% to 81.9%, 78.5%, and 67.3%, respectively, while reducing the parameter count from 4.01M to 2.63M and FLOPs from 9.5G to 6.8G. This avoids duplicated high-level computation and redundant dense predictions, yielding a more compact architecture while preserving detection accuracy. 
+
+Effectiveness of Individual Components. Introducing RR improves these metrics to 81.9%, 78.5%, and 67.3%, re-spectively, while reducing the parameter count from 4.01M to 2.63M and FLOPs from 9.5G to 6.8G. This provides a more compact and effective starting point for subsequent cross-modal modeling. Building upon RR, FADC further improves mAP 50 , mAP 75 , and mAP to 82.9%, 79.5%, and 68.2%, respectively, with only 0.12M additional parameters and 0.5G FLOPs. This verifies the effectiveness of modeling different cross-modal interaction patterns for low- and high-frequency components and transferring the resulting frequency cues back to the original feature streams for calibration. Independently adding DGSM to RR achieves 82.6% mAP 50 ,79.1% mAP 75 , and 68.0% mAP. The consistent improvement demonstrates that confidence-weighted spectral discrepancy provides complementary guidance for regulating the joint multimodal spectrum. Combining FADC and DGSM yields the best overall performance, reaching 83.5% mAP 50 , 79.9% mAP 75 , and 68.6% mAP. These results indicate that the two modules provide complementary benefits: FADC focuses on frequency-dependent cross-modal interaction and original-domain calibration, whereas DGSM regulates the joint spectral representation using cross-modal discrepancy cues. 
+
+Effectiveness of Frequency-Dependent Interaction. To investigate whether different frequency components favor dif-                                        
+
+> TABLE V ABLATION STUDY OF DIFFERENT FREQUENCY INTERACTION STRATEGIES ON THE DRONE VEHICLE DATASET . “E X.” AND “C ON .” DENOTE SELECTIVE EXCHANGE AND STRUCTURAL CONSENSUS ,RESPECTIVELY .Variant HF LF mAP 50 mAP 75 mAP Param# FLOPs Sym. Ex. Ex. 82.3 78.8 67.6 2.71M 7.1G Sym. Con. Con. 82.7 79.2 68.0 2.79M 7.5G Reverse Con. Ex. 82.4 78.9 67.7 2.75M 7.3G
+> Ours Ex. Con. 82.9 79.5 68.2 2.75M 7.3G
+
+ferent cross-modal interaction patterns, we compare four con-figurations in Table V. Applying selective exchange to both frequency bands ( Sym.Ex. ) achieves 82.3% mAP 50 , 78.8% mAP 75 , and 67.6% mAP, while uniformly adopting structural consensus ( Sym.Con. ) improves the results to 82.7%, 79.2%, and 68.0%, respectively. These results show that both interac-tion mechanisms are effective, but a uniform strategy does not explicitly account for the distinct characteristics of different frequency components. We further reverse the proposed as-signment by applying structural consensus to high-frequency components and selective exchange to low-frequency com-ponents (Reverse ). Under the same model complexity as our design, this configuration obtains 82.4% mAP 50 , 78.9% mAP 75 , and 67.7% mAP. In contrast, our frequency-dependent strategy applies selective exchange to high-frequency compo-nents and structural consensus to low-frequency components, improving the three metrics to 82.9%, 79.5%, and 68.2%, respectively. These results support the proposed frequency-dependent interaction principle: low-frequency components benefit from cross-modal structural consensus, whereas high-frequency components are better modeled by preserving modality-specific information through selective exchange. 
+
+E. Visualization 
+
+We further provide qualitative visualizations to examine the behavior of FoCal in challenging aerial scenes. As shown in Fig. 5, the compared examples contain densely distributed vehicles under low illumination and weak visual contrast. In the first scene, both the baseline and CrossWeaver miss the highlighted target, whereas COMO and FoCal successfully detect it. In the second scene, the baseline and COMO fail to identify the highlighted vehicle within the densely arranged parking area, while CrossWeaver and FoCal recover it. In both cases, FoCal successfully preserves the target responses while maintaining stable detections for surrounding vehicles. The paired RGB and IR observations further illustrate the comple-mentary characteristics of the two modalities, especially when target visibility is degraded in the visible spectrum. These re-sults qualitatively demonstrate that FoCal can more effectively exploit complementary cross-modal cues in complex aerial environments. Fig. 6 visualizes the intermediate frequency representa-tions produced by FADC. The RGB and IR low-frequency maps exhibit different response distributions before interac-tion, while the consensus operation progressively consolidates them into a shared representation with clearer structural re-sponses around vehicle regions. In contrast, the high-frequency JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 10 Baseline  Ours COMO  CrossWeaver GT 
+
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+> Missed
+> detection
+
+Fig. 5. Qualitative comparison of the proposed method against other competing methods under complex aerial scenarios. Original image  Raw LF 
+
+Share LF after 
+
+Cooperatio n
+
+Raw HF  HF after 
+
+Competitio n LF + HF 
+
+Fig. 6. Visualization of the FADC frequency pathway at P3. The top and bottom rows correspond to RGB and IR. From left to right, the panels show the input images, raw low-frequency (LF) components, the shared LF representation after cooperative interaction, raw high-frequency (HF) components, HF components after competitive interaction, and the recomposed LF+HF features. One shared LF map is produced, whereas the HF and recomposed features remain modality-specific. 
+
+branch maintains two modality-specific streams after selective exchange, preserving distinct local details while incorporat-ing complementary cues from the counterpart modality. The response heatmaps in Fig. 7 further illustrate the effect of this interaction on the final representation. Compared with the baseline, FoCal produces more concentrated activations around vehicle locations and weaker diffuse responses in background regions, particularly under low-contrast RGB conditions. The IR branch also maintains stable responses on target regions, indicating that complementary thermal cues are effectively retained during fusion. 
+
+TABLE VI COMPARISON OF MODEL COMPLEXITY AND INFERENCE EFFICIENCY .LATENCY AND FPS ARE MEASURED USING THE TRAINED .P T MODELS IN 
+
+PYTORCH ON AN NVIDIA RTX 4090 WITH A BATCH SIZE OF 1. Method Param# FLOPs mAP 50 Latency (ms/pair) ↓ FPS ↑
+
+CrossWeaver [42] 5.4M 19.5G 80.6 32.1 31.2 COMO [41] 6.5M 25.5G 81.2 15.5 64.5 
+
+FoCal (Ours) 3.0M 8.4G 83.5 8.8 113.6 
+
+V. D ISCUSSION 
+
+Overall, the experimental results on DroneVehicle, ESCVe-hicle, and ATR-UMOD demonstrate that FoCal consistently JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 11 Baseline  Ours Input image  
+
+> Fig. 7. Comparison of heatmap visualizations across different input modali-ties. From top to bottom: visible and infrared modalities. From left to right: baseline model and the proposed FoCal.
+
+achieves strong detection performance across different aerial RGB–IR benchmarks. In particular, the improvements in both overall detection accuracy and category-level performance indicate that frequency-dependent cross-modal interaction can effectively exploit complementary information between visible and infrared modalities. Meanwhile, the compact architecture of FoCal suggests that these accuracy gains do not rely on increasing model capacity, providing a favorable basis for practical multimodal detection. Beyond detection accuracy, computational efficiency is par-ticularly important for aerial platforms, where real-time pro-cessing and limited computing resources are common con-straints. As shown in Table VI, FoCal achieves 83.5% mAP 50 
+
+with only 3.0M parameters and 8.4G FLOPs, while reaching 113.6 FPS with a latency of 8.8 ms per RGB–IR pair on an NVIDIA RTX 4090. In comparison, COMO achieves 81.2% mAP 50 at 64.5 FPS, while CrossWeaver obtains 80.6% mAP 50 
+
+at 31.2 FPS. The lower FPS of COMO and CrossWeaver may be associated with their more elaborate cross-modal interaction pipelines, including cross-Mamba-based global– local modeling in COMO and deformation-aware hierarchi-cal interaction in CrossWeaver. In contrast, FoCal adopts a more compact frequency-oriented interaction design, reducing inference overhead while preserving strong detection accu-racy. Thus, FoCal simultaneously provides higher detection accuracy, lower computational complexity, and substantially higher forward-pass throughput. These characteristics indicate its strong potential for real-time RGB–IR object detection and make it particularly suitable for future deployment on aerial and other latency-sensitive multimodal perception platforms. Future work will therefore investigate end-to-end deployment optimization, including mixed-precision inference, TensorRT acceleration, and hardware-aware optimization on embedded and edge computing platforms. VI. C ONCLUSION 
+
+In this work, we proposed FoCal , a frequency-oriented framework for aerial RGB–IR object detection. FoCal explic-itly exploits the distinct characteristics of different frequency components to improve cross-modal interaction. Specifically, FADC establishes structural consensus in the low-frequency branch while preserving modality-specific information through selective high-frequency exchange, and further transfers the resulting frequency-aware cues to calibrate the original fea-ture streams. DGSM complements this process by converting confidence-weighted spectral discrepancy into a signed modu-lation signal for adaptive regulation of the joint multimodal spectrum. Extensive experiments on DroneVehicle, ESCVe-hicle, and ATR-UMOD demonstrate that FoCal consistently achieves state-of-the-art performance, with mAP 50 values of 83.5%, 54.8%, and 64.6%, respectively. Meanwhile, the model contains only 3.0M parameters and exhibits favorable inference efficiency, highlighting a strong trade-off between detection accuracy and computational cost. Future work will explore hardware-aware optimization and extend frequency-dependent interaction to temporal and more diverse multi-modal perception scenarios. REFERENCES [1] X. Liu, H. Zou, J. Li, L. Pan, S. He, X. Cao, Y. Zhang, J. Li, and W. Chen, “D2-detr: Detr with dual-domain frequency-spatial modeling for unmanned aerial vehicle imagery object detection,” Knowledge-Based Systems , p. 115788, 2026. [2] B. Liang, Y. Liu, C. Sui, Y. Wang, L. Xiao, X. Sui, and Q. Chen, “Multi-scale pattern-aware task-gating network for aerial small object detection,” Neural Networks , p. 108680, 2026. [3] R. Wang, J. Yang, M. Li, and D. Hao, “Efficient small object detection based on multi-level implicit feature enhancement and presence region mask guidance,” Knowledge-Based Systems , p. 115020, 2025. [4] Y. Liu, X. Ji, H. Wei, B. Qiu, Y. Liu, X. Sui, and Q. Chen, “Dmsa-net: Dual-domain multiscale attentive network for robust sar ship detection,”                    
+
+> IEEE Transactions on Aerospace and Electronic Systems , 2025. [5] H. Wei, N. Wang, Y. Liu, P. Ma, D. Pang, X. Sui, and Q. Chen, “Spatio-temporal feature fusion and guide aggregation network for remote sensing change detection,” IEEE Transactions on Geoscience and Remote Sensing , vol. 62, pp. 1–16, 2024. [6] H. Wei, Y. Liu, Y. Ma, D. Pang, Y. Ye, X. Sui, and Q. Chen, “Multi-scale spatial frequency fusion and prior change guidance network for remote sensing change detection,” IEEE Transactions on Instrumentation and Measurement , 2025. [7] Q. Chen, T. Xu, Y. Sun, B. Wang, and Y. Han, “Tiny object detection via implicit feature fusion and hybrid metric adaptive label assignment,”
+> Knowledge-Based Systems , p. 116218, 2026. [8] Y. Sun, B. Cao, P. Zhu, and Q. Hu, “Drone-based rgb-infrared cross-modality vehicle detection via uncertainty-aware learning,” IEEE Trans-actions on Circuits and Systems for Video Technology , vol. 32, no. 10, pp. 6700–6713, 2022. [9] Y. Shi, Y. Liu, T. Liu, C. Li, L. Yuan, X. Sui, and Q. Chen, “Spgfuse: A dual-task semantic perception guided network for infrared and visible image fusion,” Optics and Lasers in Engineering , vol. 195, p. 109240, 2025. [10] T. Jiang, X. Kuang, S. Wang, T. Liu, Y. Liu, X. Sui, and Q. Chen, “Cross-domain colorization of unpaired infrared images through contrastive learning guided by color feature selection attention,” Optics Express ,vol. 32, no. 9, pp. 15008–15024, 2024. JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 12
+
+[11] T. Li, M. Ye, T. Wu, N. Li, S. Li, S. Tang, and L. Ji, “Pseudo visible feature fine-grained fusion for thermal object detection,” in Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 6710– 6719, 2025. [12] L. Tang, Z. Chen, J. Huang, and J. Ma, “Camf: An interpretable infrared and visible image fusion network based on class activation mapping,” 
+
+IEEE Transactions on Multimedia , vol. 26, pp. 4776–4791, 2023. [13] X. Li, S. Chen, C. Tian, H. Zhou, and Z. Zhang, “M2fnet: Mask-guided multi-level fusion for rgb-t pedestrian detection,” IEEE Transactions on Multimedia , vol. 26, pp. 8678–8690, 2024. [14] J. Shen, Y. Chen, Y. Liu, X. Zuo, H. Fan, and W. Yang, “Icafusion: Iterative cross-attention guided feature fusion for multispectral object detection,” Pattern Recognition , vol. 145, p. 109913, 2024. [15] K. Chen, J. Liu, and H. Zhang, “Igt: Illumination-guided rgb-t ob-ject detection with transformers,” Knowledge-Based Systems , vol. 268, p. 110423, 2023. [16] J. Zhang, J. Lei, W. Xie, Z. Fang, Y. Li, and Q. Du, “Superyolo: Super resolution assisted object detection in multimodal remote sensing im-agery,” IEEE Transactions on Geoscience and Remote Sensing , vol. 61, pp. 1–15, 2023. [17] K. Li, D. Wang, Z. Hu, S. Li, W. Ni, L. Zhao, and Q. Wang, “Fd2-net: Frequency-driven feature decomposition network for infrared-visible object detection,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, pp. 4797–4805, 2025. [18] H. Zhu, W. Dong, L. Yang, H. Li, Y. Yang, Y. Ren, Q. Zhu, Z. Feng, C. Li, S. Lin, et al. , “Wavemamba: Wavelet-driven mamba fusion for rgb-infrared object detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 11219–11229, 2025. [19] J. Song, N. Zhang, Z. Wang, and T. Tian, “Escvehicle: A drone-based visible-infrared vehicle benchmark with extensive scene coverage,” IEEE Transactions on Geoscience and Remote Sensing , 2026. [20] C. Chen, K. Bin, T. Hu, J. Qi, X. Liu, T. Liu, Z. Liu, Y. Liu, and P. Zhong, “Fusion meets diverse conditions: A high-diversity benchmark and baseline for uav-based multimodal object detection with condition cues,” in 2025 IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 27958–27967, IEEE, 2025. [21] Y. Shi, Y. Liu, B. Qiu, T. Liu, X. Sui, and Q. Chen, “Infrared and visible image fusion via pre-fusion compensation and visual-gradient saliency detection,” Infrared Physics & Technology , p. 106000, 2025. [22] Z. Zhao, H. Bai, J. Zhang, Y. Zhang, S. Xu, Z. Lin, R. Timofte, and L. Van Gool, “Cddfuse: Correlation-driven dual-branch feature decomposition for multi-modality image fusion,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 5906–5916, 2023. [23] Z. Li, H. Pan, K. Zhang, Y. Wang, and F. Yu, “Mambadfuse: A mamba-based dual-phase model for multi-modality image fusion,” arXiv preprint arXiv:2404.08406 , 2024. [24] F. Qingyun, H. Dapeng, and W. Zhaokui, “Cross-modality fu-sion transformer for multispectral object detection,” arXiv preprint arXiv:2111.00273 , 2021. [25] F. Qingyun and W. Zhaokui, “Cross-modality attentive feature fusion for object detection in multispectral remote sensing imagery,” Pattern Recognition , vol. 130, p. 108786, 2022. [26] W. Dong, H. Zhu, S. Lin, X. Luo, Y. Shen, G. Guo, and B. Zhang, “Fusion-mamba for cross-modality object detection,” IEEE Transactions on Multimedia , 2025. [27] G. Zhang, X. Ji, B. Qiu, Y. Cai, Y. Liu, X. Sui, and Q. Chen, “Sfnet: A dual-enhanced rgbt tracker via global-local modality refinement and frequency-spatial cross-modal fusion,” Optics and Lasers in Engineer-ing , vol. 194, p. 109201, 2025. [28] Z. Shi, J. Hu, J. Ren, H. Ye, X. Yuan, Y. Ouyang, J. He, B. Ji, and J. Guo, “Hs-fpn: High frequency and spatial perception fpn for tiny object detection,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, pp. 6896–6904, 2025. [29] Y. Xiang, K. Zhao, Z. Yu, X. Yuan, G. Huang, J. Tian, and J. Li, “Df-former: Capturing dynamic frequency features to locate image manipu-lation through adaptive frequency transformer and prototype learning,” 
+
+IEEE Transactions on Circuits and Systems for Video Technology , 2025. [30] K. Hu, Q. Zhang, M. Yuan, and Y. Zhang, “Sfdfusion: an efficient spatial-frequency domain fusion network for infrared and visible image fusion,” arXiv preprint arXiv:2410.22837 , 2024. [31] S. E. Finder, R. Amoyal, E. Treister, and O. Freifeld, “Wavelet convo-lutions for large receptive fields,” in European conference on computer vision , pp. 363–380, Springer, 2024. [32] Y. Wang, J. Liu, J. Wang, L. Yang, B. Dong, and Z. Li, “Haarfuse: A dual-branch infrared and visible light image fusion network based on haar wavelet transform,” Pattern Recognition , vol. 164, p. 111594, 2025. [33] S. Li, Z. Liu, Z. Hong, Z. Zhou, and X. Cao, “Depfusion: Dual-domain enhancement and priority-guided mamba fusion for uav multispectral object detection,” arXiv preprint arXiv:2509.07327 , 2025. [34] G. Jocher and J. Qiu, “Ultralytics yolo11,” 2024. [35] J. Han, J. Ding, J. Li, and G.-S. Xia, “Align deep features for oriented object detection,” IEEE transactions on geoscience and remote sensing ,vol. 60, pp. 1–11, 2021. [36] M. Yuan and X. Wei, “C 2former: Calibrated and complementary transformer for rgb-infrared object detection,” IEEE Transactions on Geoscience and Remote Sensing , vol. 62, pp. 1–12, 2024. [37] X. He, C. Tang, X. Zou, and W. Zhang, “Multispectral object detection via cross-modal conflict-aware learning,” in Proceedings of the 31st ACM International Conference on Multimedia , pp. 1465–1474, 2023. [38] C. Chen, J. Qi, X. Liu, K. Bin, R. Fu, X. Hu, and P. Zhong, “Weakly misalignment-free adaptive feature alignment for uavs-based multimodal object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 26836–26845, 2024. [39] T. Zhao, B. Liu, Y. Gao, Y. Sun, M. Yuan, and X. Wei, “Rethinking multi-modal object detection from the perspective of mono-modality feature learning,” in 2025 IEEE/CVF International Conference on Com-puter Vision (ICCV) , pp. 6364–6373, IEEE, 2025. [40] Y. Zhang, J. Chen, J. Wang, D. Shi, S. Han, and L. Deng, “C2dff-net for object detection in multimodal remote sensing images,” IEEE Transactions on Geoscience and Remote Sensing , vol. 63, pp. 1–16, 2025. [41] C. Liu, X. Ma, X. Yang, Y. Zhang, and Y. Dong, “Como: Cross-mamba interaction and offset-guided fusion for multimodal object detection,” 
+
+Information Fusion , vol. 125, p. 103414, 2026. [42] H. Yang, J. Fang, Y. Zhu, X. Zhao, Y. Guo, X. Zhang, X. Hu, X. Yang, and Q. Ming, “Crossweaver: Towards efficient cross-modal interweaving and decoupling for weakly-aligned multispectral object detection,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings , pp. 6361–6370, June 2026. [43] J. Ding, N. Xue, Y. Long, G.-S. Xia, and Q. Lu, “Learning roi transformer for oriented object detection in aerial images,” in 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 2844–2853, IEEE, 2019. [44] X. Xie, G. Cheng, J. Wang, X. Yao, and J. Han, “Oriented r-cnn for object detection,” in 2021 IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 3500–3509, IEEE, 2021. [45] X. Yang, X. Yang, J. Yang, Q. Ming, W. Wang, Q. Tian, and J. Yan, “Learning high-precision bounding box for rotated object detection via kullback-leibler divergence,” Advances in Neural Information Process-ing Systems , vol. 34, pp. 18381–18394, 2021. [46] N. Zhang, B. Chai, J. Song, T. Tian, P. Zhu, J. Ma, and J. Tian, “Omni-scene infrared vehicle detection: An efficient selective aggregation approach and a unified benchmark,” ISPRS Journal of Photogrammetry and Remote Sensing , vol. 223, pp. 244–260, 2025. [47] K. Song, X. Xue, H. Wen, Y. Ji, Y. Yan, and Q. Meng, “Misaligned visible-thermal object detection: A drone-based benchmark and base-line,” IEEE Transactions on Intelligent Vehicles , vol. 9, no. 11, pp. 7449– 7460, 2024. [48] J. Han, J. Ding, N. Xue, and G.-S. Xia, “Redet: A rotation-equivariant detector for aerial object detection,” in 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 2785–2794, IEEE, 2021. [49] Y. Zhang, H. Yu, Y. He, X. Wang, and W. Yang, “Illumination-guided rgbt object detection with inter-and intra-modality fusion,” IEEE Transactions on Instrumentation and Measurement , vol. 72, pp. 1–13, 2023. [50] M. Sharma, M. Dhanaraj, S. Karnam, D. G. Chachlakis, R. Ptucha, P. P. Markopoulos, and E. Saber, “Yolors: Object detection in multimodal remote sensing imagery,” IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing , vol. 14, pp. 1497–1508, 2020.

@@ -1,0 +1,135 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-01T22:54:12.533808+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.29125v1",
+      "source": "arxiv",
+      "title": "FoCal: Frequency-Oriented Cross-Modal Interaction and Spectral Calibration for Aerial Visible-Infrared Object Detection",
+      "abstract": "In aerial RGB--IR object detection, effectively exploiting complementary information across modalities is critical for robust perception under complex illumination and environmental conditions. Existing multimodal detectors mainly focus on spatial-domain interaction or frequency-specific feature enhancement, while the cross-modal interaction patterns of different frequency components remain insufficiently explored. Moreover, spectral discrepancy itself may contain both useful complementary cues and unreliable modality-specific responses, making indiscriminate frequency fusion suboptimal. To address these issues, we propose FoCal, a frequency-oriented framework for aerial RGB--IR object detection. First, a Frequency-Aware Dual-Domain Calibration (FADC) module is developed to explicitly model frequency-dependent cross-modal interaction. Low-frequency components are collaboratively consolidated into a shared structural consensus, whereas high-frequency components preserve modality-specific information through selective cross-modal exchange. The resulting frequency-aware cues are further transferred to the original feature domain to regulate cross-modal calibration. Second, we introduce a Discrepancy-Guided Spectral Modulation (DGSM) module, which characterizes cross-modal spectral imbalance using confidence-weighted relative amplitude discrepancy and transforms it into a bounded signed gate for adaptive enhancement, preservation, or attenuation of the joint multimodal spectrum. Extensive experiments on DroneVehicle, ESCVehicle, and ATR-UMOD demonstrate the effectiveness of FoCal, yielding $\\mathrm{mAP}_{50}$ values of 83.5\\%, 54.8\\%, and 64.6\\%, respectively. Meanwhile, with only 3.0M parameters, FoCal achieves 113.6 FPS while preserving leading detection accuracy, highlighting a favorable accuracy--efficiency trade-off. Code is available at {https://github.com/universeliang/FoCal.",
+      "authors": [
+        "Ben Liang",
+        "Chao Sui",
+        "Junqi Bai",
+        "Yuan Liu",
+        "Chunlai Li",
+        "Xiubao Sui",
+        "Qian Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-24T07:02:14+00:00",
+      "link": "https://arxiv.org/pdf/2609.29125v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "aerial RGB-IR object detection with frequency-oriented cross-modal interaction",
+      "llm_evidence_cn": "航空可见光-红外目标检测的频率导向跨模态交互",
+      "llm_evidence": "航空可见光-红外目标检测的频率导向跨模态交互",
+      "canonical_evidence": "航空可见光-红外目标检测的频率导向跨模态交互",
+      "llm_tldr_en": "Aerial RGB-IR object detection needs better cross-modal fusion. FoCal proposes frequency-oriented cross-modal interaction and spectral calibration to exploit complementary cues while suppressing unreliable modality responses. Experiments show robust detection under complex illumination.",
+      "llm_tldr_cn": "该工作针对航空可见光-红外目标检测中不同频率成分的跨模态交互模式未被充分探索、光谱差异可能包含不可靠响应的问题。论文提出FoCal框架，在频率域进行跨模态交互并进行光谱校准，以利用互补线索并抑制不可靠模态响应。实验表明该方法在复杂光照和环境条件下提升了检测鲁棒性，为多模态目标检测提供了新思路。",
+      "llm_tldr": "该工作针对航空可见光-红外目标检测中不同频率成分的跨模态交互模式未被充分探索、光谱差异可能包含不可靠响应的问题。论文提出FoCal框架，在频率域进行跨模态交互并进行光谱校准，以利用互补线索并抑制不可靠模态响应。实验表明该方法在复杂光照和环境条件下提升了检测鲁棒性，为多模态目标检测提供了新思路。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.32757v1",
+      "source": "arxiv",
+      "title": "Readout is not Recovery: Dissociating Coordinate Emission from Visual-Corruption Repair in Vision-Language Models",
+      "abstract": "VLM bounding-box localization is both language generation and spatial commitment. Parseable fields such as bbox_2d make localization easy to score, but dimensions that emit coordinate tokens need not repair localization after visual evidence is damaged. We study this readout/recovery separation in Qwen3-VL-4B-Instruct on single-object COCO grounding. We compare clean coordinate-token readout rankings with corruption-derived repair rankings, using object-mask endpoint replacement for recovery and clean-input flooring for depth localization. In Qwen3-VL, coordinate-token rankings are inert through layer 24, load-bearing from layers 32-35, and peak at layer 34; corruption-derived rankings harm layers 16-24 but become beneficial near layer 35/final. A Kimi-VL-A3B diagnostic shows a matching output-proximal transition despite a different box format. Object-mask recovery separates rank budgets: $k=250$ shows necessity, $k=500$ shows Top-$k$ restoration above random, and $k=d/2$ is largely capacity-driven. Partial-occlusion sweeps reveal that high-overlap coordinate-token sets can hurt at $k=1000$ and help mainly at half-width, while population corruption-derived sets provide no reliable fixed repair set. Edge-attribution patching shows coordinate-token paths are high precision but low recall for detection recovery, and RMSNorm quasi-layer controls do not close the endpoint-repair gap. Endpoint coordinate triage is therefore a useful circuit prior, but occlusion recovery requires a separate benchmark.",
+      "authors": [
+        "Drandreb Earl Juanico"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-26T16:25:45+00:00",
+      "link": "https://arxiv.org/pdf/2609.32757v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Analysis of bounding-box localization in vision-language models (transformer-based)",
+      "llm_evidence_cn": "视觉语言模型（transformer）边界框定位分析",
+      "llm_evidence": "视觉语言模型（transformer）边界框定位分析",
+      "canonical_evidence": "视觉语言模型（transformer）边界框定位分析",
+      "llm_tldr_en": "Investigates the readout/recovery separation in VLM bounding-box localization, showing coordinate emission and visual repair rely on different layers.",
+      "llm_tldr_cn": "针对视觉语言模型中边界框定位的读出与修复机制分离问题，通过层分析揭示坐标发射与视觉修复在不同层起作用。该研究有助于理解基于transformer的目标定位内部机理。",
+      "llm_tldr": "针对视觉语言模型中边界框定位的读出与修复机制分离问题，通过层分析揭示坐标发射与视觉修复在不同层起作用。该研究有助于理解基于transformer的目标定位内部机理。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.34895v1",
+      "source": "arxiv",
+      "title": "LVMT: Video Mask Transformer for Long-term Video Segmentation",
+      "abstract": "Existing online video segmentation methods struggle to track objects in long, complex videos with long-term occlusions. We hypothesize that this limitation is caused by (i) the inability of their temporal propagation mechanism to adaptively select the object information that is propagated across time, and (ii) their inability to be trained on long videos due to memory requirements and vanishing gradients. To address the first limitation, we propose to use a lightweight GRU-based temporal propagation module that can learn to select which information it keeps in memory and propagates across time. Second, to allow training on long videos, we introduce Truncated Query Propagation (TQP), a training strategy in which the model processes a video in chunks of frames, where information about tracked objects is propagated between chunks but backpropagation is only conducted in individual chunks, enabling longer temporal supervision without out-of-memory issues, inference overhead, or vanishing gradients. The resulting model is called the Long-term Video Mask Transformer (LVMT). Extensive experiments on six benchmarks show that LVMT sets a new state of the art across a range of video segmentation tasks, while retaining the speed of the highly efficient model it is based on, making it 10X faster than the prior state of the art. Code: https://www.tue-mps.org/lvmt",
+      "authors": [
+        "Narges Norouzi",
+        "Niccol`o Cavagnero",
+        "Idil Esen Zulfikar",
+        "Bastian Leibe",
+        "Gijs Dubbelman",
+        "Daan de Geus"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T11:00:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.34895v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Transformer-based video object segmentation with long-term propagation",
+      "llm_evidence_cn": "基于transformer的视频目标分割与长时传播",
+      "llm_evidence": "基于transformer的视频目标分割与长时传播",
+      "canonical_evidence": "基于transformer的视频目标分割与长时传播",
+      "llm_tldr_en": "Proposes LVMT with GRU-based temporal propagation and truncated query propagation for long-term video object segmentation, enabling training on long videos.",
+      "llm_tldr_cn": "针对长视频中目标分割的长期遮挡和训练难题，提出LVMT采用轻量GRU时序传播与截断查询传播策略，实现长视频对象分割。该方法可有效跟踪目标并降低训练内存需求。",
+      "llm_tldr": "针对长视频中目标分割的长期遮挡和训练难题，提出LVMT采用轻量GRU时序传播与截断查询传播策略，实现长视频对象分割。该方法可有效跟踪目标并降低训练内存需求。",
+      "llm_tags": [
+        "query:obj-detect:composite"
+      ],
+      "matched_query_tag": "query:obj-detect:composite",
+      "matched_query_text": "Papers central to 查找计算机视觉领域目标检测相关的论文, especially work that connects or combines: object detection in computer vision; object detection with transformer architectures.",
+      "matched_requirement_id": "req-composite-obj-detect",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
