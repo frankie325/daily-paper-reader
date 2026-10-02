@@ -1,0 +1,209 @@
+Title: GA-EIRFS: A Geometry-Augmented Repeat-Factor Sampling Method for Long-Tailed LiDAR 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2609.38116v1
+
+Published Time: Wed, 30 Sep 2026 02:32:25 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# GA-EIRFS: A GEOMETRY-AUGMENTED REPEAT-FACTOR SAMPLING METHOD FOR LONG-TAILED LIDAR 3D OBJECT DETECTION 
+
+# Taufiq Ahmed † , Constantino ´ Alvarez Casado † , Daniel Herrera Castro † ,Sasan Sharifipour † , Abhishek Kumar ⋆ , Miguel Bordallo L´ opez ††Center for Machine Vision and Signal Analysis (CMVS), University of Oulu, Finland 
+
+⋆University of Jyv¨ askyl¨ a, Jyv¨ askyl¨ a, Finland 
+
+ABSTRACT 
+
+Long-tailed 3D object detection is treated as a class-frequency prob-lem, but LiDAR supervision quality depends on object observabil-ity: similar frequencies can hide different geometric evidence. We introduce Geometry-Augmented Exponentially Weighted Instance-Aware Repeat Factor Sampling (GA-EIRFS), a detector-agnostic method that modulates a frequency-based repeat factor with a fixed geometry score combining point count, surface-normal entropy, and surface coverage. GA-EIRFS changes only frame-sampling proba-bilities, leaving the detector and inference unchanged. On nuScenes it improves mean average precision (mAP) and the nuScenes detec-tion score (NDS) in four converged experiments with CenterPoint and PointPillars over two seeds; for CenterPoint at seed 666, mAP rises from 0.552 to 0.563 and bicycle AP from 0.306 to 0.359. Per-class gains correlate with the class sampling-weight increase (Spearman ρ = 0 .70 , p = 0 .025 ) but not with geometry score alone (ρ = 0.32 , p = 0.37 ), so geometry amplifies frequency-driven need. KITTI results vary across seeds, most for the rarest class. Code: https://github.com/Multimodal-Sensing-Lab/GA-EIRFS. 
+
+Index Terms — Long-tailed 3D object detection, LiDAR point clouds, class imbalance, repeat factor sampling, data resampling 
+
+1. INTRODUCTION 
+
+LiDAR-based 3D object detection supports autonomous vehicles, mobile robots, inspection drones and roadside sensing, where miss-ing an uncommon but safety-relevant object can have serious con-sequences. Annotated datasets often contain far fewer examples of such objects than of common categories. For example, in the nuScenes database training split [1], annotated cars outnumber bicy-cles by 41.5:1, which presents a challenge in learning to detect un-derrepresented classes [2, 3]. We evaluate on driving benchmarks, but the underlying problem of imbalanced training data extends to other LiDAR applications. Sampling-based rebalancing addresses the imbalance without modifying the detector. Repeat Factor Sampling (RFS) [4] repeats an image according to the frequency of the rarest category it con-tains. Instance-Aware RFS (IRFS) [5] combines image and instance frequency through a geometric mean, and E-IRFS [6] applies an exponential function to that mean so that extremely rare categories receive a stronger adjustment. In 3D detection, Class-Balanced Grouping and Sampling (CBGS) duplicates frames by category oc-currence [7]. Every method in this family reads annotation counts only. Frequency is not the same as observability. LiDAR returns de-pend on object size, range, orientation, occlusion and surface struc-0.1 0.2 0.3 0.4 0.5 
+
+Rarity term qc (rarer → ) 
+
+> 0.2 0.4 0.6 0.8
+> Geometry score  Gc
+> 1.5 2.0 3.0 4.0 5.0 6.0
+> rc
+> car pedestrian barrier truck traf. cone
+> trailer
+> bus constr. veh. motorcycle
+> bicycle
+
+Fig. 1 . Rarity and geometric difficulty are close to independent across the ten nuScenes classes. Markers are classes, placed by the E-IRFS frequency term qc and the geometry score Gc of Eq. (5). Grey curves are contours of rc (α = 2 .0, β = 1 .0): vertical distance at fixed rarity is the sampling weight that geometry adds. ture. In the nuScenes training split a bicycle box contains 16.9 points on average, against 98.1 for a car and 240.3 for a trailer. Bicy-cle and trailer are both minority classes and a frequency-based rule gives them similar sampling weight, yet the evidence available per instance differs by more than an order of magnitude. Across the ten classes the frequency term and the geometry score are close to un-correlated (Spearman ρ = 0 .16 , p = 0 .65 ), as Figure 1 shows, so a rule defined on counts alone cannot separate a rare class that is easy to observe from one that is not. We propose Geometry-Augmented E-IRFS (GA-EIRFS), which estimates a fixed class-level geometry score from the annotated Li-DAR points before training and uses it to modulate the exponent of the E-IRFS repeat factor. Geometry amplifies an existing frequency-driven adjustment rather than acting on its own, and one parameter controls how much it contributes. The contributions are as follows: • A geometry-augmented repeat factor that combines class fre-quency with class-level LiDAR observability and reduces ex-actly to E-IRFS when the geometry term is disabled. • A geometry score built from three measurable properties of the annotated point sets, computed once before training, with no change to the detector, the loss or the inference path. • An evaluation on nuScenes with two detectors and two seeds, a sweep of the geometry strength, an analysis of which classes benefit and why, and a transfer experiment on KITTI in which the gains are not consistent. arXiv:2609.38116v1 [cs.CV] 29 Sep 2026 2. RELATED WORK Rebalancing for long-tailed 3D detection. Long-tail mitigation for point clouds acts on the data distribution, on the training objective, or on the detector. CBGS builds a more balanced training distribution and groups related categories [7], Lee and Kim combine category-specific heads, dynamic loss averaging and contextual ground-truth sampling [8], and Peri et al. formalize long-tailed 3D detection with hierarchical supervision and evaluation [2]. Later work adds mul-timodal fusion [9], neighbour-based confidence adjustment [3], loss reweighting [10] or few-shot adaptation [11]. These methods change the objective, the architecture or the modalities, and none of them changes which frames the sampler draws. Frequency and difficulty have been separated before, but outside 3D geometry: CDB-S re-samples classes by measured validation difficulty [12] and geometric priors have shaped the feature space in long-tailed classification [13]. Both derive difficulty from model behaviour rather than from the sensor evidence. 
+
+Geometry and difficulty-aware training. Point density has been used to guide internal point selection and attention in DA-3DSSD [14] and in density-aware set abstraction [15]. PointDrop generates sparse adversarial examples [16], and density-adaptive augmentation modifies point-cloud content [17]. All of these act in-side the detector or inside a scene. The closest operational method is Curricular Object Manipulation (COM) [18], which groups database objects by distance, dimensions, orientation and occupancy, then progressively selects harder objects for ground-truth copy-paste augmentation. Its sampling unit is an object pasted into a scene and its difficulty is updated from model scores during training. Rare Example Mining [19] also separates rareness from difficulty, but it selects unlabelled tracks for annotation rather than rebalancing a labelled set, as do active-annotation methods [20, 21]. 
+
+Gap and positioning. Two gaps follow. The sampling methods de-cide how often a frame is drawn from annotation counts alone, so they cannot separate a rare class the sensor observes well from one it observes poorly. The geometry-aware methods do read sensor struc-ture, but they act inside the detector or inside a synthesised scene, and those that separate rarity from difficulty estimate difficulty from model behaviour or select data for annotation. We found no method that inserts a fixed, sensor-derived geometry score directly into a frame repeat factor. GA-EIRFS targets that gap: it scores class-level observability once from the annotated points and multiplies it into the exponent of an existing frequency-based repeat factor, leaving the detector, the loss and inference untouched. Section 3 defines the two priors and how they combine. 
+
+3. GEOMETRY-AUGMENTED REPEAT FACTOR SAMPLING 
+
+GA-EIRFS takes an annotated training split as input and returns one sampling probability per frame. Figure 2 shows the two priors, their combination, and the single point at which the training loop is af-fected. 
+
+3.1. Frequency prior 
+
+Let fi,c be the fraction of training frames containing class c and fb,c 
+
+be the fraction of 3D annotated boxes assigned to c. Following E-IRFS [6], the frequency term is given by: 
+
+qc =
+
+s t
+
+pfi,c fb,c 
+
+, (1) Training split: annotated boxes and in-box LiDAR points                  
+
+> Frequency prior
+> fi,c,fb,c⇒qc
+> Geometry prior
+> Dc,Hc,Sc⇒Gc
+> Class repeat factor
+> rc= exp ( α q c(1 + βG c))
+> Frame factor and sampling probability
+> ri= max
+> c∈i
+> rc,pi∝ri
+> Detector, loss and inference unchanged
+
+Fig. 2 . GA-EIRFS pipeline. The priors qc and Gc of Eqs. (1) and (5) are estimated once from the training split and enter the class repeat factor of Eq. (6), which becomes a frame sampling probability. where t sets the threshold at which oversampling becomes active. The term grows as either frequency falls and treats classes with com-parable occurrence statistics identically. 
+
+3.2. Class-level geometry prior 
+
+For every annotated instance, we collect the LiDAR points inside its ground-truth 3D box. Let N (·) denote min-max normalization across the classes of the dataset. Each component is constructed to lie in [0 , 1] , with higher values indicating a greater estimated geo-metric difficulty. The first component penalizes low point support and is defined as: 
+
+Dc = 1 − N (log(1 + ¯ nc)) , (2) where ¯nc is the mean number of in-box points per instance of class c.The logarithm reduces the influence of classes with very high point counts on the normalization. In nuScenes, the traffic cone class has 
+
+Dc = 1 .00 , with 9.2 points per instance on average, while the bus class has Dc = 0 .00 , with 312.4 points per instance. The second component measures surface diversity through the distribution of local surface-normal orientations. Normals are esti-mated for each instance and assigned to 256 orientation bins. The normalized class-level entropy is defined as: 
+
+Hc = N −
+
+> 256
+
+X
+
+> k=1
+
+pc,k log pc,k 
+
+!
+
+, (3) where pc,k is the probability assigned to orientation bin k for class 
+
+c. A flat panel exhibits similar normal orientations and low entropy, whereas an irregular structure such as a bicycle frame can exhibit more diverse orientations and higher entropy. Instances with fewer than ten points are excluded from the entropy calculation because their normal estimates are unstable. Assigning zero entropy to these instances would artificially lower the estimated surface diversity of sparsely sampled classes. The third component measures how sparsely the observed sur-face is covered, 
+
+Sc = 1 − N 
+
+
+
+(n/A )c
+
+
+
+, A = 2( lw + lh + wh ), (4) where n is the in-box point count and A the surface area of a box of dimensions l, w and h. The surface area replaces volume because a LiDAR sensor observes the outer surfaces, and normalizing by vol-ume makes large hollow boxes such as the trailer and bus appear artificially empty. The geometry score is the convex combination 
+
+Gc = λD Dc + λH Hc + λS Sc, λD + λH + λS = 1 . (5) 3.3. Geometry-augmented repeat factor 
+
+GA-EIRFS modulates the E-IRFS exponent with the geometry score computed as: 
+
+rc = exp( α q c (1 + βG c)) , (6) where α controls the exponential scaling and β the geometry con-tribution. Setting β = 0 recovers E-IRFS exactly, allowing direct ablation of the geometry term. For a frame i, the sampling weight is 
+
+ri = max c∈i rc, and its probability of being selected for training is 
+
+pi = ri/ P 
+
+> j
+
+rj , where the sum runs over all training frames. The product form in Eq. (6) is deliberate. Geometry scales a weight that rarity has already requested, so a common class that happens to be geometrically difficult is not promoted on its own. Table 1 reports the effect. Bicycle and trailer receive similar sam-pling weight under E-IRFS, at 2.58 and 2.06, a ratio of 1.25. Under GA-EIRFS the factors become 5.61 and 2.63 and the ratio widens to 2.14, while car moves only from 1.29 to 1.49. Taking the maximum over the classes in a frame, rather than a product, avoids compound-ing when several minority classes co-occur and preserves the frame-level behaviour of E-IRFS, so that β isolates geometry. The cost is one offline pass over the annotated in-box points. 
+
+4. EXPERIMENTAL SETUP Datasets. The main evaluation uses nuScenes [1], comprised of 1000 driving scenes recorded with a 32-beam LiDAR at 20 Hz. We use the standard split of 700 training and 150 validation scenes, that is 28,130 and 6,019 annotated keyframes, and the ten official de-tection classes. Transfer is assessed on KITTI [22], which uses a 64-beam sensor, single sweeps and three classes, and whose Car to Cyclist ratio of about 19.6 to 1 is milder than the 41.5 to 1 ratio on nuScenes. 
+
+Models, protocol and metrics. We evaluate CenterPoint [23] and PointPillars [24] in OpenPCDet [25]. The principal nuScenes runs use 20 epochs and the seeds 666 and 1337, that is two repetitions per detector and four paired baseline-to-GA-EIRFS comparisons in total. We set α = 2 .0, t = 0 .01 , β = 1 .0 and (λD , λ H , λ S ) = (0 .5, 0.3, 0.2) , weighting density most because it is measured di-rectly rather than estimated. The geometry sweep uses 12 epochs and 
+
+β ∈ { 0, 0.5, 1.0, 2.0}. For KITTI we keep α, t and β unchanged, recompute Gc from the KITTI point clouds, use PointPillars with the reference OpenPCDet configuration and no road-plane augmen-tation, and evaluate the seeds 666, 1337 and 42 (3 repetitions). We report nuScenes mean average precision (mAP) and the nuScenes detection score (NDS): mAP matches predictions to ground truth by center distance, while NDS combines mAP with the true-positive er-rors in translation, scale, orientation, velocity and attribute [1]; per-class AP; and KITTI moderate-difficulty 3D AP via box IoU [22]. Every comparison is paired: baseline and GA-EIRFS share detector, schedule, augmentation and seed, and differ only in the sampler. 
+
+5. RESULTS AND DISCUSSION Overall performance. Table 2 reports the four fully converged nuScenes comparisons. GA-EIRFS increases both mAP and NDS in every run, by 0.4 to 1.3 pp mAP and 0.3 to 0.7 pp NDS. Over the four paired runs the mean gain is +0 .91 pp mAP (95% confidence interval [0 .27 , 1.55] , paired t test p = 0 .020 ) and +0 .49 pp NDS ([0 .12 , 0.86] , p = 0 .025 ). Both intervals exclude zero, although four observations pooled over two architectures bound the effect rather than fix it. The two detectors differ in backbone, feature representa-tion and detection head, so the agreement indicates that the effect is not tied to one architecture. The 12-epoch runs isolate the geometry 
+
+Table 1 . nuScenes class statistics and repeat factors, ordered by in-stance count. Eq. (6) uses α = 2 , t = 0 .01 : β = 0 gives E-IRFS and β = 1 our default. Points/ Repeat factor rc
+
+Class Instances obj. Gc β=0 β=1 
+
+Car 339,949 98.1 0.601 1.29 1.49 Pedestrian 161,928 11.7 0.807 1.37 1.78 Barrier 107,507 62.6 0.252 1.56 1.74 Truck 65,262 209.8 0.431 1.51 1.80 Traffic cone 62,964 9.2 0.588 1.61 2.14 Trailer 19,202 240.3 0.337 2.06 2.63 Bus 12,286 312.4 0.342 2.15 2.79 Construction vehicle 11,050 103.9 0.518 2.34 3.64 Motorcycle 8,846 41.4 0.718 2.51 4.86 Bicycle 8,185 16.9 0.823 2.58 5.61 term from the exponential frequency weighting. E-IRFS reproduces the vanilla mAP exactly under both seeds, 0.5303 and 0.5361, while adding geometry raises it to 0.5398 and 0.5428, so the improvement is attributable to Gc and not to the reweighting it modulates. 
+
+Table 2 . nuScenes validation results after 20 epochs. V is train-ing without rebalancing and GA is GA-EIRFS. Higher is better, ∆
+
+is in percentage points computed before rounding, and the better value of each metric within a run is in bold. The last row is the mean of the four paired differences, with 95% confidence intervals 
+
+[+0 .27 , +1 .55] for mAP and [+0 .12 , +0 .86] for NDS. mAP ↑ NDS ↑
+
+Detector Seed V GA ∆ V GA ∆
+
+CenterPoint 666 0.552 0.563 +1 .1 0.635 0.642 +0 .7
+
+CenterPoint 1337 0.554 0.563 +0 .9 0.638 0.641 +0 .3
+
+PointPillars 666 0.385 0.388 +0 .4 0.536 0.538 +0 .3
+
+PointPillars 1337 0.382 0.395 +1 .3 0.534 0.541 +0 .7
+
+Mean, 4 runs +0 .9 +0 .5
+
+Which classes benefit. We divide the ten classes of Table 1 into the 5 rarest and the 5 most frequent. For CenterPoint at seed 666 the mean AP of the rare group rises from 0.393 to 0.410, a gain of 1.7 pp, whereas the frequent group moves from 0.712 to 0.716. Bicycle improves from 0.306 to 0.359, a gain of 5.3 pp or 17%. Fig-ure 3(a) shows how consistently these effects repeat. Across the four runs, overall mAP and NDS improve in four of four, as do bicycle and motorcycle, while barrier, traffic cone, bus, truck and construc-tion vehicle improve in three of four. Trailer splits two against two, so its behaviour is better described as run-to-run variation than as a systematic loss. Car and pedestrian, which already saturate, never degrade. 
+
+Why they benefit. The geometry score alone does not predict the per-class outcome. Over the ten classes the rank correlation between 
+
+Gc and AP change is weak ( ρ = 0 .32 , p = 0 .37 ), whereas the gain in the class sampling weight ∆rc = rc(β=1) − rc(β=0) corre-lates considerably better ( ρ = 0 .70 , p = 0 .025 ), as plotted in Fig-ure 3(c). This quantity measures a change in class sampling weight, not observed training exposure: frame weights are determined by the maximum class weight and normalized across all training frames, so actual class exposure also depends on co-occurrence. This supports the mechanism the product form was designed for: geometry is use-ful when it amplifies a frequency-driven need for exposure and has little effect when the frequency term is already small. The sweep in −2 0 2 4 6             
+
+> AP change (pp)
+> barrier trailer bus truck constr. veh. traf. cone car motorcycle pedestrian bicycle
+> (a) Per-class e ff ect, 20 epochs
+> CenterPoint PointPillars
+> 0.0 0.5 1.0 2.0
+> Geometry strength β
+> 0.30 0.35 0.40 0.45 0.50 0.55
+> AP / mAP
+> mAP
+> motorcycle
+> bicycle
+> β= 0: E-IRFS
+> (b) Geometry strength, 12 epochs
+> 0.2 0.5 125
+> Sampling-weight gain Δ rc(log scale)
+> −2 0246
+> AP change (pp)  Spearman ρ= 0.70 (p= 0.025)
+> (c) Sampling weight and AP gain
+> bicycle motorcycle trailer constr. veh.
+
+Fig. 3 . Quantitative evidence on nuScenes. (a) Per-class AP change at 20 epochs, in percentage points (pp). Bars are the mean of the two seeds, vertical markers are the individual seeds, and classes are ordered by Gc, lowest at the bottom. (b) Geometry-strength sweep at 12 epochs, CenterPoint, seed 666. (c) AP change against the exposure gain ∆rc = rc(β=1) − rc(β=0) , with the Spearman rank correlation over the ten classes. Vanilla E-IRFS GA-EIRFS 
+
+Fig. 4 . Top-down view of nuScenes validation sample 3896, in which the two annotated bicycles are far apart and sparsely sampled. Green boxes are ground truth, dashed red boxes are predictions scoring at least 0.3. Vanilla and E-IRFS return no bicycle above the threshold, whereas GA-EIRFS recovers both, at 0.33 and 0.52. The panels differ only in the sampler. Figure 3(b) gives the most direct evidence that Gc drives the effect: bicycle AP rises monotonically from 0.283 at β = 0 to 0.354 at 
+
+β = 2 , motorcycle AP follows the same ordering, and overall mAP stays within 0.34 pp for every nonzero β. A range-corrected Gc pre-serves the class ranking ( ρ = 0 .939 ), so the score is not merely a proxy for the distance distribution of a class. With ten class observa-tions, these p-values are diagnostic rather than confirmatory. 
+
+Qualitative behaviour. Figure 4 shows a validation frame with two bicycles at different ranges. Neither vanilla training nor E-IRFS pro-duces a bicycle prediction above the operating threshold, while GA-EIRFS recovers both. The frame was selected as a case in which the frequency-only sampler and the baseline behave identically, the condition the geometry term is meant to change. One frame is not evidence of the size of the effect. 
+
+Transfer to KITTI. On KITTI, Cyclist is the rarest class and, inde-pendently, has the highest geometry score at Gc = 0 .935 , giving it the largest repeat factor at 4.05 against 1.92 for Pedestrian and 1.38 for Car, so the pattern that motivates the method on nuScenes reap-pears under a different sensor. The detection results do not follow as cleanly. Table 3 shows that both minority classes lean positive, but neither improvement holds across the three seeds. Pedestrian gains 0.69 pp on average, while Cyclist loses 0.16 pp because the seed 1337 drop outweighs its two gains, and Car is unchanged. We treat KITTI as a boundary condition rather than a generalisation re-sult. A likely contributor is pool size: Cyclist has 734 instances in 514 frames, the smallest pool in either dataset, so its large repeat factor concentrates exposure on few frames, the same mechanism behind trailer’s run-to-run variation on nuScenes. 
+
+Limitations. GA-EIRFS uses hand-set mixture weights and one score per class. It cannot represent within-class variation caused by range, weather or occlusion, and repeating a frame also repeats the frequent objects and background it contains, which is the most 
+
+Table 3 . KITTI 3D AP (%) at moderate difficulty, PointPillars, three seeds. Better value of each pair in bold.                                       
+
+> Car Pedestrian Cyclist Seed VGA VGA VGA 666 75.88 75.87 44.19 45.34 61.90 62.29
+> 1337 76.28 75.81 41.93 43.74 62.69 59.99 42 75.34 75.61 44.89 44.00 61.05 62.88
+> Mean 75.83 75.76 43.67 44.36 61.88 61.72 SD 0.47 0.14 1.55 0.86 0.82 1.53
+
+likely reason why classes such as trailer respond inconsistently. The nuScenes evidence covers two detectors and two seeds, so the as-sociations constrain the mechanism but do not establish it, and the method was not compared directly against curriculum-based aug-mentation under a shared protocol. 
+
+6. CONCLUSION 
+
+We presented GA-EIRFS, a rebalancing method that inserts a fixed class-level LiDAR geometry prior into a frequency-based frame re-peat factor. On nuScenes, mAP and NDS increased in all four con-verged detector and seed combinations, bicycle AP increased by 5.3 pp for CenterPoint at seed 666, and it grew monotonically with β.The gains track the realised sampling-weight change rather than the geometry score itself, which supports reading the method as an am-plifier of frequency-driven sampling rather than as an independent difficulty sampler. The evidence is limited to two seeds per detector and to one dataset with a severe imbalance, since the KITTI transfer was not consistent across seeds. Learning the mixture weights and conditioning the score on range or on the instance are the next steps. ACKNOWLEDGMENT 
+
+The research was supported by the Business Finland WiSeCom project (Grant 3630/31/2024), the University of Oulu, the Research Council of Finland 6G Flagship Programme (Grant 346208), and the Business Finland 6GSoft project (Grant 8541/31/2022). Research supported by the NVIDIA Academic Grant Program using nVidia RTX6000 Blackwell GPUs. 
+
+7. REFERENCES 
+
+[1] Holger Caesar, Varun Bankiti, Alex H. Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Gian-carlo Baldan, and Oscar Beijbom, “nuscenes: A multimodal dataset for autonomous driving,” in 2020 IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) ,2020, pp. 11618–11628. [2] Neehar Peri, Achal Dave, Deva Ramanan, and Shu Kong, “To-wards Long-Tailed 3d Detection,” in Proceedings of the 6th Conference on Robot Learning . 2023, vol. 205 of Proceedings of Machine Learning Research , pp. 1904–1915, PMLR. [3] Jooyoung Lee, Jaeyoon Lee, and Jongwon Choi, “Nba3d: Neighbor-Based Confidence Adjustment for 3d Rare Object Detection Using LiDAR,” Proceedings of the AAAI Confer-ence on Artificial Intelligence , vol. 39, no. 4, pp. 4508–4516, apr 11 2025. [4] Agrim Gupta, Piotr Dollar, and Ross Girshick, “Lvis: Adataset for large vocabulary instance segmentation,” in Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019, p. 5356. [5] Burhaneddin Yaman, Tanvir Mahmud, and Chun-Hao Liu, “Instance-aware repeat factor sampling for long-tailed object detection,” arXiv preprint arXiv:2305.08069 , 2023. [6] Taufiq Ahmed, Abhishek Kumar, Constantino ´ Alvarez Casado, Anlan Zhang, Tuomo H¨ anninen, Lauri Lov´ en, Miguel Bordallo L´ opez, and Sasu Tarkoma, “Exponentially weighted instance-aware repeat factor sampling for long-tailed object detection model training in unmanned aerial vehicles surveillance sce-narios,” in IEEE/RSJ International Conference on Intelligent Robots and Systems, IROS 2025, Hangzhou, China, October 19-25, 2025 . 2025, pp. 11546–11552, IEEE. [7] Benjin Zhu, Zhengkai Jiang, Xiangxin Zhou, Zeming Li, and Gang Yu, “Class-balanced grouping and sampling for point cloud 3d object detection,” arXiv preprint arXiv:1908.09492 ,2019. [8] Daeun Lee and Jinkyu Kim, “Resolving Class Imbalance for LiDAR-based Object Detector by Dynamic Weight Av-erage and Contextual Ground Truth Sampling,” in 2023 IEEE/CVF Winter Conference on Applications of Computer Vi-sion (WACV) . IEEE, 1 2023, pp. 682–691. [9] Yechi Ma, Neehar Peri, Achal Dave, Wei Hua, Deva Ramanan, and Shu Kong, “Long-tailed 3d detection via multi-modal fu-sion,” arXiv preprint arXiv:2312.10986 , 2023. [10] Chun Chieh Chang, Ta Chun Tai, Van Tin Luu, Hong Han Shuai, Wen Huang Cheng, Yung Hui Li, and Ching Chun Huang, Optimizing 3D Object Detection with Data Importance-Based Loss Reweighting , pp. 179–194, Springer Nature Singapore, 2024. [11] Jiawei Liu, Xingping Dong, Sanyuan Zhao, and Jianbing Shen, “Generalized Few-Shot 3d Object Detection of LiDAR Point Cloud for Autonomous Driving,” arXiv.org , 2023. [12] Saptarshi Sinha, Hiroki Ohashi, and Katsuyuki Nakamura, “Class-Difficulty Based Methods for Long-Tailed Visual Recognition,” International Journal of Computer Vision , vol. 130, no. 10, pp. 2517–2531, aug 18 2022. [13] Yanbiao Ma, Licheng Jiao, Fang Liu, Shuyuan Yang, Xu Liu, and Puhua Chen, “Geometric Prior Guided Feature Represen-tation Learning for Long-Tailed Classification,” International Journal of Computer Vision , vol. 132, no. 7, pp. 2493–2510, feb 5 2024. [14] Jingmei Ning, Feipeng Da, and Shaoyan Gai, “Density Aware 3d Object Single Stage Detector,” IEEE Sensors Journal , vol. 21, no. 20, pp. 23108–23117, oct 15 2021. [15] Tingyu Zhang, Jian Wang, and Xinyu Yang, “Boosting 3d Ob-ject Detection with Density-Aware Semantics-Augmented Set Abstraction,” Sensors , vol. 23, no. 12, pp. 5757, jun 20 2023. [16] Wenxin Ma, Jian Chen, Qing Du, and Wei Jia, “Pointdrop: Improving Object Detection from Sparse Point Clouds via Ad-versarial Data Augmentation,” in 2020 25th International Con-ference on Pattern Recognition (ICPR) . IEEE, jan 10 2021, pp. 10004–10009. [17] Joohyun Lee, Jin-Hee Lee, Jae-Keun Lee, Je-Seok Kim, Soon Kwon, and Sangdong Kim, “Dual Adaptive Data Augmenta-tion for 3d Object Detection,” Information and Communication Technology Convergence , 2023. [18] Ziyue Zhu, Qiang Meng, Xiao Wang, Ke Wang, Liujiang Yan, and Jian Yang, “Curricular Object Manipulation in LiDAR-based Object Detection,” in 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . IEEE, 6 2023, pp. 1125–1135. [19] Chiyu Max Jiang, Mahyar Najibi, Charles R. Qi, Yin Zhou, and Dragomir Anguelov, “Improving the Intra-class Long-tail in 3d Detection via Rare Example Mining,” European Conference on Computer Vision , 2022. [20] Di Feng, Xiao Wei, Lars Rosenbaum, Atsuto Maki, and Klaus Dietmayer, “Deep Active Learning for Efficient Training of a LiDAR 3d Object Detector,” in 2019 IEEE Intelligent Vehicles Symposium (IV) . IEEE, 6 2019, pp. 667–674. [21] Dong Liang, Jing-Wei Zhang, Ying-Peng Tang, and Sheng-Jun Huang, “Mus-cdb: Mixed uncertainty sampling with class dis-tribution balancing for active annotation in aerial object detec-tion,” IEEE Transactions on Geoscience and Remote Sensing ,vol. 61, pp. 1–13, 2023. [22] Andreas Geiger, Philip Lenz, Christoph Stiller, and Raquel Ur-tasun, “Vision meets robotics: The kitti dataset,” The Interna-tional Journal of Robotics Research , vol. 32, no. 11, pp. 1231– 1237, 2013. [23] Tianwei Yin, Xingyi Zhou, and Philipp Kr¨ ahenb¨ uhl, “Center-based 3d object detection and tracking,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition , 2021, pp. 11784–11793. [24] Alex H. Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom, “Pointpillars: Fast en-coders for object detection from point clouds,” in 2019 IEEE/CVF Conference on Computer Vision and Pattern Recog-nition (CVPR) , 2019, pp. 12689–12697. [25] OpenPCDet Development Team, “Openpcdet: An open-source toolbox for 3d object detection from point clouds,” https: //github.com/open-mmlab/OpenPCDet , 2020.

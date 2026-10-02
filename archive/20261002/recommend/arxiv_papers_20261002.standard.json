@@ -1,0 +1,287 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-02T22:51:31.506642+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 3,
+    "deep_cap": 6,
+    "deep_selected": 3,
+    "quick_candidates": 4,
+    "quick_skim_target": 11,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.38010v1",
+      "source": "arxiv",
+      "title": "From Unity Simulation to Diffusion-Based Augmentation: Quantifying Dataset Balance for Robust Object Detection",
+      "abstract": "Modern computer vision models achieve high accuracy when trained on large-scale annotated datasets. In critical domains such as construction safety monitoring, data collection is costly, hazardous, and ethically constrained. This paper presents a systematic study comparing two complementary data generation paradigms, (1) Unity Simulation-based rendering and (2) Controllable Diffusion-based generation (CIA), for object detection under real data-scarce conditions. A unified experimental framework enables controlled dataset mixing across real, simulated, and generative sources, while maintaining identical model and training settings. Quantitative evaluation using Precision, Recall, mAP, and custom $Δ$-metrics, reveals that neither simulation nor generative augmentation alone achieves optimal transferability. Unity-only training yields an mAP@0.5 drop of $-50\\%$ relative to real data, while CIA-only training shows a milder $-16.5\\%$ degradation. Hybrid compositions significantly improve performance, with the 90\\% real + 10\\% Unity configuration achieving the best overall mAP@0.5 of $62.68\\%$ ($+7.64\\%$ over baseline), and the 90\\% real + 10\\% CIA configuration maximizing precision at $74.45\\%$. Results demonstrate that limited synthetic inclusion enhances generalization, while excessive substitution induces domain drift.",
+      "authors": [
+        "Mohamed Benkedadra",
+        "Aissa Saoudi",
+        "Maxime Gloesener",
+        "Sidi Ahmed Mahmoudi",
+        "Matei Mancas"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-29T16:58:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.38010v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "studies data generation paradigms for object detection",
+      "llm_evidence_cn": "研究目标检测的数据生成范式",
+      "llm_evidence": "研究目标检测的数据生成范式",
+      "canonical_evidence": "研究目标检测的数据生成范式",
+      "llm_tldr_en": "Compares Unity simulation and diffusion-based generation for object detection under data scarcity, using unified metrics to quantify dataset balance and improve robustness.",
+      "llm_tldr_cn": "针对关键领域中真实标注数据稀缺的问题，本文系统比较了Unity仿真渲染和可控扩散生成两种数据增强范式用于目标检测。通过统一实验框架混合真实、仿真和生成数据，并使用Precision、Recall、mAP及自定义Δ指标进行量化评估。实验揭示了不同数据来源对检测性能的影响，为数据匮乏条件下的目标检测训练提供了有效的数据增广策略。",
+      "llm_tldr": "针对关键领域中真实标注数据稀缺的问题，本文系统比较了Unity仿真渲染和可控扩散生成两种数据增强范式用于目标检测。通过统一实验框架混合真实、仿真和生成数据，并使用Precision、Recall、mAP及自定义Δ指标进行量化评估。实验揭示了不同数据来源对检测性能的影响，为数据匮乏条件下的目标检测训练提供了有效的数据增广策略。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01409v1",
+      "source": "arxiv",
+      "title": "Localisation-Aware Uncertainty for Pretrained Object Detection",
+      "abstract": "Reliable uncertainty estimation is essential for deploying object detectors when distribution/covariate shift and adversarial attacks may occur. Existing approaches often require detector retraining, architectural modification, or repeated inference, which may be infeasible or incur significant overheads. We introduce a lightweight post-hoc evidential meta-model that learns when object localisations should be considered uncertain while keeping the base detector frozen. Our approach automatically identifies localisation-relevant features and uses saliency-guided modification to construct an increasingly challenging curriculum. Detection-level targets combine localisation error, modification level, and prediction instability to guide an evidential meta-model to estimate uncertainty for each predicted bounding box. Our approach requires no changes to the detector and preserves its original localisation outputs. Across adversarial attacks and evaluated strengths, GRACE improves TP-FP AUROC by 22% relative to the strongest comparator in some cases while maintaining in-distribution detection performance.",
+      "authors": [
+        "Charmaine Barker",
+        "Daniel Bethell",
+        "Simos Gerasimou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-01T10:12:11+00:00",
+      "link": "https://arxiv.org/pdf/2610.01409v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "uncertainty estimation for pretrained object detection",
+      "llm_evidence_cn": "预训练目标检测的不确定性估计",
+      "llm_evidence": "预训练目标检测的不确定性估计",
+      "canonical_evidence": "预训练目标检测的不确定性估计",
+      "llm_tldr_en": "Introduces a lightweight post-hoc evidential meta-model for uncertainty estimation in pretrained object detectors without retraining or architectural changes.",
+      "llm_tldr_cn": "针对目标检测器在分布偏移和对抗攻击下需要可靠不确定性估计，而现有方法需重训练、改架构或重复推理的问题，本文提出轻量级事后证据元模型，在保持基础检测器冻结的情况下学习目标定位何时应被视为不确定。该方法自动识别定位相关特征，并利用显著性引导的修改构建渐进课程。实验表明该元模型能有效评估检测不确定性，提升部署安全性。",
+      "llm_tldr": "针对目标检测器在分布偏移和对抗攻击下需要可靠不确定性估计，而现有方法需重训练、改架构或重复推理的问题，本文提出轻量级事后证据元模型，在保持基础检测器冻结的情况下学习目标定位何时应被视为不确定。该方法自动识别定位相关特征，并利用显著性引导的修改构建渐进课程。实验表明该元模型能有效评估检测不确定性，提升部署安全性。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.38116v1",
+      "source": "arxiv",
+      "title": "GA-EIRFS: A Geometry-Augmented Repeat-Factor Sampling Method for Long-Tailed LiDAR 3D Object Detection",
+      "abstract": "Long-tailed 3D object detection is treated as a class-frequency problem, but LiDAR supervision quality depends on object observability: similar frequencies can hide different geometric evidence. We introduce Geometry-Augmented Exponentially Weighted Instance-Aware Repeat Factor Sampling (GA-EIRFS), a detector-agnostic method that modulates a frequency-based repeat factor with a fixed geometry score combining point count, surface-normal entropy, and surface coverage. GA-EIRFS changes only frame-sampling probabilities, leaving the detector and inference unchanged. On nuScenes it improves mean average precision (mAP) and the nuScenes detection score (NDS) in four converged experiments with CenterPoint and PointPillars over two seeds; for CenterPoint at seed 666, mAP rises from 0.552 to 0.563 and bicycle AP from 0.306 to 0.359. Per-class gains correlate with the class sampling-weight increase (Spearman rho=0.70, p=0.025) but not with geometry score alone (rho=0.32, p=0.37), so geometry amplifies frequency-driven need. KITTI results vary across seeds, most for the rarest class. Code: https://github.com/Multimodal-Sensing-Lab/GA-EIRFS.",
+      "authors": [
+        "Taufiq Ahmed",
+        "Constantino Álvarez Casado",
+        "Daniel Herrera Castro",
+        "Sasan Sharifipour",
+        "Abhishek Kumar",
+        "Miguel Bordallo López"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-29T17:50:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.38116v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LiDAR 3D object detection, sampling method",
+      "llm_evidence_cn": "激光雷达3D目标检测，采样方法",
+      "llm_evidence": "激光雷达3D目标检测，采样方法",
+      "canonical_evidence": "激光雷达3D目标检测，采样方法",
+      "llm_tldr_en": "GA-EIRFS is a detector-agnostic sampling method for long-tailed LiDAR 3D object detection, modulating repeat factors with geometry scores to improve mAP and NDS.",
+      "llm_tldr_cn": "该论文针对长尾LiDAR 3D目标检测中类频率与观测质量不一致的问题，提出几何增强的指数加权实例感知重复因子采样方法（GA-EIRFS），通过结合点云数量、表面法向熵和表面覆盖度的几何分数调制频率重复因子，仅改变帧采样概率。在nuScenes上使用CenterPoint和PointPillars均提升了mAP和NDS。",
+      "llm_tldr": "该论文针对长尾LiDAR 3D目标检测中类频率与观测质量不一致的问题，提出几何增强的指数加权实例感知重复因子采样方法（GA-EIRFS），通过结合点云数量、表面法向熵和表面覆盖度的几何分数调制频率重复因子，仅改变帧采样概率。在nuScenes上使用CenterPoint和PointPillars均提升了mAP和NDS。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.39184v1",
+      "source": "arxiv",
+      "title": "Fiber-Resolved Microstructure Quantification from Multi-Shell Diffusion MRI using Detection Transformers",
+      "abstract": "Fiber orientation and compartmental microstructure are central to the characterization of white matter tissue in diffusion MRI, yet existing methods either resolve fiber orientations without quantifying microstructure, or quantify microstructure while assuming a fixed number of compartments and a single fiber direction. Nonparametric approaches that recover both require tensor-valued diffusion encoding and computationally expensive Monte-Carlo inversion of an ill-posed inverse Laplace transform. We propose to reframe this problem as an object detection-like task, adopting the Detection Transformer (DETR) architecture to jointly predict mean diffusivity (MD), fractional anisotropy (FA), main fiber direction, and signal fraction for a variable number of compartments per voxel from standard multi-shell diffusion MRI with linear encoding. Hungarian matching during training resolves permutation invariance across compartments. We introduce mean Average Precision as a reproducible benchmark metric. Evaluated on synthetic test data with up to five compartments per voxel, our model achieves $R^2=0.95$ for MD, $R^2=0.88$ for FA, and a median angular error of 4.2°, with performance scaling naturally with compartmental signal fraction.",
+      "authors": [
+        "Sebastian Endt",
+        "Marcus Wirth",
+        "Johannes Reinhold Schlund",
+        "Marion Irene Menzel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG",
+        "physics.med-ph"
+      ],
+      "published": "2026-09-30T07:41:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.39184v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Detection Transformer (DETR) architecture reframing MRI quantification as object detection-like task",
+      "llm_evidence_cn": "使用检测Transformer将扩散MRI量化重构为目标检测式任务",
+      "llm_evidence": "使用检测Transformer将扩散MRI量化重构为目标检测式任务",
+      "canonical_evidence": "使用检测Transformer将扩散MRI量化重构为目标检测式任务",
+      "llm_tldr_en": "The paper reframes fiber orientation and microstructure quantification in diffusion MRI as an object detection-like task, using DETR to jointly predict MD, FA, fiber direction, and signal fractions, avoiding computationally expensive Monte-Carlo inversion.",
+      "llm_tldr_cn": "针对扩散MRI中纤维方向与微观结构量化需昂贵蒙特卡洛反演的问题，该工作将任务重构为目标检测式问题，采用检测Transformer（DETR）架构联合预测平均扩散率、各向异性分数、主纤维方向及信号分数。该方法避免了计算昂贵的逆拉普拉斯变换，实现了快速且鲁棒的纤维分辨微观结构量化。",
+      "llm_tldr": "针对扩散MRI中纤维方向与微观结构量化需昂贵蒙特卡洛反演的问题，该工作将任务重构为目标检测式问题，采用检测Transformer（DETR）架构联合预测平均扩散率、各向异性分数、主纤维方向及信号分数。该方法避免了计算昂贵的逆拉普拉斯变换，实现了快速且鲁棒的纤维分辨微观结构量化。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.29835v1",
+      "source": "arxiv",
+      "title": "Retrieve-to-Localize: Bridging Large Language Models and LiDAR Geometry for Spatial Grounding",
+      "abstract": "LiDAR provides precise geometric information for spatial perception tasks such as object detection in autonomous driving and outdoor robotics. However, recognizing and localizing individual objects is not sufficient to answer questions that require composing spatial relations and grounding the intended target. Motivated by recent advances in large language models (LLMs) for autonomous driving, we leverage their language priors to interpret complex spatial questions and ground the referred target in LiDAR geometry. To support this spatial grounding capability, we introduce SpatialLiDAR-QA, which combines single- and multi-step relational grounding with complementary spatial understanding tasks. We further propose SpatialLiDAR-LM, which aligns LiDAR point features with an LLM and grounds target coordinates through language-conditioned, position-aware proposal retrieval and local point refinement. This design derives target coordinates directly from local LiDAR geometry rather than through textual language decoding. Experiments demonstrate substantial improvements over representative LiDAR--language models and multi-camera VLMs on precise coordinate prediction tasks. Our dataset and model training code will be publicly released.",
+      "authors": [
+        "Byounggun Park",
+        "Giyong Moon",
+        "Jusung Kim",
+        "Soonmin Hwang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-09-24T14:05:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.29835v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LiDAR object detection for spatial grounding",
+      "llm_evidence_cn": "用于空间定位的LiDAR目标检测",
+      "llm_evidence": "用于空间定位的LiDAR目标检测",
+      "canonical_evidence": "用于空间定位的LiDAR目标检测",
+      "llm_tldr_en": "Bridges LLMs and LiDAR geometry for spatial grounding, using object detection as a basis for relational reasoning in autonomous driving.",
+      "llm_tldr_cn": "针对LiDAR点云中仅识别单个目标不足以回答空间关系问题的局限，本文利用大语言模型的语言先验来解释复杂空间查询，并将所指目标在LiDAR几何中定位。通过引入SpatialLiDAR-QA数据集和SpatialLiDAR-LM模型，结合单步与多步关系定位任务。实验表明该方法能有效提升空间定位能力，为自动驾驶中的目标检测与空间理解提供了新途径。",
+      "llm_tldr": "针对LiDAR点云中仅识别单个目标不足以回答空间关系问题的局限，本文利用大语言模型的语言先验来解释复杂空间查询，并将所指目标在LiDAR几何中定位。通过引入SpatialLiDAR-QA数据集和SpatialLiDAR-LM模型，结合单步与多步关系定位任务。实验表明该方法能有效提升空间定位能力，为自动驾驶中的目标检测与空间理解提供了新途径。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.38747v1",
+      "source": "arxiv",
+      "title": "Consensus-Aware Multi-Source Fusion for Reference-Guided Camouflaged Object Detection",
+      "abstract": "Reference-guided camouflaged object detection aims to segment a target whose visual appearance closely resembles its surroundings by exploiting auxiliary reference samples. The task remains difficult because reference samples contain inconsistent target cues, while generic visual representations are not inherently aligned with the target specified by the references. To handle these problems, we present a consensus-aware multi-source fusion framework. Reference-Conditioned Dual-Backbone Fusion (RCDF) couples trainable PVTv2 query features with frozen DINOv3 representations and uses reference-conditioned correlation to select foundation-model evidence before multi-scale fusion. The framework also aggregates multiple references through cross-reference consensus aggregation and injects reference information at semantic depths matched to the query features. Extensive experiments demonstrate the effectiveness of the proposed method. The results further show that reference consensus, target-conditioned foundation features, and hierarchical decoding provide complementary improvements under the evaluation protocol. The source code will be made publicly available upon acceptance.",
+      "authors": [
+        "Junyang Xia",
+        "Luocheng Zhang",
+        "Wenwen Pan",
+        "Chifeng Zhu",
+        "Yang Yang",
+        "Xinchun Liu",
+        "Jiajun Ding"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-30T01:31:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.38747v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "camouflaged object detection using reference-guided fusion and transformer features",
+      "llm_evidence_cn": "参考引导的伪装目标检测与多源融合",
+      "llm_evidence": "参考引导的伪装目标检测与多源融合",
+      "canonical_evidence": "参考引导的伪装目标检测与多源融合",
+      "llm_tldr_en": "This paper addresses reference-guided camouflaged object detection by proposing a consensus-aware multi-source fusion framework that combines trainable PVTv2 query features and frozen DINOv3 representations, aggregating multiple references to improve segmentation of camouflaged targets.",
+      "llm_tldr_cn": "针对参考引导伪装目标检测中参考样本线索不一致和通用表征与目标不对齐的问题，提出共识感知多源融合框架。通过参考条件双骨干融合耦合可训练PVTv2查询特征与冻结DINOv3表示，利用参考条件相关选择基础模型证据并进行多尺度融合，有效聚合多样参考样本，提升伪装目标分割性能。",
+      "llm_tldr": "针对参考引导伪装目标检测中参考样本线索不一致和通用表征与目标不对齐的问题，提出共识感知多源融合框架。通过参考条件双骨干融合耦合可训练PVTv2查询特征与冻结DINOv3表示，利用参考条件相关选择基础模型证据并进行多尺度融合，有效聚合多样参考样本，提升伪装目标分割性能。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.39627v1",
+      "source": "arxiv",
+      "title": "Introduction to Computer Vision",
+      "abstract": "This book presents a code-first introduction to computer vision, spanning classical 2D image processing, classical 3D vision, and deep learning. Organized as 44 short chapters across three parts, the book builds each topic from first principles: image arithmetic and morphology; convolution, pyramids, and frequency-domain filtering; feature detection, optical flow, and stereo; projective geometry, camera calibration, and structure from motion; and the full arc of modern deep learning, from a single neuron through convolutional networks, backpropagation, classic architectures, transfer learning, object detection, and semantic and instance segmentation, concluding with engineering considerations like mixed-precision and parallel training. Every technique is implemented directly in Python and NumPy or PyTorch and checked numerically against the corresponding OpenCV or PyTorch library function, so readers see not just the mathematics but its concrete behavior on real and synthetic data. The material was distilled with AI assistance from freely available online course notes, condensing extensive working code into concise mathematical exposition while preserving verified, reproducible results throughout. It is intended as a self-contained reference for students and practitioners who want to understand computer vision algorithms and their Python implementations.",
+      "authors": [
+        "Stan Birchfield"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-30T12:36:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.39627v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "book covers object detection as part of computer vision curriculum",
+      "llm_evidence_cn": "书籍涵盖目标检测作为计算机视觉课程的一部分",
+      "llm_evidence": "书籍涵盖目标检测作为计算机视觉课程的一部分",
+      "canonical_evidence": "书籍涵盖目标检测作为计算机视觉课程的一部分",
+      "llm_tldr_en": "This book provides a code-first introduction to computer vision, covering object detection among other topics, from classical to deep learning methods, with implementations in Python and NumPy.",
+      "llm_tldr_cn": "本书以代码优先的方式介绍计算机视觉，涵盖经典2D/3D图像处理和深度学习，包括目标检测、语义分割等。书中从基础原理到现代深度学习架构，逐步实现每个技术，并使用Python和NumPy。该书为目标检测和计算机视觉学习者提供了系统的教学资源，有助于理解目标检测的基本概念和实现。",
+      "llm_tldr": "本书以代码优先的方式介绍计算机视觉，涵盖经典2D/3D图像处理和深度学习，包括目标检测、语义分割等。书中从基础原理到现代深度学习架构，逐步实现每个技术，并使用Python和NumPy。该书为目标检测和计算机视觉学习者提供了系统的教学资源，有助于理解目标检测的基本概念和实现。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

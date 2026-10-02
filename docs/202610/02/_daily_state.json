@@ -1,0 +1,121 @@
+{
+  "date": "20261002",
+  "date_label": "",
+  "generated_at": "2026-10-02 23:01:13 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.38010v1",
+      "route": "202610/02/2609.38010v1-from-unity-simulation-to-diffusion-based-augmentation-quantifying-dataset-balance-for-robust-object-detection",
+      "title": "From Unity Simulation to Diffusion-Based Augmentation: Quantifying Dataset Balance for Robust Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "研究目标检测的数据生成范式",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2610.01409v1",
+      "route": "202610/02/2610.01409v1-localisation-aware-uncertainty-for-pretrained-object-detection",
+      "title": "Localisation-Aware Uncertainty for Pretrained Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "预训练目标检测的不确定性估计",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2609.38116v1",
+      "route": "202610/02/2609.38116v1-ga-eirfs-a-geometry-augmented-repeat-factor-sampling-method-for-long-tailed-lidar-3d-object-detection",
+      "title": "GA-EIRFS: A Geometry-Augmented Repeat-Factor Sampling Method for Long-Tailed LiDAR 3D Object Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "激光雷达3D目标检测，采样方法",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2609.39184v1",
+      "route": "202610/02/2609.39184v1-fiber-resolved-microstructure-quantification-from-multi-shell-diffusion-mri-using-detection-transformers",
+      "title": "Fiber-Resolved Microstructure Quantification from Multi-Shell Diffusion MRI using Detection Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "使用检测Transformer将扩散MRI量化重构为目标检测式任务",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2609.29835v1",
+      "route": "202610/02/2609.29835v1-retrieve-to-localize-bridging-large-language-models-and-lidar-geometry-for-spatial-grounding",
+      "title": "Retrieve-to-Localize: Bridging Large Language Models and LiDAR Geometry for Spatial Grounding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "用于空间定位的LiDAR目标检测",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2609.38747v1",
+      "route": "202610/02/2609.38747v1-consensus-aware-multi-source-fusion-for-reference-guided-camouflaged-object-detection",
+      "title": "Consensus-Aware Multi-Source Fusion for Reference-Guided Camouflaged Object Detection",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "参考引导的伪装目标检测与多源融合",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    },
+    {
+      "paper_id": "2609.39627v1",
+      "route": "202610/02/2609.39627v1-introduction-to-computer-vision",
+      "title": "Introduction to Computer Vision",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "书籍涵盖目标检测作为计算机视觉课程的一部分",
+      "first_seen_at": "2026-10-02 23:01:13 UTC",
+      "updated_at": "2026-10-02 23:01:13 UTC"
+    }
+  ]
+}
