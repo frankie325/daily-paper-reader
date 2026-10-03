@@ -1,0 +1,57 @@
+{
+  "date": "20261003",
+  "date_label": "",
+  "generated_at": "2026-10-03 22:23:07 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.38265v1",
+      "route": "202610/03/2609.38265v1-raw-imagery-impacting-your-ai-should-you-care",
+      "title": "Raw Imagery Impacting Your AI: Should You Care?",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "在图像退化下使用YOLOv5s、YOLOX-S、NanoDet评估目标检测性能",
+      "first_seen_at": "2026-10-03 22:23:07 UTC",
+      "updated_at": "2026-10-03 22:23:07 UTC"
+    },
+    {
+      "paper_id": "2609.33306v1",
+      "route": "202610/03/2609.33306v1-looptrack-a-simple-baseline-for-parameter-efficient-transformer-tracking",
+      "title": "LoopTrack: A Simple Baseline for Parameter-Efficient Transformer Tracking",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "参数高效Transformer跟踪",
+      "first_seen_at": "2026-10-03 22:23:07 UTC",
+      "updated_at": "2026-10-03 22:23:07 UTC"
+    },
+    {
+      "paper_id": "2609.37339v1",
+      "route": "202610/03/2609.37339v1-ugo-unified-architecture-for-general-multi-object-tracking-by-segmentation",
+      "title": "UGO: Unified Architecture for General Multi-Object Tracking by Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "包含样本条件检测头的通用多目标跟踪，包含检测组件",
+      "first_seen_at": "2026-10-03 22:23:07 UTC",
+      "updated_at": "2026-10-03 22:23:07 UTC"
+    }
+  ]
+}

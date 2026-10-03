@@ -1,0 +1,212 @@
+Title: Raw Imagery Impacting Your AI: Should You Care?
+
+URL Source: https://arxiv.org/pdf/2609.38265v1
+
+Published Time: Thu, 01 Oct 2026 00:08:24 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Raw Imagery Impacting Your AI: Should You Care? 
+
+Adrien Dorise ∗† , Marjorie Bellizzi †, St´ ephane May ∗∗CNES, Toulouse, France Emails: {adrien.dorise, stephane.may }@cnes.fr 
+
+> †
+
+IRT Saint-Exup´ ery, Toulouse, France Email: marjorie.bellizzi@irt-saintexupery.com 
+
+Abstract —Onboard AI is gaining interest for space appli-cations such as vessel, wildfire, and cloud detection, where real-time processing can improve mission reactivity and reduce downlink needs. However, onboard models may operate on raw or minimally processed imagery rather than on restored ground products. This study evaluates how image degradation affects object detection by varying Signal-to-Noise Ratio (SNR), Modulation Transfer Function (MTF) at Nyquist, and Ground Sampling Distance (GSD). Controlled degradations are applied to Very High Resolution Maxar imagery, and three lightweight detectors, YOLOv5s, YOLOX-S, and NanoDet, are evaluated on the resulting operating points. The results show that the impact of image quality depends on the degradation mechanism, and that increasing degradation does not necessarily lead to a proportional decrease in vessel detection performance. GSD produces the most consistent performance shift, while MTF and SNR effects depend more on the model and resolution. Severe combinations of blur and noise produce the largest losses. These results provide task-level information that can support sensor, processing, and AI trade-offs for future onboard systems. 
+
+Index Terms —onboard AI, remote sensing, object detection, image degradation, ground sampling distance, modulation trans-fer function, signal-to-noise ratio 
+
+I. I NTRODUCTION 
+
+The computational cost of modern artificial intelligence (AI) algorithms has historically limited their use in space applications, leaving most image interpretation to ground processing. This situation is changing as increasingly capable processors are evaluated for space use and recent missions demonstrate onboard inference capabilities [10, 14, 1, 9]. Running AI directly onboard can improve mission reactivity, reduce downlink volume, and prioritise communication and storage resources for the most useful observations [19, 15]. These capabilities are particularly attractive for time-sensitive Earth-observation applications such as vessel, wildfire, and cloud detection. Most remote-sensing AI pipelines nevertheless assume im-ages that have already undergone a conventional ground-processing chain. Level-1 products can include radiometric and geometric corrections, coregistration, resampling, and im-age restoration [13, 3]. Reproducing the complete processing chain onboard may be undesirable when power, memory, la-tency, and computing resources are constrained [19, 18, 7, 11]. An alternative is to perform inference earlier in the processing chain using imagery closer to the sensor output, an approach increasingly investigated for onboard Earth-observation appli-cations [15, 2, 3]. This introduces a trade-off between image quality and onboard processing complexity. Processing stages that are important for producing high-quality images for human in-terpretation do not necessarily provide the same benefit to an AI model. Conversely, image degradations that appear visu-ally moderate may remove spatial or radiometric information important for detection. Consequently, sensor and processing requirements derived exclusively from conventional image-quality criteria may not directly represent the requirements of the downstream AI task. This raises a practical system-design question: how much image quality is actually required by the downstream AI task? Raw optical imagery may suffer from reduced spatial sampling, loss of spatial contrast, and radiometric noise. These effects can be represented through the Ground Sampling Distance (GSD), Modulation Transfer Function (MTF), and Signal-to-Noise Ratio (SNR) [13, 5]. However, their effect on a learned detector is not necessarily proportional to their effect on visual image quality. A detector may tolerate a range of degradation before losing accuracy rapidly once task-relevant information becomes insufficient. Identifying such regimes can help determine whether sensor specifications or onboard restoration requirements can be relaxed without significantly affecting the mission-level AI task. In previous work, we developed a pipeline that generates simulated raw-like products from high-resolution Level-1 im-agery [5] and studied lightweight onboard image restoration [6]. This study focuses on task-level sensitivity to controlled variations in GSD, MTF, and SNR. Experiments are performed at GSDs of 100 and 200 cm. MTF-only and SNR-only sweeps are separated from a combined MTF and SNR sweep to distin-guish the effects of each degradation family. Three lightweight detectors, NanoDet, YOLOv5s, and YOLOX-S, are compared to evaluate architecture-dependent responses. The objective is not to define a universal optical-quality threshold, but to provide task-level evidence that can support sensor, processor, and AI co-design. II. M ATERIALS AND METHODS 
+
+A. Image degradation simulation 
+
+To evaluate object detection under controlled image-quality degradations, we generate observations from reference images using a sensor simulation pipeline. No restoration is considered after degradation. The simulation consists of three successive 
+
+> OBPDC 2026 arXiv:2609.38265v1 [eess.IV] 29 Sep 2026
+
+operations: MTF degradation, GSD modification, and signal-dependent noise injection, following the degradation model introduced in our previous work [5] 
+
+1) Spatial degradation through the MTF: A paramet-ric two-dimensional modulation transfer function represents optical-system and detector-induced loss of spatial contrast. In the frequency domain, the MTF is defined as 
+
+MTF( fx, f y ) = exp( −γf r ) sinc( fx) sinc( fy ), (1) with 
+
+fr =
+
+q
+
+f 2 
+
+> x
+
++ f 2 
+
+> y
+
+, (2) where the sinc terms approximate the detector response along the two spatial axes, while the exponential term rep-resents the optical contribution. The parameter γ is deter-mined from a prescribed MTF value at the Nyquist frequency, 
+
+MTF Nyq , according to 
+
+γ = −2 log 
+
+ MTF Nyq 
+
+sinc(0 .5) 
+
+
+
+. (3) The MTF is sampled over an oversampled frequency grid and converted into its corresponding point-spread function (PSF) through an inverse Fourier transform, 
+
+PSF = F−1 {MTF } . (4) The resulting PSF is convolved independently with each spectral channel of the input image using FFT-based convolu-tion. 
+
+2) GSD degradation: After applying MTF degradation, we modify the spatial sampling to reproduce the target sensor’s Ground Sampling Distance. Let GSD src and GSD target denote the spatial resolutions of the reference and simulated images. The downsampling ratio is defined as 
+
+r = GSD target 
+
+GSD src 
+
+. (5) First, the image dimensions are adjusted to match the resampling ratio, after which the image is spatially subsampled with a centred offset to avoid an additional spatial shift. When geospatial metadata are available, the image dimensions and affine transform are updated consistently with the new GSD. Separating the MTF and GSD transformations lets us model two spatial effects explicitly. The MTF represents attenuation of spatial frequencies caused by the imaging system, while the GSD update represents discrete sampling of the ground scene. 
+
+3) Signal-dependent radiometric noise: We simulate radio-metric degradation using a signal-dependent Gaussian noise model. The noise variance is assumed to depend linearly on the signal level L:
+
+σ2(L) = αL + β, (6) where α and β control the dependence of the noise variance on signal intensity. These parameters are determined from two reference operating points, (L0, SNR 0) and (L1, SNR 1). The corresponding noise variances are 
+
+σ20 =
+
+ L0
+
+SNR 0
+
+2
+
+, (7) and 
+
+σ21 =
+
+ L1
+
+SNR 1
+
+2
+
+. (8) The coefficients of the linear noise model are then 
+
+α = σ20 − σ21
+
+L0 − L1
+
+, (9) and 
+
+β = σ20 − αL 0. (10) For each pixel, the noise standard deviation is evaluated as 
+
+σ(L) = pmax (0 , αL + β), (11) and an independent Gaussian noise sample is sampled according to 
+
+n ∼ N  0, σ 2(L) . (12) The simulated noisy image is therefore 
+
+Inoisy = IGSD + n. (13) This formulation produces a noise level that varies with the image signal rather than assuming constant variance over the complete image. The resulting values are finally clipped to the sensor digital range. The complete degradation pipeline can be summarized as 
+
+Iref MTF 
+
+−−−→ IMTF GSD 
+
+−−−→ IGSD SNR 
+
+−−−→ Isim , (14) where Iref denotes the reference image and Isim the final simulated sensor observation. 
+
+B. Dataset 
+
+The experiments rely on a custom high-resolution database designed for the development and evaluation of AI-based ship-detection algorithms. The dataset contains 47 high-resolution scenes with an original GSD of 50 cm and more than 24,000 annotated ships distributed over 53 vessel classes, including small boats, ore carriers, and commercial cargo ships. The imagery is derived from Maxar Standard 2A products and includes one panchromatic band together with red, green, and blue multispectral bands acquired at a coarser native resolution. We pansharpen the data using the weighted Brovey method [13] to generate the final 50 cm images. The products also include standard radiometric and geometric corrections. 
+
+> OBPDC 2026
+
+C. Detection models 
+
+Three lightweight object-detection architectures are consid-ered: YOLOv5s [17], NanoDet [16], and YOLOX-S [8]. We selected these models because onboard processing constrains inference latency, memory footprint, and deployment complex-ity [19, 18, 7]. Lightweight object detection has also been investigated specifically for onboard vessel-detection scenarios [12, 11]. We train all models for 100 epochs using two NVIDIA RTX 4090 GPU, with an average training time of approx-imately 10 hours per model and operating point. Detection performance is reported using COCO-style average precision (AP), AP 50 , and AP 75 .
+
+D. Experimental design 
+
+The original imagery, with a reference GSD of approx-imately 50 cm, is retained as the high-resolution source condition but is not included in the controlled MTF and SNR grid. In the current simulation pipeline, independent control of the prescribed MTF and SNR values is associated with generation at a new target GSD. When we retain the original GSD, the effective MTF and SNR remain inherited from the source imagery. We therefore perform controlled experiments at target GSDs of 100 and 200 cm. For each GSD, we first vary MTF and SNR independently to isolate spatial blur and radiometric noise. A third sweep jointly varies MTF and SNR to reproduce combined degradation. The complete set of operating points is reported in Table I and Table II. The nominal simulated configuration uses MTF Nyq = 0 .10 
+
+and SNR parameters (100 , 250) . The MTF-only sweep varies 
+
+MTF Nyq from 0.25 to 0.005 while keeping the nominal SNR. The SNR-only sweep progressively reduces the two SNR parameters while retaining MTF Nyq = 0 .10 . Finally, eight combined operating points vary both quantities simultane-ously. We deliberately chose severe degradation parameters to visualise the impact of such degradation on detection models clearly. Representative image crops are shown in Fig. 1. III. R ESULTS 
+
+Tables I and II report AP, AP 50 , and AP 75 for all available configurations. The following analysis focuses mainly on AP 50 
+
+and on the overall trends across the degradation sweeps. 
+
+A. Effect of ground sampling distance 
+
+As shown in Fig. 2, increasing the GSD from 100 to 200 cm consistently reduces detection performance, with losses ranging from 3.9 to 7.8 percentage points depending on the degradation configuration. For YOLOv5s and YOLOX-S, AP 50 is lower at 200 cm for all configurations available at both resolutions. NanoDet follows the same overall trend, with only one small reversal in the combined MTF and SNR sweep. The effect is visible across MTF-only, SNR-only, and com-bined degradation conditions, indicating that spatial sampling remains an important factor independently of the other image-quality parameters. However, the magnitude of the loss de-pends on both the detector and the operating point. 
+
+B. MTF-only degradation 
+
+At GSD = 100 cm, lower MTF generally reduces detection performance. This trend is especially clear for YOLOv5s and NanoDet, where the lowest MTF configurations per-form noticeably worse than the highest-quality configurations. YOLOX-S shows the same general tendency over its available operating points, although the evolution is not strictly mono-tonic. At GSD = 200 cm, the relationship between MTF and detection performance becomes less regular. Very low MTF values tend to reduce performance, but neighbouring operating points frequently change order. These results show that MTF degradation is harmful at sufficiently low values, while moder-ate changes in MTF do not translate directly into proportional changes in detection accuracy. 
+
+C. SNR-only degradation 
+
+At GSD = 100 cm, detection performance remains relatively stable over much of the tested SNR range. The lowest SNR configurations generally lead to poorer results, but variations between intermediate operating points are small and non-monotonic for all three detectors. This suggests that, at this GSD, moderate radiometric degradation is comparatively well tolerated. The effect of SNR becomes more visible at GSD = 200 cm. YOLOv5s shows a clear reduction in AP 50 toward the lowest SNR values, while NanoDet also performs worse under severe noise. YOLOX-S shows more variation between intermediate configurations, but its lowest-SNR results remain below its best SNR-only operating points. Overall, the results suggest that sensitivity to radiometric noise is mostly stable for low to middle SNR degradations, but heavily noisy images suffer greater performance loss. 
+
+D. Combined MTF and SNR degradation 
+
+The strongest performance losses are observed when severe MTF and SNR degradation occur simultaneously. For all three detectors, the lowest-quality combined configurations produce substantially lower AP 50 than the corresponding MTF-only or SNR-only cases. This effect is particularly visible at GSD = 200 cm, where the final two combined operating points show a sharp perfor-mance drop across all three architectures. A similar trend is observed at 100 cm, although the intermediate configurations remain less regular. The combined results therefore identify severe blur and noise as the most challenging operating regime considered in this study. The response is not perfectly monotonic, especially at intermediate quality levels, but performance clearly deteri-orates once both degradation mechanisms become strong. IV. D ISCUSSION 
+
+The experiments confirm that sensitivity to simulated raw-like image degradation depends on both the physical degra-dation mechanism and detector architecture. GSD produces the clearest overall effect. YOLOv5s and YOLOX-S perform 
+
+> OBPDC 2026
+
+GSD GSD only MTF only SNR only MTF + SNR 
+
+– MTF Nyq = 0 .03 SNR = (20 , 50) MTF Nyq = 0 .03 SNR = (20 , 50) 
+
+> GSD 100 cm GSD 200 cm
+
+Fig. 1: Examples of GSD, MTF, SNR, and combined degradations at GSDs of 100 and 200 cm. 
+
+Fig. 2: Mean AP 50 gain from GSD 200cm to GSD 100cm (in percentage points) better at 100 cm for every matched controlled configuration, with mean AP 50 differences of 6.7 and 5.0 points. NanoDet shows the same tendency in 22 of 23 matched cases. Spatial sampling is therefore the most consistent image-quality factor observed in this study. At fixed GSD, the relative influence of MTF and SNR is less straightforward. At 100 cm, YOLOv5s and NanoDet show larger endpoint losses under severe MTF degradation than under the tested SNR degradation. Strong MTF degradation re-moves spatial frequencies and reduces edge and shape contrast that can be useful for object localisation and discrimination [13, 5]. At 200 cm, however, YOLOv5s becomes strongly sensitive to SNR, while NanoDet and YOLOX-S show more non-monotonic behaviour. The results therefore do not support a universal rule in which either MTF or SNR is always the dominant parameter. The most consistent low-quality regime is the simultaneous presence of severe blur and noise. For every model and both GSDs, the strongest combined degradation gives lower AP 50 
+
+than the corresponding isolated MTF or SNR endpoint. This is relevant for raw and minimally processed satellite imagery, where several sensor-related limitations can occur simultane-ously [5, 15]. Nevertheless, the mixed-sweep samples only eight paired operating points, so interpret the interpolated surfaces as visual aids rather than measurements of a complete MTF and SNR response surface. Another important observation is the non-monotonic be-haviour at moderate-to-high image quality. Several neighbour-ing operating points differ by only a few AP points and occasionally reverse the expected ordering. These variations may reflect a performance plateau and stochastic training variability. This plateau is visible in most of the 3D response surfaces in Figs. 3 and 4, extending from the high-image-quality corner toward the central region of the explored parameter space. The main takeaway is that moderate image degradation does not necessarily translate into a substantial loss in detection performance. This suggests that some optical requirements could potentially be relaxed while maintaining comparable task-level performance. Because we evaluated the detectors across a broad range of operating points, we can also identify the image-quality region where performance starts to degrade substantially and use this threshold to inform sensor-design requirements. From a system-design perspective, these results can help determine whether image restoration is required before on-      
+
+> OBPDC 2026 (a) NanoDet configurations, ordered by AP. (b) NanoDet AP 50 over the sampled parameter space.
+> (c) YOLOv5s configurations, ordered by AP. (d) YOLOv5s AP 50 over the sampled parameter space.
+> (e) YOLOX-S configurations, ordered by AP. (f) YOLOX-S AP 50 over the sampled parameter space.
+
+Fig. 3: Detection performance at GSD = 100 cm. Left panels show the tested configurations and right panels show interpolated AP 50 surfaces for visualization. board inference. Comparing detection performance on restored or ground-processed imagery with that obtained from raw or minimally processed imagery estimates the performance loss from operating directly on degraded sensor data. If task-level accuracy remains sufficient over the expected sensor operating region, direct inference on minimally processed imagery may avoid the computational cost and latency of restoration [15, 3]. If performance is insufficient under expected degradation con-ditions, lightweight restoration or degradation-aware detection architectures may be more appropriate. Our previous work on ConvBEERS [6] investigates lightweight restoration as a pre-processing stage, while TriCCOT [4] explores a degradation-aware detection architecture. The most appropriate solution therefore depends on the mission requirements, acceptable de-tection performance, and expected sensor operating conditions. V. C ONCLUSION 
+
+This work evaluates the impact of GSD, MTF, and signal-dependent radiometric noise on ship-detection performance in simulated raw-like optical imagery using YOLOv5s, NanoDet, and YOLOX-S. Among the investigated parameters, GSD pro-duces the most consistent effect, with performance generally decreasing at 200 cm compared with 100 cm. In contrast, the effects of MTF and SNR are more dependent on spatial resolution, with several experiments exhibiting non-monotonic behaviour. Overall, small-to-moderate degradations do not cause a sudden breakdown in detection performance, indicating that the evaluated detectors are robust within this degradation range. The most consistent failure regime across the three detectors occurs when severe blur and noise are combined. Un-      
+
+> OBPDC 2026 (a) NanoDet configurations, ordered by AP. (b) NanoDet AP 50 over the sampled parameter space.
+> (c) YOLOv5s configurations, ordered by AP. (d) YOLOv5s AP 50 over the sampled parameter space.
+> (e) YOLOX-S configurations, ordered by AP. (f) YOLOX-S AP 50 over the sampled parameter space.
+
+Fig. 4: Detection performance at GSD = 200 cm. Left panels show the tested configurations and right panels show interpolated AP 50 surfaces for visualization. der these conditions, AP 50 decreases more substantially than for the corresponding isolated degradations, highlighting the importance of considering interactions between image-quality factors rather than evaluating each parameter independently. More generally, the observed non-linear and model-dependent responses indicate that sensor requirements should not be derived from an assumed monotonic relationship between in-dividual image-quality parameters and detection performance. Instead, detector performance should be characterised across the expected sensor operating domain. Such task-oriented evaluation can support early trade-offs between sensor design, onboard processing, and AI performance, and help determine whether direct inference on raw-like imagery, onboard restora-tion, or degradation-aware detection is most appropriate for a given mission. A main limitation of this study is the absence of a statistical analysis of performance variability. Each configuration was evaluated using a single training run, making it difficult to distinguish systematic effects from variability associated with model training and potentially contributing to observed fluctuations and outliers. Future work should therefore include repeated experiments with multiple random seeds and report measures of variability or confidence intervals. This would provide a more robust assessment of the significance of small performance differences and help determine which trends can reliably be attributed to image degradation. REFERENCES 
+
+[1] C. Aybar, G. Mateo-Garc´ ıa, G. Acciarini, V. R˚ uˇ ziˇ cka, G. Meoni, N. Long´ ep´ e, and L. G´ omez-Chova. Onboard cloud detection and atmospheric correction with efficient 
+
+> OBPDC 2026
+
+TABLE I: Detection performance at GSD = 100 cm. 
+
+Degradation Experiment MTF Nyq SNR (L0, L 1) [dB] NanoDet [16] YOLOv5s [17] YOLOX-S [8] AP AP 50 AP 75 AP AP 50 AP 75 AP AP 50 AP 75 
+
+MTF only mtf 025 gsd100 0.250 (100, 250) 0.244 0.305 0.267 0.345 0.412 0.383 0.281 0.342 0.318 MTF only mtf 015 gsd100 0.150 (100, 250) 0.222 0.276 0.241 0.298 0.370 0.331 0.278 0.338 0.312 MTF only mtf 010 gsd100 0.100 (100, 250) 0.221 0.271 0.239 0.317 0.383 0.352 0.263 0.336 0.298 MTF only mtf 007 gsd100 0.070 (100, 250) 0.218 0.265 0.235 0.298 0.364 0.331 0.268 0.333 0.303 MTF only mtf 003 gsd100 0.030 (100, 250) 0.215 0.264 0.231 0.272 0.336 0.302 0.238 0.297 0.270 MTF only mtf 0015 gsd100 0.015 (100, 250) 0.198 0.244 0.213 0.265 0.332 0.294 0.241 0.317 0.277 MTF only mtf 0010 gsd100 0.010 (100, 250) 0.192 0.241 0.209 0.290 0.348 0.315 0.253 0.323 0.284 MTF only mtf 0005 gsd100 0.005 (100, 250) 0.191 0.246 0.212 0.258 0.327 0.291 0.228 0.296 0.254 SNR only snr 080 gsd100 0.100 (80, 170) 0.215 0.263 0.232 0.302 0.370 0.331 0.260 0.337 0.282 SNR only snr 072 gsd100 0.100 (72, 175) 0.245 0.295 0.266 0.286 0.350 0.318 0.236 0.302 0.264 SNR only snr 050 gsd100 0.100 (50, 110) 0.205 0.258 0.223 0.296 0.356 0.326 0.265 0.343 0.302 SNR only snr 037 gsd100 0.100 (37, 85) 0.240 0.296 0.260 0.296 0.367 0.329 0.265 0.326 0.300 SNR only snr 026 gsd100 0.100 (26, 60) 0.221 0.271 0.238 0.285 0.355 0.317 0.268 0.340 0.306 SNR only snr 020 gsd100 0.100 (20, 50) 0.230 0.284 0.250 0.304 0.372 0.329 0.278 0.348 0.315 SNR only snr 014 gsd100 0.100 (14, 29) 0.215 0.266 0.233 0.269 0.337 0.299 0.258 0.323 0.292 SNR only snr 010 gsd100 0.100 (10, 20) 0.219 0.278 0.240 0.266 0.332 0.295 0.257 0.336 0.292 SNR only snr 007 gsd100 0.100 (7, 14) 0.215 0.273 0.234 0.252 0.313 0.279 0.230 0.306 0.262 SNR only snr 005 gsd100 0.100 (5, 10) 0.185 0.239 0.200 0.259 0.331 0.293 0.234 0.315 0.274 MTF + SNR mix 025 080 gsd100 0.250 (80, 170) 0.218 0.274 0.241 0.330 0.401 0.363 0.240 0.298 0.270 MTF + SNR mix 015 072 gsd100 0.150 (72, 175) 0.237 0.287 0.253 0.306 0.380 0.342 0.247 0.307 0.279 MTF + SNR mix 010 037 gsd100 0.100 (37, 85) 0.230 0.281 0.248 0.316 0.379 0.349 0.243 0.299 0.272 MTF + SNR mix 007 026 gsd100 0.070 (26, 60) 0.225 0.282 0.245 0.299 0.368 0.331 0.231 0.290 0.259 MTF + SNR mix 003 low gsd100 0.030 (20, 50) 0.186 0.235 0.205 0.281 0.343 0.306 0.238 0.305 0.267 MTF + SNR mix 0015 014 gsd100 0.015 (14, 29) 0.217 0.270 0.237 0.230 0.300 0.261 0.242 0.315 0.273 MTF + SNR mix 0010 007 gsd100 0.010 (7, 14) 0.178 0.233 0.198 0.209 0.266 0.233 0.201 0.270 0.229 MTF + SNR mix 0005 005 gsd100 0.005 (5, 10) 0.150 0.201 0.164 0.170 0.230 0.189 0.189 0.251 0.218 
+
+deep learning models. IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing ,17:19518–19529, 2024. [2] R. Del Prete, G. Meoni, M. Salvoldi, D. Barretta, M. D. Graziano, N. Long´ ep´ e, and A. Renga. Enhanced mar-itime monitoring via onboard processing of raw multi-spectral imagery by deep learning. In IGARSS 2024 -2024 IEEE International Geoscience and Remote Sens-ing Symposium , pages 1713–1717, 2024. [3] R. Del Prete, M. Salvoldi, D. Barretta, N. Long´ ep´ e, G. Meoni, A. Karnieli, M. D. Graziano, and A. Renga. Enhancing maritime situational awareness through end-to-end onboard raw data analysis. IEEE Journal of Se-lected Topics in Applied Earth Observations and Remote Sensing , 18:16997–17018, 2025. [4] A. Dorise, M. Bellizzi, J. Cohen, and S. May. Triccot: Tri-part convolutional conformal transformer for onboard space object detection, 2026. [5] A. Dorise, M. Bellizzi, A. Girard, B. Francesconi, and S. May. Explaining raw data complexity to improve satellite onboard processing. In 2025 European Data Handling and Data Processing Conference (EDHPC) ,pages 1–8, 2025. [6] A. Dorise, M. Bellizzi, and O. Hlimi. Rethinking satellite image restoration for onboard ai: A lightweight learning-based approach. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) Workshops , pages 10183–10192, June 2026. [7] L. M. Garc´ es-Socarr´ as, R. Cuiman, F. Ortiz, J. A. V´ asquez-Peralvo, J. L. Gonz´ alez-Rios, M. Chehaitly, A. Kazanskii, S. Malmir, A. Nik, J. Thoemel, S. Kumar, M. Kuhfuss, S. Varadajulu, E. Lagunas, J. C. M. Duncan, J. Querol, and S. Chatzinotas. Onboard machine learning for satellite edge computing: The spaice project use case. In 2025 European Data Handling & Data Processing Conference (EDHPC) , pages 1–8, 2025. [8] Z. Ge, S. Liu, F. Wang, Z. Li, and J. Sun. Yolox: Exceeding yolo series in 2021, 2021. [9] T. Goudemant and B. Francesconi. Optimizing latent representations for robust building damage assessment onboard earth observation satellites. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops , pages 10232– 10240, June 2026. [10] T. Goudemant, B. Francesconi, M. Aubrun, E. Kervennic, I. Grenet, Y. Bobichon, and M. Bellizzi. Onboard anomaly detection for marine environmental protection. 
+
+IEEE Journal of Selected Topics in Applied Earth Ob-servations and Remote Sensing , 17:7918–7931, 2024. [11] T. Goudemant, B. Francesconi, H. Farhat, L. Daniel, 
+
+> OBPDC 2026
+
+TABLE II: Detection performance at GSD = 200 cm. 
+
+Degradation Experiment MTF Nyq SNR (L0, L 1) [dB] NanoDet [16] YOLOv5s [17] YOLOX-S [8] AP AP 50 AP 75 AP AP 50 AP 75 AP AP 50 AP 75 
+
+MTF only mtf 025 gsd200 0.250 (100, 250) 0.176 0.220 0.190 0.248 0.311 0.274 0.210 0.267 0.239 MTF only mtf 015 gsd200 0.150 (100, 250) 0.166 0.206 0.178 0.246 0.298 0.267 0.211 0.278 0.241 MTF only mtf 010 gsd200 0.100 (100, 250) 0.198 0.246 0.216 0.256 0.320 0.282 0.236 0.301 0.266 MTF only mtf 007 gsd200 0.070 (100, 250) 0.179 0.229 0.196 0.242 0.299 0.260 0.229 0.296 0.260 MTF only mtf 003 gsd200 0.030 (100, 250) 0.184 0.231 0.196 0.245 0.302 0.268 0.209 0.279 0.239 MTF only mtf 0015 gsd200 0.015 (100, 250) 0.177 0.225 0.193 0.227 0.278 0.246 0.211 0.273 0.237 MTF only mtf 0010 gsd200 0.010 (100, 250) 0.165 0.208 0.176 0.235 0.301 0.266 0.185 0.251 0.210 MTF only mtf 0005 gsd200 0.005 (100, 250) 0.180 0.229 0.196 0.198 0.256 0.226 0.216 0.286 0.244 SNR only snr 080 gsd200 0.100 (80, 170) 0.205 0.2544 0.225 0.246 0.318 0.281 0.203 0.269 0.231 SNR only snr 072 gsd200 0.100 (72, 175) 0.198 0.246 0.217 0.242 0.301 0.263 0.196 0.253 0.225 SNR only snr 050 gsd200 0.100 (50, 110) 0.205 0.258 0.224 0.265 0.333 0.292 0.218 0.281 0.251 SNR only snr 037 gsd200 0.100 (37, 85) 0.199 0.249 0.214 0.239 0.306 0.263 0.196 0.256 0.218 SNR only snr 026 gsd200 0.100 (26, 60) 0.180 0.230 0.200 0.231 0.302 0.261 0.231 0.302 0.263 SNR only snr 020 gsd200 0.100 (20, 50) 0.202 0.250 0.219 0.238 0.297 0.265 0.213 0.282 0.234 SNR only snr 014 gsd200 0.100 (14, 29) 0.167 0.211 0.178 0.220 0.290 0.253 0.174 0.234 0.200 SNR only snr 010 gsd200 0.100 (10, 20) 0.179 0.229 0.194 0.217 0.277 0.242 0.205 0.273 0.230 SNR only snr 007 gsd200 0.100 (7, 14) 0.176 0.227 0.193 0.166 0.223 0.190 0.179 0.252 0.202 SNR only snr 005 gsd200 0.100 (5, 10) 0.153 0.193 0.163 0.164 0.227 0.191 0.181 0.241 0.206 MTF + SNR mix 025 080 gsd200 0.250 (80, 170) 0.203 0.251 0.217 0.244 0.297 0.268 0.219 0.278 0.246 MTF + SNR mix 015 072 gsd200 0.150 (72, 175) 0.191 0.237 0.209 0.242 0.302 0.266 0.219 0.276 0.245 MTF + SNR mix 010 037 gsd200 0.100 (37, 85) 0.184 0.232 0.199 0.235 0.304 0.263 0.204 0.266 0.232 MTF + SNR mix 007 026 gsd200 0.070 (26, 60) 0.175 0.226 0.193 0.229 0.290 0.247 0.224 0.287 0.249 MTF + SNR mix 003 low gsd200 0.030 (20, 50) 0.185 0.245 0.209 0.205 0.264 0.228 0.206 0.273 0.236 MTF + SNR mix 0015 014 gsd200 0.015 (14, 29) 0.156 0.200 0.166 0.186 0.246 0.210 0.185 0.244 0.208 MTF + SNR mix 0010 007 gsd200 0.010 (7, 14) 0.091 0.127 0.096 0.124 0.170 0.138 0.151 0.204 0.172 MTF + SNR mix 0005 005 gsd200 0.005 (5, 10) 0.097 0.131 0.104 0.120 0.166 0.134 0.115 0.168 0.130 
+
+O. Thiery, E. Kervennic, A. Girard, and S. Mzoughi. D´ etection de navires embarquable ` a bord de satellites. In 
+
+Actes de la 4` eme Conference on Artificial Intelligence for Defense (CAID 2022) , Actes de la 4` eme Conference on Artificial Intelligence for Defense (CAID 2022), Rennes, France, Nov. 2022. DGA Maˆ ıtrise de l’Information. [12] Y. Ibrahim, L. Chen, and T. Haonan. Deep learning-based ship detection on fpgas. In 2022 14th International Conference on Computational Intelligence and Commu-nication Networks (CICN) , pages 454–459, 2022. [13] C. Latry, S. Fourest, and C. Thiebaut. Restoration tech-nique for pleiades-hr panchromatic images. The Interna-tional Archives of the Photogrammetry, Remote Sensing and Spatial Information Sciences , XXXIX-B1:555–560, 2012. [14] G. Meoni, M. M¨ artens, D. Derksen, K. See, T. Lightheart, A. S´ echer, A. Martin, D. Rijlaarsdam, V. Fanizza, and D. Izzo. The ops-sat case: A data-centric competition for onboard satellite image classification. Astrodynamics ,8(4):507–528, 2024. [15] G. Meoni, R. D. Prete, F. Serva, A. De Beusscher, O. Colin, and N. Long´ ep´ e. Unlocking the use of raw multispectral earth observation imagery for onboard artificial intelligence. IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing ,17:12521–12537, 2024. [16] RangiLyu. Nanodet-plus: Super fast and high accuracy lightweight anchor-free object detection model. https: //github.com/RangiLyu/nanodet, 2021. [17] Ultralytics. YOLOv5: A state-of-the-art real-time object detection system. https://docs.ultralytics.com, 2021. Ac-cessed: 12/12/2025. [18] S. Van Der Smissen. Towards efficient on-board ai: Performance benchmarks of the jetson orin nx for space applications. In 2025 European Data Handling and Data Processing Conference (EDHPC) , pages 1–7, 2025. [19] B. Zhang, Y. Wu, B. Zhao, J. Chanussot, D. Hong, J. Yao, and L. Gao. Progress and challenges in intelligent remote sensing satellite systems. IEEE Journal of Selected Top-ics in Applied Earth Observations and Remote Sensing ,15:1814–1822, 2022.
