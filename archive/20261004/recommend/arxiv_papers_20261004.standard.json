@@ -1,0 +1,96 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-04T22:49:21.796890+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.34564v1",
+      "source": "arxiv",
+      "title": "GLF-Q: Global-Local Feature-based Quantization for Vision Transformers",
+      "abstract": "Post-training quantization (PTQ) efficiently compresses Vision Transformers (ViTs) without retraining, yet suffers severe accuracy degradation at low bit-widths. Existing optimization-based PTQ methods guide block reconstruction via either soft logits or second-order Hessian proxies. Logit supervision is prone to overfitting on limited calibration data, while Hessian approximations incur structural truncation errors. To address these limitations, we propose \\textbf{GLF-Q}, a novel PTQ framework guided by Global-Local Feature alignment. GLF-Q propagates quantized block outputs through downstream full-precision layers to align penultimate-layer representations under local output regularization, providing downstream feature supervision without explicitly approximating the Hessian or using a Taylor expansion. Furthermore, offline Hadamard transformations are introduced with zero runtime overhead to disperse activation outliers across channels, effectively contracting dynamic ranges and reducing quantization errors. Meanwhile, optimizing this loss via a Straight-Through Estimator (STE) achieves rapid convergence, bypassing continuous relaxation rounding formulations such as AdaRound. Extensive experiments across representative ViT architectures demonstrate that GLF-Q with standard uniform quantizers substantially outperforms state-of-the-art methods under 3-bit quantization on image classification. In addition, GLF-Q exhibits strong out-of-domain calibration robustness and achieves speedups under 8-bit GPU deployment.",
+      "authors": [
+        "Peilin Sun",
+        "Guang Liang",
+        "Jin Tong",
+        "Jianxin Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T08:16:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.34564v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Post-training quantization for Vision Transformers with global-local feature alignment",
+      "llm_evidence_cn": "基于全局-局部特征对齐的视觉Transformer训练后量化",
+      "llm_evidence": "基于全局-局部特征对齐的视觉Transformer训练后量化",
+      "canonical_evidence": "基于全局-局部特征对齐的视觉Transformer训练后量化",
+      "llm_tldr_en": "GLF-Q is a PTQ framework that aligns global-local features of penultimate layers to reduce accuracy loss in low-bit ViTs.",
+      "llm_tldr_cn": "针对视觉Transformer训练后量化在低比特下精度严重下降的问题，提出GLF-Q框架，通过全局-局部特征对齐引导块重建，将量化块输出经下游全精度层传播并对齐倒数第二层表示，结合局部输出正则化，避免logits过拟合和Hessian截断误差，在低比特量化下显著恢复ViT精度，为高效部署目标检测Transformer等模型提供支持。",
+      "llm_tldr": "针对视觉Transformer训练后量化在低比特下精度严重下降的问题，提出GLF-Q框架，通过全局-局部特征对齐引导块重建，将量化块输出经下游全精度层传播并对齐倒数第二层表示，结合局部输出正则化，避免logits过拟合和Hessian截断误差，在低比特量化下显著恢复ViT精度，为高效部署目标检测Transformer等模型提供支持。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection with transformer architectures",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.37096v1",
+      "source": "arxiv",
+      "title": "Why MLLMs Struggle to Count: Overcoming Individuation and Aggregation Bottlenecks with ConvStack",
+      "abstract": "Multimodal Large Language Models (MLLMs) consistently struggle with fine-grained visual counting, yet the underlying causes remain poorly understood. In this work, we present a mechanistic analysis of this failure mode, identifying two critical bottlenecks inherent to the global attention pipeline of MLLMs. First, we reveal an individuation bottleneck stemming from image patchification: because Vision Transformers process patches independently, they struggle to group fragmented geometric features across boundaries into distinct object representations. Second, we identify a collapse in the subsequent counting aggregation process, where representation separation rapidly diminishes as numerosity increases due to attention compression. Identifying and formalizing these twin bottlenecks constitutes our first major contribution. To overcome them, we propose ConvStack, a lightweight architecture that operates directly in the visual token space to explicitly aggregate and inject local spatial structures via zero-initialized residual connections. By explicitly addressing the individuation bottleneck, ConvStack provides unambiguous geometric evidence for downstream aggregation. Remarkably, by fine-tuning exclusively on counting tasks, the model achieves substantial improvements in dense object counting and broader spatial understanding benchmarks, without compromising on general visual capabilities.",
+      "authors": [
+        "Liwei Che",
+        "Yihao Quan",
+        "Sen Fang",
+        "Hongyi Wang",
+        "Ranjay Krishna",
+        "Ruixiang Tang",
+        "Vladimir Pavlovic"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-29T09:19:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.37096v1",
+      "tags": [
+        "keyword:obj-detect",
+        "query:obj-detect"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "visual counting in MLLMs, related to object detection",
+      "llm_evidence_cn": "MLLM中的视觉计数，与目标检测相关",
+      "llm_evidence": "MLLM中的视觉计数，与目标检测相关",
+      "canonical_evidence": "MLLM中的视觉计数，与目标检测相关",
+      "llm_tldr_en": "Analyzes why MLLMs struggle with fine-grained visual counting and proposes ConvStack to overcome individuation and aggregation bottlenecks.",
+      "llm_tldr_cn": "针对MLLM细粒度视觉计数困难问题，发现个体化和聚合瓶颈；提出ConvStack克服全局注意力管线的限制；提升计数性能，对物体表示分组有借鉴意义。",
+      "llm_tldr": "针对MLLM细粒度视觉计数困难问题，发现个体化和聚合瓶颈；提出ConvStack克服全局注意力管线的限制；提升计数性能，对物体表示分组有借鉴意义。",
+      "llm_tags": [
+        "query:obj-detect"
+      ],
+      "matched_query_tag": "query:obj-detect",
+      "matched_query_text": "object detection in computer vision",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

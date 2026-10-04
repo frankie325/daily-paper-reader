@@ -1,0 +1,39 @@
+{
+  "label": "2026-10-04",
+  "date": "2026-10-04",
+  "generated_at": "2026-10-04T22:51:04",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202610/04/2609.34564v1-glf-q-global-local-feature-based-quantization-for-vision-transformers",
+      "section": "quick",
+      "title_en": "GLF-Q: Global-Local Feature-based Quantization for Vision Transformers",
+      "authors": "Peilin Sun, Guang Liang, Jin Tong, Jianxin Wu",
+      "date": "2026-09-28",
+      "pdf": "https://arxiv.org/pdf/2609.34564v1",
+      "score": "6.0",
+      "evidence": "基于全局-局部特征对齐的视觉Transformer训练后量化",
+      "tldr": "视觉Transformer（ViT）低比特后训练量化面临严重精度下降，现有基于logits或Hessian代理的优化方法存在过拟合或结构截断误差。GLF-Q提出全局-局部特征对齐框架：将量化块输出传播至下游全精度层并对齐倒数第二层表示，无需显式Hessian近似；同时引入离线Hadamard变换分散激活异常值、收缩动态范围，且零运行时开销。在多种ViT架构上，GLF-Q使用标准均匀量化器在3比特图像分类中显著超越现有最优方法，并展现强域外校准鲁棒性与8比特GPU推理加速。",
+      "tags": "query:obj-detect",
+      "abstract_en": "Post-training quantization (PTQ) efficiently compresses Vision Transformers (ViTs) without retraining, yet suffers severe accuracy degradation at low bit-widths. Existing optimization-based PTQ methods guide block reconstruction via either soft logits or second-order Hessian proxies. Logit supervision is prone to overfitting on limited calibration data, while Hessian approximations incur structural truncation errors. To address these limitations, we propose \\textbf{GLF-Q}, a novel PTQ framework guided by Global-Local Feature alignment. GLF-Q propagates quantized block outputs through downstream full-precision layers to align penultimate-layer representations under local output regularization, providing downstream feature supervision without explicitly approximating the Hessian or using a Taylor expansion. Furthermore, offline Hadamard transformations are introduced with zero runtime overhead to disperse activation outliers across channels, effectively contracting dynamic ranges and reducing quantization errors. Meanwhile, optimizing this loss via a Straight-Through Estimator (STE) achieves rapid convergence, bypassing continuous relaxation rounding formulations such as AdaRound. Extensive experiments across representative ViT architectures demonstrate that GLF-Q with standard uniform quantizers substantially outperforms state-of-the-art methods under 3-bit quantization on image classification. In addition, GLF-Q exhibits strong out-of-domain calibration robustness and achieves speedups under 8-bit GPU deployment.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/04/2609.37096v1-why-mllms-struggle-to-count-overcoming-individuation-and-aggregation-bottlenecks-with-convstack",
+      "section": "quick",
+      "title_en": "Why MLLMs Struggle to Count: Overcoming Individuation and Aggregation Bottlenecks with ConvStack",
+      "authors": "Liwei Che, Yihao Quan, Sen Fang, Hongyi Wang, Ranjay Krishna, Ruixiang Tang, Vladimir Pavlovic",
+      "date": "2026-09-29",
+      "pdf": "https://arxiv.org/pdf/2609.37096v1",
+      "score": "6.0",
+      "evidence": "MLLM中的视觉计数，与目标检测相关",
+      "tldr": "多模态大模型在细粒度视觉计数上表现不佳，但失败机制尚不明确。本文通过机制分析，识别出图像分块导致的个体化瓶颈和注意力压缩引起的聚合坍缩两个关键瓶颈。为此提出轻量架构ConvStack，在视觉token空间显式注入局部空间结构。仅在计数任务上微调后，模型在密集对象计数和空间理解基准上显著提升，同时保持通用视觉能力，揭示了计数失败机制并给出有效解决方案。",
+      "tags": "query:obj-detect",
+      "abstract_en": "Multimodal Large Language Models (MLLMs) consistently struggle with fine-grained visual counting, yet the underlying causes remain poorly understood. In this work, we present a mechanistic analysis of this failure mode, identifying two critical bottlenecks inherent to the global attention pipeline of MLLMs. First, we reveal an individuation bottleneck stemming from image patchification: because Vision Transformers process patches independently, they struggle to group fragmented geometric features across boundaries into distinct object representations. Second, we identify a collapse in the subsequent counting aggregation process, where representation separation rapidly diminishes as numerosity increases due to attention compression. Identifying and formalizing these twin bottlenecks constitutes our first major contribution. To overcome them, we propose ConvStack, a lightweight architecture that operates directly in the visual token space to explicitly aggregate and inject local spatial structures via zero-initialized residual connections. By explicitly addressing the individuation bottleneck, ConvStack provides unambiguous geometric evidence for downstream aggregation. Remarkably, by fine-tuning exclusively on counting tasks, the model achieves substantial improvements in dense object counting and broader spatial understanding benchmarks, without compromising on general visual capabilities.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

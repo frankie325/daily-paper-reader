@@ -1,0 +1,41 @@
+{
+  "date": "20261004",
+  "date_label": "",
+  "generated_at": "2026-10-04 22:50:56 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.34564v1",
+      "route": "202610/04/2609.34564v1-glf-q-global-local-feature-based-quantization-for-vision-transformers",
+      "title": "GLF-Q: Global-Local Feature-based Quantization for Vision Transformers",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于全局-局部特征对齐的视觉Transformer训练后量化",
+      "first_seen_at": "2026-10-04 22:50:56 UTC",
+      "updated_at": "2026-10-04 22:50:56 UTC"
+    },
+    {
+      "paper_id": "2609.37096v1",
+      "route": "202610/04/2609.37096v1-why-mllms-struggle-to-count-overcoming-individuation-and-aggregation-bottlenecks-with-convstack",
+      "title": "Why MLLMs Struggle to Count: Overcoming Individuation and Aggregation Bottlenecks with ConvStack",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "MLLM中的视觉计数，与目标检测相关",
+      "first_seen_at": "2026-10-04 22:50:56 UTC",
+      "updated_at": "2026-10-04 22:50:56 UTC"
+    }
+  ]
+}
