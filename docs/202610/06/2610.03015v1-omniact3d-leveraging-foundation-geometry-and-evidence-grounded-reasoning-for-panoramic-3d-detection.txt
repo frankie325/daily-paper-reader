@@ -1,0 +1,1267 @@
+OmniAct3D: Leveraging Foundation Geometry and Evidence-Grounded
+Reasoning for Panoramic 3D Detection
+Runtong Wu1,∗, Fei Teng1,∗, Di Wen2, Guoqiang Zhao1, Kunyu Peng2, and Kailun Yang1,†
+Abstract— Accurate 3D detection is essential for mobile
+embodied agents, while Vision Foundation Models (VFMs)
+offer transferable visual and geometric priors. Yet existing
+VFM-based 3D detectors rely on narrow-view monocular im-
+ages or discrete perspective views, limiting coherent surround
+perception; equirectangular projection (ERP) instead encodes
+a continuous 360◦scene in a single image. Direct transfer
+remains difficult because ERP organizes geometry and visual
+information differently, making object-relevant cues hard to
+model, localize, and preserve. We propose OMNIACT3D, a
+framework that adapts perspective-trained VFM detectors to
+ERP while preserving transferable VFM priors. To resolve
+geometric mismatch, the ERP-Ray Geometry Adapter (ERGA-
+RAY) models spherical viewing rays and periodic spatial struc-
+ture. To localize evidence in scene-wide context, the Visual-
+Action Reasoning Chain (VARC) grounds each hypothesis in
+relevant panoramic evidence and converts it into a structured
+geometric action. To recover local cues lost under fixed token
+budgets, the Appearance-Guided Heading Expert (AGHE) re-
+encodes object regions at higher resolution for heading estima-
+tion. Experiments show that OMNIACT3D improves over the
+previous best 3D detector by 2.96 NDS points on Spheriverse
+and over the unadapted VFM baseline by 24.87 mAP points on
+PanoMMOcc. With target-specific geometry adaptation, VARC
+retains 95–98% of the same-configuration mAP, indicating
+reusable object-level 3D reasoning across sensing configura-
+tions. The source code will be made publicly available at
+https://github.com/FeiT-FeiTeng/OmniAct3D.
+I. INTRODUCTION
+Accurate and robust 3D detection is essential for mobile
+embodied agents to understand and interact with the physical
+world. From autonomous vehicles to mobile robots, agents
+must estimate the 3D locations, dimensions, and orientations
+of surrounding objects to support navigation, motion plan-
+ning, and embodied decision-making [1], [2].
+Recent VFM-based 3D detectors [5], [6] leverage trans-
+ferable visual and geometric priors for object-level 3D per-
+ception. Despite this progress, existing methods primarily
+follow two perspective-image paradigms. As shown in Fig. 1,
+monocular methods [3], [7] infer 3D boxes from a single
+This work was supported in part by the National Natural Science
+Foundation of China (Grant No. 62473139 and No. 62388101), in part
+by the Hunan Provincial Research and Development Project (Grant No.
+2025QK3019), and in part by the State Key Laboratory of Autonomous
+Intelligent Unmanned Systems (the opening project number ZZKF2025-2-
+10).
+1The authors are with the School of Artificial Intelligence and
+Robotics and the National Engineering Research Center of Robot Vi-
+sual Perception and Control Technology, Hunan University, China (email:
+kailun.yang@hnu.edu.cn).
+2The authors are with the Institute for Anthropomatics and Robotics,
+Karlsruhe Institute of Technology, Germany.
+∗Equal contribution.
+†Corresponding author: Kailun Yang.
+Existing monocular methods
+Existing multi-view methods
+Ours (ERP-native 3D detection)
+Limited FoV
+Perspective view
+3D boxes
+1
+2
+3
+4
+5
+6
+1
+1
+2
+2
+3
+3
+4
+4
+5
+5
+6
+6
+Discrete FoV 
+Overlap perspective views
+3D boxes
+Continuous 360° 
+3D boxes
+Fig. 1: Comparison of monocular, multi-view, and ERP 3D
+detection paradigms. Monocular methods observe a limited
+field of view [3], while multi-view methods rely on discrete
+perspective observations [4]. In contrast, our method enables
+coherent 360◦perception from a single ERP image.
+perspective image but observe only a limited field of view;
+Multi-view methods [8], [9] extend the surrounding cov-
+erage using discrete perspective observations. In contrast,
+equirectangular projection (ERP) encodes the surrounding
+spherical field of view within a single image, providing a
+unified and spatially continuous representation for coherent
+360◦perception [10], [11].
+However, directly transferring perspective-trained VFM-
+based 3D detectors to ERP observations remains challenging
+because ERP organizes geometry and visual information
+differently from perspective imagery. This representation
+mismatch makes object-relevant cues difficult to model,
+localize, and preserve, giving rise to three challenges. First,
+the geometric priors of VFMs are learned predominantly
+from locally planar and non-periodic perspective imagery,
+whereas ERP exhibits spherical viewing directions, latitude-
+dependent distortion, and horizontal periodicity. Reusing
+these priors without adaptation therefore produces geometric
+representations misaligned with ERP structure, particularly
+at high latitudes and across the horizontal boundary. Second,
+although a single ERP image captures scene-wide context,
+the evidence relevant to each object occupies only a small
+portion of the panorama. Directly decoding 3D hypotheses
+from global features makes it difficult to localize and as-
+arXiv:2610.03015v1  [cs.CV]  2 Oct 2026
+
+
+sociate the supporting evidence for each object, especially
+when objects are small or occluded. Third, encoding an
+ultra-wide panorama under a fixed token budget compresses
+individual objects and discards fine-grained local appearance
+cues. The loss of features such as front–rear asymmetry
+impairs directed heading estimation.
+To address these challenges, we propose OMNIACT3D,
+a framework that adapts perspective-trained VFM detectors
+to ERP observations while preserving transferable VFM
+priors. To resolve the geometric mismatch, we introduce the
+ERP-Ray Geometry Adapter (ERGA-RAY), which models
+spherical viewing rays and ERP-aware spatial interactions
+to align pretrained foundation geometry with ERP-specific
+spherical and periodic structure. To localize object-relevant
+evidence in scene-wide context, we introduce the Visual-
+Action Reasoning Chain (VARC), which grounds each 3D
+hypothesis in relevant panoramic evidence and converts that
+evidence into a structured geometric action for object-level
+3D reasoning. To recover local cues lost under a fixed token
+budget, we introduce the AGHE, which re-encodes object
+regions at higher resolution for directed heading estimation.
+We evaluate OMNIACT3D on Spheriverse [12] and
+PanoMMOcc [13]. On Spheriverse, OMNIACT3D achieves
+0.1887/0.1825 mAP/NDS, improving the previous best NDS
+by 2.96 points. On PanoMMOcc, it achieves 0.5897/0.4032
+mAP/NDS and improves the unadapted VFM baseline by
+24.87 mAP points. Moreover, with target-specific geometry
+adaptation via ERGA-RAY, VARC retains 95% and 98% of
+same-configuration mAP on Spheriverse and PanoMMOcc,
+respectively, indicating reusable object-level 3D reasoning
+across sensing configurations.
+In summary, our contributions are as follows:
+• We propose OMNIACT3D, a framework that adapts
+perspective-trained VFM detectors to ERP observations
+while preserving transferable VFM priors.
+• We introduce ERGA-RAY to align foundation geometry
+with ERP spherical and periodic structure.
+• We introduce VARC to ground 3D hypotheses in rele-
+vant panoramic evidence and convert that evidence into
+a structured geometric action, and AGHE to recover
+fine-grained local cues for directed heading estimation.
+• Experiments show that OMNIACT3D improves NDS
+by 2.96 points over the previous best detector on
+Spheriverse and mAP by 24.87 points over the un-
+adapted VFM baseline on PanoMMOcc; with target-
+specific geometry adaptation, VARC retains 95–98% of
+same-configuration mAP across sensing configurations.
+II. RELATED WORK
+A. Vision-Based 3D Object Detection
+Vision-based 3D object detection estimates object loca-
+tions, dimensions, and orientations from images. Monocular
+methods infer 3D states from a single perspective view using
+geometric constraints, depth estimation, or object-centric rep-
+resentations [14], [15], [16]. Multi-view methods aggregate
+complementary observations through geometric projection,
+query-based aggregation, or BEV representations [17], [18],
+[19], while temporal approaches further exploit cross-frame
+information [20]. These methods are developed primarily for
+perspective imagery. Monocular systems have limited fields
+of view, whereas surround-view systems rely on multiple
+discrete camera views and cross-view integration. In contrast,
+our work studies object-level 3D detection directly from a
+panoramic representation for continuous 360◦perception.
+B. Omnidirectional Vision and ERP Perception
+Equirectangular projection (ERP) represents a spherical
+field of view within a single image and naturally provides
+spatially continuous horizontal 360◦coverage. ERP imagery
+has been studied for panoramic depth estimation, scene
+understanding, 3D detection, and omnidirectional occupancy
+prediction [21], [22], [23], [24]. However, ERP geometry dif-
+fers fundamentally from perspective imaging due to latitude-
+dependent distortion, horizontal periodicity, and spherical
+viewing rays. Prior work addresses these properties through
+spherical convolutions and distortion sampling [25], [26],
+projection fusion [27], and panoramic attention [28]. These
+works highlight the need for ERP-specific geometric model-
+ing for coherent panoramic perception.
+C. Foundation Models for Panoramic 3D Perception
+Large-scale VFMs provide transferable priors for se-
+mantic and geometric perception. Visual models such as
+DINO [29], [30] and SAM [31], [32] learn reusable visual
+representations, while geometry foundation models such as
+UniDepth [33], MoGe [34], and VGGT [4] provide trans-
+ferable priors for depth and 3D structure. We use the term
+VFM-based 3D detector for a 3D detector built on such
+pretrained models [6], [35], [36], [37]. Related work also
+develops camera-general geometry [38], [39], [40], [41],
+[42], [43], [44], [45]. Despite their transferability, adapting
+VFM-based 3D detection from perspective imagery to ERP
+remains challenging. We address this perspective-to-ERP
+adaptation through ERP geometry alignment and evidence-
+grounded object-level 3D reasoning.
+III. METHODOLOGY
+Given a full equirectangular projection (ERP) image I ∈
+RHI×WI×3, our goal is to directly infer object-level 3D states
+from a panoramic observation. For each object, the state
+comprises its 3D center (X,Y,Z), dimensions (W,L,H),
+orientation θ, category, and detection confidence.
+A. Overview of OmniAct3D
+Given an ERP image I, the frozen VFM-based detector
+extracts two complementary feature representations:
+(Fvis,M0) = EVFM(I),
+M0 ∈RN×d,
+(1)
+where Fvis denotes the visual features extracted by the SAM3
+branch [32], and M0 denotes the pretrained geometry mem-
+ory produced by the DINOv2-based LingBot branch [46].
+
+
+AGHE
+ (Sec 3.4)
+SAM3
+LingBot/
+DINOv2
+ERGA-Ray (Sec 3.2)
+ Decoder
+VARC
+(Sec 3.3)
+Condition
+FiLM
+Mixer
+Residual
+❅
+❅
+❅
+Model Overview
+Fvis
+M0
+M
+B
+Q
+C
+B′
+B
+Explicit
+Implicit
+Hypothesis
+3D Points
+Project
+Readout
+B
+Q
+Visual-Action
+Reasoner
+Gate
+Action
+Update
+V
+Q
+B
+C
+h
+A
+g
+B
+B′
+VARC
+M
+Fig. 2: Overview of the feature flow in OMNIACT3D. The frozen VFM-based detector extracts visual features Fvis and
+pretrained geometry memory M0 from the ERP image. ERGA-RAY transforms M0 into the ERP-adapted memory M, after
+which the detector produces B, Q, and C. VARC retrieves evidence V and predicts an action A to obtain B′, while the
+AGHE updates its directed heading to produce the final prediction ˆB.
+As illustrated in Fig. 2, the overall pipeline consists of
+four successive transformations:
+M = GERGA (M0,GERP) ,
+(B,Q,C) = D (Fvis,M) ,
+(V,A,B′) = RVARC (B,Q,C,M) ,
+ˆB = HAGHE (I,B′) .
+(2)
+ERP geometry adaptation. GERP encodes the spherical
+viewing rays and periodic positions of the ERP token grid.
+The ERGA-RAY operator GERGA uses this encoding to
+transform the pretrained geometry memory M0 into the
+detection-oriented ERP geometry memory M.
+Initial hypothesis generation. Conditioned on the visual
+features Fvis and adapted geometry memory M, the detector
+D produces an initial 3D box hypothesis B, its object query
+Q, and candidate-quality cues C = [s2D,s3D,scomb].
+Evidence-grounded reasoning. Given (B,Q,C,M), VARC
+retrieves hypothesis-relevant panoramic evidence V , reasons
+jointly over B and V to infer a structured geometric action
+A, and applies A to obtain the resulting box B′. This explicit
+hypothesis–evidence–action chain grounds each geometric
+action in relevant panoramic evidence.
+Appearance-guided heading estimation. The AGHE oper-
+ator HAGHE re-encodes the object region projected onto I
+at higher resolution and predicts its directed heading from
+fine-grained local appearance cues, producing the output ˆB.
+The VFM-based detector remains frozen throughout train-
+ing, whereas ERGA-RAY, VARC, and AGHE constitute
+the trainable components for ERP geometry adaptation,
+evidence-grounded object-level reasoning, and appearance-
+guided heading estimation, respectively.
+B. ERP-Ray Geometry Adapter
+To align pretrained foundation geometry with ERP-
+specific spherical and periodic structure, we introduce
+ERGA-RAY, achieving detection-oriented ERP geometry
+while preserving transferable priors.
+ERP ray geometry. Let (u,v) denote normalized ERP
+coordinates. Longitude and latitude are obtained as λ = λ(u)
+and ϕ = ϕ(v), where the exact vertical mapping depends
+on the ERP field of view. In the camera coordinate system,
+spherical ray and lifted 3D points are defined as follows:
+d(λ,ϕ) =
+
+
+−cos ϕ sin λ
+−sin ϕ
+cos ϕ cos λ
+
+, P = Rd, R > 0.
+(3)
+Here, R denotes the Euclidean viewing-ray range. Con-
+versely, for a known 3D point P, we obtain R = ∥P∥2
+and d = P/R in turn. Projection and back-projection wrap
+across the ERP seam.
+Ray-conditioned panoramic adaptation. Foundation geom-
+etry does not explicitly encode ERP-specific viewing direc-
+tions, latitude-dependent distortion, or horizontal periodicity.
+ERGA-RAY therefore associates each token M0,i with:
+gi =
+
+dx,dy,dz, sin λ, cos λ, sin ϕ, cos ϕ
+
+.
+(4)
+The ray components encode the physical viewing direction,
+while the trigonometric angular terms provide a smooth
+spherical positional encoding. In particular, cos ϕ also reflects
+the latitude-dependent area distortion of the ERP parameter-
+ization and therefore serves as a distortion cue.
+
+
+A lightweight geometry encoder maps gi to ei, which
+modulates a low-dimensional projection of the foundation
+token through FiLM:
+˜ci = (1 + η tanh γi) ⊙Wd LN(M0,i) + βi + ei,
+(γi,βi) = ffilm(ei).
+(5)
+The ray-conditioned tokens are rearranged into their ERP
+feature layout and processed by an asymmetric spatial mixer.
+Horizontal interactions use circular padding to preserve left–
+right continuity, whereas vertical interactions remain non-
+periodic. ERGA-RAY predicts a gated residual over the
+pretrained geometry memory:
+M = M0 + gm ⊙Wu MixERP( ˜C),
+gm = σ
+
+fgate( ˜C)
+
+.
+(6)
+Here, Wd and Wu are learned down- and up-projection
+matrices,η bounds the multiplicative FiLM modulation, and
+˜C = [˜c1, . . . ,˜cN]denotes the stacked ray-conditioned tokens.
+This residual formulation preserves transferable foundation
+priors while introducing the spherical and periodic geometry
+required by panoramic 3D object detection.
+C. Visual-Action Reasoning Chain
+To ground 3D hypotheses in panoramic evidence, we
+introduce VARC, enabling evidence-grounded object-level
+3D reasoning through structured geometric actions.
+Hypothesis representation. VARC takes an explicit box
+hypothesis B and its object query Q. We parameterize B
+in panoramic coordinates:
+s = [log ρ,λ,ϕ, log W, log L, log H,θobs],
+ρ =
+p
+X2 + Z2,
+θobs = wrap(θ −λ).
+(7)
+with λ = atan2(−X,Z) and ϕ = atan2(−Y,ρ). Here,
+ρ is the horizontal range used by VARC, while R is
+the Euclidean viewing-ray range used by ERP lifting and
+ERGA-RAY supervision; they satisfy ρ = R cos ϕ. We use
+trigonometric embeddings ψ(s) for angular variables before
+feeding the state to the Reasoner. The box represents the
+geometric hypothesis, while Q supplies object-level context.
+Hypothesis-grounded panoramic evidence. The evidence
+reader
+grounds
+each
+3D
+hypothesis
+in
+target-relevant
+panoramic observations. For each B, we construct K = 13
+object-centric support points comprising the box center, eight
+corners, and four side-face centers. Query-conditioned offsets
+adapt this geometric template while remaining bounded, i.e.,
+∥∆P∥∞≤δmax. The resulting points are projected to ERP
+coordinates and sampled from the fixed geometry memory
+using circular interpolation. For the k-th support point:
+mk = Scirc
+ M,ΠERP(P k; B)
+
+,
+ak = softmaxk
+fk(mk)⊤fq(Q)
+√
+d
+
+.
+(8)
+We
+further
+define
+the
+projection
+descriptor
+p
+=
+[wang,hang,sseam,rvis],
+which
+encodes
+angular
+width,
+angular height, seam crossing, and the fraction of visible
+support points. The target-relevant panoramic evidence is
+then represented as:
+V = fread
+
+
+
+
+
+K
+X
+k=1
+akfv(mk), fq(Q),
+fs(ψ(s)), fp(p)
+
+
+
+
+.
+(9)
+Thus, V provides hypothesis-grounded object-level evidence
+from the panoramic representation.
+Evidence-driven geometric action. Given V , the Visual-
+Action Reasoner combines the evidence with object query,
+spherical state, quality cues, and projection descriptor:
+h = freason
+ "
+V, Q, fs(ψ(s)),
+fc(C), fp(p)
+#!
+.
+(10)
+From h, the model predicts a structured action A and gate
+g = σ(fgate(h)), which controls the action strength. We
+factorize the horizontal-range action into a discrete direction
+d ∈{−1,0, + 1} and continuous magnitude µ ∈[0,1]:
+∆log ρ = g d µ log(1.15).
+(11)
+Here, “radial” refers to the horizontal range ρ, rather than the
+Euclidean viewing-ray range R used for ERP lifting. During
+training, d is represented by the expectation under the three-
+class distribution, whereas inference uses argmax.
+Longitude, latitude, dimensions, and observation-relative
+yaw use bounded actions:
+Acont = g tanh (fact(h)) ⊙κ,
+(12)
+where κ provides variable-dependent geometric bounds.
+These terms form A, yielding:
+s′ = WrapClamp(s + A).
+(13)
+Here, WrapClamp wraps longitude and observation-relative
+yaw to their periodic intervals, clamps latitude to the
+calibrated vertical field of view, and preserves the log-
+parameterization of range and dimensions. Inverse param-
+eterization yields the resulting 3D box B′.
+D. Appearance-Guided Heading Expert
+To recover fine-grained heading cues weakened by global
+ERP encoding, we introduce the AGHE for directed heading
+estimation via high-resolution object-centric re-encoding.
+The AGHE operates on the resulting 3D boxes. Rather
+than rerunning the complete VFM-based 3D detector, it re-
+encodes only the projected object regions at a higher object-
+centric resolution using the pretrained DINOv2 encoder [30]
+from the LingBot branch. For each box B′
+i, we project it back
+to the original ERP image, crop the corresponding object
+region with contextual margins, and reuse the pretrained
+DINOv2 encoder [30]:
+Icrop
+i
+= Crop(I,ΠERP(B′
+i)) ,
+F local
+i
+= FDINO(Icrop
+i
+).
+(14)
+All crops from each ERP image are batched; SAM3 [32], the
+depth decoder, and the detection head are not re-executed.
+
+
+TABLE I: 3D detection results on Spheriverse [12] and PanoMMOcc [13] datasets. Spar., Dens., BEVF., Pola., Solo.,
+DETR., CoiN., PD-B., GeoB., Mono., 3D-M., DetA., and Wild. denote SparseBEV, DenseBEV, BEVFormer, PolarBEVDet,
+SOLOFusion, DETR3D, CoIn3D, PD-BEV, GeoBEV, MonoCop, 3D-MOOD, DetAny3D, and WildDet3D, respectively.
+Dataset
+Metric
+Spar.
+[19]
+Dens.
+[47]
+BEVF.
+[18]
+Pola.
+[48]
+Solo.
+[20]
+DETR.
+[17]
+CoiN.
+[49]
+PD-B.
+[50]
+GeoB.
+[51]
+Mono.
+[52]
+3D-M.
+[53]
+DetA.
+[36]
+Wild.
+[37]
+OmiA.
+(Ours)
+Spheriverse
+mAP ↑
+0.1689 0.0941 0.0941 0.1364 0.1316 0.1296 0.1078 0.1178 0.0654 0.0875 0.1546 0.1183 0.0592 0.1887
+mATE ↓
+1.0160 1.2037 1.2051 0.9457 0.9993 1.1622 0.9835 0.9897 1.2248 1.1941 0.9087 1.1081 0.9951 0.9677
+mASE ↓0.6236 0.5965 0.6645 0.6503 0.6415 0.6524 0.6164 0.6140 0.6117 0.3636 0.3351 0.5726 0.3843 0.3052
+mAOE ↓1.1656 1.3051 1.2033 1.1564 1.3356 1.3024 1.2301 1.1955 1.2056 1.2842 1.5658 1.6130 1.5645 0.8455
+NDS ↑
+0.1221 0.0874 0.0806 0.1086 0.1017 0.0996 0.0939 0.0985 0.0715 0.1074 0.1529 0.1019 0.0917 0.1825
+PanoMMOcc
+mAP ↑
+0.5758 0.5246 0.4026 0.5520 0.5156 0.5196 0.4713 0.4827 0.5517 0.5504 0.3301 0.2566 0.3410 0.5897
+mATE ↓
+0.7092 0.8162 1.0870 0.7072 0.7776 0.9311 0.8399 0.8805 0.7252 0.7449 0.7790 0.8358 0.9831 0.7965
+mASE ↓0.5996 0.6016 0.6017 0.6111 0.6118 0.6061 0.6078 0.6091 0.6089 0.2623 0.3539 0.5967 0.3923 0.3297
+mAOE ↓0.9694 0.9430 0.9576 1.2443 1.0924 0.9085 0.8321 0.8567 0.8852 0.9319 1.5810 1.3586 2.1617 0.7902
+NDS ↑
+0.3601 0.3262 0.2454 0.3442 0.3189 0.3152 0.3077 0.3067 0.3539 0.3813 0.2518 0.1850 0.2330 0.4032
+The local appearance is combined with a category embed-
+ding and an orientation-free geometric encoding:
+ghead
+i
+=
+"
+log ρi, sin λi, cos λi,
+log Wi, log Li, log Hi
+#
+.
+(15)
+The AGHE predicts periodic observation-relative heading
+and converts it to the camera-frame direction:
+(ˆsi,ˆci) = fhead
+ F local
+i
+,ecls
+i , ghead
+i
+
+,
+ˆθi = wrap(atan2(ˆsi,ˆci) + λi) .
+(16)
+The expert replaces the orientation while preserving the
+center, dimensions, category, and detection score.
+E. Training Objectives
+ERGA-RAY is supervised by a multi-target loss:
+LERGA = Ltarget + λoriLori + λpreLpre
++ λconfLconf + λresLres.
+(17)
+Here, Ltarget jointly regresses the seam-aware image-center
+residual, log-range log R, and log-dimensions. The remain-
+ing terms preserve orientation, pretrained regression, and
+confidence predictions, while constraining the magnitude of
+the learned adaptation residual. VARC is supervised by the
+following objective:
+LVARC = Lb + λidLid + λgLg + λrLr.
+(18)
+Here, Lb supervises the resulting spherical box state, Lid
+encourages identity actions for already accurate hypotheses,
+and Lg supervises action-gate activation. Lr denotes the
+radial loss, combining direction classification, action ranking,
+and action-magnitude regression. The AGHE is supervised
+on the sine-cosine encoding of the periodic observation-
+relative heading in Eq. (16) using a cosine loss.
+IV. EXPERIMENTS
+We evaluate OMNIACT3D on two panoramic 3D detec-
+tion benchmarks. We then analyze the effects of ERGA-
+RAY, VARC, and AGHE, and test whether VARC transfers
+between different sensing configurations.
+A. Experimental Setup
+Datasets and metrics. We use Spheriverse [12] and PanoM-
+MOcc [13], which were originally developed for 3D oc-
+cupancy prediction. Both datasets provide LiDAR obser-
+vations, 3D bounding boxes, and camera calibration. We
+transform the boxes from the LiDAR coordinate system to
+the panoramic camera coordinate system to construct the two
+ERP 3D detection benchmarks. The datasets differ in camera
+height, vertical field of view, and object-distance distribution.
+Following the nuScenes-style protocol [54], we report mAP,
+NDS, mATE, mASE, and mAOE as evaluation metrics. The
+two benchmarks do not provide the attribute and velocity
+annotations required for mAAE and mAVE. We therefore
+report a three-TP variant of NDS.
+Baselines and evaluation protocol. We compare against
+representative 3D detectors spanning Cartesian-grid BEV
+architectures [18], [20], [47], geometry-oriented BEV archi-
+tectures [50], [51], polar-coordinate BEV architectures [48],
+sparse query-based architectures [17], [19], configuration-
+aware architectures [49], monocular detectors [52], and
+VFM-based detectors [36], [37], [53]. In Table I, WildDet3D
+uses its original square preprocessing scheme, while 3D-
+MOOD and DetAny3D decompose each panorama into
+perspective views. The remaining methods operate directly
+on the full rectangular equirectangular projection (ERP)
+panorama. All ablations use the same ERP protocol. Unless
+otherwise noted, all methods are evaluated on both bench-
+marks with only minimal dataset-specific adaptations.
+Implementation details. All experiments are conducted on
+four NVIDIA GeForce RTX 3090 GPUs. The VFM-based
+3D detector remains frozen throughout training, and all
+input images are resized to 2480 × 512 pixels. We optimize
+ERGA-RAY, VARC, and AGHE separately, updating one
+component at a time while keeping the others fixed. ERGA-
+RAY and VARC together introduce approximately 17.07M
+trainable parameters, corresponding to only a 0.15% increase
+in the total parameter count, while incurring a measured
+inference-latency overhead of 3.3%–5.0%. For VARC trans-
+fer, we use a target-specific ERGA-Ray module.
+
+
+GT
+W.V
+Ours
+Spar.
+Dense.
+BEVF.
+Pola.
+Solo.
+DETR.
+CoiN.
+PD-B.
+GeoB.
+Mono.
+Wild.
+   Qualitative results on Spheriverse      and  PanoMMOcc 
+Camera height
+360° range
+Spheriverse
+PanoMMOcc
+Fig. 3: Qualitative 3D detection comparisons on Spheriverse [12] (top) and PanoMMOcc [13] (bottom). Columns show the
+Ground Truth (GT), OmniAct3D without VARC (W.V), full OmniAct3D (Ours), and representative baselines.
+B. Main Results
+To evaluate the overall detection performance of OMNI-
+ACT3D, we compare it with existing 3D detectors on both
+benchmarks. Table I reports the results. On Spheriverse,
+OMNIACT3D improves the previous best mAP and NDS
+by 1.98 and 2.96 points, respectively (0.1887 vs. 0.1689 and
+0.1825 vs. 0.1529). On PanoMMOcc, it improves the previ-
+ous best mAP and NDS by 1.39 and 2.19 points, respectively
+(0.5897 vs. 0.5758 and 0.4032 vs. 0.3813). It also gives
+the lowest mASE and mAOE on Spheriverse. The consistent
+gains across both benchmarks show the effectiveness of OM-
+NIACT3D under different panoramic sensing configurations.
+Fig. 3 qualitatively compares OmniAct3D without VARC
+(W.V), full OmniAct3D (Ours), and representative baselines
+across diverse Spheriverse and PanoMMOcc scenes.
+TABLE II: Component ablation.
+Dataset
+ERGA VARC AGHE mAP ↑NDS ↑mATE ↓mASE ↓mAOE ↓
+Spheriverse
+×
+×
+×
+0.0301
+0.0335
+1.1216
+0.8156
+1.1919
+✓
+×
+×
+0.1191
+0.1168
+1.0127
+0.4272
+1.3631
+×
+✓
+×
+0.0798
+0.1073
+1.2703
+0.3257
+1.2984
+✓
+✓
+×
+0.1887
+0.1670
+0.9677
+0.3052
+1.5585
+✓
+✓
+✓
+0.1887
+0.1825
+0.9677
+0.3052
+0.8455
+PanoMMOcc
+×
+×
+×
+0.3410
+0.2330
+0.9831
+0.3923
+1.0770
+✓
+×
+×
+0.4353
+0.2861
+0.9707
+0.3445
+2.1814
+×
+✓
+×
+0.2920
+0.2442
+0.8779
+0.3392
+0.8009
+✓
+✓
+×
+0.5897
+0.3822
+0.7965
+0.3297
+2.0781
+✓
+✓
+✓
+0.5897
+0.4032
+0.7965
+0.3297
+0.7902
+V. ANALYSIS AND ABLATION STUDIES
+We analyze equirectangular projection (ERP) geome-
+try adaptation, hypothesis-evidence-action reasoning, fine-
+grained heading recovery, and reasoning reuse.
+A. Component Ablation Analysis
+Table II reports the component ablation. Adding VARC to
+ERGA-RAY improves mAP by 6.96 points on Spheriverse
+(0.1887 vs. 0.1191) and by 15.44 points on PanoMMOcc
+(0.5897 vs. 0.4353). Adding AGHE further reduces mAOE
+while leaving mAP unchanged. Thus, VARC mainly im-
+proves object localization, whereas AGHE improves heading
+estimation in full OMNIACT3D.
+B. ERP Geometry Adaptation
+ERP-specific geometry modeling. To investigate whether
+existing adaptation methods are sufficient for ERP 3D
+detection, Table III compares several methods using the
+same LingBot backbone [46]. No Adapt. changes only the
+projection to ERP and directly uses the original LingBot
+features. MLP and AdaptFormer [55] apply feature adap-
+tation, while Circular Conv [56], Ray-FiLM [57], and the
+PanoSwin-based [28] model horizontal periodicity, spherical
+viewing rays, and panoramic spatial interactions, respec-
+tively. ERGA-RAY combines spherical ray conditioning with
+periodic spatial modeling. Overall, ERGA-RAY improves
+mAP/NDS over the strongest alternatives by 21.5%/9.1%
+on Spheriverse and by 16.7%/11.1% on PanoMMOcc.
+Geometry backbone comparison. To test whether ERGA-
+RAY is effective with different geometry backbones, Table III
+also evaluates UniK3D [39], DA2 [40], and DAP [41].
+UniK3D is designed for general camera models, while DA2
+and DAP are designed for panoramic images. Although
+DAP with ERGA-RAY has lower mAP than LingBot with
+ERGA-RAY, adding ERGA-RAY still improves DAP by
+44.4% on Spheriverse (0.0986 vs. 0.0683) and by 13.1% on
+PanoMMOcc (0.2097 vs. 0.1854). This shows that ERGA-
+RAY is also effective with a different backbone.
+C. Hypothesis-Evidence-Action Reasoning
+To examine how VARC improves object-level predictions,
+we analyze difficult targets, its three main components, and
+the resulting localization changes.
+Evidence-challenging targets. To test VARC on evidence-
+challenging targets, we use a subset containing objects in
+the lowest area quartile that are at least 75% occluded by
+a closer object. The complement contains all remaining
+
+
+5
+20
+35
+50
+65
+All
+Cumulative planar range (m)
+0.2
+0.3
+0.4
+0.5
+mAP
+Max Δ +0.029
+(a)
+5
+20
+35
+50
+65
+All
+Cumulative planar range (m)
+0.20
+0.25
+0.30
+0.35
+0.40
+NDS
+Max Δ +0.036
+(b)
+Low
+Moderate
+High
+Frame-level overlap severity
+0.14
+0.16
+0.18
+0.20
+0.22
+mAP
+Max Δ +0.014
+(c)
+Low
+Moderate
+High
+Frame-level overlap severity
+0.16
+0.17
+0.18
+0.19
+0.20
+0.21
+NDS
+Max Δ +0.018
+(d)
+1
+5
+9
+13
+All
+Cumulative planar range (m)
+0.0
+0.2
+0.4
+0.6
+0.8
+mAP
+Max Δ +0.202
+(e)
+1
+5
+9
+13
+All
+Cumulative planar range (m)
+0.0
+0.1
+0.2
+0.3
+0.4
+0.5
+NDS
+Max Δ +0.119
+(f)
+Low
+Moderate
+High
+Frame-level overlap severity
+0.45
+0.50
+0.55
+0.60
+0.65
+mAP
+Max Δ +0.031
+(g)
+Low
+Moderate
+High
+Frame-level overlap severity
+0.300
+0.325
+0.350
+0.375
+0.400
+0.425
+NDS
+Max Δ +0.041
+(h)
+Spheriverse
+PanoMMOcc
+Fig. 4: Cumulative mAP and NDS are reported for Spheriverse [12] (a–d) and PanoMMOcc [13] (e–h) across planar-range
+thresholds (a,b,e,f) and overlap levels (c,d,g,h). Blue curves denote the ERGA-Ray+AGHE variant without VARC, whereas
+red curves denote full OmniAct3D.
+TABLE III: Geometry adaptation and backbone comparisons.
+Method
+Backbone
+Spheriverse
+mAP / NDS
+PanoMMOcc
+mAP / NDS
+No Adapt.
+LingBot [46]
+0.0301 / 0.0335
+0.3410 / 0.2330
+MLP
+LingBot [46]
+0.0980 / 0.1066
+0.3730 / 0.2575
+AdaptFormer [55]
+LingBot [46]
+0.0959 / 0.1060
+0.3585 / 0.2458
+Circular Conv [56]
+LingBot [46]
+0.0975 / 0.1071
+0.3692 / 0.2522
+Ray-FiLM [57]
+LingBot [46]
+0.0929 / 0.1051
+0.3689 / 0.2534
+PanoSwin-based [28]
+LingBot [46]
+0.0948 / 0.1056
+0.3690 / 0.2552
+ERGA-Ray
+LingBot [46]
+0.1191 / 0.1168
+0.4353 / 0.2861
+UniK3D Direct
+UniK3D [39]
+0.0682 / 0.0948
+0.1556 / 0.0778
+DA2 Direct
+DA2 [40]
+0.0302 / 0.0518
+0.2621 / 0.1919
+DAP Direct
+DAP [41]
+0.0683 / 0.0947
+0.1854 / 0.1315
+DAP + ERGA
+DAP [41]
+0.0986 / 0.1174
+0.2097 / 0.1696
+objects, and the main results use the full validation sets.
+Center@8 is the one-to-one center error capped at 8 m,
+while S@2m and S@4m measure localization success at
+the corresponding thresholds. Diagnostic mAP is computed
+on this subset. Table IV compares the frozen detector with
+ERGA-RAY only on the subset and its complement. The
+subset has higher center error and lower S@2m on both
+datasets. The reported differences are the subset values minus
+the complement values, with all 95% frame-cluster bootstrap
+confidence intervals excluding zero.
+TABLE IV: Challenging targets versus complement.
+Dataset
+Metric
+Complement Evidence-chall.
+Difference [95% CI]
+Spheriverse
+Center@8 ↓
+5.298 m
+6.924 m
++1.626 [1.396,1.847] m
+S@2m ↑
+23.1%
+3.7%
+−19.5 [−21.5, −17.3] pp
+PanoMMOcc Center@8 ↓
+0.957 m
+1.942 m
++0.985 [0.799,1.179] m
+S@2m ↑
+88.7%
+59.0%
+−29.7 [−35.8, −23.8] pp
+Reasoning-chain components. Table V ablates the key
+VARC designs by replacing hypothesis-conditioned evidence
+with fixed evidence, structured geometric actions with un-
+structured regression, and object-query context with box-
+state-only conditioning. Full VARC achieves 0.1768 diag-
+nostic mAP on PanoMMOcc. Removing evidence local-
+ization, structured action, or object-query context reduces
+it to 0.1257, 0.1400, and 0.1311, respectively. All three
+components therefore contribute to the final result.
+TABLE V: VARC component ablation.
+Spheriverse
+PanoMMOcc
+Variant
+mAP ↑
+NDS ↑
+mAP ↑
+NDS ↑
+Diag. mAP ↑
+Fixed Evidence
+0.1199
+0.1274
+0.5892
+0.4034
+0.1257
+Unstruct. Action
+0.1180
+0.1266
+0.5890
+0.4037
+0.1400
+BBox State Only
+0.1194
+0.1271
+0.5889
+0.4015
+0.1311
+Full VARC
+0.1887
+0.1825
+0.5897
+0.4032
+0.1768
+Geometric gains on evidence-challenging targets. To
+measure the localization changes produced by VARC, we
+compare the same targets with and without VARC. Center
+Gain is the reduction in center error, ∆S is the change
+in localization success, and positive-change precision is the
+percentage of changed predictions that improve. As shown
+in Table VI, VARC reduces center error by 0.80 m on
+Spheriverse and 0.54 m on PanoMMOcc, with positive-
+change precision above 86%.
+TABLE VI: VARC gains on evidence-challenging targets.
+Dataset
+Center
+Gain ↑
+∆S@2m ↑
+∆S@4m ↑
+Positive-change
+Prec. ↑
+Spheriverse
+0.8019 m
++3.79%
++12.30%
+86.79%
+PanoMMOcc
+0.5430 m
++13.97%
++7.94%
+87.88%
+We further examine its effectiveness across different object
+ranges and scene-overlap levels. Figure 4 shows that adding
+VARC improves mAP and NDS across different object
+ranges and overlap levels. The gains are larger for nearby
+objects and scenes with more overlap.
+D. Fine-Grained Heading Recovery
+We evaluate whether object-centric re-encoding recovers
+local appearance cues weakened by global ERP encoding.
+Table II shows that the AGHE leaves mAP unchanged
+while reducing mAOE from 1.5585 to 0.8455 on Spheriverse
+and from 2.0781 to 0.7902 on PanoMMOcc, increasing
+NDS to 0.1825 and 0.4032. Thus, AGHE improves heading
+estimation without changing object localization.
+
+
+TABLE VII: Cross-configuration transfer of VARC.
+Spheriverse Eval
+PanoMMOcc Eval
+VARC Train
+mAP ↑
+NDS ↑
+mAP ↑
+NDS ↑
+Spheriverse
+0.1887
+0.1825
+0.5803
+0.3833
+PanoMMOcc
+0.1800
+0.1727
+0.5897
+0.4032
+E. Cross-Configuration Reasoning Transfer
+To investigate whether VARC remains reusable across
+sensing configurations, we transfer it between the two
+datasets without updating its parameters, using the target-
+specific ERGA-RAY. As shown in Table VII, the transferred
+VARC retains 95% and 98% of same-configuration mAP
+on Spheriverse and PanoMMOcc, respectively (0.1800 vs.
+0.1887 and 0.5803 vs. 0.5897). This shows that object-level
+reasoning is preserved after transfer.
+VI. CONCLUSION
+We present OMNIACT3D for perspective-to-ERP adapta-
+tion of VFM-based 3D detection. The framework addresses
+the three requirements of this central challenge: ERGA-RAY
+aligns pretrained foundation geometry with ERP-specific
+structure, VARC establishes an explicit hypothesis-evidence-
+action reasoning chain for evidence-grounded object-level
+3D reasoning, and an AGHE preserves local cues for di-
+rected heading estimation. OMNIACT3D achieves the best
+mAP and NDS on two ERP benchmarks with heteroge-
+neous sensing configurations. VARC also retains strong
+performance across configurations when paired with target-
+specific ERGA-Ray. These results highlight the effectiveness
+of OMNIACT3D for mobile embodied agents. Future work
+will explore extending evidence-grounded object-level 3D
+reasoning to temporal panoramic observations and more
+complex embodied perception tasks.
+REFERENCES
+[1] Y. Hu et al., “Planning-oriented autonomous driving,” in CVPR, 2023.
+[2] W. Sun et al., “SparseDrive: End-to-end autonomous driving via sparse
+scene representation,” in ICRA, 2025.
+[3] Z. Zhang et al., “Towards intrinsic-aware monocular 3D object detec-
+tion,” in CVPR, 2026.
+[4] J. Wang et al., “VGGT: Visual geometry grounded transformer,” in
+CVPR, 2025.
+[5] A. J. Yang et al., “FOMO-3D: Using vision foundation models for
+long-tailed 3D object detection,” in CoRL, 2025.
+[6] J. Kim et al., “MonoDINO-DETR: Depth-enhanced monocular 3D
+object detection using a vision foundation model,” in IV, 2025.
+[7] A. Kumar et al., “CHARM3R: Towards unseen camera height robust
+monocular 3D detector,” in ICCV, 2025.
+[8] F. Teng et al., “Hallucinating 360°: Panoramic street-view generation
+via local scenes diffusion and probabilistic prompting,” in ICRA, 2026.
+[9] J. Wei et al., “OneBEV++: Towards unifying bird’s-eye-view semantic
+mapping with panoramas,” TPAMI, 2026.
+[10] S. Wu et al., “Quadreamer: Controllable panoramic video generation
+for quadruped robots,” in CoRL, 2025.
+[11] F. Teng et al., “Hallucinating 360°: Panoramic street-view generation
+via local scenes diffusion and probabilistic prompting,” in ICRA, 2026.
+[12] ——, “Spheriverse: 3D scene understanding from spherical observa-
+tions in the wild,” arXiv:2609.09012, 2026.
+[13] G. Zhao et al., “Panoramic multimodal semantic occupancy prediction
+for quadruped robots,” arXiv:2603.13108, 2026.
+[14] Z. Liu et al., “SMOKE: Single-stage monocular 3D object detection
+via keypoint estimation,” in CVPRW, 2020.
+[15] T. Wang et al., “FCOS3D: Fully convolutional one-stage monocular
+3D object detection,” in ICCVW, 2021.
+[16] X. Ma et al., “Delving into localization errors for monocular 3D object
+detection,” in CVPR, 2021.
+[17] Y. Wang et al., “DETR3D: 3D object detection from multi-view
+images via 3D-to-2D queries,” in CoRL, 2021.
+[18] Z. Li et al., “BEVFormer: Learning bird’s-eye-view representation
+from multi-camera images via spatiotemporal transformers,” in ECCV,
+2022.
+[19] H. Liu et al., “SparseBEV: High-performance sparse 3D object detec-
+tion from multi-camera videos,” in ICCV, 2023.
+[20] J. Park et al., “Time will tell: New outlooks and a baseline for temporal
+multi-view 3D object detection,” in ICLR, 2023.
+[21] N. Zioulis et al., “OmniDepth: Dense depth estimation for indoors
+spherical panoramas,” in ECCV, 2018.
+[22] G. Payen de La Garanderie et al., “Eliminating the blind spot:
+Adapting 3D object detection and monocular depth estimation to 360°
+panoramic imagery,” in ECCV, 2018.
+[23] H. Shi et al., “OneOcc: Semantic occupancy prediction for legged
+robots with a single panoramic camera,” in CVPR, 2026.
+[24] M. Duan et al., “O3N: Omnidirectional open-vocabulary occupancy
+prediction for embodied intelligent robotics,” arXiv:2603.12144, 2026.
+[25] B. Coors et al., “SphereNet: Learning spherical representations for
+detection and classification in omnidirectional images,” in ECCV,
+2018.
+[26] Y. Su and K. Grauman, “Learning spherical convolution for fast
+features from 360° imagery,” in NeurIPS, 2017.
+[27] H. Jiang et al., “UniFuse: Unidirectional fusion for 360° panorama
+depth estimation,” RA-L, 2021.
+[28] Z. Ling et al., “PanoSwin: a pano-style swin transformer for panorama
+understanding,” in CVPR, 2023.
+[29] M. Caron et al., “Emerging properties in self-supervised vision trans-
+formers,” in ICCV, 2021.
+[30] M. Oquab et al., “DINOv2: Learning robust visual features without
+supervision,” TMLR, 2024.
+[31] A. Kirillov et al., “Segment anything,” in ICCV, 2023.
+[32] N. Carion et al., “SAM 3: Segment anything with concepts,”
+arXiv:2511.16719, 2026.
+[33] L. Piccinelli et al., “UniDepth: Universal monocular metric depth
+estimation,” in CVPR, 2024.
+[34] R. Wang et al., “MoGe: Unlocking accurate monocular geometry
+estimation for open-domain images with optimal training supervision,”
+in CVPR, 2025.
+[35] J. Yao et al., “Open vocabulary monocular 3D object detection,” in
+3DV, 2026.
+[36] H. Zhang et al., “Detect anything 3D in the wild,” in ICCV, 2025.
+[37] W. Huang et al., “WildDet3D: Scaling promptable 3D detection in the
+wild,” arXiv:2604.08626, 2026.
+[38] Y. Guo et al., “Depth any camera: Zero-shot metric depth estimation
+from any camera,” in CVPR, 2025.
+[39] L. Piccinelli et al., “UniK3D: Universal camera monocular 3D esti-
+mation,” in CVPR, 2025.
+[40] H. Li et al., “DA2: Depth anything in any direction,” in ICLR, 2026.
+[41] X. Lin et al., “Depth any panoramas: A foundation model for
+panoramic depth estimation,” in CVPR, 2026.
+[42] G. C. Ganesan et al., “UniDAC: Universal metric depth estimation for
+any camera,” in CVPR, 2026.
+[43] Y. Guo et al., “PanoVGGT: Feed-forward 3D reconstruction from
+panoramic imagery,” in CVPR, 2026.
+[44] J. Yuan et al., “VGGT-360: Geometry-consistent zero-shot panoramic
+depth estimation,” in CVPR, 2026.
+[45] H. Peng et al., “OmniVGGT: Omni-modality driven visual geometry
+grounded transformer,” in CVPR, 2026.
+[46] B. Tan et al., “Masked depth modeling for spatial perception,”
+arXiv:2601.17895, 2026.
+[47] M. D¨ahling et al., “DenseBEV: Transforming BEV grid cells into 3D
+objects,” in WACV, 2026.
+[48] Z. Yu et al., “PolarBEVDet: Exploring polar representation for multi-
+view 3D object detection in bird’s-eye-view,” arXiv:2408.16200, 2024.
+[49] Z. Kuang et al., “CoIn3D: Revisiting configuration-invariant multi-
+camera 3D object detection,” in CVPR, 2026.
+[50] H. Lu et al., “Towards generalizable multi-camera 3D object detection
+via perspective rendering,” in AAAI, 2025.
+[51] J. Zhang et al., “GeoBEV: Learning geometric BEV representation for
+multi-view 3D object detection,” in AAAI, 2025.
+[52] Z. Zhang et al., “Unleashing the power of chain-of-prediction for
+monocular 3D object detection,” in CVPR, 2026.
+
+
+[53] Y.-H. Yang et al., “3D-MOOD: Lifting 2D to 3D for monocular open-
+set object detection,” in ICCV, 2025.
+[54] H. Caesar et al., “nuScenes: A multimodal dataset for autonomous
+driving,” in CVPR, 2020.
+[55] S. Chen et al., “AdaptFormer: Adapting vision transformers for
+scalable visual recognition,” in NeurIPS, 2022.
+[56] S. Schubert et al., “Circular convolutional neural networks for
+panoramic images and laser data,” in IV, 2019.
+[57] E. Perez et al., “FiLM: Visual reasoning with a general conditioning
+layer,” in AAAI, 2018.

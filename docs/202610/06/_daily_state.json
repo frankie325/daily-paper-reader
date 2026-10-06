@@ -1,0 +1,57 @@
+{
+  "date": "20261006",
+  "date_label": "",
+  "generated_at": "2026-10-06 00:58:47 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.03015v1",
+      "route": "202610/06/2610.03015v1-omniact3d-leveraging-foundation-geometry-and-evidence-grounded-reasoning-for-panoramic-3d-detection",
+      "title": "OmniAct3D: Leveraging Foundation Geometry and Evidence-Grounded Reasoning for Panoramic 3D Detection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "将VFM检测器适配到全景ERP的3D目标检测",
+      "first_seen_at": "2026-10-06 00:58:47 UTC",
+      "updated_at": "2026-10-06 00:58:47 UTC"
+    },
+    {
+      "paper_id": "2609.38758v1",
+      "route": "202610/06/2609.38758v1-event-driven-refresh-and-recurrence-memory-to-reduce-stale-grounding-in-referring-video-object-segmentation",
+      "title": "Event-Driven Refresh and Recurrence Memory to Reduce Stale Grounding in Referring Video Object Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "基于Transformer的指称视频对象分割",
+      "first_seen_at": "2026-10-06 00:58:47 UTC",
+      "updated_at": "2026-10-06 00:58:47 UTC"
+    },
+    {
+      "paper_id": "2609.33109v1",
+      "route": "202610/06/2609.33109v1-toward-comprehensive-3d-grounding-orientation-grounding-through-vision-language-models",
+      "title": "Toward Comprehensive 3D Grounding: Orientation Grounding through Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "obj-detect"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "利用视觉语言模型进行3D物体方向指称",
+      "first_seen_at": "2026-10-06 00:58:47 UTC",
+      "updated_at": "2026-10-06 00:58:47 UTC"
+    }
+  ]
+}
