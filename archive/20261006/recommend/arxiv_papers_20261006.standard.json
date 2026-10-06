@@ -1,138 +1,16 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-06T00:55:47.283566+00:00",
+  "generated_at": "2026-10-06T23:43:46.174989+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 1,
-    "deep_cap": 6,
-    "deep_selected": 1,
-    "quick_candidates": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 0,
     "quick_skim_target": 11,
-    "quick_selected": 2
+    "quick_selected": 0
   },
-  "deep_dive": [
-    {
-      "id": "2610.03015v1",
-      "source": "arxiv",
-      "title": "OmniAct3D: Leveraging Foundation Geometry and Evidence-Grounded Reasoning for Panoramic 3D Detection",
-      "abstract": "Accurate 3D detection is essential for mobile embodied agents, while Vision Foundation Models (VFMs) offer transferable visual and geometric priors. Yet existing VFM-based 3D detectors rely on narrow-view monocular images or discrete perspective views, limiting coherent surround perception; equirectangular projection (ERP) instead encodes a continuous 360 scene in a single image. Direct transfer remains difficult because ERP organizes geometry and visual information differently, making object-relevant cues hard to model, localize, and preserve. We propose OmniAct3D, a framework that adapts perspective-trained VFM detectors to ERP while preserving transferable VFM priors. To resolve geometric mismatch, the ERP-Ray Geometry Adapter (ERGA-Ray) models spherical viewing rays and periodic spatial structure. To localize evidence in scene-wide context, the Visual-Action Reasoning Chain (VARC) grounds each hypothesis in relevant panoramic evidence and converts it into a structured geometric action. To recover local cues lost under fixed token budgets, the Appearance-Guided Heading Expert (AGHE) re-encodes object regions at higher resolution for heading estimation. Experiments show that OmniAct3D improves over the previous best 3D detector by 2.96 NDS points on Spheriverse and over the unadapted VFM baseline by 24.87 mAP points on PanoMMOcc. With target-specific geometry adaptation, VARC retains 95--98% of the same-configuration mAP, indicating reusable object-level 3D reasoning across sensing configurations. The source code will be made publicly available at https://github.com/FeiT-FeiTeng/OmniAct3D.",
-      "authors": [
-        "Runtong Wu",
-        "Fei Teng",
-        "Di Wen",
-        "Guoqiang Zhao",
-        "Kunyu Peng",
-        "Kailun Yang"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI",
-        "cs.RO"
-      ],
-      "published": "2026-10-02T08:49:01+00:00",
-      "link": "https://arxiv.org/pdf/2610.03015v1",
-      "tags": [
-        "keyword:obj-detect",
-        "query:obj-detect"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "3D object detection adapting VFM detectors to panoramic ERP",
-      "llm_evidence_cn": "将VFM检测器适配到全景ERP的3D目标检测",
-      "llm_evidence": "将VFM检测器适配到全景ERP的3D目标检测",
-      "canonical_evidence": "将VFM检测器适配到全景ERP的3D目标检测",
-      "llm_tldr_en": "OmniAct3D tackles 3D detection in panoramic ERP by adapting perspective-trained VFM detectors and introducing ERP-Ray Geometry to preserve transferable priors, improving surround perception for embodied agents.",
-      "llm_tldr_cn": "针对移动具身智能体对全景3D检测的需求，现有基于视觉基础模型（VFM）的检测器受限于窄视角单目或离散视角，难以实现连贯的360度感知。OmniAct3D提出将透视训练的VFM检测器适配到等距柱状投影（ERP），并设计ERP-Ray Geometry模块解决几何不匹配问题。实验表明该方法能有效保留可迁移的VFM先验，提升全景3D检测性能。该工作为全景3D检测提供了新框架，对具身智能导航具有重要意义。",
-      "llm_tldr": "针对移动具身智能体对全景3D检测的需求，现有基于视觉基础模型（VFM）的检测器受限于窄视角单目或离散视角，难以实现连贯的360度感知。OmniAct3D提出将透视训练的VFM检测器适配到等距柱状投影（ERP），并设计ERP-Ray Geometry模块解决几何不匹配问题。实验表明该方法能有效保留可迁移的VFM先验，提升全景3D检测性能。该工作为全景3D检测提供了新框架，对具身智能导航具有重要意义。",
-      "llm_tags": [
-        "query:obj-detect"
-      ],
-      "matched_query_tag": "query:obj-detect",
-      "matched_query_text": "object detection in computer vision",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
-    }
-  ],
-  "quick_skim": [
-    {
-      "id": "2609.38758v1",
-      "source": "arxiv",
-      "title": "Event-Driven Refresh and Recurrence Memory to Reduce Stale Grounding in Referring Video Object Segmentation",
-      "abstract": "Referring Video Object Segmentation (RVOS) aims to produce a pixel-accurate mask sequence for an object specified by natural language. Sa2VA combines a multimodal large language model with SAM2 for grounded segmentation; however, its inference typically grounds the query from a small fixed set of initial keyframes and then relies on propagation. In long or dynamic videos, this can cause stale grounding and persistent false positives when the object composition changes (e.g., distractors enter or the target disappears/re-appears). We propose Event-Driven Refresh + Recurrence Memory (EDRRM), an enhancement that selectively re-invokes Sa2VA only at stable change points. EDRRM triggers refresh boundaries using an EMA-smoothed event score computed from tracking-derived cues (births/deaths and coarse composition/layout changes) with temporal constraints. A recurrence memory further retrieves anchor frames via CLIP similarity to re-condition the model on re-appearance events. Experiments on Ref-DAVIS17, MeViS, and ReVOS show that EDRRM achieves a competitive accuracy-efficiency trade-off relative to fixed-window and FrameDiff-SSIM baselines, maintaining comparable or superior J&F scores at substantially lower average refresh-call budgets and reducing false-positive failures. End-to-end runtime analysis further confirms that the overhead introduced by tracking, CLIP-based recurrence matching, and the identifiability gate remains modest relative to the dominant Sa2VA inference cost, thereby validating the efficiency of the proposed pipeline.",
-      "authors": [
-        "Abu Hanif Muhammad Syarubany",
-        "Jaehyun Jang",
-        "Siwoo Lim",
-        "Seungyeon Ryu",
-        "Chang D. Yoo"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-09-30T01:44:08+00:00",
-      "link": "https://arxiv.org/pdf/2609.38758v1",
-      "tags": [
-        "keyword:obj-detect",
-        "query:obj-detect"
-      ],
-      "llm_score": 7.0,
-      "llm_evidence_en": "transformer-based referring video object segmentation",
-      "llm_evidence_cn": "基于Transformer的指称视频对象分割",
-      "llm_evidence": "基于Transformer的指称视频对象分割",
-      "canonical_evidence": "基于Transformer的指称视频对象分割",
-      "llm_tldr_en": "The paper addresses stale grounding in long videos for referring video object segmentation using Sa2VA; proposes EDRRM that selectively re-invokes Sa2VA at stable change points with recurrence memory; shows reduction in false positives and improved stability.",
-      "llm_tldr_cn": "针对长视频中指称视频对象分割存在的陈旧接地问题，本文提出EDRRM方法，在稳定变化点选择性重新调用Sa2VA并引入循环记忆，实验表明该方法能减少误报并提升分割稳定性，为长视频条件下的对象分割提供了有效改进。",
-      "llm_tldr": "针对长视频中指称视频对象分割存在的陈旧接地问题，本文提出EDRRM方法，在稳定变化点选择性重新调用Sa2VA并引入循环记忆，实验表明该方法能减少误报并提升分割稳定性，为长视频条件下的对象分割提供了有效改进。",
-      "llm_tags": [
-        "query:obj-detect:composite"
-      ],
-      "matched_query_tag": "query:obj-detect:composite",
-      "matched_query_text": "Papers central to 查找计算机视觉领域目标检测相关的论文, especially work that connects or combines: object detection in computer vision; object detection with transformer architectures.",
-      "matched_requirement_id": "req-composite-obj-detect",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "7"
-    },
-    {
-      "id": "2609.33109v1",
-      "source": "arxiv",
-      "title": "Toward Comprehensive 3D Grounding: Orientation Grounding through Vision-Language Models",
-      "abstract": "Grounding is a core capability of spatial vision-language models, yet most existing work focuses only on where a referred object is. Many 3D tasks also require knowing how it is oriented. Although existing 3D VLMs may predict oriented boxes, box pose does not explicitly capture object-centric orientation or symmetry-induced ambiguities. We introduce orientation grounding, a referring grounding task that predicts an object's 6D orientation and axial symmetry from a language or box query in single-view or multi-view scenes. To support this task, we construct ReferOri, with 331K multi-view and 387K single-view orientation-grounding queries obtained through scalable reconstruction, consistency checking, and human verification. We further present OG-VLM, which adapts a 3D VLM with structured box/orientation outputs, sign and symmetry tokens, and geometry-aware auxiliary losses. Across single-view and multi-view benchmarks, OG-VLM substantially outperforms orientation-aware VLM baselines and surpasses object-level orientation foundation models on scene-level referring benchmarks, showing that explicit orientation grounding is a distinct and learnable capability beyond localization. Downstream results validate its benefit for orientation-related spatial reasoning.",
-      "authors": [
-        "Tuo Liang",
-        "Disheng Liu",
-        "Nengbo Wang",
-        "Vipin Chaudhary",
-        "Yu Yin"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "published": "2026-09-27T02:29:30+00:00",
-      "link": "https://arxiv.org/pdf/2609.33109v1",
-      "tags": [
-        "keyword:obj-detect",
-        "query:obj-detect"
-      ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "3D grounding of object orientation using vision-language models",
-      "llm_evidence_cn": "利用视觉语言模型进行3D物体方向指称",
-      "llm_evidence": "利用视觉语言模型进行3D物体方向指称",
-      "canonical_evidence": "利用视觉语言模型进行3D物体方向指称",
-      "llm_tldr_en": "The paper introduces orientation grounding, a task that predicts an object's 6D orientation and axial symmetry from language or box queries, and constructs ReferOri dataset with scalable reconstruction and verification, proposing a model to handle orientation ambiguities.",
-      "llm_tldr_cn": "针对现有3D视觉语言模型仅关注所指物体的位置而忽视其朝向的问题，提出方向指称任务，预测物体的6D方向和轴向对称性，构建了包含331K多视图和387K单视图查询的ReferOri数据集。通过可扩展重建、一致性检查和人工验证获取数据，并进一步提出处理方向歧义的方法。该工作扩展了3D指称理解的维度，为完整3D场景理解提供新基准。",
-      "llm_tldr": "针对现有3D视觉语言模型仅关注所指物体的位置而忽视其朝向的问题，提出方向指称任务，预测物体的6D方向和轴向对称性，构建了包含331K多视图和387K单视图查询的ReferOri数据集。通过可扩展重建、一致性检查和人工验证获取数据，并进一步提出处理方向歧义的方法。该工作扩展了3D指称理解的维度，为完整3D场景理解提供新基准。",
-      "llm_tags": [
-        "query:obj-detect"
-      ],
-      "matched_query_tag": "query:obj-detect",
-      "matched_query_text": "object detection in computer vision",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "6"
-    }
-  ]
+  "deep_dive": [],
+  "quick_skim": []
 }
